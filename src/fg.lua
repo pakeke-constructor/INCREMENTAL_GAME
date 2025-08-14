@@ -32,10 +32,11 @@ function fg.isEvent(ev)
 end
 
 
-function fg.assertIsQuestionOrEvent(ev_or_question)
+function fg.assertIsQuestionOrEvent(ev_or_question, level)
+    level = level or 0
     local isQuestionOrEvent = (fg.isQuestion(ev_or_question) or fg.isEvent(ev_or_question))
     if not isQuestionOrEvent then
-        error("Invalid question/event: " .. tostring(ev_or_question), 2)
+        error("Invalid question/event: " .. tostring(ev_or_question), 2 + level)
     end
 end
 
@@ -63,79 +64,12 @@ end
 
 
 
-local es = require("src.obj.es")
+local objs = require("src.core.objs")
 
 
-fg.System = es.System
-fg.ComponentSystem = es.ComponentSystem
-fg.Entity = es.Entity
-fg.Attachment = es.Attachment
+fg.Object = objs.Object
+fg.Attachment = objs.Attachment
 
-
-
----@type es.World?
-local currentWorld = nil
-
-function fg.newWorld()
-    currentWorld = es.World()
-    ---@cast currentWorld es.World
-    for _,ev in ipairs(definedEvents) do
-        currentWorld:defineEvent(ev)
-    end
-    for _,q in ipairs(questions) do
-        currentWorld:defineQuestion(q.question, q.reducer, q.defaultValue)
-    end
-
-    local systems = fg.requireFolder("src.systems")
-    for _,sysClass in pairs(systems) do
-        currentWorld:addSystem(sysClass)
-    end
-end
-
-
----@return es.World
-function fg.getWorld()
-    return assert(currentWorld)
-end
-
-
----@return es.World?
-function fg.tryGetWorld()
-    return currentWorld
-end
-
-
----@param ev string
----@param ... unknown
-function fg.call(ev, ...)
-    currentWorld:call(ev, ...)
-end
-
-
----@param q string
----@param ... unknown
----@return unknown
-function fg.ask(q, ...)
-    return currentWorld:ask(q, ...)
-end
-
-
-
-
-
----@param e Entity
-function fg.destroy(e)
-    if currentWorld then
-        currentWorld:call("destroy", e)
-        e:delete()
-    end
-end
-
-
----@param e Entity
-function fg.exists(e)
-    return currentWorld and currentWorld:exists(e)
-end
 
 
 

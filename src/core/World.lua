@@ -4,7 +4,7 @@
 local World = objects.Class("es:World")
 
 
-local newObjectType = require("src.obj.Object")
+local newObjectType = require(".Object")
 
 
 

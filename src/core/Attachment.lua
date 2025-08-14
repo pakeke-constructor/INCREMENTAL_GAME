@@ -83,7 +83,7 @@ local function newAttachment()
                 error("Attempted to overwrite privaleged method")
             end
             if (not OVERRIDES[k]) and type(v) == "function" then
-                fg.assertIsQuestionOrEvent(k)
+                fg.assertIsQuestionOrEvent(k, 1)
             end
             rawset(t,k,v)
         end

@@ -47,14 +47,16 @@ _G.json = require("lib.json")
 _G.consts = require("src.consts")
 
 _G.log = require("src.log")
-_G.localization = require("src.localization")
 
 ---@diagnostic disable-next-line
 _G.typecheck = require("src.typecheck.typecheck")
 
 _G.objects = require("src.objects.objects")
 
+_G.localization = require("src.localization")
+
 _G.fg = require("src.fg")
+
 --[[
 =========
 GLOBALS END
@@ -73,66 +75,88 @@ setmetatable(_G, {
 
 
 if consts.TEST then
-    require("src.obj._tests")
+    require("src.core._tests")
 end
 
-require("src.events_questions")
+require("src.ev_q_definitions")
 
 
 
+
+local sceneManager = require("src.scenes.sceneManager")
 
 
 function love.load()
-    fg.newWorld()
+    sceneManager.gotoScene("forest")
 end
-
 
 
 function love.update(dt)
-    local w = fg.tryGetWorld()
-    if w then
-        w:call("update", dt)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.update then
+        sc:update(dt)
     end
 end
 
-
 function love.draw()
-    local w = fg.tryGetWorld()
-    if w then
-        w:call("draw")
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.draw then
+        sc:draw()
     end
-    scene:render(getScreenView())
 end
 
 function love.mousepressed(mx, my, button, istouch, presses)
-    local consumed = scene:mousepressed(mx, my, button, istouch, presses)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.mousepressed then
+        sc:mousepressed(mx, my, button, istouch, presses)
+    end
 end
 
 function love.mousereleased(mx, my, button, istouch)
-    scene:mousereleased(mx, my, button, istouch)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.mousereleased then
+        sc:mousereleased(mx, my, button, istouch)
+    end
 end
 
 function love.mousemoved(mx, my, dx, dy, istouch)
-    scene:mousemoved(mx, my, dx, dy, istouch)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.mousemoved then
+        sc:mousemoved(mx, my, dx, dy, istouch)
+    end
 end
 
-function love.keypressed(key, sc, isrep)
-    local consumed = scene:keypressed(key, sc, isrep)
+function love.keypressed(key, scancode, isrep)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.keypressed then
+        sc:keypressed(key, scancode, isrep)
+    end
 end
 
 function love.keyreleased(key, scancode)
-    scene:keyreleased(key, scancode)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.keyreleased then
+        sc:keyreleased(key, scancode)
+    end
 end
 
 function love.textinput(text)
-    local consumed = scene:textinput(text)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.textinput then
+        sc:textinput(text)
+    end
 end
 
-function love.wheelmoved(dx,dy)
-    scene:wheelmoved(dx,dy)
+function love.wheelmoved(dx, dy)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.wheelmoved then
+        sc:wheelmoved(dx, dy)
+    end
 end
 
-function love.resize(x,y)
-    scene:resize(x,y)
+function love.resize(w, h)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.resize then
+        sc:resize(w, h)
+    end
 end
-

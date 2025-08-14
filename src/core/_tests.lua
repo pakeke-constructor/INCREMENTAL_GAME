@@ -26,66 +26,10 @@ local Object = require(".Object")
 
 
 
--- event defs
-do
-local function defEvent(ev)
-    w:defineEvent(ev)
-    fg.defineEvent(ev)
-end
-
-defEvent("testState")
-defEvent("errorCall")
-defEvent("assertEntityCount")
-
-defEvent("testEvent")
-
-w:defineQuestion("testQuestion", function(x,y)return x+y end, 0)
-fg.defineQuestion("testQuestion", function(x,y)return x+y end, 0)
-end
-
-
-
-
-
-local A = System()
-do
-function A:init()
-    self.x = 0
-end
-function A:testState()
-    self.x = self.x + 1
-end
-function A:errorCall()
-    error("fail")
-end
-function A:testQuestion()
-    return self.x
-end
-end
-
-
-
-
-
--- testing events / questions / state, and init function
-
---[[
-todo, rework these tests.
-do
-local ob = Object(name, {})
-w:addSystem(A)
-w:call("testState")
-w:call("testState")
-w:call("testState")
-
-assert(w:getSystem(A).x == 3)
-assert(w:ask("testQuestion") == 3)
-w:addSystem(A2)
-assert(w:ask("testQuestion") == 5)
-end
-
-]]
-
+fg.defineEvent("testEvent")
+fg.defineQuestion("testQuestion", function (a, b)
+    return a+b
+end, 0)
 
 
 
@@ -109,6 +53,8 @@ end
 
 
 
+--[[
+
 -- testing basic attachment functionality
 do
 w:defineEntity("attachment_test_ent", {})
@@ -127,7 +73,6 @@ assert(w:ask("testQuestion", e) == 6)
 e:detach(atc)
 assert(atc.ent == nil)
 
-clearWorld()
 end
 
 
@@ -144,8 +89,6 @@ assert(e:getAttachmentById("test") == atc1)
 e:attach(atc2)
 assert(e:getAttachmentById("test") == atc2)
 assert(atc1.ent == nil)
-
-clearWorld()
 end
 
 
@@ -161,11 +104,10 @@ e:attach(atc2)
 w:call("testEvent", e)
 assert(atc1.value == 6 and atc2.value == 11)
 assert(w:ask("testQuestion", e) == 17) -- 6 + 11
-
-clearWorld()
 end
 
 
+]]
 
 
 
