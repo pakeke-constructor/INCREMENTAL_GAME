@@ -1,31 +1,17 @@
 
 
 
----@class es.EntityClass
+---@class es.ObjectClass
 ---@field protected _world es.World
 ---@field protected _name es.World
 ---@field init function
-local Entity = {}
-local Entity_mt = {__index=Entity}
+local Object = {}
+local Object_mt = {__index=Object}
 
 
 
-function Entity:isSharedComponent(comp)
-    local shcomps = self:getSharedComponents()
-    return (not rawget(self, comp)) and (rawget(shcomps, comp) ~= nil)
-end
 
-function Entity:isRegularComponent(comp)
-    return rawget(self, comp) ~= nil
-end
-
-function Entity:hasComponent(comp)
-    return rawget(self, comp) ~= nil
-end
-
-
-
-function Entity:_ensureAttachments()
+function Object:_ensureAttachments()
     if not self.attachments then
         self.attachments = {
             ids = {--[[
@@ -43,7 +29,7 @@ end
 
 
 ---@param atc es.Attachment
-function Entity:attach(atc)
+function Object:attach(atc)
     self:_ensureAttachments()
 
     local atcs = self.attachments
@@ -55,8 +41,8 @@ function Entity:attach(atc)
         atcs.ids[atc.id] = atc
     end
 
-    assert(not atc.ent, "Entity attached twice")
-    atc.ent = self
+    assert(not atc.ob, "Object attached twice")
+    atc.ob = self
 
     for _, event in ipairs(atc:getEvents()) do
         atcs.events[event] = atcs.events[event] or objects.Set()
@@ -69,14 +55,14 @@ function Entity:attach(atc)
     end
 
     if atc.onAttached then
-        atc:onAttached(atc.ent)
+        atc:onAttached(atc.ob)
     end
 end
 
 
 
 ---@param atc string|es.Attachment
-function Entity:detach(atc)
+function Object:detach(atc)
     local atcs = self.attachments
     if not atcs then return end
     if type(atc) == "string" then
@@ -99,20 +85,20 @@ function Entity:detach(atc)
     end
 
     if atc.onDetached then
-        atc:onDetached(atc.ent)
+        atc:onDetached(atc.ob)
     end
-    atc.ent = nil
+    atc.ob = nil
 end
 
 
 
-function Entity:getAttachmentById(id)
+function Object:getAttachmentById(id)
     return self.attachments.ids[id]
 end
 
 ---@param event string
 ---@param ... unknown
-function Entity:_callAttachments(event, ...)
+function Object:call(event, ...)
     local atcs = self.attachments
     if not atcs or not atcs.events[event] then return end
     for _, atc in ipairs(atcs.events[event]) do
@@ -124,11 +110,12 @@ end
 
 
 ---@param question string
----@param reducer fun(a:any, b:any): any
----@param value any
 ---@param ... unknown
 ---@return any
-function Entity:_askAttachments(question, reducer, value, ...)
+function Object:ask(question, ...)
+    local reducer = getQuestionReducer(question)
+    local value = getQuestionDefaultValue(question)
+
     local atcs = self.attachments
     if not atcs or not atcs.questions[question] then return value end
     local result = value
@@ -138,14 +125,13 @@ function Entity:_askAttachments(question, reducer, value, ...)
             result = reducer(result, answer)
         end
     end
-    
     return result
 end
 
 
 
 
-function Entity:getSharedComponents()
+function Object:getSharedComponents()
     -- huge stinky hack! 
     -- oh well, make sure we test it.
     return getmetatable(self).__index
@@ -153,54 +139,21 @@ end
 
 
 
-function Entity:getWorld()
+function Object:getWorld()
     return self._world
 end
 
-function Entity:getTypename()
+function Object:getTypename()
     return self._name
 end
 
 
 
----@param comp string
----@param val any
-function Entity:addComponent(comp, val)
-    rawset(self,comp,val)
-    local world = self:getWorld()
-    world:_addComponent(self,comp)
-end
 
----@param comp string
-function Entity:removeComponent(comp)
-    local isRegular = self:isRegularComponent(comp)
-    local world = self:getWorld()
-    rawset(self,comp,nil)
-    if isRegular then
-        world:_removeComponent(self,comp)
-    end
-end
-
-
-
-
-function Entity:isDeleted()
-    return self.___deleted
-end
-
-function Entity:delete()
-    local w = self:getWorld()
-    w:_removeEntity(self)
-    self.___deleted = true
-end
-
-
-
-
-local function shallowCopy(etype)
-    assert(not getmetatable(etype), "?")
+local function shallowCopy(otype)
+    assert(not getmetatable(otype), "?")
     local cpy={}
-    for k,v in pairs(etype) do
+    for k,v in pairs(otype) do
         cpy[k]=v
     end
     return cpy
@@ -208,34 +161,35 @@ end
 
 
 ---@param name string
----@param world es.World
----@param etype table
-local function newEntityType(name, world, etype)
-    etype = shallowCopy(etype)
+---@param otype table
+local function newObjectType(name, otype)
+    otype = shallowCopy(otype)
 
-    etype._world = world
-    etype._name = name
+    otype._name = name
 
-    local ent_mt = {
-        __index = setmetatable(etype, Entity_mt),
-        __newindex = Entity.addComponent
+    for k,v in pairs(otype) do
+        if Object[k] then
+            error("Attempted to overwrite privaleged method: " .. tostring(k))
+        end
+    end
+
+    local mt = {
+        __index = setmetatable(otype, Object_mt),
     }
 
-    local function newEntityInstance(x, y, ...)
-        local e = setmetatable({
-            x=x, y=y
-        }, ent_mt)
+    local function newInstance(...)
+        local e = setmetatable({}, mt)
         if e.init then
-            e:init(x, y, ...)
+            e:init(...)
         end
         return e
     end
 
-    return newEntityInstance
+    return newInstance
 end
 
 
 
-return newEntityType
+return newObjectType
 
 

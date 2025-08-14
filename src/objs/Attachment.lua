@@ -10,7 +10,7 @@ They are like systems, but only on the entity they are attached to.
 
 ---@class es.Attachment
 ---@field id string?
----@field ent es.Entity
+---@field ob es.Object
 local Attachment = {}
 
 
@@ -21,19 +21,19 @@ local OVERRIDES = {
 }
 
 
-function Attachment:init(n)
+function Attachment:init()
 end
 
 
 function Attachment:getEntity()
-    return self.ent
+    return self.ob
 end
 
 
-function Attachment:onAttached(ent)
+function Attachment:onAttached(ob)
 end
 
-function Attachment:onDetached(ent)
+function Attachment:onDetached(ob)
 end
 
 
@@ -61,7 +61,7 @@ end
 
 
 function Attachment:detach()
-    self.ent:detach(self)
+    self.ob:detach(self)
 end
 
 

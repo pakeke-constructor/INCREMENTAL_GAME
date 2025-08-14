@@ -2,15 +2,25 @@
 
 # Architecture:
 
-World: ECS-world; each Zone has a world.
-- Resources are entities,
-- Particles are entities,
-- (Even UI are entities...? (<-- juice code works with UI too..?))
+
+## Overarching architecture: `HYBRID-OOP`
+Each object has methods that can respond to events.  
+
+Everything is an Object.
+- Resources are objects,
+- Particles are objects,
+- UI are also objects...? <-- ensures that juice code works with UI too
+
 
 Scenes: represent a "screen" that the player can be on.
-    -> (Scenes contain ECS worlds)
+    - Collection (represents a spatial-partitioned collection of objects)
+    - UI-Elements
 
 SceneManager -> responsible for navigating between scenes
+
+
+## Services / Tools:
+UpgradeService -> handles ALL upgrades, prestige, perks, etc etc.
 
 
 
@@ -19,6 +29,8 @@ Main-Menu: Scene, basic main menu.
 Map: Scene object. Represents the world map
 Skill-Tree: Scene object. Has a big skill-tree that can be modified
 Forest-Zone: Scene object. Forest-zone where you can mine logs
+
+
 
 
 ## QUESTION:
@@ -31,11 +43,5 @@ end
 
 
 ```
-
-
-
-
-
-
 
 

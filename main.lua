@@ -73,7 +73,7 @@ setmetatable(_G, {
 
 
 if consts.TEST then
-    require("src.es._ES_tests")
+    require("src.obj._tests")
 end
 
 require("src.events_questions")
