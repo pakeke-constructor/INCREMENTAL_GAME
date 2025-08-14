@@ -26,8 +26,8 @@ local Object = require(".Object")
 
 
 
-fg.defineEvent("testEvent")
-fg.defineQuestion("testQuestion", function (a, b)
+g.defineEvent("testEvent")
+g.defineQuestion("testQuestion", function (a, b)
     return a+b
 end, 0)
 

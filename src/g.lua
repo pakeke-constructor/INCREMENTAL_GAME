@@ -1,20 +1,47 @@
 
 
+-- global exports.
+-- Gotta go fast, i dont care about "best practice"
 
----@class fg
-local fg = {}
+---@class g
+---@field private _money integer
+local g = {}
 
 
 
 local isLoadTime = true
 
 ---@return boolean
-function fg.isLoadTime()
+function g.isLoadTime()
     return isLoadTime
 end
 
-function fg.finishLoading()
+function g.finishLoading()
     isLoadTime = false
+end
+
+
+
+g._money = 0
+
+function g.addMoney(x)
+    g._money = g._money + x
+end
+
+
+function g.trySubtractMoney(x)
+    -- used for shopping:  
+    -- if g.trySubtractMoney(COST) then  getUpgrade()  end
+    if x <= g._money then
+        g._money = g._money - x
+        return true
+    end
+    return false
+end
+
+
+function g.getMoney()
+    return g._money
 end
 
 
@@ -22,19 +49,19 @@ end
 
 local definedEvents = objects.Set()
 
-function fg.defineEvent(ev)
-    assert(fg.isLoadTime())
+function g.defineEvent(ev)
+    assert(g.isLoadTime())
     definedEvents:add(ev)
 end
 
-function fg.isEvent(ev)
+function g.isEvent(ev)
     return definedEvents:has(ev)
 end
 
 
-function fg.assertIsQuestionOrEvent(ev_or_question, level)
+function g.assertIsQuestionOrEvent(ev_or_question, level)
     level = level or 0
-    local isQuestionOrEvent = (fg.isQuestion(ev_or_question) or fg.isEvent(ev_or_question))
+    local isQuestionOrEvent = (g.isQuestion(ev_or_question) or g.isEvent(ev_or_question))
     if not isQuestionOrEvent then
         error("Invalid question/event: " .. tostring(ev_or_question), 2 + level)
     end
@@ -44,15 +71,15 @@ end
 local questions = objects.Array()
 local definedQuestions = objects.Set()
 
-function fg.isQuestion(q)
+function g.isQuestion(q)
     return definedQuestions:has(q)
 end
 
 ---@param question string
 ---@param reducer fun(a:any, b:any): any
 ---@param defaultValue any
-function fg.defineQuestion(question, reducer, defaultValue)
-    assert(fg.isLoadTime())
+function g.defineQuestion(question, reducer, defaultValue)
+    assert(g.isLoadTime())
     questions:add({
         question = question,
         reducer = reducer,
@@ -67,14 +94,14 @@ end
 local objs = require("src.core.objs")
 
 
-fg.Object = objs.Object
-fg.Attachment = objs.Attachment
+g.Object = objs.Object
+g.Attachment = objs.Attachment
 
 
 
 
 
-function fg.walkDirectory(path, func)
+function g.walkDirectory(path, func)
     local info = love.filesystem.getInfo(path)
     if not info then return end
 
@@ -83,15 +110,15 @@ function fg.walkDirectory(path, func)
     elseif info.type == "directory" then
         local dirItems = love.filesystem.getDirectoryItems(path)
         for _, pth in ipairs(dirItems) do
-            fg.walkDirectory(path .. "/" .. pth, func)
+            g.walkDirectory(path .. "/" .. pth, func)
         end
     end
 end
 
 
-function fg.requireFolder(path)
+function g.requireFolder(path)
     local results = {}
-    fg.walkDirectory(path:gsub("%.", "/"), function(pth)
+    g.walkDirectory(path:gsub("%.", "/"), function(pth)
         if pth:sub(-4,-1) == ".lua" then
             pth = pth:sub(1, -5)
             log.trace("loading file:", pth)
@@ -102,5 +129,5 @@ function fg.requireFolder(path)
 end
 
 
-return fg
+return g
 

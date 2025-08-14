@@ -116,7 +116,7 @@ local strTc = typecheck.assert("string")
 ---@return localization.Interpolator
 function localization.newInterpolator(text, context)
     strTc(text)
-    local loadingContext = assert(fg.isLoadTime(), "this can only be called at load-time")
+    local loadingContext = assert(g.isLoadTime(), "this can only be called at load-time")
     local key = loadingContext.modname.."\0"..text
     local interpolator = interpolators[key]
 
@@ -174,7 +174,7 @@ end
 ---Availability: Client and Server
 ---@param fsysobj umg.FilesystemObject
 function localization.load()
-    local loadingContext = assert(fg.isLoadTime(), "this can only be called at load-time")
+    local loadingContext = assert(g.isLoadTime(), "this can only be called at load-time")
     local lang = love.system.getPreferredLocales()[1]
 
     -- Localization file without country-specific code has lower priority.

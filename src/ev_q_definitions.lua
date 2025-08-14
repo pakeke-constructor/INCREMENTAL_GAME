@@ -1,10 +1,10 @@
 
 
-fg.defineEvent("draw")
-fg.defineEvent("update")
+g.defineEvent("draw")
+g.defineEvent("update")
 
 
-fg.defineEvent("clicked")
+g.defineEvent("clicked")
 
 
 

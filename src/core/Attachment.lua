@@ -40,7 +40,7 @@ end
 function Attachment:getEvents()
     local events = {}
     for k, v in pairs(getmetatable(self).__index) do
-        if type(v) == "function" and fg.isEvent(k) then
+        if type(v) == "function" and g.isEvent(k) then
             table.insert(events, k)
         end
     end
@@ -51,7 +51,7 @@ end
 function Attachment:getQuestions()
     local questions = {}
     for k, v in pairs(getmetatable(self).__index) do
-        if type(v) == "function" and fg.isQuestion(k) then
+        if type(v) == "function" and g.isQuestion(k) then
             table.insert(questions, k)
         end
     end
@@ -83,7 +83,7 @@ local function newAttachment()
                 error("Attempted to overwrite privaleged method")
             end
             if (not OVERRIDES[k]) and type(v) == "function" then
-                fg.assertIsQuestionOrEvent(k, 1)
+                g.assertIsQuestionOrEvent(k, 1)
             end
             rawset(t,k,v)
         end

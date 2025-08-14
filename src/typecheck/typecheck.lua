@@ -59,12 +59,6 @@ types.bool = types.boolean
 
 
 
-function types.entity(x)
-    return fg.exists(x), "expected entity"
-end
-types.ent = types.entity
-
-
 
 
 local function optional(f, str)

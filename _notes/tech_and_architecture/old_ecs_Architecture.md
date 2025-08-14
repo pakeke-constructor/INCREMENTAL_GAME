@@ -9,7 +9,7 @@ It represents all the engine stuff.
 src/
     es/ entity-system stuff
     objects/ common data-structures
-    fg.lua  core API, exposed to world-files
+    g.lua  core API, exposed to world-files
 
     systems/ 
         Any code that makes the game "work" is here.
@@ -30,7 +30,7 @@ local e = {x=1, y=1, image="bullet"}
 
 
 -- ALL entities have an x,y component
-local EType = fg.EntityType("my_ent", {
+local EType = g.EntityType("my_ent", {
     init = function(ent, x, y)
     end,
 
@@ -40,7 +40,7 @@ local EType = fg.EntityType("my_ent", {
 
 
 
-local Sys = fg.System()
+local Sys = g.System()
 
 function Sys:init()
     self.data = 5 
@@ -56,8 +56,8 @@ function Sys:drawEntity(ent)
 end
 
 
-fg.getSystem(SystemClass) -- gets the system-instance from a SystemClass
-fg.getWorld()
+g.getSystem(SystemClass) -- gets the system-instance from a SystemClass
+g.getWorld()
 
 
 
@@ -74,7 +74,7 @@ e:attach(a.Explosive(3)) -- entity explodes on death
 
 
 
-local DrawSys = fg.ComponentSystem("drawable")
+local DrawSys = g.ComponentSystem("drawable")
 -- component-systems can only take 1 component. 
 -- This works for like 95% of the use cases, in practice
 

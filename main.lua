@@ -55,7 +55,7 @@ _G.objects = require("src.objects.objects")
 
 _G.localization = require("src.localization")
 
-_G.fg = require("src.fg")
+_G.g = require("src.g")
 
 --[[
 =========
