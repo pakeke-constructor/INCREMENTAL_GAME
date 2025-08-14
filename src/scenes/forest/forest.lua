@@ -10,9 +10,16 @@ local SAPLING = {
 }
 
 
+local MONEY_INTERP = localization.newInterpolator("{wavy}{outline}MONEH: %{money}")
+
 function forest:draw()
-    love.graphics.setColor(0,1,0)
-    love.graphics.print("MONEH: " .. tostring(math.floor(g.getMoney())), 20, 20)
+    love.graphics.clear(0.3,0.7,0.25)
+    love.graphics.setColor(1,1,1)
+
+    local txt = MONEY_INTERP({
+        money = (math.floor(g.getMoney()))
+    })
+    richtext.printRichContained(txt, love.graphics.getFont(), 10, 10, 80, 20)
 
     love.graphics.rectangle("fill", unpack(SAPLING))
 end

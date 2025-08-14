@@ -43,6 +43,9 @@ end
 GLOBALS START
 =========
 ]]
+_G.utf8 = require("utf8")
+_G.table.clear = require("table.clear")
+
 _G.json = require("lib.json")
 _G.consts = require("src.consts")
 
@@ -52,6 +55,8 @@ _G.log = require("src.log")
 _G.typecheck = require("src.typecheck.typecheck")
 
 _G.objects = require("src.objects.objects")
+
+_G.richtext = require("src.richtext.exports")
 
 _G.localization = require("src.localization")
 

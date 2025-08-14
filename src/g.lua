@@ -9,15 +9,18 @@ local g = {}
 
 
 
-local isLoadTime = true
+local loadingContext = {
+    modname = "@" -- @ = built-in mod
+}
 
----@return boolean
-function g.isLoadTime()
-    return isLoadTime
+
+---@return {modname:string}
+function g.getLoadingContext()
+    return loadingContext
 end
 
 function g.finishLoading()
-    isLoadTime = false
+    loadingContext = nil
 end
 
 
@@ -50,7 +53,7 @@ end
 local definedEvents = objects.Set()
 
 function g.defineEvent(ev)
-    assert(g.isLoadTime())
+    assert(g.getLoadingContext())
     definedEvents:add(ev)
 end
 
@@ -79,7 +82,7 @@ end
 ---@param reducer fun(a:any, b:any): any
 ---@param defaultValue any
 function g.defineQuestion(question, reducer, defaultValue)
-    assert(g.isLoadTime())
+    assert(g.getLoadingContext())
     questions:add({
         question = question,
         reducer = reducer,
