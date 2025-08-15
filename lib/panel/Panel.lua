@@ -1,9 +1,6 @@
-
-
-
 ---@class Panel
 ---@field children Panel[]
----@field clickedChild Panel
+---@field isClicked boolean
 ---@field clickTime number
 local Panel = {}
 local Panel_mt = {__index = Panel}
@@ -17,7 +14,7 @@ local function newPanel()
     return setmetatable({
         x=0,y=0, w=0,h=0,
         children = {},
-        clickedChild = nil,
+        isClicked = false,
         clickTime = -100, -- when was the press 
     }, Panel_mt)
 end
@@ -61,11 +58,19 @@ end
 
 
 function Panel:mousepressed(m, x, y)
-    for _, p in ipairs(self.children) do
-        if isContained(p, x,y) then
-            self.clickedChild = p
+    if #self.children > 0 then
+        -- Has children, propagate to children
+        for _, p in ipairs(self.children) do
+            if isContained(p, x,y) then
+                p:mousepressed(m, x, y)
+                return -- Only the first matching child gets the event
+            end
+        end
+    else
+        -- No children, handle press on self
+        if isContained(self, x, y) then
+            self.isClicked = true
             self.clickTime = love.timer.getTime()
-            break
         end
     end
 end
@@ -79,14 +84,21 @@ end
 
 
 function Panel:mousereleased(m, x, y)
-    local p = self.clickedChild
-    if p and isContained(p, x,y) then
-        if p.onClicked and (timeSinceClick(self) < THRESHOLD) then
-            p:onClicked(m, x,y)
+    if #self.children > 0 then
+        -- Has children, propagate to children
+        for _, p in ipairs(self.children) do
+            p:mousereleased(m, x, y)
         end
+    else
+        -- No children, handle release on self
+        if self.isClicked and isContained(self, x, y) then
+            if self.onClicked and (timeSinceClick(self) < THRESHOLD) then
+                self:onClicked(m, x, y)
+            end
+        end
+        self.isClicked = false
+        self.clickTime = -100
     end
-    self.clickedChild = nil
-    self.clickTime = -100
 end
 
 
@@ -114,11 +126,10 @@ function Panel:draw(x,y, w,h)
     self.w = w
     self.h = h
 
-    self:onDraw()
+    self:onDraw(x,y,w,h)
 end
 
 
 
 
 return newPanel
-
