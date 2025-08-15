@@ -60,6 +60,8 @@ _G.richtext = require("src.richtext.exports")
 
 _G.localization = require("src.localization")
 
+_G.Kirigami = require("lib.kirigami")
+
 _G.g = require("src.g")
 
 --[[
@@ -92,7 +94,7 @@ local sceneManager = require("src.scenes.sceneManager")
 
 
 function love.load()
-    sceneManager.gotoScene("forest")
+    sceneManager.gotoScene("map")
 end
 
 
