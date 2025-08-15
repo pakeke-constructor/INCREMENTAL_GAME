@@ -1,5 +1,6 @@
 
 
+---@class SceneManager
 local sceneManager = {}
 
 

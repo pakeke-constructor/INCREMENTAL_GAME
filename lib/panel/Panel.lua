@@ -1,3 +1,4 @@
+
 ---@class Panel
 ---@field children Panel[]
 ---@field isClicked boolean

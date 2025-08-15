@@ -61,9 +61,11 @@ _G.richtext = require("src.richtext.exports")
 _G.localization = require("src.localization")
 
 _G.Kirigami = require("lib.kirigami")
+_G.Panel = require("lib.panel.Panel")
+
+_G.ui = require("src.ui.ui")
 
 _G.g = require("src.g")
-
 --[[
 =========
 GLOBALS END
@@ -90,8 +92,8 @@ require("src.ev_q_definitions")
 
 
 
-local sceneManager = require("src.scenes.sceneManager")
 
+local sceneManager = require("src.scenes.sceneManager")
 
 function love.load()
     sceneManager.gotoScene("map")

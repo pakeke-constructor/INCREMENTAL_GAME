@@ -49,6 +49,15 @@ end
 
 
 
+local sceneManager
+
+---@param scName string
+function g.gotoScene(scName)
+    sceneManager = sceneManager or require("src.scenes.sceneManager")
+    sceneManager.gotoScene(scName)
+end
+
+
 
 local definedEvents = objects.Set()
 
