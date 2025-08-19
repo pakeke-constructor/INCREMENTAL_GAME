@@ -80,6 +80,11 @@ function g.assertIsQuestionOrEvent(ev_or_question, level)
 end
 
 
+function g.call(ev, ...)
+    
+end
+
+
 local questions = objects.Array()
 local definedQuestions = objects.Set()
 

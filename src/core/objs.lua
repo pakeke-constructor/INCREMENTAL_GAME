@@ -1,7 +1,7 @@
 
 
-local Attachment = require("src.core.Attachment")
-local Object = require("src.core.Object")
+local Attachment = require(".core.Attachment")
+local Object = require(".core.Object")
 
 
 return {
