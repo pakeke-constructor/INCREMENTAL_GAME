@@ -49,6 +49,12 @@ _G.table.clear = require("table.clear")
 _G.json = require("lib.json")
 _G.consts = require("src.consts")
 
+local AutoAtlas = require("lib.AutoAtlas.AutoAtlas")
+_G.atlas = AutoAtlas(consts.ATLAS_SIZE, consts.ATLAS_SIZE)
+
+_G.inspect = require("lib.inspect.inspect")
+
+
 _G.log = require("src.log")
 
 ---@diagnostic disable-next-line
