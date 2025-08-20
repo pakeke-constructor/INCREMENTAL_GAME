@@ -353,7 +353,7 @@ end
 
 function iml.mousereleased(x, y, button, istouch, presses)
     local cl = currentClicks[button]
-    if isClick(cl) then
+    if cl and isClick(cl) then
         clickReleases[button] = cl
     end
     currentClicks[button] = nil
@@ -386,6 +386,12 @@ end
 function iml.textinput(txt)
     text = (text or "") .. txt
 end
+
+
+function iml.wheelmoved(dx,dy)
+    -- TODO: implement me
+end
+
 
 
 

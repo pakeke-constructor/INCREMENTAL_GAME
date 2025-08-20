@@ -38,6 +38,14 @@ end
 
 
 
+love.graphics.setDefaultFilter("nearest", "nearest")
+
+-- todo: set a better font here
+love.graphics.setFont(love.graphics.newFont(64))
+
+local font = love.graphics.getFont()
+-- font:setFilter("nearest", "nearest")
+
 --[[
 =========
 GLOBALS START
@@ -66,8 +74,9 @@ _G.richtext = require("src.richtext.exports")
 
 _G.localization = require("src.localization")
 
+
 _G.Kirigami = require("lib.kirigami")
-_G.Panel = require("lib.panel.Panel")
+_G.iml = require("lib.iml.iml")
 
 _G.ui = require("src.ui.ui")
 
@@ -107,6 +116,7 @@ end
 
 
 function love.update(dt)
+    iml.setPointer(love.mouse.getPosition())
     local sc = sceneManager.getCurrentScene()
     if sc and sc.update then
         sc:update(dt)
@@ -120,7 +130,9 @@ function love.draw()
     end
 end
 
+
 function love.mousepressed(mx, my, button, istouch, presses)
+    iml.mousepressed(mx, my, button, istouch, presses)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.mousepressed then
         sc:mousepressed(mx, my, button, istouch, presses)
@@ -128,6 +140,7 @@ function love.mousepressed(mx, my, button, istouch, presses)
 end
 
 function love.mousereleased(mx, my, button, istouch)
+    iml.mousereleased(mx, my, button, istouch)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.mousereleased then
         sc:mousereleased(mx, my, button, istouch)
@@ -142,6 +155,7 @@ function love.mousemoved(mx, my, dx, dy, istouch)
 end
 
 function love.keypressed(key, scancode, isrep)
+    iml.keyreleased(key, scancode, isrep)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.keypressed then
         sc:keypressed(key, scancode, isrep)
@@ -149,6 +163,7 @@ function love.keypressed(key, scancode, isrep)
 end
 
 function love.keyreleased(key, scancode)
+    iml.keyreleased(key, scancode)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.keyreleased then
         sc:keyreleased(key, scancode)
@@ -156,6 +171,7 @@ function love.keyreleased(key, scancode)
 end
 
 function love.textinput(text)
+    iml.textinput(text)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.textinput then
         sc:textinput(text)
@@ -163,6 +179,7 @@ function love.textinput(text)
 end
 
 function love.wheelmoved(dx, dy)
+    iml.wheelmoved(dx,dy)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.wheelmoved then
         sc:wheelmoved(dx, dy)
