@@ -126,7 +126,9 @@ end
 function love.draw()
     local sc = sceneManager.getCurrentScene()
     if sc and sc.draw then
+        iml.beginFrame()
         sc:draw()
+        iml.endFrame()
     end
 end
 

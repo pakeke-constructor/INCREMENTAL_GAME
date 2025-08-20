@@ -13,8 +13,6 @@ local MAP_TITLE = localization.localize("{o}THE MAP.")
 local mapImg = love.graphics.newImage("src/scenes/map/map_image.png")
 
 function map:draw()
-    iml.beginFrame()
-
     local header, body = Kirigami(0,0,love.graphics.getDimensions()):splitVertical(1,5)
     header = header:padRatio(0.2)
 
@@ -25,11 +23,15 @@ function map:draw()
 
     richtext.printRichContained(MAP_TITLE, love.graphics.getFont(), header:get())
 
-    if ui.Button("Forest", body:padRatio(0.8):get()) then
+    local b1,b2 = body:splitVertical(1,1)
+
+    if ui.Button("Forest", b1:padRatio(0.8):get()) then
         g.gotoScene("forest")
     end
 
-    iml.endFrame()
+    if ui.Button("Upgrades", b2:padRatio(0.8):get()) then
+        g.gotoScene("upgrade_tree")
+    end
 end
 
 
@@ -41,7 +43,6 @@ end
 
 
 function map:keypressed()
-
 end
 
 

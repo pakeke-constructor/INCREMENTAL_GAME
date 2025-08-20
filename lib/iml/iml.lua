@@ -29,9 +29,9 @@ local frameState = nil
 
 
 
-local CLICK_MOVE_THRESHOLD = 4
--- Click and move less than 4 pixels = click
--- MORE than 4 pixels, drag
+local CLICK_MOVE_THRESHOLD = 6
+-- Click and move less than X pixels = click
+-- MORE than X pixels, drag
 
 
 -- tracks the "current" clicks.
