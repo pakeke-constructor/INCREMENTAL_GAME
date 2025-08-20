@@ -6,7 +6,7 @@ Idle games have been performing [extremely well recently.](https://howtomarketag
 
 ## Simple idea; Idle game:
 - Gain money + harvest resources
-- Buy items, upgrades (? be more specific!)
+- Buy items + upgrades (skill tree)
 - Unlock new stuff
 - Gamble ur stuff and discover new things
 
@@ -55,6 +55,11 @@ We also need to make the player *excited* to unlock new stuff.
 
 
 ## Level ups:
+Level-ups should always contain something *special.*  
+Not just "oh, number go up".  
+- Player levels up -> gets a spin on a gambling-machine...?
+- Some map-locations are locked behind levels?
+
 
 
 ## Dangled upgrades:
