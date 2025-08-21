@@ -1,6 +1,6 @@
 
 
-local forest = {}
+local harvest = {}
 
 
 
@@ -12,7 +12,7 @@ local SAPLING = {
 
 local MONEY_INTERP = localization.newInterpolator("{wavy}{outline}MONEH: %{money}")
 
-function forest:draw()
+function harvest:draw()
     local header, body = Kirigami(0,0,love.graphics.getDimensions()):splitVertical(1,5)
 
     love.graphics.clear(0.3,0.7,0.25)
@@ -32,7 +32,7 @@ function forest:draw()
 end
 
 
-function forest:update(dt)
+function harvest:update(dt)
     local mx,my = love.mouse.getPosition()
 
     local x,y,w,h = unpack(SAPLING)
@@ -42,5 +42,5 @@ function forest:update(dt)
 end
 
 
-return forest
+return harvest
 

@@ -25,8 +25,8 @@ function map:draw()
 
     local b1,b2 = body:splitVertical(1,1)
 
-    if ui.Button("Forest", b1:padRatio(0.8):get()) then
-        g.gotoScene("forest")
+    if ui.Button("Harvest", b1:padRatio(0.8):get()) then
+        g.gotoScene("harvest")
     end
 
     if ui.Button("Upgrades", b2:padRatio(0.8):get()) then

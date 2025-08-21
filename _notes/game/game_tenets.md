@@ -15,7 +15,8 @@ The overall goal is to increase your resource production.
 
 
 
-## MAIN ZONES: Each zone has different resource
+## MAIN CONCEPT: Upgrades + Tokens
+
 - The Forest: Use axes, chop wood
 - The Mine: Use pickaxes, mine minerals
 - The Dungeon: Use swords/spears, kill chests / slime / vases

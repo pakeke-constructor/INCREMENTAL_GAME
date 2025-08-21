@@ -2,21 +2,12 @@
 
 # RESOURCES:
 
-3 main zones, 3 main resources:
-
-- Forest = Wood
-- Mines = Stone
-- Dungeon = Bones
+3 main resources:  
+Wood, Stone, Bones  
 
 
-At the start of the game, the player ONLY has access to Forest-Zone / Wood.  
-However, player can pay to unlock new zones.
-
-
-## Important note: Upgrades are unique between Zones.
-(Eg. Forest upgrades DO NOT AFFECT the Mines.)   
-In this way, zones are *kinda* like a prestige system.
-
+At the start of the game, the player ONLY has access to Wood.    
+Player will unlock more as game progresses.
 
 
 
