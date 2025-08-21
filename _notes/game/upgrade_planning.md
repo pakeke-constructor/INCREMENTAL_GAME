@@ -49,14 +49,15 @@ Whereas if players purchase expensive tokens, but harvesting is bad; at least th
 - Stump token (+3 wood, 30hp)
 - Dark log (+5 wood, +$50, 100hp)
 - Mud clump (+$500, 1000hp)
+- Small rock (+1 rock, 1000hp)
 - (ETC ETC ETC.)
 
 - **PRESTIGE 2:**  
-- Rock (+$5000, +1 rock)
+- Magical log (+$4000 +120 wood)
+- Big-Rock (+$5000, +5 rocks)
 - Golden-rock: +$20000, +2 rocks
-- Magical log (+$4000 +50 wood)
 - Granite: +10 rocks
-- Big-Golden-rock: +$100000
+- Diamond-rock: +$100000
 
 - **PRESTIGE 3:**  
 - (Etc etc)
