@@ -26,8 +26,20 @@ Make sure to build the *systems* for prestige tho.
 - TOKEN: Bombs now spawn! Blows up, dealing damage
 - TOKEN: Slime Blobs now spawn! When destroyed, cover objects in slime!
 
+**HARVESTING PRESTIGE**:
+Prestige in harvesting -> Removes all upgrades, but *MASSIVELY* increased damage.
+
+
 ^^^^ To prevent noob-traps, we should make token-upgrades **CHEAPER** than harvesting upgrades.   
 *THE WORST POSSIBLE SCENARIO* would be players that purchase great harvesting-upgrades, but dont have enough tokens to harvest with.
+-------=  
+Whereas if players purchase expensive tokens, but harvesting is bad; at least they can still harvest the tokens :shrug:
+
+
+<br/>
+<br/>
+
+-----------
 
 
 # TOKENS: (add more tokens to harvest)
@@ -35,7 +47,8 @@ Make sure to build the *systems* for prestige tho.
 - Log token (+$5, +1 wood, 12hp)
 - Mushroom token (+$10, 20hp)
 - Stump token (+3 wood, 30hp)
-- Dark log (+5 wood, +$100, 100hp)
+- Dark log (+5 wood, +$50, 100hp)
+- Mud clump (+$500, 1000hp)
 - (ETC ETC ETC.)
 
 - **PRESTIGE 2:**  
@@ -63,12 +76,11 @@ Make sure to build the *systems* for prestige tho.
 
 # MISC: (Not affected by prestige)
 - Farmer-cat: Automatic harvesting! (harvest-circle bounces around)
-    ^^^ NOTE: Player can still use mouse to harvest manually too. 
+    ^^^ NOTE: Player can use mouse to harvest manually too.  
+    Farmer-cat is *additive*; so the harvest-areas combines together.
 
-- Manager-cat: Harvests whilst you are offline (20% efficiency, max 2 hours)
-
-- Director-cat: Offline harvesting time 3 hours -> 5 hours
-
-- Shareholder-cat: Offline harvesting efficiency 20% -> 30%
-    ^^^ upgradable; 20% -> 30% -> 40% ... 100%
+- Manager-cat: Harvests whilst you are offline!
+    (20% efficiency, max 2 hours)
+- Director-cat: Offline harvesting time 3 hours -> 5 hours (7,9,11, ...)
+- Shareholder-cat: Offline harvesting efficiency 20% -> 30% (40,50...)
 
