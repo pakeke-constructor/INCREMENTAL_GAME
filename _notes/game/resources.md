@@ -5,9 +5,12 @@
 3 main resources:  
 Wood, Stone, Bones  
 
-
 At the start of the game, the player ONLY has access to Wood.    
 Player will unlock more as game progresses.
+
+
+# HARVESTING GAMEPLAY:
+The player will have a list of tokens (`tokens.md`) to harvest.  
 
 
 

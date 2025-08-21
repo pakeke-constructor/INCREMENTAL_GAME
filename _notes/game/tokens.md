@@ -5,11 +5,12 @@
 "Tokens" are what spawns to be harvested.
 Think of it like the "deck" that the player has.
 
-
 When a player mines a token, after 0.5 seconds, the token respawns.
-Different tokens have more/less health.
+
+Different tokens have more/less health, and give different rewards.
 
 
+---
 
 TOKEN EXAMPLES:
 - Grass: +$1
@@ -48,7 +49,7 @@ This is a very elegant and straightforward system that works really well, IMO.
 
 
 # EXOTIC TOKEN IDEAS:
-- D6: Gives a random amount of money between $1 and $50
+- D6: Earns between $1 and $50 randomly
 - Gunpowder keg: Destroys the tokens next to itself
 - Magical Lily: Clones the 3 closest tokens
 
