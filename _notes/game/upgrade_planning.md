@@ -6,7 +6,7 @@ Some categories contain prestige; others dont.
 
 **FOR THE INITIAL GAME VERSION, WE SHOULDNT HAVE ANY PRESTIGE.**  
 Just have regular upgrades.  
-Make sure we build the *systems* to support prestige tho.
+Make sure to build the *systems* for prestige tho.
 
 
 
@@ -19,10 +19,10 @@ Make sure we build the *systems* to support prestige tho.
 - 20% of tokens spawn "slimed". (Slimed tokens take double damage!)
 - When a slimed object is destroyed, spawn a bomb
 - Instakill!: On hit, 1% chance to deal 1000 damage to target
-- Echo swing: Every 10 hits, spawn a bomb
+- Explosive: Every 10 hits, spawn a bomb
 - Every second, send out a bouncing axe that deals damage
 - World of Slime: When a slimed object is hit, 4% chance to spread slime
-- Spinning axe: Bounces around the screen, damaging objects
+- Spinning axes: Bounces around the screen, damaging objects
 - TOKEN: Bombs now spawn! Blows up, dealing damage
 - TOKEN: Slime Blobs now spawn! When destroyed, cover objects in slime!
 
@@ -53,13 +53,22 @@ Make sure we build the *systems* to support prestige tho.
 ## (These are not *tokens* per se, but rather, UPGRADES FOR EXISTING TOKENS.)
 (Affected by the prestige tho!)
 - Grass earns +$1
+- Log earns +$2
+- Mushrooms earns +$5
 - Every 10 logs you harvest, spawn a mushroom
 - Every time you harvest grass, 10% chance to earn $20
+- Golden-tipped: 10% chance for tokens to spawn golden (Earns +$10)
 
 
 
 # MISC: (Not affected by prestige)
 - Farmer-cat: Automatic harvesting! (harvest-circle bounces around)
-    ^^^ NOTE: Player can still use mouse. 
-- Farmer-cat: Automatic harvesting! (harvest-circle bounces around)
+    ^^^ NOTE: Player can still use mouse to harvest manually too. 
+
+- Manager-cat: Harvests whilst you are offline (20% efficiency, max 2 hours)
+
+- Director-cat: Offline harvesting time 3 hours -> 5 hours
+
+- Shareholder-cat: Offline harvesting efficiency 20% -> 30%
+    ^^^ upgradable; 20% -> 30% -> 40% ... 100%
 
