@@ -1,17 +1,17 @@
 
 
 
----@class es.ObjectClass
+---@class es.EntityClass
 ---@field protected _world es.World
 ---@field protected _name es.World
 ---@field init function
-local Object = {}
-local Object_mt = {__index=Object}
+local Entity = {}
+local Entity_mt = {__index=Entity}
 
 
 
 
-function Object:_ensureAttachments()
+function Entity:_ensureAttachments()
     if not self.attachments then
         self.attachments = {
             ids = {--[[
@@ -29,7 +29,7 @@ end
 
 
 ---@param atc es.Attachment
-function Object:attach(atc)
+function Entity:attach(atc)
     self:_ensureAttachments()
 
     local atcs = self.attachments
@@ -41,7 +41,7 @@ function Object:attach(atc)
         atcs.ids[atc.id] = atc
     end
 
-    assert(not atc.ob, "Object attached twice")
+    assert(not atc.ob, "Entity attached twice")
     atc.ob = self
 
     for _, event in ipairs(atc:getEvents()) do
@@ -62,7 +62,7 @@ end
 
 
 ---@param atc string|es.Attachment
-function Object:detach(atc)
+function Entity:detach(atc)
     local atcs = self.attachments
     if not atcs then return end
     if type(atc) == "string" then
@@ -92,13 +92,13 @@ end
 
 
 
-function Object:getAttachmentById(id)
+function Entity:getAttachmentById(id)
     return self.attachments.ids[id]
 end
 
 ---@param event string
 ---@param ... unknown
-function Object:call(event, ...)
+function Entity:call(event, ...)
     local atcs = self.attachments
     if not atcs or not atcs.events[event] then return end
     for _, atc in ipairs(atcs.events[event]) do
@@ -112,7 +112,7 @@ end
 ---@param question string
 ---@param ... unknown
 ---@return any
-function Object:ask(question, ...)
+function Entity:ask(question, ...)
     local reducer = getQuestionReducer(question)
     local value = getQuestionDefaultValue(question)
 
@@ -131,7 +131,7 @@ end
 
 
 
-function Object:getSharedComponents()
+function Entity:getSharedComponents()
     -- huge stinky hack! 
     -- oh well, make sure we test it.
     return getmetatable(self).__index
@@ -139,11 +139,11 @@ end
 
 
 
-function Object:getWorld()
+function Entity:getWorld()
     return self._world
 end
 
-function Object:getTypename()
+function Entity:getTypename()
     return self._name
 end
 
@@ -162,19 +162,19 @@ end
 
 ---@param name string
 ---@param otype table
-local function newObjectType(name, otype)
+local function newEntityType(name, otype)
     otype = shallowCopy(otype)
 
     otype._name = name
 
     for k,v in pairs(otype) do
-        if Object[k] then
+        if Entity[k] then
             error("Attempted to overwrite privaleged method: " .. tostring(k))
         end
     end
 
     local mt = {
-        __index = setmetatable(otype, Object_mt),
+        __index = setmetatable(otype, Entity_mt),
     }
 
     local function newInstance(...)
@@ -190,6 +190,6 @@ end
 
 
 
-return newObjectType
+return newEntityType
 
 

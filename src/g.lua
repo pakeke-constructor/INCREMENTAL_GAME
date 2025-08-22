@@ -108,11 +108,11 @@ end
 
 
 
-local objs = require("src.core.objs")
+local ecs = require("src.core.ecs")
 
 
-g.Object = objs.Object
-g.Attachment = objs.Attachment
+g.Entity = ecs.Entity
+g.Attachment = ecs.Attachment
 
 
 

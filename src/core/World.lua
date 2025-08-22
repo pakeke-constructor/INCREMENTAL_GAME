@@ -4,16 +4,16 @@
 local World = objects.Class("es:World")
 
 
-local newObjectType = require(".Object")
+local newEntityType = require(".Entity")
 
 
 
----@alias es.Object table<string,any>|es.ObjectClass
----@alias Object es.Object
+---@alias es.Entity table<string,any>|es.EntityClass
+---@alias Entity es.Entity
 
 
 function World:init()
-    self.definedObjectTypes = {--[[
+    self.definedEntityTypes = {--[[
         [otypeName] -> etype
     ]]}
 
@@ -36,14 +36,14 @@ end
 
 
 
-local defObjectTc = typecheck.assert("string", "table")
+local defEntityTc = typecheck.assert("string", "table")
 
 ---@param name string
----@param otype table<string, any>
-function World:defineObject(name, otype)
-    defObjectTc(name, otype)
-    local ctor = newObjectType(name, self, otype)
-    self.definedObjectTypes[name] = ctor
+---@param etype table<string, any>
+function World:defineEntity(name, etype)
+    defEntityTc(name, etype)
+    local ctor = newEntityType(name, self, etype)
+    self.definedEntityTypes[name] = ctor
 end
 
 
