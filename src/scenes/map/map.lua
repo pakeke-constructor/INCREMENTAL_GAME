@@ -1,7 +1,11 @@
 
 
+local FreeCameraScene = require("src.scenes.FreeCameraScene")
 
-local map = {}
+
+
+---@class MapScene: FreeCameraScene
+local map = FreeCameraScene()
 
 
 
@@ -12,13 +16,16 @@ local MAP_TITLE = localization.localize("{o}THE MAP.")
 
 local mapImg = love.graphics.newImage("src/scenes/map/map_image.png")
 
+
 function map:draw()
-    local header, body = Kirigami(0,0,love.graphics.getDimensions()):splitVertical(1,5)
+    love.graphics.clear(0.5,0.4,0.7)
+
+    self:setCamera()
+
+    local header, body = Kirigami(0,0,mapImg:getDimensions()):splitVertical(1,5)
     header = header:padRatio(0.2)
 
-    love.graphics.clear(0.5,0.4,0.7)
     love.graphics.setColor(1,1,1)
-
     love.graphics.draw(mapImg,0,0)
 
     richtext.printRichContained(MAP_TITLE, love.graphics.getFont(), header:get())
@@ -37,22 +44,21 @@ end
 
 
 
-function map:update()
+function map:update(dt)
+    self:updateCamera(dt)
 end
 
 
 
-function map:keypressed()
+function map:keypressed(k)
 end
 
 
 
 function map:mousepressed(x,y, button)
-    iml.mousepressed(x,y, button)
 end
 
 function map:mousereleased(x,y, button)
-    iml.mousereleased(x,y, button)
 end
 
 

@@ -102,6 +102,12 @@ local function Class(name)
         return self
     end
 
+    function class:extendAs(newName)
+        local cl = Class(newName)
+        cl:implement(class)
+        return cl
+    end
+
     setmetatable(class, default_class_mt)
 
     return class

@@ -76,6 +76,9 @@ Whereas if players purchase expensive tokens, but harvesting is bad; at least th
 
 
 # MISC: (Not affected by prestige)
+
+- Map: Unlocks the map!
+
 - Farmer-cat: Automatic harvesting! (harvest-circle bounces around)
     ^^^ NOTE: Player can use mouse to harvest manually too.  
     Farmer-cat is *additive*; so the harvest-areas combines together.

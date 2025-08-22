@@ -6,8 +6,8 @@ local iml = {}
 
 
 
----@alias iml._Panel {x:number, y:number, w:number,h:number, key:any}
----@alias iml._FrameState { hoveredPanel: iml._Panel? }
+---@alias iml._Panel {x:number, y:number, w:number,h:number, key:any, transform?: love.Transform}
+---@alias iml._FrameState { hoveredPanel: iml._Panel?, transformStack: love.Transform[], transform: love.Transform}
 
 ---@alias iml._Click {original_x:number, original_y:number, total_dx:number,total_dy:number, last_frame_dx:number,last_frame_dy:number, panel_key:any? }
 
@@ -94,6 +94,9 @@ function iml.beginFrame()
     end
 
     frameState = {
+        transformStack = {},
+        transform = love.math.newTransform(),
+
         hoveredPanel = nil
     }
 end
@@ -135,6 +138,13 @@ local function isInside(x, y, w, h, px, py)
 end
 
 
+---@return number,number
+local function getTransformedPointer()
+    assert(frameState and pointer_x, "?")
+    return frameState.transform:inverseTransformPoint(pointer_x, pointer_y)
+end
+
+
 
 --- Creates a "Panel".
 --- Mouse click / mouse hover won't propagate through this region.
@@ -147,13 +157,56 @@ function iml.panel(x,y,w,h, key)
     assertIsFrame()
     -- If no key is specified,
     -- uses hash(x,y,w,h) as a key.
-    if pointer_x and isInside(x,y,w,h, pointer_x, pointer_y) then
-        frameState.hoveredPanel = {
-            x=x,y=y, w=w,h=h,
-            key = getKey(x,y,w,h,key)
-        }
+    if pointer_x then
+        local px, py = getTransformedPointer()
+        if isInside(x,y,w,h, px,py) then
+            frameState.hoveredPanel = {
+                x=x,y=y, w=w,h=h,
+                key = getKey(x,y,w,h,key),
+            }
+        end
     end
 end
+
+
+
+
+local IDENTITY = love.math.newTransform()
+
+---@param t love.Transform
+function iml.pushTransform(t)
+    assertIsFrame()
+    local stack = frameState.transformStack
+    table.insert(stack, t)
+    local tr = IDENTITY
+    for i=1, #stack do
+        local v = stack[i]
+        tr = tr:clone():apply(v)
+    end
+    frameState.transform = tr
+end
+
+
+function iml.popTransform()
+    assertIsFrame()
+    local stack = frameState.transformStack
+    table.remove(stack)
+    local tr = IDENTITY
+    for i=1, #stack do
+        local v = stack[i]
+        tr = tr:clone():apply(v)
+    end
+    frameState.transform = tr
+end
+
+
+function iml.resetTransforms()
+    assertIsFrame()
+    frameState.transformStack = {}
+    frameState.transform = love.math.newTransform()
+end
+
+
 
 
 
@@ -164,7 +217,7 @@ end
 ---@param w number
 ---@param h number
 function iml.pushMask(x,y,w,h)
-
+    
 end
 
 

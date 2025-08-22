@@ -27,6 +27,7 @@ do
   xfGetMatrix = Xf.getMatrix
 end
 
+---@class Camera
 local Camera = {}
 local CameraClassMT = {__call = function (c, ...) return c.new(...) end}
 local CameraInstanceMT = {__index = Camera}
