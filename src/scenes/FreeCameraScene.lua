@@ -72,7 +72,8 @@ local function navTab(text, sceneName, x,y,w,h)
     love.graphics.polygon("fill", x,y, x+w,y, x+w-f,y+h, x+f,y+h)
     love.graphics.setColor(0,0,0)
 
-    richtext.printRichContained(text, love.graphics.getFont(), x,y,w,h)
+    local txtR = Kirigami(x,y,w,h):padRatio(0.,0.7,0.,0.7)
+    richtext.printRichContainedNoWrap(text, love.graphics.getFont(), txtR:get())
 
     if iml.wasJustClicked(x,y,w,h) then
         g.gotoScene(sceneName)
@@ -90,8 +91,8 @@ function FreeCameraScene:renderNavbar()
     local map, upgrades, harvest = right:splitHorizontal(1,1,1)
 
     navTab("MAP", "map", map:get())
-    navTab("UPGRADES", "upgrade_tree", upgrades:get())
-    navTab("HARVEST", "harvest", harvest:get())
+    navTab("UPGRADES ", "upgrade_tree", upgrades:get())
+    navTab("HARVEST ", "harvest", harvest:get())
 end
 
 
