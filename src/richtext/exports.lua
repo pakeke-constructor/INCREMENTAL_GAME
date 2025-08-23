@@ -138,6 +138,31 @@ end
 
 
 
+---Prints rich text contained inside a x,y,w,h box, no wrapping
+---@param txt string richtext
+---@param font love.Font
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function text.printRichContainedNoWrap(txt, font, x,y,w,h)
+    strTc(txt)
+    local parsed = assert(parser.ensure(txt))
+    local strippedTxt = text.stripEffects(txt)
+
+    local tw, th = font:getWidth(strippedTxt), font:getHeight()
+
+    local limit = w
+    local scale = math.min(limit/tw, h/th)
+    local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
+
+    drawRichText(parsed, font, drawX, drawY, limit/scale, "left", 0, scale, scale, tw / 2, th / 2)
+end
+
+
+
+
+
 
 --[[
 
