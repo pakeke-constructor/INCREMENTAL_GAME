@@ -1,11 +1,11 @@
 
 
 local Attachment = require(".Attachment")
-local Object = require(".Object")
+local Entity = require(".Entity")
 
 
 return {
-    Object = Object,
+    Entity = Entity,
     Attachment = Attachment,
 }
 

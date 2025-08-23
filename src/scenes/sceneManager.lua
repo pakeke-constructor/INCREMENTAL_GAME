@@ -4,7 +4,7 @@
 local sceneManager = {}
 
 
-local currentScene
+local currentScene, currentSceneName
 
 
 
@@ -35,12 +35,15 @@ end
 
 function sceneManager.gotoScene(sceneName)
     assert(nameToScene[sceneName])
+    currentSceneName = sceneName
     currentScene = nameToScene[sceneName]
 end
 
 
+---@return table
+---@return string
 function sceneManager.getCurrentScene()
-    return currentScene
+    return currentScene, currentSceneName
 end
 
 return sceneManager

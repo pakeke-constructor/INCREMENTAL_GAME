@@ -21,7 +21,6 @@ function map:draw()
     love.graphics.clear(0.5,0.4,0.7)
 
     self:setCamera()
-
     local header, body = Kirigami(0,0,mapImg:getDimensions()):splitVertical(1,5)
     header = header:padRatio(0.2)
 
@@ -39,6 +38,10 @@ function map:draw()
     if ui.Button("Upgrades", b2:padRatio(0.8):get()) then
         g.gotoScene("upgrade_tree")
     end
+    self:resetCamera()
+
+    self:renderNavbar()
+    -- self:renderMap()
 end
 
 

@@ -22,7 +22,7 @@ end
 
 local World = require(".World")
 local Attachment = require(".Attachment")
-local Object = require(".Object")
+local Entity = require(".Entity")
 
 
 

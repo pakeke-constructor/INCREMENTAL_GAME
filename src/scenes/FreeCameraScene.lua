@@ -1,4 +1,20 @@
 
+--[[
+
+===============================================================
+===============================================================
+
+FreeCameraScene
+
+A base-class for a Scene with a free-moving camera.
+Contains a bunch of lil helpers n stuff
+
+===============================================================
+===============================================================
+
+]]
+
+
 ---@class FreeCameraScene
 ---@field camera Camera
 ---@field panSpeed number
@@ -35,6 +51,47 @@ function FreeCameraScene:resetCamera()
         self.camera:detach()
         iml.popTransform()
     end
+end
+
+
+
+local sceneManager
+
+local function navTab(text, sceneName, x,y,w,h)
+    sceneManager = sceneManager or require("src.scenes.sceneManager")
+    local _, name = sceneManager.getCurrentScene()
+
+    love.graphics.setColor(1,1,1)
+    if iml.isHovered(x,y,w,h) then
+        love.graphics.setColor(0.5,0.5,0.5)
+    elseif sceneName == name then
+        love.graphics.setColor(0.6,0.6,0.6)
+    end
+
+    local f = w/4
+    love.graphics.polygon("fill", x,y, x+w,y, x+w-f,y+h, x+f,y+h)
+    love.graphics.setColor(0,0,0)
+
+    richtext.printRichContained(text, love.graphics.getFont(), x,y,w,h)
+
+    if iml.wasJustClicked(x,y,w,h) then
+        g.gotoScene(sceneName)
+    end
+end
+
+
+function FreeCameraScene:renderNavbar()
+    local r = Kirigami(0,0,love.graphics.getDimensions())
+    local header,_ = r:splitVertical(1,6)
+
+    local left, right = header:splitHorizontal(1,1)
+    right = right:padRatio(0.2,0.0,0.2,0.1)
+
+    local map, upgrades, harvest = right:splitHorizontal(1,1,1)
+
+    navTab("MAP", "map", map:get())
+    navTab("UPGRADES", "upgrade_tree", upgrades:get())
+    navTab("HARVEST", "harvest", harvest:get())
 end
 
 

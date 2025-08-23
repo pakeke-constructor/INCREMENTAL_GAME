@@ -10,7 +10,7 @@ They are like systems, but only on the entity they are attached to.
 
 ---@class es.Attachment
 ---@field id string?
----@field ob es.Object
+---@field ob es.Entity
 local Attachment = {}
 
 

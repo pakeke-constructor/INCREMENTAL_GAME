@@ -1,6 +1,9 @@
 
 
-local harvest = {}
+local FreeCameraScene = require("src.scenes.FreeCameraScene")
+
+---@class HarvestScene: FreeCameraScene
+local harvest = FreeCameraScene()
 
 
 
@@ -13,6 +16,7 @@ local SAPLING = {
 local MONEY_INTERP = localization.newInterpolator("{wavy}{outline}MONEH: %{money}")
 
 function harvest:draw()
+    self:setCamera()
     local header, body = Kirigami(0,0,love.graphics.getDimensions()):splitVertical(1,5)
 
     love.graphics.clear(0.3,0.7,0.25)
@@ -23,16 +27,17 @@ function harvest:draw()
     })
     richtext.printRichContained(txt, love.graphics.getFont(), 10, 10, 80, 20)
 
-    local _,map = body:padRatio(0.3):splitHorizontal(2,1)
-    if ui.Button("MAP", map:padRatio(0.1):get()) then
-        g.gotoScene("map")
-    end
-
     love.graphics.rectangle("fill", unpack(SAPLING))
+
+    self:resetCamera()
+
+    self:renderNavbar()
 end
 
 
 function harvest:update(dt)
+    self:updateCamera(dt)
+
     local mx,my = love.mouse.getPosition()
 
     local x,y,w,h = unpack(SAPLING)
