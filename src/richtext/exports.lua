@@ -207,13 +207,13 @@ local function outlineEffect(args,char)
 
     local ox, oy = char:getOffset()
 
-    -- Draw outline
-    for i = 0, 8 do
-        if i ~= 4 then -- Don't draw the center
-            local ooy = (math.floor(i / 3) - 1) * thickness
-            local oox = (i % 3 - 1) * thickness
-            char:setOffset(ox + oox, oy + ooy)
-            char:draw(0, 0, 0, a, true)
+    -- dy=-2 because we want a thicker outline at bottom
+    for dy = -2, 1 do
+        for dx = -1, 1 do
+            if not (dx == 0 and dy == 0) then
+                char:setOffset(ox + dx * thickness, oy + dy * thickness)
+                char:draw(0, 0, 0, a, true)
+            end
         end
     end
     char:setOffset(ox, oy)
