@@ -128,7 +128,6 @@ end
 function FreeCameraScene:wheelmoved(dx,dy)
     self._zoomIndex = self._zoomIndex + dy/5
     self.camera:setZoom(zoom(self._zoomIndex, 1))
-    print(self._zoomIndex, self.camera:getZoom())
 end
 
 

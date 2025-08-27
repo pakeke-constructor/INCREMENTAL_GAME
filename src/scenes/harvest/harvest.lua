@@ -7,10 +7,18 @@ local harvest = FreeCameraScene()
 
 
 
-local SAPLING = {
-    -- x,y,w,h
-    80,80,20,20
-}
+local HARVEST_CIRCLE_INSIDE = {0.5,0.5,0.5,0.6}
+local HARVEST_CIRCLE_BORDER = {.8,.8,.8}
+local function drawHarvestCircle(x,y, rad)
+    love.graphics.setColor(HARVEST_CIRCLE_INSIDE)
+    love.graphics.circle("fill", x,y, rad)
+    local lw = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(math.floor(rad / 12))
+    love.graphics.setColor(HARVEST_CIRCLE_BORDER)
+    love.graphics.circle("line", x,y, rad)
+    love.graphics.setLineWidth(lw)
+end
+
 
 
 local MONEY_INTERP = localization.newInterpolator("{wavy}{outline}MONEH: %{money}")
@@ -22,12 +30,13 @@ function harvest:draw()
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
 
+    local cx,cy = self.camera:toWorld(love.mouse.getPosition())
+    drawHarvestCircle(cx,cy, 50)
+
     local txt = MONEY_INTERP({
         money = (math.floor(g.getMoney()))
     })
     richtext.printRichContained(txt, love.graphics.getFont(), 10, 10, 80, 20)
-
-    love.graphics.rectangle("fill", unpack(SAPLING))
 
     self:resetCamera()
 
@@ -40,10 +49,6 @@ function harvest:update(dt)
 
     local mx,my = love.mouse.getPosition()
 
-    local x,y,w,h = unpack(SAPLING)
-    if mx >= x and mx <= x + w and my >= y and my <= y + h then
-        g.addMoney(5 * dt)
-    end
 end
 
 

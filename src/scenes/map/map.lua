@@ -11,7 +11,7 @@ local map = FreeCameraScene()
 
 
 
-local MAP_TITLE = localization.localize("{o}THE MAP.")
+local MAP_TITLE = localization.localize("{o thickness=4}THE MAP.")
 
 
 local mapImg = love.graphics.newImage("src/scenes/map/map_image.png")

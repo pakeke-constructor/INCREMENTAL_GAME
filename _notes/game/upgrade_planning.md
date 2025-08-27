@@ -4,9 +4,18 @@
 Different "categories" of upgrades.  
 Some categories contain prestige; others dont.
 
-**FOR THE INITIAL GAME VERSION, WE SHOULDNT HAVE ANY PRESTIGE.**  
+**FOR THE INITIAL GAME VERSION, DONT HAVE ANY PRESTIGE.**  
 Just have regular upgrades.  
 Make sure to build the *systems* for prestige tho.
+
+
+## Upgrade-theming:
+Upgrades should *feel* fun, and should have fun names/theming.  
+Dont just have boring "increase damage by 2".  
+Instead: "Cat spikes! Harvesting emits spikes that deal +2 damage"
+
+
+
 
 
 
@@ -78,6 +87,9 @@ Whereas if players purchase expensive tokens, but harvesting is bad; at least th
 # MISC: (Not affected by prestige)
 
 - Map: Unlocks the map!
+
+- STORAGE: Upgrades storage of resources
+- Money storage, Wood storage, Rock storage, etc etc
 
 - Farmer-cat: Automatic harvesting! (harvest-circle bounces around)
     ^^^ NOTE: Player can use mouse to harvest manually too.  
