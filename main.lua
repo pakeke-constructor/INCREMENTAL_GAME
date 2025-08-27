@@ -63,7 +63,7 @@ _G.atlas = AutoAtlas(consts.ATLAS_SIZE, consts.ATLAS_SIZE)
 _G.inspect = require("lib.inspect.inspect")
 
 
-_G.log = require("src.log")
+_G.log = require("src.modules.log")
 
 ---@diagnostic disable-next-line
 _G.typecheck = require("src.modules.typecheck.typecheck")

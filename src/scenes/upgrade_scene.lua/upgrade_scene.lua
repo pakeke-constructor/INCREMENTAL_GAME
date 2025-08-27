@@ -3,8 +3,8 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 
 
----@class UpgradeTreeScene: FreeCameraScene
-local uptree = FreeCameraScene()
+---@class UpgradesScene: FreeCameraScene
+local upgscene = FreeCameraScene()
 
 
 
@@ -12,7 +12,7 @@ local uptree = FreeCameraScene()
 local TITLE = localization.localize("{o}UPGRADES!")
 
 
-function uptree:draw()
+function upgscene:draw()
     self:setCamera()
     local header, body = Kirigami(0,0,love.graphics.getDimensions()):splitVertical(1,5)
     header = header:padRatio(0.2)
@@ -29,23 +29,23 @@ end
 
 
 
-function uptree:update(dt)
+function upgscene:update(dt)
     self:updateCamera(dt)
 end
 
 
-function uptree:keypressed()
+function upgscene:keypressed()
 end
 
 
-function uptree:mousepressed(x,y, button)
+function upgscene:mousepressed(x,y, button)
 end
 
-function uptree:mousereleased(x,y, button)
+function upgscene:mousereleased(x,y, button)
 end
 
 
 
-return uptree
+return upgscene
 
 

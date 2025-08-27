@@ -36,7 +36,7 @@ function map:draw()
     end
 
     if ui.Button("Upgrades", b2:padRatio(0.8):get()) then
-        g.gotoScene("upgrade_tree")
+        g.gotoScene("upgrades")
     end
     self:resetCamera()
 
