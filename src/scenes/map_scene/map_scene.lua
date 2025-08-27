@@ -14,7 +14,7 @@ local map = FreeCameraScene()
 local MAP_TITLE = localization.localize("{o thickness=4}THE MAP.")
 
 
-local mapImg = love.graphics.newImage("src/scenes/map/map_image.png")
+local mapImg = love.graphics.newImage("src/scenes/map_scene/map_image.png")
 
 
 function map:draw()
@@ -29,15 +29,6 @@ function map:draw()
 
     richtext.printRichContained(MAP_TITLE, love.graphics.getFont(), header:get())
 
-    local b1,b2 = body:splitVertical(1,1)
-
-    if ui.Button("Harvest", b1:padRatio(0.8):get()) then
-        g.gotoScene("harvest")
-    end
-
-    if ui.Button("Upgrades", b2:padRatio(0.8):get()) then
-        g.gotoScene("upgrades")
-    end
     self:resetCamera()
 
     self:renderNavbar()

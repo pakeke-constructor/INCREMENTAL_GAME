@@ -90,9 +90,9 @@ function FreeCameraScene:renderNavbar()
 
     local map, upgrades, harvest = right:splitHorizontal(1,1,1)
 
-    navTab("MAP", "map", map:get())
-    navTab("UPGRADES ", "upgrades", upgrades:get())
-    navTab("HARVEST ", "harvest", harvest:get())
+    navTab("MAP", "map_scene", map:get())
+    navTab("UPGRADES ", "upgrade_scene", upgrades:get())
+    navTab("HARVEST ", "harvest_scene", harvest:get())
 end
 
 

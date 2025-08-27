@@ -111,7 +111,7 @@ require("src.ev_q_definitions")
 local sceneManager = require("src.scenes.sceneManager")
 
 function love.load()
-    sceneManager.gotoScene("map")
+    sceneManager.gotoScene("map_scene")
 end
 
 
