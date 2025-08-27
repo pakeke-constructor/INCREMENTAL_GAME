@@ -108,7 +108,7 @@ end
 
 
 
-local ecs = require("src.core.ecs")
+local ecs = require("src.modules.ecs.ecs")
 
 
 g.Entity = ecs.Entity

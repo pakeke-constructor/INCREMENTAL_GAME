@@ -66,19 +66,19 @@ _G.inspect = require("lib.inspect.inspect")
 _G.log = require("src.log")
 
 ---@diagnostic disable-next-line
-_G.typecheck = require("src.typecheck.typecheck")
+_G.typecheck = require("src.modules.typecheck.typecheck")
 
-_G.objects = require("src.objects.objects")
+_G.objects = require("src.modules.objects.objects")
 
-_G.richtext = require("src.richtext.exports")
+_G.richtext = require("src.modules.richtext.exports")
 
-_G.localization = require("src.localization")
+_G.localization = require("src.modules.localization")
 
 
 _G.Kirigami = require("lib.kirigami")
 _G.iml = require("lib.iml.iml")
 
-_G.ui = require("src.ui.ui")
+_G.ui = require("src.modules.ui.ui")
 
 _G.g = require("src.g")
 --[[
@@ -99,7 +99,7 @@ setmetatable(_G, {
 
 
 if consts.TEST then
-    require("src.core._tests")
+    require("src.modules.ecs._tests")
 end
 
 require("src.ev_q_definitions")
