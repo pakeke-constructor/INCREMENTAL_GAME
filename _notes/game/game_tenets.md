@@ -114,7 +114,17 @@ Ideally, we want players to progress *steadily*, but not toooo fast.
 (We should weigh exciting progress more towards the start of the game;
 ie the "hook". Every minute or so when starting, a new upgrade.)
 
+#### Pacing: Upgradable Resource-limits. 
+EG: money capped at $5000 (can be upgraded)
+With limits, offline/idle gameplay becomes a LOT less damaging.  
+(If the player idles for many hours, they don't become giga-rich.)  
 
+*WHATEVER THE CASE MAKE SURE PLAYERS CAN ALWAYS SPEND!*    
+Nothing would feel worse than being capped out and not having anything to spend it on.  
+What should be done, is the resource-limit for Money should be upgraded via Money.  
+Wood resource limit should be upgraded via Wood.  
+Stone resource limit should be upgraded via Stone.  
+etc. This *guarantees* that players always have stuff to spend.
 
 
 
