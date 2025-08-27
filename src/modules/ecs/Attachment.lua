@@ -10,7 +10,7 @@ They are like systems, but only on the entity they are attached to.
 
 ---@class es.Attachment
 ---@field id string?
----@field ob es.Entity
+---@field ent es.Entity
 local Attachment = {}
 
 
@@ -26,14 +26,14 @@ end
 
 
 function Attachment:getEntity()
-    return self.ob
+    return self.ent
 end
 
 
-function Attachment:onAttached(ob)
+function Attachment:onAttached(ent)
 end
 
-function Attachment:onDetached(ob)
+function Attachment:onDetached(ent)
 end
 
 
@@ -61,7 +61,7 @@ end
 
 
 function Attachment:detach()
-    self.ob:detach(self)
+    self.ent:detach(self)
 end
 
 
@@ -80,7 +80,7 @@ local function newAttachment()
         end,
         __newindex = function(t, k, v)
             if Attachment[k] and (not OVERRIDES[k]) then
-                error("Attempted to overwrite privaleged method")
+                error("Attempted to overwrite privaleged method", 1)
             end
             if (not OVERRIDES[k]) and type(v) == "function" then
                 g.assertIsQuestionOrEvent(k, 1)

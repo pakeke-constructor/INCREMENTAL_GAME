@@ -80,9 +80,15 @@ function g.assertIsQuestionOrEvent(ev_or_question, level)
 end
 
 
-function g.call(ev, ...)
-    
+---@param ev string
+---@param ent_or_any any
+---@param ... unknown
+function g.call(ev, ent_or_any, ...)
+    -- call systems
+
+    -- call upgrades
 end
+
 
 
 local questions = objects.Array()
@@ -103,6 +109,16 @@ function g.defineQuestion(question, reducer, defaultValue)
         defaultValue = defaultValue
     })
     definedQuestions:add(question)
+end
+
+
+---@param q string
+---@param ent_or_any any
+---@param ... unknown
+function g.ask(q, ent_or_any, ...)
+    -- ask systems
+
+    -- ask upgrades
 end
 
 

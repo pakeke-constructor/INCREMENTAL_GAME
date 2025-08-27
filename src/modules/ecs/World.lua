@@ -14,7 +14,7 @@ local newEntityType = require(".Entity")
 
 function World:init()
     self.definedEntityTypes = {--[[
-        [otypeName] -> etype
+        [etypeName] -> etype
     ]]}
 
     self.defineAttachmentTypes = {--[[

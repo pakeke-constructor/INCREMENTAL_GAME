@@ -110,15 +110,14 @@ end
 
 
 ---@param question string
+---@param reducer function
+---@param defaultValue any
 ---@param ... unknown
 ---@return any
-function Entity:ask(question, ...)
-    local reducer = getQuestionReducer(question)
-    local value = getQuestionDefaultValue(question)
-
+function Entity:ask(question, reducer, defaultValue, ...)
     local atcs = self.attachments
-    if not atcs or not atcs.questions[question] then return value end
-    local result = value
+    if not atcs or not atcs.questions[question] then return defaultValue end
+    local result = defaultValue
     for _, atc in ipairs(atcs.questions[question]) do
         if atc[question] then
             local answer = atc[question](atc, self, ...)

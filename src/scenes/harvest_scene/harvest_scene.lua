@@ -7,18 +7,24 @@ local harvest = FreeCameraScene()
 
 
 
-local HARVEST_CIRCLE_INSIDE = {0.5,0.5,0.5,0.6}
+function harvest:init()
+    self.camera:setPos(100,100)
+    -- TODO: do this properly
+end
+
+
+
+local HARVEST_CIRCLE_INSIDE = {0.2,0.2,0.2,0.17}
 local HARVEST_CIRCLE_BORDER = {.8,.8,.8}
 local function drawHarvestCircle(x,y, rad)
     love.graphics.setColor(HARVEST_CIRCLE_INSIDE)
     love.graphics.circle("fill", x,y, rad)
     local lw = love.graphics.getLineWidth()
-    love.graphics.setLineWidth(math.floor(rad / 12))
+    love.graphics.setLineWidth(math.floor(rad / 15))
     love.graphics.setColor(HARVEST_CIRCLE_BORDER)
     love.graphics.circle("line", x,y, rad)
     love.graphics.setLineWidth(lw)
 end
-
 
 
 local MONEY_INTERP = localization.newInterpolator("{wavy}{outline}MONEH: %{money}")
