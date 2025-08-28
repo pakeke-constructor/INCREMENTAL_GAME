@@ -31,6 +31,7 @@ Instead: "Cat spikes! Harvesting emits spikes that deal +2 damage"
 - Explosive: Every 10 hits, spawn a bomb
 - Every second, send out a bouncing axe that deals damage
 - Every 15 seconds, spawn a bomb
+- Square Boi: Turns your mouse harvest area into a square
 - World of Slime: When a slimed object is hit, 4% chance to spread slime
 - Spinning axes: Bounces around the screen, damaging objects
 - TOKEN: Bombs now spawn! Blows up, dealing damage
