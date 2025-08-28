@@ -30,6 +30,7 @@ Instead: "Cat spikes! Harvesting emits spikes that deal +2 damage"
 - Instakill!: On hit, 1% chance to deal 1000 damage to target
 - Explosive: Every 10 hits, spawn a bomb
 - Every second, send out a bouncing axe that deals damage
+- Every 15 seconds, spawn a bomb
 - World of Slime: When a slimed object is hit, 4% chance to spread slime
 - Spinning axes: Bounces around the screen, damaging objects
 - TOKEN: Bombs now spawn! Blows up, dealing damage
