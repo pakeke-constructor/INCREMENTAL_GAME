@@ -1,9 +1,8 @@
 
 
-# upgrades: 
+# upgrades API planning: 
 
 
-IDEAL API:
 ```lua
 
 upgrades.defineUpgrade("unlock_map", {
@@ -151,13 +150,33 @@ Harvesting Upgrades:
 upgrades.defineUpgrade("bigger_area_1", {
     -- Increase harvest area by 2% (Currently 16%)
 
-    questions = {
-        getHarvestAreaMultiplier = function(level)
-            local mult = 1 + ((level*2)/100)
-            return mult
-        end
-    }
+    getHarvestAreaMultiplier = function(level)
+        local mult = 1 + ((level*2)/100)
+        return mult
+    end
 })
+
+
+
+local function spawnSpinningAxe()
+    local a = {
+        update = function(self, dt) end,
+        draw = function(self) end
+    }
+    world.addThing(a)
+end
+
+
+upgrades.defineUpgrade("spinning_axe", {
+    -- Every second, 10% chance to spawn a spinning axe!
+    perSecondUpdate = function(level, dt)
+        if random() < 0.1 then
+            spawnSpinningAxe()
+        end
+    end
+})
+
+
 
 
 ```

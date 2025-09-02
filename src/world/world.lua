@@ -14,25 +14,40 @@ local world = {}
 
 function world.init()
     world.tokens = objects.Set()
+    world.things = objects.Set()
 end
 
 
 
+function world.addThing(thing)
+    assert(type(thing) == "table")
+    assert(thing.x and thing.y)
+    assert(thing.update)
+    assert(thing.draw)
+end
+
+
+function world.removeThing(thing)
+    assert(type(thing) == "table")
+    assert(thing.x and thing.y)
+    assert(thing.update)
+    assert(thing.draw)
+end
+
+
+
+
 function world.draw()
-    self:drawGround()
+    drawGround()
 
     drawTokens()
-    drawTools()
+    drawThings()
 end
 
 
 
 
 function world.update(dt)
-    self:drawGround()
-
-    self:drawStuff()
-
     for _, area in ipairs(self.areas) do
         -- if area:
         local objs = getOverlappingObjs(area)

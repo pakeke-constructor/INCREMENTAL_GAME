@@ -124,14 +124,6 @@ end
 
 
 
-local ecs = require("src.modules.ecs.ecs")
-
-
-g.Entity = ecs.Entity
-g.Attachment = ecs.Attachment
-
-
-
 
 
 function g.walkDirectory(path, func)

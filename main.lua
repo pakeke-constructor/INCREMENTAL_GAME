@@ -98,10 +98,6 @@ setmetatable(_G, {
 })
 
 
-if consts.TEST then
-    require("src.modules.ecs._tests")
-end
-
 require("src.ev_q_definitions")
 
 
