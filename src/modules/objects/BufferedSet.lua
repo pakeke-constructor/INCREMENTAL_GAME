@@ -15,6 +15,8 @@ Order is not consistent, and will change quite dynamically.
 ]]
 ---Availability: Client and Server
 ---@class objects.BufferedSet<T>: objects.Class
+---@field private addBuffer table<any, true>
+---@field private remBuffer table<any, true>
 local BufferedSet = Class("objects:BufferedSet")
 
 if false then
@@ -28,11 +30,10 @@ end
 function BufferedSet:init(initial)
     self.pointers = {}
     self.len = 0
-    
-    -- Buffers for pending operations (just pointer tables)
-    self.addBuffer = {}
-    self.remBuffer = {}
-    
+
+    self.addBuffer = {} -- { [obj] -> true }
+    self.remBuffer = {} -- { [obj] -> true }
+
     if initial then
         for i = 1, #initial do
             self:add(initial[i])
@@ -50,15 +51,15 @@ function BufferedSet:clear()
     for i = 1, self.len do
         obj = self[i]
         ptrs[obj] = nil
-        self[i] = nil    
+        self[i] = nil
     end
 
     self.len = 0
-    
+
     -- Clear all buffers
     self.addBuffer = {}
     self.remBuffer = {}
-    
+
     return self
 end
 

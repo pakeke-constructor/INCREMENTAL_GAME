@@ -11,12 +11,14 @@ end
 
 objects.Class = require(".Class")
 objects.Set = require(".Set")
+objects.BufferedSet = require(".BufferedSet")
 objects.Array = require(".Array")
 objects.Heap = require(".Heap")
 objects.Enum = require(".Enum")
 objects.Color = require(".Color")
 objects.Spring = require(".Color")
 objects.Grid = require(".Grid")
+objects.Partition = require(".Partition")
 
 
 --- Checks if a value is callable

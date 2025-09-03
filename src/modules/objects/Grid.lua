@@ -36,7 +36,6 @@ end
 
 
 if false then
-    ---Availability: Client and Server
     ---@param width integer
     ---@param height integer
     ---@return objects.Grid
