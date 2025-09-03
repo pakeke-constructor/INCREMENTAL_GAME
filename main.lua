@@ -113,8 +113,11 @@ TESTS
 ============================================================
 ]]
 
-require("src.modules.objects._tests.BufferedSet_tests")
+if consts.TEST then
+    require("src.modules.objects._tests.BufferedSet_tests")
 
+    require("src.modules.objects._tests.Partition_tests")
+end
 
 --[[
 TESTS END
