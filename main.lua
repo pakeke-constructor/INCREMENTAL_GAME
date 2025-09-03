@@ -104,6 +104,25 @@ require("src.ev_q_definitions")
 
 
 
+
+
+
+--[[
+============================================================
+TESTS
+============================================================
+]]
+
+require("src.modules.objects._tests.BufferedSet_tests")
+
+
+--[[
+TESTS END
+]]
+
+
+
+
 local sceneManager = require("src.scenes.sceneManager")
 
 function love.load()

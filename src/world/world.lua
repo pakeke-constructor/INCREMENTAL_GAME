@@ -14,24 +14,23 @@ local world = {}
 
 function world.init()
     world.tokens = objects.Set()
+
+    world.thingAddBuffer = objects.Set()
     world.things = objects.Set()
+    world.thingRemBuffer = objects.Set()
 end
 
 
 
 function world.addThing(thing)
     assert(type(thing) == "table")
-    assert(thing.x and thing.y)
     assert(thing.update)
+    assert(thing.type)
     assert(thing.draw)
 end
 
 
 function world.removeThing(thing)
-    assert(type(thing) == "table")
-    assert(thing.x and thing.y)
-    assert(thing.update)
-    assert(thing.draw)
 end
 
 
