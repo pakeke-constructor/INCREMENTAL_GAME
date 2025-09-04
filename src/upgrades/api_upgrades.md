@@ -24,9 +24,7 @@ upgrades.defineUpgrade("basic_log", {
     -- (`level` inserted as a first argument automatically)
     populateTokens = function(level, tokens)
         -- populateTokens called automatically every few seconds
-        for i=1, level do
-            tokens:add("basic_log")
-        end
+        tokens:add("basic_log", level)
     end,
 })
 
@@ -159,11 +157,11 @@ upgrades.defineUpgrade("bigger_area_1", {
 
 
 local function spawnSpinningAxe()
-    local a = {
+    local e = {
         update = function(self, dt) end,
         draw = function(self) end
     }
-    world.addThing(a)
+    g.addEntity(a)
 end
 
 

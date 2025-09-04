@@ -8,6 +8,56 @@
 local g = {}
 
 
+-- A "storage" table that stores a bunch of data 
+-- relevant to this play session
+local _storage = {}
+
+
+local validMetrics = {--[[
+    [metricName] -> true
+]]}
+
+
+
+function g.initialize()
+    _storage = {}
+    _storage.metrics = {}
+
+    for metricName in pairs(validMetrics) do
+        _storage.metrics[metricName] = 0
+    end
+end
+
+
+-- metrics are "temporary" values that start at 0,
+-- and keep track of arbitrary runtime stuff
+-- (eg. number of logs destroyed, seconds-elapsed, mine-count, etc)
+
+local metricTc = typecheck.assert("string")
+function g.defineMetric(name)
+    metricTc(name)
+
+    validMetrics[name] = true
+    _storage.metrics[name] = 0
+end
+
+
+local setMetricTc = typecheck.assert("string","number")
+function g.setMetric(name, x)
+    setMetricTc(name, x)
+    assert(validMetrics[name], name)
+    _storage.metrics[name] = x
+end
+
+
+function g.getMetric(name)
+    metricTc(name)
+    assert(validMetrics[name], name)
+    return _storage.metrics[name]
+end
+
+
+
 
 local loadingContext = {
     modname = "@" -- @ = built-in mod
@@ -45,6 +95,14 @@ end
 
 function g.getMoney()
     return g._money
+end
+
+
+
+function g.getTokens()
+    local tokens = {}
+    g.call("populateTokens", tokens)
+    return tokens
 end
 
 
