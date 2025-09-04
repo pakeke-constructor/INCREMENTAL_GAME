@@ -76,30 +76,10 @@ end
 function world.tryHitToken(tok)
     local time = world.tokensBeingHit[tok]
     if not time then
-        world.tokensBeingHit[tok] = 
+        world.tokensBeingHit[tok] = g.getStat()
     end
 end
 
-
-
----@class TokenPopulater: objects.Class
-local TokenList = objects.Class("world:TokenPopulater")
-
-function TokenList:init()
-    self.tokens = {}
-end
-
----@param tokenId string
----@param amount number?
-function TokenList:add(tokenId, amount)
-    self.tokens[tokenId] = (self.tokens[tokenId] or 0) + (amount or 1)
-end
-
----@param tokenId string
----@return number
-function TokenList:get(tokenId)
-    return self.tokens[tokenId] or 0
-end
 
 
 
@@ -109,10 +89,6 @@ function world.update(dt)
     world.entities:flush()
     world.tokens:flush()
 
-    -- update TokenList
-    local tp = TokenList()
-    g.call("populateTokens", tp)
-
     -- update partition
     world.partition:clear()
     for _, e in ipairs(world.entities) do
@@ -121,6 +97,18 @@ function world.update(dt)
 
     for _, e in ipairs(world.entities) do
         e:update(dt)
+    end
+
+    -- respawn tokens that died
+    local tokenCounts = {}
+    for _,t in ipairs(world.tokens)do
+        tokenCounts[t.type] = (tokenCounts[t.type] or 0) + 1
+    end
+    for tokenType, poolCount in g.iterateTokenPool()do
+        local ct = tokenCounts[tokenType] or 0
+        if poolCount > ct then
+            -- spawn new
+        end
     end
 
     world.tokens:flush()

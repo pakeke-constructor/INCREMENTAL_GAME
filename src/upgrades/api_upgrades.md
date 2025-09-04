@@ -22,8 +22,8 @@ upgrades.defineUpgrade("basic_log", {
     prestigeLevel = 1,
 
     -- (`level` inserted as a first argument automatically)
-    populateTokens = function(level, tokens)
-        -- populateTokens called automatically every few seconds
+    populateTokenPool = function(level, tokens)
+        -- populateTokenPool called automatically every few seconds
         tokens:add("basic_log", level)
     end,
 })
@@ -49,7 +49,7 @@ upgrades.defineUpgrade("basic_bomb", {
     prestigeType = "TOKENS",
     prestigeLevel = 1,
 
-    populateTokens = function(level, tokens)
+    populateTokenPool = function(level, tokens)
         -- TODO:
         -- We should make this more robust w/ defineToken.
         -- I accidentally did `basic_log` instead of `basic_bomb`, which 
