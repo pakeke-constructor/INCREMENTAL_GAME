@@ -1,6 +1,3 @@
-
-
-
 local Class = require(".Class")
 
 ---@class objects.Partition: objects.Class
@@ -58,12 +55,14 @@ end
 
 
 
-function Partition:query(x, y, callback)
+function Partition:query(x, y, callback, range)
     local binX = math.floor(x / self.chunkSize)
     local binY = math.floor(y / self.chunkSize)
 
-    for dx = -1, 1 do
-        for dy = -1, 1 do
+    local binRadius = range and math.ceil(range / self.chunkSize) or 1
+
+    for dx = -binRadius, binRadius do
+        for dy = -binRadius, binRadius do
             local key = pair(binX + dx, binY + dy)
             local bin = self.bins[key]
             if bin then
