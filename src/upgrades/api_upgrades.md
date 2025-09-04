@@ -110,7 +110,7 @@ upgrades.defineUpgrade("Logbait", {
 upgrades.defineUpgrade("Forager cat", {
     description = loc("Every 5 logs you harvest, spawn a mushroom"),
     ...
-    tokenMined = function(token)
+    tokenDestroyed = function(token)
         if isType(token, "log") then
             local count = g.getMetric("LOGS_DESTROYED")
             -- or maybe:

@@ -13,9 +13,3 @@ So stuff like:
 - Lifetimes/management of any other extra tools/widgets/thing-ma-bobs
 
 
-The world contains multiple internal systems that manage these things in their own way.
-
-
-
-
-

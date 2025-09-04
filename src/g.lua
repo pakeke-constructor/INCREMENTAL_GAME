@@ -61,62 +61,6 @@ function g.initialize()
 end
 
 
--- metrics are "temporary" values that start at 0,
--- and keep track of arbitrary runtime stuff
--- (eg. number of logs destroyed, seconds-elapsed, mine-count, etc)
-
-local metricTc = typecheck.assert("string")
-function g.defineMetric(name)
-    metricTc(name)
-
-    validMetrics[name] = true
-    _storage.metrics[name] = 0
-end
-
-
-local setMetricTc = typecheck.assert("string","number")
-function g.setMetric(name, x)
-    setMetricTc(name, x)
-    assert(validMetrics[name], name)
-    _storage.metrics[name] = x
-end
-
-
-function g.getMetric(name)
-    metricTc(name)
-    assert(validMetrics[name], name)
-    return _storage.metrics[name]
-end
-
-
-
-
-local strTc = typecheck.assert("string")
-
----@type table<string, {add: string, mult:string}>
-local validStats = {}
-
-function g.defineStat(name)
-    strTc(name)
-    assert(name:sub(1,1):upper() == name:sub(1,1), "Stats must have first letter capitalized")
-    local addQ = "get" .. name .. "Modifier"
-    g.defineQuestion(addQ, reducers.ADD, 0)
-    local multQ = "get" .. name .. "Multiplier"
-    g.defineQuestion(multQ, reducers.MULTIPLY, 1)
-    validStats[name]={
-        add = addQ, mult = multQ
-    }
-end
-
-function g.getStat(name)
-    strTc(name)
-    assert(validStats[name], name)
-    return _storage.stats[name] or 1
-end
-
-
-
-
 
 local loadingContext = {
     modname = "@" -- @ = built-in mod
@@ -278,6 +222,75 @@ function g.requireFolder(path)
     end)
     return results
 end
+
+
+
+
+
+-- metrics are "temporary" values that start at 0,
+-- and keep track of arbitrary runtime stuff
+-- (eg. number of logs destroyed, seconds-elapsed, mine-count, etc)
+
+local metricTc = typecheck.assert("string")
+function g.defineMetric(name)
+    metricTc(name)
+
+    validMetrics[name] = true
+    _storage.metrics[name] = 0
+end
+
+
+local setMetricTc = typecheck.assert("string","number")
+function g.setMetric(name, x)
+    setMetricTc(name, x)
+    assert(validMetrics[name], name)
+    _storage.metrics[name] = x
+end
+
+
+function g.getMetric(name)
+    metricTc(name)
+    assert(validMetrics[name], name)
+    return _storage.metrics[name]
+end
+
+
+
+
+local strTc = typecheck.assert("string")
+
+---@type table<string, {add: string, mult:string}>
+local validStats = {}
+
+function g.defineStat(name)
+    strTc(name)
+    assert(name:sub(1,1):upper() == name:sub(1,1), "Stats must have first letter capitalized")
+    local addQ = "get" .. name .. "Modifier"
+    g.defineQuestion(addQ, reducers.ADD, 0)
+    local multQ = "get" .. name .. "Multiplier"
+    g.defineQuestion(multQ, reducers.MULTIPLY, 1)
+    validStats[name]={
+        add = addQ, mult = multQ
+    }
+    return 0
+end
+
+function g.getStat(name)
+    strTc(name)
+    assert(validStats[name], name)
+    return _storage.stats[name] or 1
+end
+
+
+---@class g.stats
+g.stats = {}
+
+g.stats.HitDuration = g.defineStat("HitDuration")
+g.stats.HitDamage = g.defineStat("HitDamage")
+g.stats.HarvestArea = g.defineStat("HarvestArea")
+
+
+
 
 
 

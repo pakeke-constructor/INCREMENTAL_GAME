@@ -9,15 +9,11 @@ g.defineEvent("populateTokenPool")
 
 
 
+
+g.defineEvent("tokenDraw")
+
 g.defineEvent("tokenHit")
-
 g.defineEvent("tokenDestroyed")
-
-
-
-
-g.defineStat("HitDuration")
-g.defineStat("HitDamage")
 
 
 
