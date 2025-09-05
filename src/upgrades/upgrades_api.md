@@ -12,7 +12,7 @@ upgrades.defineUpgrade("unlock_map", {
 
 
 
-tokens.defineToken("basic_log", {
+g.defineToken("basic_log", {
     health = 12,
     money = 5,
     wood = 1
@@ -30,7 +30,7 @@ upgrades.defineUpgrade("basic_log", {
 
 
 
-tokens.defineToken("basic_bomb", {
+g.defineToken("basic_bomb", {
     -- after 3 seconds, blows up
     health = 10000,
     _lifetime = 3,
@@ -40,7 +40,7 @@ tokens.defineToken("basic_bomb", {
             g.destroy(self)
         end
     end,
-    onDestroyed = function(self, dt)
+    onDestroyed = function(self)
         ...
         -- damage surrounding tokens
     end

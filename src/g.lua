@@ -285,6 +285,48 @@ end
 
 
 
+function g.addEntity(ent)
+    assert(type(ent) == "table")
+    assert(ent.update)
+    assert(ent.type)
+    assert(ent.draw)
+
+    world.entities:addBuffered(ent)
+end
+
+function g.removeEntity(ent)
+    world.entities:removeBuffered(ent)
+end
+
+
+
+local tokenTypes = {--[[
+    [tokenType] -> {
+        health = X,
+        
+        onUpdate = func,
+        onDestroyed = func
+    }
+]]}
+
+local tokenMts = {--[[
+    [tokenType] -> tokenMt
+]]}
+
+
+---@alias TokenDefinition {health:number, image:string, money:number? }
+
+---@param tokType string
+---@param tabl TokenDefinition
+function g.defineToken(tokType, tabl)
+    assert(not tabl.type, ".type is a reserved field!")
+    ---@diagnostic disable-next-line
+    tabl.type = tokType
+    tokenTypes[tokType] = tabl
+    tokenMts[tokType] = {__index = tabl}
+end
+
+
 ---@return fun(table: table<string, number>, index?: string):string, number
 ---@return table<string, number>
 function g.iterateTokenPool()
@@ -332,37 +374,25 @@ function g.getRandomPositionForToken()
 end
 
 
+function g.spawnToken(tokType, x,y)
+    assert(type(tokType) == "string")
+    assert(x and y)
+    if not (tokenTypes[tokType]) then
+        error("Invalid token type")
+    end
 
-function g.addEntity(ent)
-    assert(type(ent) == "table")
-    assert(ent.update)
-    assert(ent.type)
-    assert(ent.draw)
+    local tok = setmetatable({
+        x = x,
+        y = y
+    }, tokenMts[tokType])
 
-    world.entities:addBuffered(ent)
-end
-
-
-function g.addToken(tok)
-    assert(type(tok) == "table")
-    assert(tok.x and tok.y)
-    assert(tok.type)
-
-    world.entities:addBuffered(tok)
-end
-
-
-
-
-function g.removeEntity(ent)
-    world.entities:removeBuffered(ent)
+    world.tokens:addBuffered(tok)
 end
 
 
 function g.removeToken(tok)
     world.tokens:removeBuffered(tok)
 end
-
 
 
 function g.tokenExists(tok)
