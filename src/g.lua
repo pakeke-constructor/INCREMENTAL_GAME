@@ -40,7 +40,9 @@ end
 
 
 
-function g.initialize()
+g.___internal = {}
+
+function g.___internal.initialize()
     ---@diagnostic disable-next-line
     _storage = {}
 
@@ -60,6 +62,8 @@ function g.initialize()
     for metricName in pairs(validMetrics) do
         _storage.metrics[metricName] = 0
     end
+
+    world._init()
 end
 
 
@@ -170,6 +174,8 @@ end
 
 
 
+---@param path string
+---@param func fun(path: string)
 function g.walkDirectory(path, func)
     local info = love.filesystem.getInfo(path)
     if not info then return end
@@ -185,6 +191,7 @@ function g.walkDirectory(path, func)
 end
 
 
+---@param path string
 function g.requireFolder(path)
     local results = {}
     g.walkDirectory(path:gsub("%.", "/"), function(pth)
@@ -198,6 +205,47 @@ function g.requireFolder(path)
 end
 
 
+
+-- g.drawImage defined here!
+do
+local nameToQuad = {--[[
+    [name] -> Quad
+]]}
+---@cast nameToQuad table<string, love.Quad>
+
+---@param imageName string
+---@param x number
+---@param y number
+---@param r number?
+---@param sx number?
+---@param sy number?
+---@param kx number?
+---@param ky number?
+function g.drawImage(imageName, x,y, r,sx,sy,kx,ky)
+    local quad = nameToQuad[imageName]
+    if not quad then
+        error("Invalid quad: "..tostring(imageName))
+    end
+    local _,_,w,h = quad:getViewport()
+    local ox,oy = w/2,h/2
+    atlas:draw(quad,x,y,r,sx,sy,ox,oy,kx,ky)
+end
+
+
+local validExtensions = {
+    [".png"] = true,
+    [".jpg"] = true
+}
+
+g.walkDirectory("src/upgrades", function (path)
+    local ext = path:sub(-4):lower()
+    if validExtensions[ext] then
+        local name = path:match("([^/]+)%.%w+$") -- path/to/foo.png --> "foo"
+        local quad = atlas:add(love.image.newImageData(path))
+        nameToQuad[name] = quad
+    end
+end)
+end
 
 
 
@@ -233,10 +281,13 @@ end
 
 local strTc = typecheck.assert("string")
 
----@type table<string, {add: string, mult:string}>
+---@type table<string, {add: string, mult:string, startingValue: number}>
 local validStats = {}
 
-function g.defineStat(name)
+---@param name string
+---@param startingValue number
+---@return number
+function g.defineStat(name, startingValue)
     strTc(name)
     assert(name:sub(1,1):upper() == name:sub(1,1), "Stats must have first letter capitalized")
     local addQ = "get" .. name .. "Modifier"
@@ -244,7 +295,8 @@ function g.defineStat(name)
     local multQ = "get" .. name .. "Multiplier"
     g.defineQuestion(multQ, reducers.MULTIPLY, 1)
     validStats[name]={
-        add = addQ, mult = multQ
+        add = addQ, mult = multQ,
+        startingValue = startingValue
     }
     return 0
 end
@@ -253,9 +305,9 @@ end
 ---@class g.stats
 g.stats = {}
 
-g.stats.HitDuration = g.defineStat("HitDuration")
-g.stats.HitDamage = g.defineStat("HitDamage")
-g.stats.HarvestArea = g.defineStat("HarvestArea")
+g.stats.HitDuration = g.defineStat("HitDuration", 1)
+g.stats.HitDamage = g.defineStat("HitDamage", 1)
+g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
 
 
@@ -369,8 +421,10 @@ local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
 end
 
 
+---@return number?
+---@return number
 function g.getRandomPositionForToken()
-    return getRandomPos(0,0, world.WIDTH,world.HEIGHT)
+    return getRandomPos(0,0, world.WIDTH,world.HEIGHT) ---@diagnostic disable-line
 end
 
 
@@ -378,7 +432,7 @@ function g.spawnToken(tokType, x,y)
     assert(type(tokType) == "string")
     assert(x and y)
     if not (tokenTypes[tokType]) then
-        error("Invalid token type")
+        error("Invalid token type: " .. tostring(tokType))
     end
 
     local tok = setmetatable({
@@ -390,19 +444,33 @@ function g.spawnToken(tokType, x,y)
 end
 
 
-function g.removeToken(tok)
-    world.tokens:removeBuffered(tok)
-end
-
-
 function g.tokenExists(tok)
     return world.tokens:has(tok)
 end
 
+
+function g.destroyToken(tok)
+    g.call("tokenDestroyed", tok)
+    world.tokens:removeBuffered(tok)
+end
+
+function g.damageToken(tok, dmg)
+    tok.health = tok.health - dmg
+    g.call("tokenDamaged", tok, dmg)
+    if tok.health <= 0 then
+        g.destroyToken(tok)
+    end
+end
+
+
 function g.tryHitToken(tok)
     local time = world.tokensBeingHit[tok]
     if not time then
+        g.call("tokenHit", tok)
+        print("HIT SUCCESSFUL!")
         world.tokensBeingHit[tok] = g.stats.HitDuration
+        local dmgMult = g.ask("getTokenDamageMultiplier", tok)
+        g.damageToken(tok, dmgMult * g.stats.HitDamage)
     end
 end
 
@@ -411,19 +479,20 @@ end
 
 
 
-g.___internal = {}
-
 -- DONT CALL THIS MANUALLY!
-function g.___internal.update()
+function g.___internal.update(dt)
     for stat, t in pairs(validStats) do
-        local mod = g.ask(t.add)
+        local mod = g.ask(t.add) + t.startingValue
         local mult = g.ask(t.mult)
         g.stats[stat] = mod*mult
     end
 
+    world._update(dt)
+
     -- update TokenPool
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
+    tp:add("basic_grass", 5) --  add 5 grass by default.
     _storage.tokenPool = tp
 end
 

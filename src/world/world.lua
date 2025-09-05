@@ -16,15 +16,14 @@ Used by the harvest-scene
 ---@field tokenPartition objects.Partition
 ---@field mouseX number?
 ---@field mouseY number?
----@field _internal table
 local world = {}
 
 -- Think of this as the "dimensions" of the harvest-area
-world.WIDTH = 800
-world.HEIGHT = 600
+world.WIDTH = 450
+world.HEIGHT = 300
 
 
-function world.init()
+function world._init()
     world.tokens = objects.BufferedSet()
     world.entities = objects.BufferedSet()
 
@@ -32,9 +31,9 @@ function world.init()
 
     world.mouseX, world.mouseY = nil,nil
 
-    world.tokensBeingHit = setmetatable({--[[
+    world.tokensBeingHit = ({--[[
         [token] -> duration_of_hit
-    ]]}, {__mode="k"})
+    ]]})
 end
 
 
@@ -58,26 +57,36 @@ end
 local function updateHarvestCircle()
     local x,y = assert(world.mouseX), assert(world.mouseY)
     world.tokenPartition:query(x,y, function (tok)
+        error("todo do proper distance check here")
         g.tryHitToken(tok)
     end, g.stats.HarvestArea)
 end
 
 
-function world._internal.enableMouseHarvester(x,y)
+function world._enableMouseHarvester(x,y)
     world.mouseX = x
     world.mouseY = y
 end
 
 
 
-function world._internal.draw()
+local function drawToken(tok)
+    love.graphics.setColor(1,1,1,1)
+    -- TODO: add extra stuff here like scale, shear, etc.
+    g.drawImage(tok.image, tok.x, tok.y)
+end
+
+
+function world._draw()
     local w,h = world.WIDTH, world.HEIGHT
     love.graphics.setColor(0,0,0)
     love.graphics.rectangle("line", 0,0, w,h)
 
     -- drawGround()
 
-    -- drawStuff()
+    for _, tok in ipairs(world.tokens) do
+        drawToken(tok)
+    end
 
     if world.mouseX then
         drawHarvestCircle()
@@ -85,13 +94,23 @@ function world._internal.draw()
 end
 
 
-function world._internal.update(dt)
+function world._update(dt)
     world.entities:flush()
     world.tokens:flush()
 
     world.tokenPartition:clear()
     for _, t in ipairs(world.tokens) do
         world.tokenPartition:add(t, t.x,t.y)
+    end
+
+    for token, time in pairs(world.tokensBeingHit) do
+        time = time - dt
+        if time <= 0 then
+            -- hit has been completed!
+            world.tokensBeingHit[token] = nil
+        else
+            world.tokensBeingHit[token] = time
+        end
     end
 
     for _, e in ipairs(world.entities) do
@@ -107,10 +126,11 @@ function world._internal.update(dt)
     for _,t in ipairs(world.tokens)do
         tokenCounts[t.type] = (tokenCounts[t.type] or 0) + 1
     end
-    for tokenType, poolCount in g.iterateTokenPool()do
-        local ct = tokenCounts[tokenType] or 0
-        if poolCount > ct then
-            -- spawn new
+    for tokType, poolCount in g.iterateTokenPool()do
+        local ct = tokenCounts[tokType] or 0
+        local toSpawn = poolCount - ct
+        for _=1, toSpawn do
+            g.spawnToken(tokType, g.getRandomPositionForToken())
         end
     end
 

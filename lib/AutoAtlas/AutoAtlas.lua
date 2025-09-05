@@ -94,6 +94,8 @@ end
 
 
 
+---@param imageData any
+---@return love.Quad?
 function Atlas:add(imageData)
     lg.push("all")
     lg.reset()

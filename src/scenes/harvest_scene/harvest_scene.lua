@@ -23,9 +23,9 @@ function harvest:draw()
     love.graphics.setColor(1,1,1)
 
     local cx,cy = self.camera:toWorld(love.mouse.getPosition())
-    world.setMouseHarvester(cx,cy)
+    world._enableMouseHarvester(cx,cy)
 
-    world.draw()
+    world._draw()
 
     self:resetCamera()
 
