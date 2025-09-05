@@ -366,14 +366,14 @@ local tokenMts = {--[[
 ]]}
 
 
----@alias TokenDefinition {health:number, image:string, money:number? }
+---@alias TokenDefinition {maxHealth:number, image:string, money:number? }
 
 ---@param tokType string
 ---@param tabl TokenDefinition
 function g.defineToken(tokType, tabl)
     assert(not tabl.type, ".type is a reserved field!")
-    ---@diagnostic disable-next-line
-    tabl.type = tokType
+    assert(tabl.maxHealth, "Tokens need .maxHealth")
+    tabl.type = tokType ---@diagnostic disable-line
     tokenTypes[tokType] = tabl
     tokenMts[tokType] = {__index = tabl}
 end
@@ -431,13 +431,15 @@ end
 function g.spawnToken(tokType, x,y)
     assert(type(tokType) == "string")
     assert(x and y)
-    if not (tokenTypes[tokType]) then
+    local tabl = tokenTypes[tokType]
+    if not (tabl) then
         error("Invalid token type: " .. tostring(tokType))
     end
 
     local tok = setmetatable({
         x = x,
-        y = y
+        y = y,
+        health = tabl.maxHealth
     }, tokenMts[tokType])
 
     world.tokens:addBuffered(tok)

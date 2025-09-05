@@ -57,8 +57,9 @@ end
 local function updateHarvestCircle()
     local x,y = assert(world.mouseX), assert(world.mouseY)
     world.tokenPartition:query(x,y, function (tok)
-        error("todo do proper distance check here")
-        g.tryHitToken(tok)
+        if math.distance(x-tok.x, y-tok.y) <= g.stats.HarvestArea then
+            g.tryHitToken(tok)
+        end
     end, g.stats.HarvestArea)
 end
 
@@ -70,10 +71,26 @@ end
 
 
 
+local function drawTokenHealthBar(tok)
+    local x,y = tok.x, tok.y
+    love.graphics.setColor(1,0,0)
+    local HP_BAR_W = 14
+    local HP_BAR_H = 3
+    local realW = HP_BAR_W * (tok.health / tok.maxHealth)
+    love.graphics.setColor(0,0,0,0.5)
+    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    love.graphics.setColor(1,0,0,1)
+    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, realW, HP_BAR_H)
+    love.graphics.setLineWidth(1)
+    love.graphics.setColor(0,0,0,1)
+    love.graphics.rectangle("line", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+end
+
 local function drawToken(tok)
     love.graphics.setColor(1,1,1,1)
     -- TODO: add extra stuff here like scale, shear, etc.
     g.drawImage(tok.image, tok.x, tok.y)
+    drawTokenHealthBar(tok)
 end
 
 
