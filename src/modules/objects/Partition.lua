@@ -55,6 +55,11 @@ end
 
 
 
+--- Spatial query. Return true from the callback to stop early
+---@param x number
+---@param y number
+---@param callback fun(item): true?
+---@param range number?
 function Partition:query(x, y, callback, range)
     local binX = math.floor(x / self.chunkSize)
     local binY = math.floor(y / self.chunkSize)
@@ -67,7 +72,10 @@ function Partition:query(x, y, callback, range)
             local bin = self.bins[key]
             if bin then
                 for i = 1, #bin do
-                    callback(bin[i])
+                    local stopEarly = callback(bin[i]) == true
+                    if stopEarly then
+                        return
+                    end
                 end
             end
         end

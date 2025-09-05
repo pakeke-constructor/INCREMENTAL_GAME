@@ -10,13 +10,12 @@ Try to have an *EXTREMELY DIVERSE* set of upgrades.
 From there, we can make better architectural decisions, based on what we ACTUALLY NEED, not what we think we need.
 
 
-- Get simple harvesting working:
-    - ECS/Events defined
-    - Tokens pools,
-    - Tokens spawning / respawning
-    - Tokens giving money/resources 
-    - Area-harvesting API (store resources gained per area? used for idle mode)
-
+- ECS/Events defined
+- Tokens pools
+- Tokens spawning / respawning
+- Tokens giving money/resources 
+- Token-hitting API 
+- (store resources gained per area? used for idle mode)
 
 - get n9p working? (Or maybe do balatro-style pixelart buttons...?)
 

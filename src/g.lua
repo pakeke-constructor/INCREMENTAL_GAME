@@ -4,6 +4,8 @@
 -- Gotta go fast, i dont care about "best practice"
 
 local reducers = require("src.modules.reducers")
+local upgrades = require("src.upgrades.upgrades")
+local world = require("src.world.world")
 
 
 ---@class g
@@ -78,43 +80,6 @@ end
 
 
 
-g._money = 0
-
-function g.addMoney(x)
-    g._money = g._money + x
-end
-
-
-function g.trySubtractMoney(x)
-    -- used for shopping:  
-    -- if g.trySubtractMoney(COST) then  getUpgrade()  end
-    if x <= g._money then
-        g._money = g._money - x
-        return true
-    end
-    return false
-end
-
-
-function g.getMoney()
-    return g._money
-end
-
-
-
----@return fun(table: table<string, number>, index?: string):string, number
----@return table<string, number>
-function g.iterateTokenPool()
-    return pairs(_storage.tokenPool.tokens)
-end
-
----@param token string
----@return number
-function g.getTokenPoolCount(token)
-    return _storage.tokenPool.tokens[token] or 0
-end
-
-
 
 
 
@@ -142,7 +107,7 @@ end
 
 function g.assertIsQuestionOrEvent(ev_or_question, level)
     level = level or 0
-    local isQuestionOrEvent = (g.isQuestion(ev_or_question) or g.isEvent(ev_or_question))
+    local isQuestionOrEvent = (g.getQuestionInfo(ev_or_question) or g.isEvent(ev_or_question))
     if not isQuestionOrEvent then
         error("Invalid question/event: " .. tostring(ev_or_question), 2 + level)
     end
@@ -150,12 +115,15 @@ end
 
 
 ---@param ev string
----@param ent_or_any any
+---@param arg1 any
 ---@param ... unknown
-function g.call(ev, ent_or_any, ...)
+function g.call(ev, arg1, ...)
     -- call systems
+    if (type(arg1) == "table") and arg1[ev] then
+        arg1[ev](arg1, ...)
+    end
 
-    -- call upgrades
+    upgrades.call(ev, arg1, ...)
 end
 
 
@@ -163,10 +131,9 @@ end
 local questions = {--[[
     [question] -> {reducer=func, defaultValue=0}
 ]]}
-local definedQuestions = {}
 
-function g.isQuestion(q)
-    return definedQuestions[q]
+function g.getQuestionInfo(q)
+    return questions[q]
 end
 
 ---@param question string
@@ -178,17 +145,24 @@ function g.defineQuestion(question, reducer, defaultValue)
         reducer = reducer,
         defaultValue = defaultValue
     }
-    definedQuestions:add(question)
 end
 
 
 ---@param q string
----@param ent_or_any any
+---@param arg1 any
 ---@param ... unknown
-function g.ask(q, ent_or_any, ...)
-    -- ask systems
+function g.ask(q, arg1, ...)
+    local t = questions[q]
+    if not t then
+        error("Invalid question")
+    end
+    local reducer, val = t.reducer, t.defaultValue
 
-    -- ask upgrades
+    if (type(arg1) == "table") and arg1[q] then
+        val = reducer(arg1[q](arg1, ...), val)
+    end
+
+    return reducer(val, upgrades.ask(q, arg1, ...))
 end
 
 
@@ -275,12 +249,6 @@ function g.defineStat(name)
     return 0
 end
 
-function g.getStat(name)
-    strTc(name)
-    assert(validStats[name], name)
-    return _storage.stats[name] or 1
-end
-
 
 ---@class g.stats
 g.stats = {}
@@ -288,6 +256,125 @@ g.stats = {}
 g.stats.HitDuration = g.defineStat("HitDuration")
 g.stats.HitDamage = g.defineStat("HitDamage")
 g.stats.HarvestArea = g.defineStat("HarvestArea")
+
+
+
+
+
+g._money = 0
+
+function g.addMoney(x)
+    g._money = g._money + x
+end
+
+
+function g.trySubtractMoney(x)
+    -- used for shopping:  
+    -- if g.trySubtractMoney(COST) then  getUpgrade()  end
+    if x <= g._money then
+        g._money = g._money - x
+        return true
+    end
+    return false
+end
+
+
+function g.getMoney()
+    return g._money
+end
+
+
+
+---@return fun(table: table<string, number>, index?: string):string, number
+---@return table<string, number>
+function g.iterateTokenPool()
+    return pairs(_storage.tokenPool.tokens)
+end
+
+---@param token string
+---@return number
+function g.getTokenPoolCount(token)
+    return _storage.tokenPool.tokens[token] or 0
+end
+
+
+local DEFAULT_MIN_SPACING = 12
+
+local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
+    maxAttempts = maxAttempts or 20
+    minSpacing = minSpacing or DEFAULT_MIN_SPACING
+    for attempt = 1, maxAttempts do
+        local px = x + math.random() * w
+        local py = y + math.random() * h
+        local tooClose = false
+
+        world.tokenPartition:query(px, py, function(tok)
+            local dx = px - tok.x
+            local dy = py - tok.y
+            local distSq = dx*dx + dy*dy
+            if distSq < minSpacing * minSpacing then
+                tooClose = true
+                return true -- stop iteration early
+            end
+        end)
+
+        if not tooClose then
+            return px, py
+        end
+    end
+
+    return nil, nil
+end
+
+
+function g.getRandomPositionForToken()
+    return getRandomPos(0,0, world.WIDTH,world.HEIGHT)
+end
+
+
+
+function g.addEntity(ent)
+    assert(type(ent) == "table")
+    assert(ent.update)
+    assert(ent.type)
+    assert(ent.draw)
+
+    world.entities:addBuffered(ent)
+end
+
+
+function g.addToken(tok)
+    assert(type(tok) == "table")
+    assert(tok.x and tok.y)
+    assert(tok.type)
+
+    world.entities:addBuffered(tok)
+end
+
+
+
+
+function g.removeEntity(ent)
+    world.entities:removeBuffered(ent)
+end
+
+
+function g.removeToken(tok)
+    world.tokens:removeBuffered(tok)
+end
+
+
+
+function g.tokenExists(tok)
+    return world.tokens:has(tok)
+end
+
+function g.tryHitToken(tok)
+    local time = world.tokensBeingHit[tok]
+    if not time then
+        world.tokensBeingHit[tok] = g.stats.HitDuration
+    end
+end
 
 
 
@@ -301,7 +388,7 @@ function g.___internal.update()
     for stat, t in pairs(validStats) do
         local mod = g.ask(t.add)
         local mult = g.ask(t.mult)
-        _storage.stats[stat] = mod*mult
+        g.stats[stat] = mod*mult
     end
 
     -- update TokenPool
