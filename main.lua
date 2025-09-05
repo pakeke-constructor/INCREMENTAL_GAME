@@ -80,6 +80,8 @@ _G.objects = require("src.modules.objects.objects")
 _G.richtext = require("src.modules.richtext.exports")
 
 _G.localization = require("src.modules.localization")
+_G.loc = _G.localization.localize
+_G.interp = _G.localization.newInterpolator
 
 
 _G.Kirigami = require("lib.kirigami")
@@ -136,9 +138,10 @@ TESTS END
 local sceneManager = require("src.scenes.sceneManager")
 
 function love.load()
+    g.___internal.initialize()
+
     g.requireFolder("src/upgrades/upgrade_defs")
 
-    g.___internal.initialize()
     sceneManager.gotoScene("map_scene")
 end
 

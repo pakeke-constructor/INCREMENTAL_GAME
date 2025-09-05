@@ -57,7 +57,7 @@ end
 local function updateHarvestCircle()
     local x,y = assert(world.mouseX), assert(world.mouseY)
     world.tokenPartition:query(x,y, function (tok)
-        if math.distance(x-tok.x, y-tok.y) <= g.stats.HarvestArea then
+        if math.distance(x-tok.x, y-tok.y) <= (g.stats.HarvestArea + consts.HARVEST_AREA_LEEWAY) then
             g.tryHitToken(tok)
         end
     end, g.stats.HarvestArea)

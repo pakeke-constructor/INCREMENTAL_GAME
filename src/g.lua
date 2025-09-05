@@ -63,6 +63,7 @@ function g.___internal.initialize()
         _storage.metrics[metricName] = 0
     end
 
+    upgrades._init()
     world._init()
 end
 
@@ -232,6 +233,13 @@ function g.drawImage(imageName, x,y, r,sx,sy,kx,ky)
 end
 
 
+---@param imageName any
+---@return boolean
+function g.isImage(imageName)
+    return (nameToQuad[imageName] and true) or false
+end
+
+
 local validExtensions = {
     [".png"] = true,
     [".jpg"] = true
@@ -352,6 +360,32 @@ end
 
 
 
+
+
+
+
+
+
+
+
+---@param upgradeId string
+---@param tabl {}
+function g.defineUpgrade(upgradeId, tabl)
+    upgrades.defineUpgrade(upgradeId, tabl)
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
 local tokenTypes = {--[[
     [tokenType] -> {
         health = X,
@@ -469,7 +503,6 @@ function g.tryHitToken(tok)
     local time = world.tokensBeingHit[tok]
     if not time then
         g.call("tokenHit", tok)
-        print("HIT SUCCESSFUL!")
         world.tokensBeingHit[tok] = g.stats.HitDuration
         local dmgMult = g.ask("getTokenDamageMultiplier", tok)
         g.damageToken(tok, dmgMult * g.stats.HitDamage)

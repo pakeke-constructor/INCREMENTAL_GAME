@@ -2,17 +2,6 @@
 
 # TODO:
 
-
-- PLAN UPGRADES / FEATURES! Be specific!!  
-Once we have features planned, we can plan architecture better.   
-Try to have an *EXTREMELY DIVERSE* set of upgrades.  
------=   
-From there, we can make better architectural decisions, based on what we ACTUALLY NEED, not what we think we need.
-
-
-- ECS/Events defined
-- Tokens pools
-- Tokens spawning / respawning
 - Tokens giving money/resources 
 - Token-hitting API 
 - (store resources gained per area? used for idle mode)
@@ -28,6 +17,9 @@ From there, we can make better architectural decisions, based on what we ACTUALL
 - get buttons working
 - get map working
 
+- Tokens pools
+- Tokens spawning / respawning
+- ECS/Events defined
 
 
 

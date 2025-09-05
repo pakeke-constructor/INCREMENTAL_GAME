@@ -1,4 +1,6 @@
 
+local upgrades = require("src.upgrades.upgrades")
+
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 
@@ -20,7 +22,8 @@ function upgscene:draw()
     love.graphics.clear(0.2,0.4,0.8)
     love.graphics.setColor(1,1,1)
 
-    richtext.printRichContained(TITLE, love.graphics.getFont(), header:get())
+    upgrades._draw()
+
     self:resetCamera()
 
     self:renderNavbar()

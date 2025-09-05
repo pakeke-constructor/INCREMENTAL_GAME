@@ -23,7 +23,7 @@ local function niceAssert(bool, str, val)
 end
 
 
-function upgrades.init()
+function upgrades._init()
     upgrades.info = {--[[
         [upgradeId] -> Table (contains all info)
     ]]}
@@ -39,13 +39,6 @@ function upgrades.init()
     ]]}
 end
 
-
-function upgrades.getCurrentTokens()
-    local toks = {}
-    for upg,level in pairs(upgrades.unlocked) do
-        local info
-    end
-end
 
 
 function upgrades.definePrestige(prestigeId, tabl)
@@ -64,7 +57,8 @@ local eventCache = {} -- [questionName] -> {upgradeId1, upgradeId2, ...}
 function upgrades.defineUpgrade(upgradeId, tabl)
     niceAssert(type(upgradeId) == "string")
     niceAssert(PRESTIGE_TYPES[tabl.prestigeType], "Invalid prestige type: ", tabl.prestigeType)
-    niceAssert(type(tabl.prestigeLevel) == "number", "Invalid prestige level:", tabl.prestigeLevel)
+    niceAssert(type(tabl.prestigeLevel) == "number", "Invalid prestige level: ", tabl.prestigeLevel)
+    niceAssert(g.isImage(tabl.image), "Invalid image: ", tabl.image)
     niceAssert(type(tabl.x) == "number" and type(tabl.y) == "number", "Upgrades needs x,y coords")
 
     assert(not upgrades.info[upgradeId], "Redefined upgrade!")
@@ -156,6 +150,24 @@ end
 ---@return number? level level of upgrade; nil if not upgraded.
 function upgrades.upgrade(upgradeId)
     return 1
+end
+
+
+function upgrades._draw()
+    for upgradeId, info in pairs(upgrades.info or {}) do
+        local level = upgrades.getLevel(upgradeId) or 0
+        local size = consts.UPGRADE_IMAGE_SIZE
+        local spacing = consts.UPGRADE_GRID_SPACING + size
+        local x = info.x * spacing
+        local y = info.y * spacing
+
+        g.drawImage(info.image, x, y)
+        love.graphics.rectangle("line", x-size/2, y-size/2, size, size)
+
+        if level > 0 then
+            love.graphics.print(tostring(level), x, y)
+        end
+    end
 end
 
 
