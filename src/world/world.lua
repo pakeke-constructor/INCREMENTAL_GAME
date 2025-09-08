@@ -1,4 +1,3 @@
-
 --[[
 
 World
@@ -13,6 +12,7 @@ Used by the harvest-scene
 ---@field entities objects.BufferedSet
 ---@field tokens objects.BufferedSet
 ---@field tokensBeingHit {[table]: number}
+---@field tokensToHoverTime {[table]: number}
 ---@field tokenPartition objects.Partition
 ---@field mouseX number?
 ---@field mouseY number?
@@ -21,6 +21,10 @@ local world = {}
 -- Think of this as the "dimensions" of the harvest-area
 world.WIDTH = 450
 world.HEIGHT = 300
+
+-- Minimum hover time before a token can be mined
+-- (Prevents players flicking their mouse all over the screen)
+local MIN_HOVER_TIME = 0.2
 
 
 function world._init()
@@ -33,6 +37,10 @@ function world._init()
 
     world.tokensBeingHit = ({--[[
         [token] -> duration_of_hit
+    ]]})
+
+    world.tokensToHoverTime = ({--[[
+        [token] -> hover_time_accumulated
     ]]})
 end
 
@@ -54,13 +62,28 @@ local function drawHarvestCircle()
 end
 
 
-local function updateHarvestCircle()
+local function updateHarvestCircle(dt)
     local x,y = assert(world.mouseX), assert(world.mouseY)
+
+    local hoveredTokens = {}
+
     world.tokenPartition:query(x,y, function (tok)
         if math.distance(x-tok.x, y-tok.y) <= (g.stats.HarvestArea + consts.HARVEST_AREA_LEEWAY) then
-            g.tryHitToken(tok)
+            hoveredTokens[tok] = true
+
+            world.tokensToHoverTime[tok] = (world.tokensToHoverTime[tok] or 0) + dt
+
+            if world.tokensToHoverTime[tok] >= MIN_HOVER_TIME then
+                g.tryHitToken(tok)
+            end
         end
     end, g.stats.HarvestArea)
+
+    for token, hoverTime in pairs(world.tokensToHoverTime) do
+        if not hoveredTokens[token] then
+            world.tokensToHoverTime[token] = nil
+        end
+    end
 end
 
 
@@ -135,7 +158,7 @@ function world._update(dt)
     end
 
     if world.mouseX then
-        updateHarvestCircle()
+        updateHarvestCircle(dt)
     end
 
     -- respawn tokens that died
@@ -158,4 +181,3 @@ end
 
 
 return world
-

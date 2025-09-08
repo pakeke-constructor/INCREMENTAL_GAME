@@ -4,7 +4,7 @@ g.defineToken("basic_grass", {
     image = "basic_grass",
 
     money = 1,
-    maxHealth = 5
+    maxHealth = 4
 })
 
 
@@ -17,5 +17,4 @@ g.defineUpgrade("basic_grass", {
 
     description = loc"hi",
 })
-
 

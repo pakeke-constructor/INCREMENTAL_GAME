@@ -30,6 +30,7 @@ Instead: "Cat spikes! Harvesting emits spikes that deal +2 damage"
 - Instakill!: On hit, 1% chance to deal 1000 damage to target
 - Explosive: Every 10 hits, spawn a bomb
 - Every second, send out a bouncing axe that deals damage
+- Thunderbolts: When a token is destroyed, 5% chance to spawn a lightning-chain that spreads out and deals damage!
 - Every 15 seconds, spawn a bomb
 - Square Boi: Turns your mouse harvest area into a square
 - World of Slime: When a slimed object is hit, 4% chance to spread slime
