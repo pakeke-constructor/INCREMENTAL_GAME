@@ -38,31 +38,13 @@ Player needs to mouse over logs to mine/axe it.
 (See [Keep on mining](https://store.steampowered.com/app/3769130/Keep_on_Mining/) as an example.)
 
 
-## Progressive map unlocks / XP System:
+## Progressive map unlocks and upgrades:
 Keep it DEAD FUCKING SIMPLE to start with. SUPER SIMPLE.  
-Player starts at level-1.  
-Every time they level up, player should get a free upgrade. (think vampire survivors)
 **First upgrades should be VISUAL upgrades. We need to hook the player!!!**  
-IDEA: 
-- Player unlocks the Skill-Tree level-2  (should take about 15 seconds to unlock)
-- Player unlocks the Map level-3
 
-Over time, player unlocks more stuff as they level up.  
+Over time, player unlocks more stuff as they progress.
 This could work by more of the map being unlocked, and the player completing quests/tasks.  
 We also need to make the player *excited* to unlock new stuff.
-
-- AFTER LEVEL 10, Get access to: 
--> Sleepy cat zone. SLEEPY-CAT UPGRADE: "Generates income for 24 hours when you’re away"
-(can be upgrades multiple times)
-
-
-
-## Level ups:
-Level-ups should always contain something *special.*  
-Not just "oh, number go up".  
-- Player levels up -> gets a spin on a gambling-machine...?
-- Some map-locations are locked behind levels?
-
 
 
 ## Dangled upgrades:
