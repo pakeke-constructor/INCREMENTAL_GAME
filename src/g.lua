@@ -527,8 +527,10 @@ function g.___internal.update(dt)
     -- update TokenPool
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
+
     tp:add("basic_grass", 20) --  add grass by default.
     -- TODO: in future, only add default-grass if we are on prestige-1.
+
     _storage.tokenPool = tp
 end
 

@@ -1,7 +1,8 @@
 
 
 # UPGRADE IDEAS:
-We want some upgrades to be upgradable *multiple times*.
+We want some upgrades to be upgradable *multiple times*.  
+(this means we have quite a lot more content/gameplay)
 
 As such, the format of the upgrade text/description is really important.
 We want excellent UX.  

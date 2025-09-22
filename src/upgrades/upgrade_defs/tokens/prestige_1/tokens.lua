@@ -18,3 +18,21 @@ g.defineUpgrade("basic_grass", {
     description = loc"hi",
 })
 
+
+
+
+g.defineToken("basic_log", {
+    image = "basic_log",
+
+    money = 5,
+    maxHealth = 15
+})
+g.defineUpgrade("basic_log", {
+    image = "basic_log",
+    prestigeType = "TOKEN",
+    prestigeLevel = 1,
+
+    x=2,y=1,
+})
+
+

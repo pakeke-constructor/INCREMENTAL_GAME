@@ -1,6 +1,6 @@
 
 
-# Game Idea:
+# Market:
 
 Idle games have been performing [extremely well recently.](https://howtomarketagame.com/2025/08/04/2025-q2-games-that-are-selling/)
 
