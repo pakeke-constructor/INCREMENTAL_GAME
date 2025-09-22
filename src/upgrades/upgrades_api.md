@@ -161,7 +161,7 @@ local function spawnSpinningAxe()
         update = function(self, dt) end,
         draw = function(self) end
     }
-    g.addEntity(a)
+    g.getMainWorld():addEntity(a)
 end
 
 

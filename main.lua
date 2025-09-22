@@ -138,17 +138,16 @@ TESTS END
 local sceneManager = require("src.scenes.sceneManager")
 
 function love.load()
-    g.___internal.initialize()
-
     g.requireFolder("src/upgrades/upgrade_defs")
 
+    g.newSession()
     sceneManager.gotoScene("map_scene")
 end
 
 
 function love.update(dt)
     iml.setPointer(love.mouse.getPosition())
-    g.___internal.update(dt)
+    g.getSn():_update(dt)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.update then
         sc:update(dt)

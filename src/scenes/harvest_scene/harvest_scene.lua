@@ -1,7 +1,6 @@
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
-local world = require("src.world.world")
 
 ---@class HarvestScene: FreeCameraScene
 local harvest = FreeCameraScene()
@@ -22,10 +21,12 @@ function harvest:draw()
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
 
-    local cx,cy = self.camera:toWorld(love.mouse.getPosition())
-    world._enableMouseHarvester(cx,cy)
+    local world = g.getMainWorld()
 
-    world._draw()
+    local cx,cy = self.camera:toWorld(love.mouse.getPosition())
+    world:_enableMouseHarvester(cx,cy)
+
+    world:_draw()
 
     self:resetCamera()
 

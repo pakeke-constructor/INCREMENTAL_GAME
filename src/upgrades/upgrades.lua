@@ -1,7 +1,12 @@
 
 
 
+---@class upgrades
 local upgrades = {}
+
+local upgradeInfos = {--[[
+    [upgradeId] -> Table (contains all info)
+]]}
 
 
 local PRESTIGE_TYPES = {
@@ -23,22 +28,6 @@ local function niceAssert(bool, str, val)
 end
 
 
-function upgrades._init()
-    upgrades.info = {--[[
-        [upgradeId] -> Table (contains all info)
-    ]]}
-
-    upgrades.upgradeToPrestige = {--[[
-        [upgrade] -> prestige
-    ]]}
-
-    -- what upgrades are actually unlocked?
-    upgrades.unlocked = {--[[
-        [prestigeId] -> level
-        [upgradeId] -> level
-    ]]}
-end
-
 
 
 function upgrades.definePrestige(prestigeId, tabl)
@@ -50,7 +39,7 @@ end
 
 local questionCache = {} -- [questionName] -> {upgradeId1, upgradeId2, ...}
 
-local eventCache = {} -- [questionName] -> {upgradeId1, upgradeId2, ...}
+local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
 
 
 -- Add this to defineUpgrade function
@@ -61,8 +50,8 @@ function upgrades.defineUpgrade(upgradeId, tabl)
     niceAssert(g.isImage(tabl.image), "Invalid image: ", tabl.image)
     niceAssert(type(tabl.x) == "number" and type(tabl.y) == "number", "Upgrades needs x,y coords")
 
-    assert(not upgrades.info[upgradeId], "Redefined upgrade!")
-    upgrades.info[upgradeId] = tabl
+    assert(not upgradeInfos[upgradeId], "Redefined upgrade!")
+    upgradeInfos[upgradeId] = tabl
 
     -- Cache questions and events this upgrade can handle
     for key, func in pairs(tabl) do
@@ -89,8 +78,8 @@ function upgrades.ask(question, ...)
     if not upgradeIds then return result end
 
     for _, upgradeId in ipairs(upgradeIds) do
-        local level = upgrades.getLevel(upgradeId)
-        if level and level > 0 then
+        local level = g.getSn():getUpgradeLevel(upgradeId)
+        if level > 0 then
             local info = upgrades.getInfo(upgradeId)
             local answerFunc = info[question]
             if answerFunc then
@@ -110,7 +99,7 @@ function upgrades.call(event, ...)
     if not upgradeIds then return end
 
     for _, upgradeId in ipairs(upgradeIds) do
-        local level = upgrades.getLevel(upgradeId)
+        local level = g.getSn():getUpgradeLevel(upgradeId)
         if level and level > 0 then
             local info = upgrades.getInfo(upgradeId)
             local eventFunc = info[event]
@@ -134,28 +123,16 @@ end
 ---@param upgradeId string
 ---@return table
 function upgrades.getInfo(upgradeId)
-    return assert(upgrades.info[upgradeId])
+    return assert(upgradeInfos[upgradeId])
 end
 
 
----@param upgradeId string
----@return number?
-function upgrades.getLevel(upgradeId)
-    niceAssert(upgrades.info[upgradeId], "Upgrade doesnt exist")
-    return upgrades.unlocked[upgradeId]
-end
-
-
----@param upgradeId string
----@return number? level level of upgrade; nil if not upgraded.
-function upgrades.upgrade(upgradeId)
-    return 1
-end
 
 
 function upgrades._draw()
-    for upgradeId, info in pairs(upgrades.info or {}) do
-        local level = upgrades.getLevel(upgradeId) or 0
+    -- TODO: allow for alternative upgrade maps in future?
+    for upgradeId, info in pairs(upgradeInfos or {}) do
+        local level = g.getSn():getUpgradeLevel(upgradeId)
         local size = consts.UPGRADE_IMAGE_SIZE
         local spacing = consts.UPGRADE_GRID_SPACING + size
         local x = info.x * spacing

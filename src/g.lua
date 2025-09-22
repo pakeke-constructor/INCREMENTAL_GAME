@@ -5,8 +5,9 @@
 
 local reducers = require("src.modules.reducers")
 local upgrades = require("src.upgrades.upgrades")
-local world = require("src.world.world")
 
+local World = require("src.world.world")
+local Session = require("src.Session")
 
 ---@class g
 ---@field private _money integer
@@ -19,53 +20,29 @@ local g = {}
 ---@field metrics table<string, number>
 ---@field stats table<string, number>
 ---@field tokenPool g.TokenPool
-local _storage = {}
-
-
-local validMetrics = {--[[
-    [metricName] -> true
-]]}
 
 
 
 
----@class g.TokenPool: objects.Class
-local TokenPool = objects.Class("g:TokenPool")
-function TokenPool:init()
-    self.tokens = {}
-end
-function TokenPool:add(tokenId, amount)
-    self.tokens[tokenId] = (self.tokens[tokenId] or 0) + (amount or 1)
+
+---@type g.Session
+local currentSession
+
+function g.newSession()
+    currentSession = Session()
 end
 
 
-
-g.___internal = {}
-
-function g.___internal.initialize()
-    ---@diagnostic disable-next-line
-    _storage = {}
-
-    _storage.metrics = {--[[
-        [metricName] -> number
-    ]]}
-
-    -- TokenPool is refreshed/recreated every frame
-    _storage.tokenPool = TokenPool()
-
-    -- stats are recomputed every frame.
-    -- Think of them as like "global properties"
-    _storage.stats = {--[[
-        [statName] -> number
-    ]]}
-
-    for metricName in pairs(validMetrics) do
-        _storage.metrics[metricName] = 0
-    end
-
-    upgrades._init()
-    world._init()
+---@return g.Session
+function g.getSn()
+    return assert(currentSession)
 end
+
+---@return g.World
+function g.getMainWorld()
+    return currentSession.mainWorld
+end
+
 
 
 
@@ -260,28 +237,37 @@ end
 -- metrics are "temporary" values that start at 0,
 -- and keep track of arbitrary runtime stuff
 -- (eg. number of logs destroyed, seconds-elapsed, mine-count, etc)
+local validMetrics = {--[[
+    [metricName] -> true
+]]}
 
 local metricTc = typecheck.assert("string")
+
+---@param name string
 function g.defineMetric(name)
     metricTc(name)
 
     validMetrics[name] = true
-    _storage.metrics[name] = 0
 end
 
 
 local setMetricTc = typecheck.assert("string","number")
+
+---@param name string
+---@param x number
 function g.setMetric(name, x)
     setMetricTc(name, x)
     assert(validMetrics[name], name)
-    _storage.metrics[name] = x
+    g.getSn().metrics[name] = x
 end
 
 
+---@param name string
+---@return number
 function g.getMetric(name)
     metricTc(name)
     assert(validMetrics[name], name)
-    return _storage.metrics[name]
+    return g.getSn().metrics[name] or 0
 end
 
 
@@ -289,8 +275,8 @@ end
 
 local strTc = typecheck.assert("string")
 
----@type table<string, {add: string, mult:string, startingValue: number}>
-local validStats = {}
+---@type table<string, {addQuestion: string, multQuestion:string, startingValue: number}>
+g.VALID_STATS = {}
 
 ---@param name string
 ---@param startingValue number
@@ -302,8 +288,8 @@ function g.defineStat(name, startingValue)
     g.defineQuestion(addQ, reducers.ADD, 0)
     local multQ = "get" .. name .. "Multiplier"
     g.defineQuestion(multQ, reducers.MULTIPLY, 1)
-    validStats[name]={
-        add = addQ, mult = multQ,
+    g.VALID_STATS[name]={
+        addQuestion = addQ, multQuestion = multQ,
         startingValue = startingValue
     }
     return 0
@@ -341,21 +327,6 @@ end
 
 function g.getMoney()
     return g._money
-end
-
-
-
-function g.addEntity(ent)
-    assert(type(ent) == "table")
-    assert(ent.update)
-    assert(ent.type)
-    assert(ent.draw)
-
-    world.entities:addBuffered(ent)
-end
-
-function g.removeEntity(ent)
-    world.entities:removeBuffered(ent)
 end
 
 
@@ -413,19 +384,6 @@ function g.defineToken(tokType, tabl)
 end
 
 
----@return fun(table: table<string, number>, index?: string):string, number
----@return table<string, number>
-function g.iterateTokenPool()
-    return pairs(_storage.tokenPool.tokens)
-end
-
----@param token string
----@return number
-function g.getTokenPoolCount(token)
-    return _storage.tokenPool.tokens[token] or 0
-end
-
-
 local DEFAULT_MIN_SPACING = 12
 
 local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
@@ -436,7 +394,7 @@ local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
         local py = y + math.random() * h
         local tooClose = false
 
-        world.tokenPartition:query(px, py, function(tok)
+        self.tokenPartition:query(px, py, function(tok)
             local dx = px - tok.x
             local dy = py - tok.y
             local distSq = dx*dx + dy*dy
@@ -480,10 +438,6 @@ function g.spawnToken(tokType, x,y)
 end
 
 
-function g.tokenExists(tok)
-    return world.tokens:has(tok)
-end
-
 
 function g.destroyToken(tok)
     g.call("tokenDestroyed", tok)
@@ -512,27 +466,6 @@ end
 
 
 
-
-
--- DONT CALL THIS MANUALLY!
-function g.___internal.update(dt)
-    for stat, t in pairs(validStats) do
-        local mod = g.ask(t.add) + t.startingValue
-        local mult = g.ask(t.mult)
-        g.stats[stat] = mod*mult
-    end
-
-    world._update(dt)
-
-    -- update TokenPool
-    local tp = TokenPool()
-    g.call("populateTokenPool", tp)
-
-    tp:add("basic_grass", 20) --  add grass by default.
-    -- TODO: in future, only add default-grass if we are on prestige-1.
-
-    _storage.tokenPool = tp
-end
 
 
 return g

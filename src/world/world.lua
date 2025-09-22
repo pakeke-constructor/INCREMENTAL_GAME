@@ -8,7 +8,7 @@ Used by the harvest-scene
 ]]
 
 
----@class world
+---@class g.World
 ---@field entities objects.BufferedSet
 ---@field tokens objects.BufferedSet
 ---@field tokensBeingHit {[table]: number}
@@ -16,30 +16,30 @@ Used by the harvest-scene
 ---@field tokenPartition objects.Partition
 ---@field mouseX number?
 ---@field mouseY number?
-local world = {}
+local World = objects.Class("g:World")
 
 -- Think of this as the "dimensions" of the harvest-area
-world.WIDTH = 450
-world.HEIGHT = 300
+World.WIDTH = 450
+World.HEIGHT = 300
 
 -- Minimum hover time before a token can be mined
 -- (Prevents players flicking their mouse all over the screen)
 local MIN_HOVER_TIME = 0.2
 
 
-function world._init()
-    world.tokens = objects.BufferedSet()
-    world.entities = objects.BufferedSet()
+function World:init()
+    self.tokens = objects.BufferedSet()
+    self.entities = objects.BufferedSet()
 
-    world.tokenPartition = objects.Partition(20)
+    self.tokenPartition = objects.Partition(20)
 
-    world.mouseX, world.mouseY = nil,nil
+    self.mouseX, World.mouseY = nil,nil
 
-    world.tokensBeingHit = ({--[[
+    self.tokensBeingHit = ({--[[
         [token] -> duration_of_hit
     ]]})
 
-    world.tokensToHoverTime = ({--[[
+    self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
     ]]})
 end
@@ -49,8 +49,9 @@ end
 local HARVEST_CIRCLE_INSIDE = {0.2,0.2,0.2,0.17}
 local HARVEST_CIRCLE_BORDER = {.8,.8,.8}
 
-local function drawHarvestCircle()
-    local x,y = assert(world.mouseX), assert(world.mouseY)
+---@param self g.World
+local function drawHarvestCircle(self)
+    local x,y = assert(self.mouseX), assert(self.mouseY)
     local rad = g.stats.HarvestArea
     love.graphics.setColor(HARVEST_CIRCLE_INSIDE)
     love.graphics.circle("fill", x,y, rad)
@@ -62,34 +63,34 @@ local function drawHarvestCircle()
 end
 
 
-local function updateHarvestCircle(dt)
-    local x,y = assert(world.mouseX), assert(world.mouseY)
+local function updateHarvestCircle(self, dt)
+    local x,y = assert(self.mouseX), assert(self.mouseY)
 
     local hoveredTokens = {}
 
-    world.tokenPartition:query(x,y, function (tok)
+    self.tokenPartition:query(x,y, function (tok)
         if math.distance(x-tok.x, y-tok.y) <= (g.stats.HarvestArea + consts.HARVEST_AREA_LEEWAY) then
             hoveredTokens[tok] = true
 
-            world.tokensToHoverTime[tok] = (world.tokensToHoverTime[tok] or 0) + dt
+            self.tokensToHoverTime[tok] = (self.tokensToHoverTime[tok] or 0) + dt
 
-            if world.tokensToHoverTime[tok] >= MIN_HOVER_TIME then
+            if self.tokensToHoverTime[tok] >= MIN_HOVER_TIME then
                 g.tryHitToken(tok)
             end
         end
     end, g.stats.HarvestArea)
 
-    for token, hoverTime in pairs(world.tokensToHoverTime) do
+    for token, hoverTime in pairs(self.tokensToHoverTime) do
         if not hoveredTokens[token] then
-            world.tokensToHoverTime[token] = nil
+            self.tokensToHoverTime[token] = nil
         end
     end
 end
 
 
-function world._enableMouseHarvester(x,y)
-    world.mouseX = x
-    world.mouseY = y
+function World:_enableMouseHarvester(x,y)
+    self.mouseX = x
+    self.mouseY = y
 end
 
 
@@ -117,56 +118,76 @@ local function drawToken(tok)
 end
 
 
-function world._draw()
-    local w,h = world.WIDTH, world.HEIGHT
+function World:_draw()
+    local w,h = self.WIDTH, self.HEIGHT
     love.graphics.setColor(0,0,0)
     love.graphics.rectangle("line", 0,0, w,h)
 
     -- drawGround()
 
-    for _, tok in ipairs(world.tokens) do
+    for _, tok in ipairs(self.tokens) do
         drawToken(tok)
     end
 
-    if world.mouseX then
-        drawHarvestCircle()
+    if self.mouseX then
+        drawHarvestCircle(self)
     end
 end
 
 
-function world._update(dt)
-    world.entities:flush()
-    world.tokens:flush()
 
-    world.tokenPartition:clear()
-    for _, t in ipairs(world.tokens) do
-        world.tokenPartition:add(t, t.x,t.y)
+---@class g.TokenPool: objects.Class
+local TokenPool = objects.Class("g:TokenPool")
+function TokenPool:init()
+    self.tokens = {}
+end
+function TokenPool:add(tokenId, amount)
+    self.tokens[tokenId] = (self.tokens[tokenId] or 0) + (amount or 1)
+end
+
+
+
+function World:_update(dt)
+    self.entities:flush()
+    self.tokens:flush()
+
+    -- update TokenPool
+    local tp = TokenPool()
+    g.call("populateTokenPool", tp)
+    tp:add("basic_grass", 20) --  add grass by default.
+    -- TODO: in future, only add default-grass if we are on prestige-1.
+    self.tokenPool = tp
+
+
+    self.tokenPartition:clear()
+    for _, t in ipairs(self.tokens) do
+        self.tokenPartition:add(t, t.x,t.y)
     end
 
-    for token, time in pairs(world.tokensBeingHit) do
+    for token, time in pairs(self.tokensBeingHit) do
         time = time - dt
         if time <= 0 then
             -- hit has been completed!
-            world.tokensBeingHit[token] = nil
+            self.tokensBeingHit[token] = nil
         else
-            world.tokensBeingHit[token] = time
+            self.tokensBeingHit[token] = time
         end
     end
 
-    for _, e in ipairs(world.entities) do
+    for _, e in ipairs(self.entities) do
         e:update(dt)
     end
 
-    if world.mouseX then
-        updateHarvestCircle(dt)
+    if self.mouseX then
+        updateHarvestCircle(self, dt)
     end
 
     -- respawn tokens that died
     local tokenCounts = {}
-    for _,t in ipairs(world.tokens)do
+    for _,t in ipairs(self.tokens)do
         tokenCounts[t.type] = (tokenCounts[t.type] or 0) + 1
     end
-    for tokType, poolCount in g.iterateTokenPool()do
+    for tokType, poolCount in pairs(self.tokenPool) do
         local ct = tokenCounts[tokType] or 0
         local toSpawn = poolCount - ct
         for _=1, toSpawn do
@@ -174,10 +195,27 @@ function world._update(dt)
         end
     end
 
-    world.tokens:flush()
+    self.tokens:flush()
+end
+
+
+
+function World:addEntity(ent)
+    assert(type(ent) == "table")
+    assert(ent.update)
+    assert(ent.type)
+    assert(ent.draw)
+
+    self.entities:addBuffered(ent)
+end
+
+
+function World:removeEntity(ent)
+    self.entities:removeBuffered(ent)
 end
 
 
 
 
-return world
+
+return World
