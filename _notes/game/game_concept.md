@@ -17,10 +17,12 @@ The overall goal is to increase your resource production.
 
 ## MAIN CONCEPT: Upgrades + Tokens
 
-- The Forest: Use axes, chop wood
-- The Mine: Use pickaxes, mine minerals
-- The Dungeon: Use swords/spears, kill chests / slime / vases
-^^^ **MAKE SURE THAT THE ZONES FEEL DIFFERENT!!! Not just re-skins!!**
+There is a "harvesting area" where you harvest tokens in.  
+
+You can upgrade harvesting-speed,
+AND you can upgrade what tokens spawn. 
+E.g. you can buy more exotic tokens that give good rewards,
+Or you can buy extra basic tokens so theres more of them
 
 (See `resources.md`)    
 
