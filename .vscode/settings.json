@@ -1,8 +1,0 @@
-{
-    "Lua.workspace.library": [
-        "C:/_PROGRAMMING/LOVE/DEFS",
-    ],
-    "Lua.runtime.version": "LuaJIT",
-    "editor.insertSpaces": true,
-    "Lua.completion.autoRequire": false,
-}
