@@ -3,26 +3,20 @@
 # TODO:
 
 - Tokens giving money/resources 
-- Token-hitting API 
+
+
+- Create `Session` object. Should be next to `g.lua`, 
+- `src/Session.lua` imo.
+
+
+- Make `World` be it's own object instead of global
+- (Maybe we have `world.MAIN = World()` or somehting??)
+
+- Create main `Token` class 
+(no attributes to start with; but should have `tok.attrs` table)
+
 - (store resources gained per area? used for idle mode)
 
 - get n9p working? (Or maybe do balatro-style pixelart buttons...?)
-
-
-
-# DONE:
-(Any task below this point is done)
-
-- PLAN UI SYSTEM.
-- get buttons working
-- get map working
-
-- Tokens pools
-- Tokens spawning / respawning
-- ECS/Events defined
-
-
-
-
 
 
