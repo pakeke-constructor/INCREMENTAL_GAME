@@ -8,7 +8,7 @@ Idle games have been performing [extremely well recently.](https://howtomarketag
 - Gain money + harvest resources
 - Buy items + upgrades (skill tree)
 - Unlock new stuff
-- Gamble ur stuff and discover new things
+- Play minigames and discover new things
 
 The overall goal is to increase your resource production.
 (Similar to cookie-clicker, Banana, IdleOn MMO, etc)
