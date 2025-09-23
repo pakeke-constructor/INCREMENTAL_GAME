@@ -301,7 +301,7 @@ g.stats = {}
 
 g.stats.HitDuration = g.defineStat("HitDuration", 1)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
-g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
+g.stats.HarvestArea = g.defineStat("HarvestArea", 300)
 
 
 
@@ -386,7 +386,8 @@ end
 
 local DEFAULT_MIN_SPACING = 12
 
-local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
+---@param world g.World
+local function getRandomPos(world, x, y, w, h, minSpacing, maxAttempts)
     maxAttempts = maxAttempts or 20
     minSpacing = minSpacing or DEFAULT_MIN_SPACING
     for attempt = 1, maxAttempts do
@@ -394,7 +395,7 @@ local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
         local py = y + math.random() * h
         local tooClose = false
 
-        self.tokenPartition:query(px, py, function(tok)
+        world.tokenPartition:query(px, py, function(tok)
             local dx = px - tok.x
             local dy = py - tok.y
             local distSq = dx*dx + dy*dy
@@ -413,14 +414,26 @@ local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
 end
 
 
+--[[
+
+IMPORTANT NOTE:
+
+These functions all tag into the main-world.
+In the future; if there are multiple-worlds; 
+we will want to make this more generic.
+
+]]
+
 ---@return number?
 ---@return number
 function g.getRandomPositionForToken()
-    return getRandomPos(0,0, world.WIDTH,world.HEIGHT) ---@diagnostic disable-line
+    local world = g.getMainWorld()
+    return getRandomPos(world, 0,0, world.WIDTH,world.HEIGHT) ---@diagnostic disable-line
 end
 
 
 function g.spawnToken(tokType, x,y)
+    local w = g.getMainWorld()
     assert(type(tokType) == "string")
     assert(x and y)
     local tabl = tokenTypes[tokType]
@@ -434,15 +447,18 @@ function g.spawnToken(tokType, x,y)
         health = tabl.maxHealth
     }, tokenMts[tokType])
 
-    world.tokens:addBuffered(tok)
+    w.tokens:addBuffered(tok)
 end
 
 
 
 function g.destroyToken(tok)
+    local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
-    world.tokens:removeBuffered(tok)
+    w.tokens:removeBuffered(tok)
 end
+
+
 
 function g.damageToken(tok, dmg)
     tok.health = tok.health - dmg
@@ -454,10 +470,11 @@ end
 
 
 function g.tryHitToken(tok)
-    local time = world.tokensBeingHit[tok]
+    local w = g.getMainWorld()
+    local time = w.tokensBeingHit[tok]
     if not time then
         g.call("tokenHit", tok)
-        world.tokensBeingHit[tok] = g.stats.HitDuration
+        w.tokensBeingHit[tok] = g.stats.HitDuration
         local dmgMult = g.ask("getTokenDamageMultiplier", tok)
         g.damageToken(tok, dmgMult * g.stats.HitDamage)
     end

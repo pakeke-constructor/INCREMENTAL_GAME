@@ -37,6 +37,9 @@ end
 function harvest:update(dt)
     self:updateCamera(dt)
 
+    local sn = g.getSn()
+    sn:_updateMainWorld(dt)
+
     local mx,my = love.mouse.getPosition()
 
 end

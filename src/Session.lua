@@ -41,7 +41,7 @@ end
 
 
 ---@param upgradeId string
-function Session:upgrade(upgradeId)
+function Session:increaseUpgrade(upgradeId)
     self.upgradeLevels[upgradeId] = (self.upgradeLevels[upgradeId] or 0) + 1
 end
 

@@ -33,7 +33,7 @@ function World:init()
 
     self.tokenPartition = objects.Partition(20)
 
-    self.mouseX, World.mouseY = nil,nil
+    self.mouseX, self.mouseY = nil,nil
 
     self.tokensBeingHit = ({--[[
         [token] -> duration_of_hit
@@ -47,7 +47,7 @@ end
 
 
 local HARVEST_CIRCLE_INSIDE = {0.2,0.2,0.2,0.17}
-local HARVEST_CIRCLE_BORDER = {.8,.8,.8}
+local HARVEST_CIRCLE_BORDER = {.9,.9,.9}
 
 ---@param self g.World
 local function drawHarvestCircle(self)
@@ -187,11 +187,15 @@ function World:_update(dt)
     for _,t in ipairs(self.tokens)do
         tokenCounts[t.type] = (tokenCounts[t.type] or 0) + 1
     end
-    for tokType, poolCount in pairs(self.tokenPool) do
+    for tokType, poolCount in pairs(self.tokenPool.tokens) do
         local ct = tokenCounts[tokType] or 0
         local toSpawn = poolCount - ct
         for _=1, toSpawn do
-            g.spawnToken(tokType, g.getRandomPositionForToken())
+            if love.math.random() < (dt*3) then
+                -- TODO: this sucks! 
+                -- Its random and it sometimes takes ages to respawn
+                g.spawnToken(tokType, g.getRandomPositionForToken())
+            end
         end
     end
 
@@ -213,7 +217,6 @@ end
 function World:removeEntity(ent)
     self.entities:removeBuffered(ent)
 end
-
 
 
 
