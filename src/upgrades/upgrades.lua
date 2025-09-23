@@ -72,8 +72,10 @@ end
 function upgrades.ask(question, ...)
     local questionInfo = g.getQuestionInfo(question)
     local reducer = questionInfo.reducer
-    local result = questionInfo.defaultValue
+    local defaultValue = questionInfo.defaultValue
     local upgradeIds = questionCache[question]
+
+    local result = defaultValue
 
     if not upgradeIds then return result end
 
@@ -83,7 +85,7 @@ function upgrades.ask(question, ...)
             local info = upgrades.getInfo(upgradeId)
             local answerFunc = info[question]
             if answerFunc then
-                local answer = answerFunc(level, ...)
+                local answer = answerFunc(level, ...) or defaultValue
                 result = reducer(answer, result)
             end
         end
