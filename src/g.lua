@@ -10,16 +10,8 @@ local World = require("src.world.world")
 local Session = require("src.Session")
 
 ---@class g
----@field private _money integer
 local g = {}
 
-
--- A "storage" table that stores a bunch of data 
--- relevant to this play session
----@class _STORAGE
----@field metrics table<string, number>
----@field stats table<string, number>
----@field tokenPool g.TokenPool
 
 
 
@@ -355,10 +347,28 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 
 
+---@alias g.Bundle {money?: number, bones?: number, rocks?: number, logs?: number}
+
+---@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
+
+
+
+---@param a g.Bundle
+---@param b g.Bundle
+---@return g.Resources
+function g.addBundles(a,b)
+    return {
+        money = (a.money or 0) + (b.money or 0),
+        bones = (a.bones or 0) + (b.bones or 0),
+        rocks = (a.rocks or 0) + (b.rocks or 0),
+        logs = (a.logs or 0) + (b.logs or 0)
+    }
+end
+
 
 ---@param x number
 function g.addMoney(x)
-    currentSession.money = math.min(currentSession.money + x, g.stats.MoneyLimit)
+    currentSession.resources.money = math.min(currentSession.resources.money + x, g.stats.MoneyLimit)
 end
 
 ---@param x number
@@ -366,9 +376,9 @@ end
 function g.trySubtractMoney(x)
     -- used for shopping:  
     -- if g.trySubtractMoney(COST) then  getUpgrade()  end
-    local s = currentSession
-    if x <= s.money then
-        s.money = s.money - x
+    local r = currentSession.resources
+    if x <= r.money then
+        r.money = r.money - x
         return true
     end
     return false
@@ -376,56 +386,56 @@ end
 
 ---@return number
 function g.getMoney()
-    return currentSession.money
+    return currentSession.resources.money
 end
 
 ---@param x number
 function g.addBones(x)
-    currentSession.bones = math.min(currentSession.bones + x, g.stats.BoneLimit)
+    currentSession.resources.bones = math.min(currentSession.resources.bones + x, g.stats.BoneLimit)
 end
+
 ---@return number
 function g.getBones()
-    return currentSession.bones
+    return currentSession.resources.bones
 end
 
 ---@param x number
 function g.addRocks(x)
-    currentSession.rocks = math.min(currentSession.rocks + x, g.stats.RockLimit)
+    currentSession.resources.rocks = math.min(currentSession.resources.rocks + x, g.stats.RockLimit)
 end
+
 ---@return number
 function g.getRocks()
-    return currentSession.rocks
+    return currentSession.resources.rocks
 end
 
 ---@param x number
 function g.addLogs(x)
-    currentSession.logs = math.min(currentSession.logs + x, g.stats.LogsLimit)
+    currentSession.resources.logs = math.min(currentSession.resources.logs + x, g.stats.LogsLimit)
 end
+
 ---@return number
 function g.getLogs()
-    return currentSession.logs
+    return currentSession.resources.logs
 end
 
-
-
----@param price {money?: number, bones?: number, rocks?: number, logs?: number}
+---@param price g.Bundle
 ---@return boolean
 function g.trySubtractResources(price)
     local s = currentSession
+    local res = currentSession.resources
 
-    if (price.money or 0) > (s.money or 0) then return false end
-    if (price.bones or 0) > (s.bones or 0) then return false end
-    if (price.rocks or 0) > (s.rocks or 0) then return false end
-    if (price.logs or 0) > (s.logs or 0) then return false end
+    if (price.money or 0) > (res.money or 0) then return false end
+    if (price.bones or 0) > (res.bones or 0) then return false end
+    if (price.rocks or 0) > (res.rocks or 0) then return false end
+    if (price.logs or 0) > (res.logs or 0) then return false end
 
-    if price.money then s.money = s.money - price.money end
-    if price.bones then s.bones = s.bones - price.bones end
-    if price.rocks then s.rocks = s.rocks - price.rocks end
-    if price.logs then s.logs = s.logs - price.logs end
+    if price.money then res.money = res.money - price.money end
+    if price.bones then res.bones = res.bones - price.bones end
+    if price.rocks then res.rocks = res.rocks - price.rocks end
+    if price.logs then res.logs = res.logs - price.logs end
     return true
 end
-
-
 
 
 
@@ -611,6 +621,8 @@ end
 
 
 function g.damageToken(tok, dmg)
+    local dmgMult = g.ask("getTokenDamageMultiplier", tok)
+    dmg = dmg * dmgMult
     tok.health = tok.health - dmg
     g.call("tokenDamaged", tok, dmg)
     if tok.health <= 0 then
@@ -623,10 +635,10 @@ function g.tryHitToken(tok)
     local w = g.getMainWorld()
     local time = w.tokensBeingHit[tok]
     if not time then
-        g.call("tokenHit", tok)
         w.tokensBeingHit[tok] = g.stats.HitDuration
-        local dmgMult = g.ask("getTokenDamageMultiplier", tok)
-        g.damageToken(tok, dmgMult * g.stats.HitDamage)
+        local hitMult = g.ask("getTokenHitMultiplier", tok)
+        g.damageToken(tok, hitMult * g.stats.HitDamage)
+        g.call("tokenHit", tok)
     end
 end
 
