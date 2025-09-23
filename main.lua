@@ -1,4 +1,4 @@
-
+local love = require("love")
 
 
 -- relative-require

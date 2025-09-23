@@ -35,8 +35,15 @@ end
 
 function sceneManager.gotoScene(sceneName)
     assert(nameToScene[sceneName])
+    local oldScene = nameToScene[sceneName]
+    if oldScene.leave then
+        oldScene:leave()
+    end
     currentSceneName = sceneName
     currentScene = nameToScene[sceneName]
+    if currentScene.enter then
+        currentScene:enter()
+    end
 end
 
 
