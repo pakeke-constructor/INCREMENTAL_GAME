@@ -304,33 +304,80 @@ g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
 
+g.stats.MoneyLimit = g.defineStat("MoneyLimit", 10000)
+
+g.stats.WoodLimit = g.defineStat("WoodLimit", 1000)
+g.stats.RockLimit = g.defineStat("RockLimit", 1000)
+g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 
 
-g._money = 0
+
 
 function g.addMoney(x)
-    g._money = g._money + x
+    currentSession.money = math.min(currentSession.money + x, g.stats.MoneyLimit)
 end
-
 
 function g.trySubtractMoney(x)
     -- used for shopping:  
     -- if g.trySubtractMoney(COST) then  getUpgrade()  end
-    if x <= g._money then
-        g._money = g._money - x
+    local s = currentSession
+    if x <= s.money then
+        s.money = s.money - x
         return true
     end
     return false
 end
 
-
 function g.getMoney()
-    return g._money
+    return currentSession.money
 end
 
 
 
+function g.addBones(x)
+    currentSession.bones = math.min(currentSession.bones + x, g.stats.BoneLimit)
+end
+function g.getBones()
+    return currentSession.bones
+end
+
+
+
+function g.addRocks(x)
+    currentSession.rocks = math.min(currentSession.rocks + x, g.stats.RockLimit)
+end
+function g.getRocks()
+    return currentSession.rocks
+end
+
+
+
+function g.addWood(x)
+    currentSession.wood = math.min(currentSession.wood + x, g.stats.WoodLimit)
+end
+function g.getWood()
+    return currentSession.wood
+end
+
+
+
+---@param price {money?: number, bones?: number, rocks?: number, wood?: number}
+---@return boolean
+function g.trySubtractResources(price)
+    local s = currentSession
+
+    if (price.money or 0) > (s.money or 0) then return false end
+    if (price.bones or 0) > (s.bones or 0) then return false end
+    if (price.rocks or 0) > (s.rocks or 0) then return false end
+    if (price.wood or 0) > (s.wood or 0) then return false end
+
+    if price.money then s.money = s.money - price.money end
+    if price.bones then s.bones = s.bones - price.bones end
+    if price.rocks then s.rocks = s.rocks - price.rocks end
+    if price.wood then s.wood = s.wood - price.wood end
+    return true
+end
 
 
 
@@ -424,6 +471,54 @@ we will want to make this more generic.
 
 ]]
 
+
+
+---@class g.Entity
+---@field type string
+---@field x number
+---@field y number
+---@field image string?
+---@field update fun(ent: g.Entity, dt:number)
+---@field draw fun(ent: g.Entity)
+local Entity = {}
+
+
+
+
+function g.addEntity(ent)
+    local w = g.getMainWorld()
+    assert(type(ent) == "table")
+    assert(ent.type)
+    assert(ent.update)
+    assert(ent.draw)
+    w.entities:addBuffered(ent)
+end
+
+
+function g.removeEntity(ent)
+    local w = g.getMainWorld()
+    w.entities:removeBuffered(ent)
+end
+
+
+
+
+
+
+---@class g.Token
+---@field type string
+---@field x number
+---@field y number
+---@field health number
+---@field maxHealth number
+---@field image string
+---
+---@field slimed boolean?
+local Token = {}
+
+
+
+
 ---@return number?
 ---@return number
 function g.getRandomPositionForToken()
@@ -432,6 +527,10 @@ function g.getRandomPositionForToken()
 end
 
 
+---@param tokType string
+---@param x number
+---@param y number
+---@return g.Token
 function g.spawnToken(tokType, x,y)
     local w = g.getMainWorld()
     assert(type(tokType) == "string")

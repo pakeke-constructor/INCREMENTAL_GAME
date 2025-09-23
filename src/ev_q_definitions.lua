@@ -21,6 +21,15 @@ g.defineEvent("tokenDestroyed")
 
 
 
+g.defineEvent("resourceChanged")
+
+g.defineEvent("moneyChanged")
+g.defineEvent("woodChanged")
+g.defineEvent("bonesChanged")
+g.defineEvent("rocksChanged")
+
+
+
 
 g.defineQuestion("getTokenDamageMultiplier", reducers.MULTIPLY, 1)
 

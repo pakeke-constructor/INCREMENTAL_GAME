@@ -8,6 +8,10 @@ local World = require("src.world.world")
 
 ---@class g.Session
 ---@field upgrades table<string, boolean>
+---@field money number
+---@field wood number
+---@field bones number
+---@field rocks number
 ---@field mainWorld g.World
 ---@field metrics table<string, number>
 ---@field stats table<string, number>
@@ -15,6 +19,11 @@ local Session = objects.Class("g:Session")
 
 
 function Session:init()
+    self.money = 0
+    self.wood = 0
+    self.bones = 0
+    self.rocks = 0
+
     self.upgradeLevels = {--[[
         [upgradeId] -> level
     ]]}

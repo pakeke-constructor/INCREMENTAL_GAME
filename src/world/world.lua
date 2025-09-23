@@ -2,8 +2,7 @@
 
 World
 
-The world is a container for harvestable tokens, and other stuff.  
-Used by the harvest-scene
+The world is a container for tokens and entities.
 
 ]]
 
@@ -192,9 +191,11 @@ function World:_update(dt)
         local toSpawn = poolCount - ct
         for _=1, toSpawn do
             if love.math.random() < (dt*3) then
-                -- TODO: this sucks! 
+                -- TODO: this randomness sucks! 
                 -- Its random and it sometimes takes ages to respawn
-                g.spawnToken(tokType, g.getRandomPositionForToken())
+                local x,y = g.getRandomPositionForToken()
+                assert(x and y)
+                g.spawnToken(tokType, x,y)
             end
         end
     end
@@ -202,21 +203,6 @@ function World:_update(dt)
     self.tokens:flush()
 end
 
-
-
-function World:addEntity(ent)
-    assert(type(ent) == "table")
-    assert(ent.update)
-    assert(ent.type)
-    assert(ent.draw)
-
-    self.entities:addBuffered(ent)
-end
-
-
-function World:removeEntity(ent)
-    self.entities:removeBuffered(ent)
-end
 
 
 
