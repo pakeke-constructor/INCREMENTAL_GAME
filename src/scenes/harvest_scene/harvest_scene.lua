@@ -31,6 +31,8 @@ function harvest:draw()
     self:resetCamera()
 
     self:renderNavbar()
+
+    self:renderResource()
 end
 
 
