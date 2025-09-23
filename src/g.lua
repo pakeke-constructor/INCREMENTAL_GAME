@@ -334,7 +334,7 @@ end
 ---@class g.stats
 g.stats = {}
 
-g.stats.HitDuration = g.defineStat("HitDuration", 1)
+g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
@@ -592,12 +592,15 @@ end
 ---@field health number
 ---@field maxHealth number
 ---@field image string
+---@field resources g.Bundle
 ---
 ---@field slimed boolean?
 ---@field money number?
 ---@field logs number?
 ---@field rocks number?
 ---@field bones number?
+---
+---@field ___destroyed boolean?
 local Token = {}
 
 
@@ -636,14 +639,26 @@ end
 
 
 
+---@param tok g.Token
+---@return boolean
 function g.destroyToken(tok)
+    if tok.___destroyed then
+        -- already been destroyed.
+        return false
+    end
+
     local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
+    g.addResources(tok.resources)
+    tok.___destroyed = true
     w.tokens:removeBuffered(tok)
+    return true
 end
 
 
 
+---@param tok g.Token
+---@param dmg number
 function g.damageToken(tok, dmg)
     local dmgMult = g.ask("getTokenDamageMultiplier", tok)
     dmg = dmg * dmgMult
@@ -655,6 +670,7 @@ function g.damageToken(tok, dmg)
 end
 
 
+---@param tok g.Token
 function g.tryHitToken(tok)
     local w = g.getMainWorld()
     local time = w.tokensBeingHit[tok]

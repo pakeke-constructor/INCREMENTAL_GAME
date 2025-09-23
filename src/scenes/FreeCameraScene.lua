@@ -111,6 +111,7 @@ local function printTextAt(text, font, region, align)
     love.graphics.printf(text, font, x, ty, w, align)
 end
 
+
 function FreeCameraScene:renderResource()
     if not g.getSn() then return end
 

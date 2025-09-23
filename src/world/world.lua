@@ -154,6 +154,7 @@ function World:_update(dt)
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
     tp:add("basic_grass", 20) --  add grass by default.
+    tp:add("basic_log", 3)
     -- TODO: in future, only add default-grass if we are on prestige-1.
     self.tokenPool = tp
 
