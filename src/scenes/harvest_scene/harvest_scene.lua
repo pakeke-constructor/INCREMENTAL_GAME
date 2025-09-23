@@ -44,6 +44,15 @@ function harvest:update(dt)
 
 end
 
+function harvest:enter()
+    local world = g.getMainWorld()
+    local cx = world.WIDTH / 2
+    local cy = world.HEIGHT / 2
+    self._zoomIndex = 0
+    self:wheelmoved(0, 0)
+    self.camera:setPos(cx, cy)
+end
+
 
 return harvest
 
