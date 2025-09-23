@@ -30,6 +30,7 @@ local FreeCameraScene_mt = {
 
 FreeCameraScene.panSpeed = 300
 FreeCameraScene._isCamAttached = false
+FreeCameraScene.allowMousePan = true
 
 
 
@@ -130,6 +131,18 @@ function FreeCameraScene:wheelmoved(dx,dy)
     self.camera:setZoom(zoom(self._zoomIndex, 1))
 end
 
+---@param x number
+---@param y number
+---@param dx number
+---@param dy number
+function FreeCameraScene:mousemoved(x, y, dx, dy)
+    if self.allowMousePan and love.mouse.isDown(2, 3) then
+        local cx, cy = self.camera:getPos() --[[@as number]]
+        local z = zoom(self._zoomIndex, 1)
+
+        self.camera:setPos(cx - dx / z, cy - dy / z)
+    end
+end
 
 
 
@@ -137,7 +150,8 @@ local function newFreeCameraScene()
     local scene = setmetatable({
         camera = Camera(),
         _isCamAttached = false,
-        _zoomIndex = 0
+        _zoomIndex = 0,
+        allowMousePan = true,
     }, FreeCameraScene_mt)
 
     return scene
