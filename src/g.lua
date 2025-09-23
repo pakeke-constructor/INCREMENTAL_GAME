@@ -313,11 +313,13 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 
 
-
+---@param x number
 function g.addMoney(x)
     currentSession.money = math.min(currentSession.money + x, g.stats.MoneyLimit)
 end
 
+---@param x number
+---@return boolean
 function g.trySubtractMoney(x)
     -- used for shopping:  
     -- if g.trySubtractMoney(COST) then  getUpgrade()  end
@@ -329,33 +331,34 @@ function g.trySubtractMoney(x)
     return false
 end
 
+---@return number
 function g.getMoney()
     return currentSession.money
 end
 
-
-
+---@param x number
 function g.addBones(x)
     currentSession.bones = math.min(currentSession.bones + x, g.stats.BoneLimit)
 end
+---@return number
 function g.getBones()
     return currentSession.bones
 end
 
-
-
+---@param x number
 function g.addRocks(x)
     currentSession.rocks = math.min(currentSession.rocks + x, g.stats.RockLimit)
 end
+---@return number
 function g.getRocks()
     return currentSession.rocks
 end
 
-
-
+---@param x number
 function g.addWood(x)
     currentSession.wood = math.min(currentSession.wood + x, g.stats.WoodLimit)
 end
+---@return number
 function g.getWood()
     return currentSession.wood
 end
