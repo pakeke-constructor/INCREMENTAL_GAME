@@ -8,14 +8,25 @@ local harvest = FreeCameraScene()
 
 
 function harvest:init()
-    self.camera:setPos(100,100)
-    -- TODO: do this properly
+end
+
+
+
+---@param self HarvestScene
+local function centerCamera(self)
+    local world = g.getMainWorld()
+    local cx = world.WIDTH / 2
+    local cy = world.HEIGHT / 2
+    self._zoomIndex = 0
+    self.camera:setPos(cx, cy)
+    self.camera:setDirty(true) -- else it wont update on resize
+    self:setCamera()
 end
 
 
 
 function harvest:draw()
-    self:setCamera()
+    centerCamera(self)
     local header, body = Kirigami(0,0,love.graphics.getDimensions()):splitVertical(1,5)
 
     love.graphics.clear(0.3,0.7,0.25)
@@ -46,14 +57,6 @@ function harvest:update(dt)
 
 end
 
-function harvest:enter()
-    local world = g.getMainWorld()
-    local cx = world.WIDTH / 2
-    local cy = world.HEIGHT / 2
-    self._zoomIndex = 0
-    self:wheelmoved(0, 0)
-    self.camera:setPos(cx, cy)
-end
 
 
 return harvest
