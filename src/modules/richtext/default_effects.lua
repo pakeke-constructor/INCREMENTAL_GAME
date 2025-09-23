@@ -1,4 +1,57 @@
+
+
 return function(text)
+    --[[
+    Define default effects:
+    ]]
+    local function wavyEffect(args, char)
+        local f = args.freq or 1
+        local amp = args.amp or 1
+        local k = args.k or 1 -- `k` determines how "different" the letter are.
+        -- k = 0 indicates all letters bob up and down, in sync.
+        local offset = (char:getIndex()-1) * k
+        local dy = math.sin(2 * math.pi * f * love.timer.getTime() + offset) * amp
+        char:setOffset(0, dy)
+    end
+
+    text.defineEffect("wavy", wavyEffect)
+    text.defineEffect("w", wavyEffect)
+
+    text.defineEffect("u", function(_, char)
+        local r, g, b, a = love.graphics.getColor()
+        local c1, c2, c3, c4 = char:getColor():getRGBA()
+        local x, y = char:getPosition()
+        local w, h = char:getDimensions()
+        love.graphics.setColor(r * c1, g * c2, b * c3, a * c4)
+        love.graphics.line(x, y + h - 0.5, x + w, y + h - 0.5)
+        love.graphics.setColor(r, g, b, a)
+    end)
+
+    local function outlineEffect(args,char)
+        local thickness = args.thickness or 1
+        local r, g, b, a = love.graphics.getColor()
+
+        love.graphics.setColor(0, 0, 0, a)
+
+        local ox, oy = char:getOffset()
+
+        -- dy=-2 because we want a thicker outline at bottom
+        for dy = -2, 1 do
+            for dx = -1, 1 do
+                if not (dx == 0 and dy == 0) then
+                    char:setOffset(ox + dx * thickness, oy + dy * thickness)
+                    char:draw(0, 0, 0, a, true)
+                end
+            end
+        end
+        char:setOffset(ox, oy)
+
+        love.graphics.setColor(r, g, b, a)
+    end
+
+    text.defineEffect("o", outlineEffect)
+    text.defineEffect("outline", outlineEffect)
+
     local function colorEffect(args, char)
         local color = objects.Color(args.r or 1, args.g or 1, args.b or 1, args.a or 1)
         char:setColor(color)
@@ -11,3 +64,6 @@ return function(text)
         char:setShear(-skewness / 4, 0)
     end)
 end
+
+
+
