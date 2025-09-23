@@ -426,10 +426,22 @@ function g.getResources()
 end
 
 
----@param res g.Bundle
-function g.addResources(res)
-    -- COMPLETE THIS.
+---@param bundle g.Bundle
+function g.addResources(bundle)
+    if bundle.money then
+        g.addMoney(bundle.money)
+    end
+    if bundle.bones then
+        g.addBones(bundle.bones)
+    end
+    if bundle.rocks then
+        g.addRocks(bundle.rocks)
+    end
+    if bundle.logs then
+        g.addLogs(bundle.logs)
+    end
 end
+
 
 
 ---@param price g.Bundle
