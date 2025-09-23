@@ -18,7 +18,7 @@ We want a "bigness" feeling (map area feels BIG, with places to explore/visit?)
 - Different currencies:
     - Catcoins
     - Experience Bar
-    - Zone currencies -> Wood, Rocks, Bones
+    - Zone currencies -> Logs, Rocks, Bones
 
 
 ## PACING IS CRUCIAL.

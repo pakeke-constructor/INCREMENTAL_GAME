@@ -9,13 +9,13 @@ We want excellent UX.
 Some ideas:  
 
 ## Basic Upgrades:
-- AXE-UPGRADE: Each axe chops wood! (Count: X)
+- AXE-UPGRADE: Each axe chops logs! (Count: X)
 - PICKAXE-UPGRADE: Each pickaxe mines rocks! (Count: X)
 
 ## Simple-Increment Upgrades:
 - UPGRADE_1: Get +1 axe to chop with (Currently: X axes)
 - UPGRADE_2: Gain +1% gold per log chopped (Currently: X%)
-- UPGR_3: Extra 1% chance to get double money from wood (Currently: X%)
+- UPGR_3: Extra 1% chance to get double money from logs (Currently: X%)
 - UPGR-4: Axes deal +5 damage (Currently: 10 damage)
 
 ## Non-Infinite Upgrades:

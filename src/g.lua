@@ -349,7 +349,7 @@ g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
 g.stats.MoneyLimit = g.defineStat("MoneyLimit", 10000)
 
-g.stats.WoodLimit = g.defineStat("WoodLimit", 1000)
+g.stats.LogsLimit = g.defineStat("LogsLimit", 1000)
 g.stats.RockLimit = g.defineStat("RockLimit", 1000)
 g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
@@ -398,17 +398,17 @@ function g.getRocks()
 end
 
 ---@param x number
-function g.addWood(x)
-    currentSession.wood = math.min(currentSession.wood + x, g.stats.WoodLimit)
+function g.addLogs(x)
+    currentSession.logs = math.min(currentSession.logs + x, g.stats.LogsLimit)
 end
 ---@return number
-function g.getWood()
-    return currentSession.wood
+function g.getLogs()
+    return currentSession.logs
 end
 
 
 
----@param price {money?: number, bones?: number, rocks?: number, wood?: number}
+---@param price {money?: number, bones?: number, rocks?: number, logs?: number}
 ---@return boolean
 function g.trySubtractResources(price)
     local s = currentSession
@@ -416,12 +416,12 @@ function g.trySubtractResources(price)
     if (price.money or 0) > (s.money or 0) then return false end
     if (price.bones or 0) > (s.bones or 0) then return false end
     if (price.rocks or 0) > (s.rocks or 0) then return false end
-    if (price.wood or 0) > (s.wood or 0) then return false end
+    if (price.logs or 0) > (s.logs or 0) then return false end
 
     if price.money then s.money = s.money - price.money end
     if price.bones then s.bones = s.bones - price.bones end
     if price.rocks then s.rocks = s.rocks - price.rocks end
-    if price.wood then s.wood = s.wood - price.wood end
+    if price.logs then s.logs = s.logs - price.logs end
     return true
 end
 
@@ -560,6 +560,10 @@ end
 ---@field image string
 ---
 ---@field slimed boolean?
+---@field money number?
+---@field logs number?
+---@field rocks number?
+---@field bones number?
 local Token = {}
 
 

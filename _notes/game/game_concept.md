@@ -106,8 +106,8 @@ With limits, offline/idle gameplay becomes a LOT less damaging.
 *WHATEVER THE CASE MAKE SURE PLAYERS CAN ALWAYS SPEND!*    
 Nothing would feel worse than being capped out and not having anything to spend it on.  
 What should be done, is the resource-limit for Money should be upgraded via Money.  
-Wood resource limit should be upgraded via Wood.  
-Stone resource limit should be upgraded via Stone.  
+Logs resource limit should be upgraded via Logs.  
+Rocks resource limit should be upgraded via Rocks.  
 etc. This *guarantees* that players always have stuff to spend.
 
 

@@ -22,7 +22,7 @@ Instead: "Cat spikes! Harvesting emits spikes that deal +2 damage"
 # HARVESTING: (Harvesting speed/damage; DOES NOT CHANGE THE *AMOUNT*)
 - Increase damage by 2 (Currently 4)
 - Increase harvest-area by 1% (Currently 15%)
-- Flaming steel: Deal extra damage to anything that drops wood (Currently +5 dmg)
+- Flaming steel: Deal extra damage to anything that drops logs (Currently +5 dmg)
 - Skull potion: Deal extra damage to tokens above 50hp (Currently +10 dmg)
 - Every second, spawn lightning-bolts that deal damage!
 - 20% of tokens spawn "slimed". (Slimed tokens take double damage!)
@@ -56,16 +56,16 @@ Whereas if players purchase expensive tokens, but harvesting is bad; at least th
 
 # TOKENS: (add more tokens to harvest)
 - Grass token (+$1, 3hp)
-- Log token (+$5, +1 wood, 12hp)
+- Log token (+$5, +1 logs, 12hp)
 - Mushroom token (+$10, 20hp)
-- Stump token (+3 wood, 30hp)
-- Dark log (+5 wood, +$50, 100hp)
+- Stump token (+3 logs, 30hp)
+- Dark log (+5 logs, +$50, 100hp)
 - Mud clump (+$500, 1000hp)
 - Small rock (+1 rock, 1000hp)
 - (ETC ETC ETC.)
 
 - **PRESTIGE 2:**  
-- Magical log (+$4000 +120 wood)
+- Magical log (+$4000 +120 logs)
 - Big-Rock (+$5000, +5 rocks)
 - Golden-rock: +$20000, +2 rocks
 - Granite: +10 rocks
@@ -92,7 +92,7 @@ Whereas if players purchase expensive tokens, but harvesting is bad; at least th
 - Map: Unlocks the map!
 
 - STORAGE: Upgrades storage of resources
-- Money storage, Wood storage, Rock storage, etc etc
+- Money storage, logs storage, Rock storage, etc etc
 
 - Farmer-cat: Automatic harvesting! (harvest-circle bounces around)
     ^^^ NOTE: Player can use mouse to harvest manually too.  

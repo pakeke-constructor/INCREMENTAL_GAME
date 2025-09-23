@@ -9,7 +9,7 @@ local World = require("src.world.world")
 ---@class g.Session
 ---@field upgrades table<string, boolean>
 ---@field money number
----@field wood number
+---@field logs number
 ---@field bones number
 ---@field rocks number
 ---@field mainWorld g.World
@@ -20,7 +20,7 @@ local Session = objects.Class("g:Session")
 
 function Session:init()
     self.money = 0
-    self.wood = 0
+    self.logs = 0
     self.bones = 0
     self.rocks = 0
 
@@ -35,7 +35,7 @@ function Session:init()
     self.mainWorld = World()
 
     -- metrics are running-totals of stuff.
-    -- E.g. "how much wood has been collected in total?"
+    -- E.g. "how much logs has been collected in total?"
     self.metrics = {--[[
         [metricName] -> number
     ]]}

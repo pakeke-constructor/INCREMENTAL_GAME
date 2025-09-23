@@ -24,7 +24,7 @@ g.defineEvent("tokenDestroyed")
 g.defineEvent("resourceChanged")
 
 g.defineEvent("moneyChanged")
-g.defineEvent("woodChanged")
+g.defineEvent("logsChanged")
 g.defineEvent("bonesChanged")
 g.defineEvent("rocksChanged")
 

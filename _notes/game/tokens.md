@@ -14,7 +14,7 @@ Different tokens have more/less health, and give different rewards.
 
 TOKEN EXAMPLES:
 - Grass: +$1
-- Log: +$8, +1 wood
+- Log: +$8, +1 logs
 - Mushroom: +$10
 - Rock: +$100, +1 rock
 ...

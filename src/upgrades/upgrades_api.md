@@ -15,7 +15,7 @@ upgrades.defineUpgrade("unlock_map", {
 g.defineToken("basic_log", {
     health = 12,
     money = 5,
-    wood = 1
+    logs = 1
 })
 upgrades.defineUpgrade("basic_log", {
     prestigeType = "TOKENS",

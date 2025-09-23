@@ -3,9 +3,9 @@
 # RESOURCES:
 
 3 main resources:  
-Wood, Stone, Bones  
+Logs, Rocks, Bones  
 
-At the start of the game, the player ONLY has access to Wood.    
+At the start of the game, the player ONLY has access to Logs.    
 Player will unlock more as game progresses.
 
 
@@ -22,11 +22,11 @@ or overdeveloped in another?
 ## SIMPLE IDEA FOR BALANCING:
 Upgrades for gathering a resource costs *the other resources to upgrade.*  
 Eg:  
-Consider 3 resources, `Wood, Bones, Rocks`.  
+Consider 3 resources, `Logs, Bones, Rocks`.  
 
-Upgrade Wood-production --> spend Bones or Rocks.
-Upgrade Rock-production --> spend Wood or Bones.
-Upgrade Bone-production --> spend Wood or Rocks.
+Upgrade Logs-production --> spend Bones or Rocks.
+Upgrade Rock-production --> spend Logs or Bones.
+Upgrade Bone-production --> spend Logs or Rocks.
 
 See? It's self-balancing, its super simple.  
 *THE DOWNSIDE TO THIS ^^^ APPROACH IS THAT ALL RESOURCES KINDA FEEL THE SAME.*   
@@ -34,7 +34,7 @@ We MUST be careful with this.
 Ensure that there are *also* highly-unique upgrade paths for each upgrade-type.
 
 ## EG, IDEAS:
-Wood -> Unlocks different parts of the map / Experience upgrades
+Logs -> Unlocks different parts of the map / Experience upgrades
 Rocks -> Upgrades for generating points whilst offline
 Bones -> Gambling upgrades. Secret upgrades / access to secrets...???
 
@@ -47,7 +47,7 @@ We should ALWAYS have a way to spend resources. The player should NEVER EVER fee
 
 IDEAS:
 - Bones -> can used for gambling?
-- Wood -> Used for other stuff?
+- Logs -> Used for other stuff?
 
 
 
@@ -66,7 +66,7 @@ IDEAS:
 
 # Should we have money?
 # Or should we just treat resources as currency, and keep it generic?
-(Eg. start with Wood as the first currency, gradually introduce more?)
+(Eg. start with Logs as the first currency, gradually introduce more?)
 
 Honestly, best to keep it simple.
 Money is a lot easier to balance with.   
