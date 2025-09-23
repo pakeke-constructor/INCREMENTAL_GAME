@@ -419,21 +419,33 @@ function g.getLogs()
     return currentSession.resources.logs
 end
 
+
+---@return g.Resources
+function g.getResources()
+    return currentSession.resources
+end
+
+
+---@param res g.Bundle
+function g.addResources(res)
+    -- COMPLETE THIS.
+end
+
+
 ---@param price g.Bundle
 ---@return boolean
 function g.trySubtractResources(price)
-    local s = currentSession
-    local res = currentSession.resources
+    local r = currentSession.resources
 
-    if (price.money or 0) > (res.money or 0) then return false end
-    if (price.bones or 0) > (res.bones or 0) then return false end
-    if (price.rocks or 0) > (res.rocks or 0) then return false end
-    if (price.logs or 0) > (res.logs or 0) then return false end
+    if (price.money or 0) > (r.money or 0) then return false end
+    if (price.bones or 0) > (r.bones or 0) then return false end
+    if (price.rocks or 0) > (r.rocks or 0) then return false end
+    if (price.logs or 0) > (r.logs or 0) then return false end
 
-    if price.money then res.money = res.money - price.money end
-    if price.bones then res.bones = res.bones - price.bones end
-    if price.rocks then res.rocks = res.rocks - price.rocks end
-    if price.logs then res.logs = res.logs - price.logs end
+    if price.money then r.money = r.money - price.money end
+    if price.bones then r.bones = r.bones - price.bones end
+    if price.rocks then r.rocks = r.rocks - price.rocks end
+    if price.logs then r.logs = r.logs - price.logs end
     return true
 end
 
