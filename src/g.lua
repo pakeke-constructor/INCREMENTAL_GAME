@@ -301,7 +301,7 @@ g.stats = {}
 
 g.stats.HitDuration = g.defineStat("HitDuration", 1)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
-g.stats.HarvestArea = g.defineStat("HarvestArea", 300)
+g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
 
 
