@@ -184,6 +184,49 @@ end
 
 
 
+
+-- g.formatNumber defined here
+do
+local suffixes = {
+    {1e12, "t"},
+    {1e9,  "b"},
+    {1e6,  "m"},
+    {1e3,  "k"}
+}
+
+---@param num number
+function g.formatNumber(num)
+    local isNegative = num < 0
+    num = math.abs(num)
+
+    if num < 1000 then
+        return (isNegative and "-" or "") .. tostring(math.floor(num))
+    end
+
+    for i, suffix in ipairs(suffixes) do
+        if num >= suffix[1] then
+            local scaled = num / suffix[1]
+            local formatted
+            if scaled >= 100 then
+                formatted = string.format("%.0f", scaled)
+            elseif scaled >= 10 then
+                formatted = string.format("%.1f", scaled)
+            else
+                formatted = string.format("%.2f", scaled)
+            end
+            formatted = formatted:gsub("%.?0+$", "")
+
+            return (isNegative and "-" or "") .. formatted .. suffix[2]
+        end
+    end
+    return (isNegative and "-" or "") .. tostring(num)
+end
+
+
+end
+
+
+
 -- g.drawImage defined here!
 do
 local nameToQuad = {--[[
