@@ -18,7 +18,6 @@ Contains a bunch of lil helpers n stuff
 ---@class FreeCameraScene
 ---@field camera Camera
 ---@field panSpeed number
----@field _windowDim [number, number]
 local FreeCameraScene = {}
 local FreeCameraScene_mt = {
     __index = FreeCameraScene,
@@ -149,12 +148,7 @@ end
 ---@param dt number
 function FreeCameraScene:updateCamera(dt)
     local camera = self.camera
-    local gw, gh = love.graphics.getDimensions()
-    if self._windowDim[1] ~= gw or self._windowDim[2] ~= gh then
-        camera:setViewport(0, 0, gw, gh)
-        self._windowDim[1] = gw
-        self._windowDim[2] = gh
-    end
+    camera:setViewport(0, 0, love.graphics.getDimensions())
 
     local spd = self.panSpeed / math.sqrt(camera:getZoom())
     local movX,movY = 0,0
@@ -207,9 +201,8 @@ local function newFreeCameraScene()
         _isCamAttached = false,
         _zoomIndex = 0,
         allowMousePan = true,
-        _windowDim = {love.graphics.getDimensions()}
     }, FreeCameraScene_mt)
-    scene.camera:setViewport(0, 0, scene._windowDim[1], scene._windowDim[2])
+    scene.camera:setViewport(0, 0, love.graphics.getDimensions())
 
     return scene
 end
