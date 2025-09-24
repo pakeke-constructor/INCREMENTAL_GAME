@@ -257,14 +257,19 @@ local validExtensions = {
     [".jpg"] = true
 }
 
-g.walkDirectory("src/upgrades", function (path)
+local function loadImage(path)
     local ext = path:sub(-4):lower()
     if validExtensions[ext] then
         local name = path:match("([^/]+)%.%w+$") -- path/to/foo.png --> "foo"
         local quad = atlas:add(love.image.newImageData(path))
         nameToQuad[name] = quad
     end
-end)
+end
+
+
+g.walkDirectory("src/upgrades", loadImage)
+g.walkDirectory("assets/images", loadImage)
+
 end
 
 
@@ -498,13 +503,14 @@ local tokenMts = {--[[
 ]]}
 
 
----@alias TokenDefinition {maxHealth:number, image:string, money:number? }
+---@alias TokenDefinition {maxHealth:number, image:string, resources:g.Bundle, money:number? }
 
 ---@param tokType string
 ---@param tabl TokenDefinition
 function g.defineToken(tokType, tabl)
     assert(not tabl.type, ".type is a reserved field!")
     assert(tabl.maxHealth, "Tokens need .maxHealth")
+    assert(tabl.resources, "Tokens need .resources")
     tabl.type = tokType ---@diagnostic disable-line
     tokenTypes[tokType] = tabl
     tokenMts[tokType] = {__index = tabl}
@@ -593,6 +599,9 @@ end
 ---@field maxHealth number
 ---@field image string
 ---@field resources g.Bundle
+---@field timeSinceHit number
+---@field timeSinceDamaged number
+---@field timeAlive number
 ---
 ---@field slimed boolean?
 ---@field money number?
@@ -630,7 +639,11 @@ function g.spawnToken(tokType, x,y)
     local tok = setmetatable({
         x = x,
         y = y,
-        health = tabl.maxHealth
+        health = tabl.maxHealth,
+
+        timeAlive = 0,
+        timeSinceHit = 0xffffffffff,
+        timeSinceDamaged = 0xfffffffff,
     }, tokenMts[tokType])
 
     w.tokens:addBuffered(tok)
