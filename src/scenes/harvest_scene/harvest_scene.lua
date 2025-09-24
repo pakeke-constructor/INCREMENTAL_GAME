@@ -42,12 +42,13 @@ function harvest:draw()
 
     self:renderNavbar()
 
-    self:renderResource()
+    g.getHUD():draw(self.camera)
 end
 
 
 function harvest:update(dt)
     self:updateCamera(dt)
+    g.getHUD():update(dt)
 
     local sn = g.getSn()
     sn:_updateMainWorld(dt)

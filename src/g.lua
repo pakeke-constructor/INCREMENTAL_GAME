@@ -8,6 +8,7 @@ local upgrades = require("src.upgrades.upgrades")
 
 local World = require("src.world.world")
 local Session = require("src.Session")
+local HUD = require("src.ui.hud.hud")
 
 ---@class g
 local g = {}
@@ -705,7 +706,11 @@ function g.tryHitToken(tok)
 end
 
 
+local hud = HUD()
 
+function g.getHUD()
+    return hud
+end
 
 
 
