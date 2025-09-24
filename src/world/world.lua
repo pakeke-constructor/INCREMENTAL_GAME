@@ -10,7 +10,6 @@ The world is a container for tokens and entities.
 ---@class g.World
 ---@field entities objects.BufferedSet
 ---@field tokens objects.BufferedSet
----@field tokensBeingHit {[table]: number}
 ---@field tokensToHoverTime {[table]: number}
 ---@field tokenPartition objects.Partition
 ---@field mouseX number?
@@ -199,6 +198,21 @@ local function drawToken(tok)
 end
 
 
+
+local function getSwingTime()
+    return g.stats.HitDuration * 0.75
+end
+
+
+---@param tok g.Token
+local function drawAxe(tok)
+    love.graphics.setColor(1,1,1)
+    local tsh = tok.timeSinceHit
+    local t = (tsh - getSwingTime()) / getSwingTime()
+    g.drawImage("iron_axe", tok.x - 10, tok.y - 10, t)
+end
+
+
 function World:_draw()
     local w,h = self.WIDTH, self.HEIGHT
     love.graphics.setColor(0,0,0)
@@ -208,6 +222,13 @@ function World:_draw()
 
     for _, tok in ipairs(self.tokens) do
         drawToken(tok)
+    end
+
+    -- draw pickaxes/axes:
+    for _,tok in ipairs(self.tokens) do
+        if tok.timeSinceHit < getSwingTime() then
+            drawAxe(tok)
+        end
     end
 
     if self.mouseX then
