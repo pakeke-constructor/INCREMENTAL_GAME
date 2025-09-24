@@ -18,7 +18,6 @@ local function centerCamera(self)
     local world = g.getMainWorld()
     local cx = world.WIDTH / 2
     local cy = world.HEIGHT / 2
-    self._zoomIndex = 0
     self.camera:setPos(cx, cy)
     self:setCamera()
 end

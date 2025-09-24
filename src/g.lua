@@ -339,7 +339,7 @@ end
 ---@class g.stats
 g.stats = {}
 
-g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
+g.stats.HitDuration = g.defineStat("HitDuration", 0.4)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
@@ -595,6 +595,7 @@ end
 ---@field type string
 ---@field x number
 ---@field y number
+---@field id number
 ---@field health number
 ---@field maxHealth number
 ---@field image string
@@ -623,6 +624,10 @@ function g.getRandomPositionForToken()
 end
 
 
+
+-- each token is given a unique id. (Used for animations and stuff)
+local currentTokenId = 1
+
 ---@param tokType string
 ---@param x number
 ---@param y number
@@ -636,10 +641,14 @@ function g.spawnToken(tokType, x,y)
         error("Invalid token type: " .. tostring(tokType))
     end
 
+    currentTokenId = currentTokenId + 1
+
     local tok = setmetatable({
         x = x,
         y = y,
         health = tabl.maxHealth,
+
+        id = currentTokenId,
 
         timeAlive = 0,
         timeSinceHit = 0xffffffffff,
@@ -677,6 +686,7 @@ function g.damageToken(tok, dmg)
     dmg = dmg * dmgMult
     tok.health = tok.health - dmg
     g.call("tokenDamaged", tok, dmg)
+    tok.timeSinceDamaged = 0
     if tok.health <= 0 then
         g.destroyToken(tok)
     end
@@ -685,13 +695,12 @@ end
 
 ---@param tok g.Token
 function g.tryHitToken(tok)
-    local w = g.getMainWorld()
-    local time = w.tokensBeingHit[tok]
-    if not time then
-        w.tokensBeingHit[tok] = g.stats.HitDuration
+    local time = tok.timeSinceHit
+    if time > g.stats.HitDuration then
         local hitMult = g.ask("getTokenHitMultiplier", tok)
         g.damageToken(tok, hitMult * g.stats.HitDamage)
         g.call("tokenHit", tok)
+        tok.timeSinceHit = 0
     end
 end
 

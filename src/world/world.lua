@@ -34,10 +34,6 @@ function World:init()
 
     self.mouseX, self.mouseY = nil,nil
 
-    self.tokensBeingHit = ({--[[
-        [token] -> duration_of_hit
-    ]]})
-
     self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
     ]]})
@@ -94,6 +90,16 @@ end
 
 
 
+
+---@param tok g.Token
+---@param dt number
+local function updateToken(tok,dt)
+    tok.timeAlive = tok.timeAlive + dt
+    tok.timeSinceDamaged = tok.timeSinceDamaged + dt
+    tok.timeSinceHit = tok.timeSinceHit + dt
+end
+
+
 local function drawTokenHealthBar(tok)
     local x,y = tok.x, tok.y
     love.graphics.setColor(1,0,0)
@@ -109,10 +115,86 @@ local function drawTokenHealthBar(tok)
     love.graphics.rectangle("line", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
 end
 
+
+
+
+local TOKEN_SPAWN_ANIMATION_DURATION = 0.2
+local TOKEN_SPAWN_ANIMATION_AMPLITUDE = 1.3
+
+local TOKEN_HIT_ANIMATION_DURATION = 0.15
+local TOKEN_HIT_JERK_AMPLITUDE = 1.3
+local TOKEN_HIT_SQUASH_AMOUNT = 1
+
+
+---@param tok g.Token
+---@return number sx, number sy
+local function getTokScale(tok)
+    local sx,sy = 1,1
+
+    local ta = tok.timeAlive
+    if ta < TOKEN_SPAWN_ANIMATION_DURATION then
+        -- On spawn: Make it pop up
+        local v = math.sin(ta*math.pi/TOKEN_SPAWN_ANIMATION_DURATION) * TOKEN_SPAWN_ANIMATION_AMPLITUDE
+        if (ta > TOKEN_SPAWN_ANIMATION_DURATION/2) then
+            v = math.max(v, 1)
+        end
+        sx = math.sqrt(v)
+        sy = v*1.2
+    end
+
+    local tsh = tok.timeSinceHit
+    if tsh < TOKEN_HIT_ANIMATION_DURATION then
+        -- Make it look "squashed" down
+        local mag = (TOKEN_HIT_ANIMATION_DURATION - tsh)*TOKEN_HIT_SQUASH_AMOUNT
+        sx = sx * (1+mag)
+        sy = sy * (1+mag)
+    end
+
+    return sx,sy
+end
+
+
+local TOKEN_DAMAGE_JERK_DURATION = 0.15
+local TOKEN_DAMAGE_JERK_AMPLITUDE = 1.3
+
+
+---@param tok g.Token
+---@return number rot
+local function getTokRotation(tok)
+    local rot = 0
+
+    local tsd = tok.timeSinceDamaged
+    if tsd < TOKEN_DAMAGE_JERK_DURATION then
+        rot = rot + (TOKEN_DAMAGE_JERK_DURATION - tsd) * TOKEN_DAMAGE_JERK_AMPLITUDE
+    end
+
+    local tsh = tok.timeSinceHit
+    if tsh < TOKEN_DAMAGE_JERK_DURATION then
+        rot = rot + (TOKEN_HIT_ANIMATION_DURATION - tsh) * TOKEN_HIT_JERK_AMPLITUDE
+    end
+
+    if tok.id % 2 == 0 then
+        return -rot
+    end
+    return rot
+end
+
+---@param tok g.Token
+---@return number shearX, number shearY
+local function getTokShear(tok)
+    return 0,0
+end
+
+
+
 local function drawToken(tok)
     love.graphics.setColor(1,1,1,1)
-    -- TODO: add extra stuff here like scale, shear, etc.
-    g.drawImage(tok.image, tok.x, tok.y)
+
+    local sx,sy = getTokScale(tok)
+    local rot = getTokRotation(tok)
+    local kx,ky = getTokShear(tok)
+
+    g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
     drawTokenHealthBar(tok)
 end
 
@@ -164,14 +246,8 @@ function World:_update(dt)
         self.tokenPartition:add(t, t.x,t.y)
     end
 
-    for token, time in pairs(self.tokensBeingHit) do
-        time = time - dt
-        if time <= 0 then
-            -- hit has been completed!
-            self.tokensBeingHit[token] = nil
-        else
-            self.tokensBeingHit[token] = time
-        end
+    for _, tok in ipairs(self.tokens) do
+        updateToken(tok,dt)
     end
 
     for _, e in ipairs(self.entities) do
