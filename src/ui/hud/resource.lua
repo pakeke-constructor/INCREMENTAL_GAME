@@ -125,6 +125,12 @@ function Resources:drawHUD(camera)
     printTextAt("Logs: "..g.getLogs(), self._resourceFont, logsR, "left")
     printTextAt("Rocks: "..g.getRocks(), self._resourceFont, rocksR, "left")
     printTextAt("Bones: "..g.getBones(), self._resourceFont, bonesR, "left")
+
+    -- TODO: Tweak
+    self.poses.money[1], self.poses.money[2] = camera:toWorld(moneyR:getCenter())
+    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(logsR:getCenter())
+    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(rocksR:getCenter())
+    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(bonesR:getCenter())
 end
 
 
@@ -143,8 +149,10 @@ function Resources:drawParticles(camera)
 
         -- Time can be negative to delay it slightly
         if particle.time >= 0 then
+            local phase
             -- Which phase are we in?
             if particle.time < SPAWN_ANIMATION_DURATION then
+                phase = 1
                 -- Spawning
                 local t = particle.time / SPAWN_ANIMATION_DURATION
                 local easeT = math.min(math.max(particle.spawnEasing(t), 0), 1)
@@ -152,11 +160,13 @@ function Resources:drawParticles(camera)
                 y = particle.y - math.sin(particle.tokenAngle) * particle.tokenRadius * easeT
                 scale = easeT
             elseif particle.time < BEFOREHUD_TIME then
+                phase = 2
                 -- Idling
                 x = particle.x
                 y = particle.y
                 scale = 1
             else
+                phase = 3
                 -- Moving to HUD
                 local t = (particle.time - BEFOREHUD_TIME) / particle.tohudTime
                 local easeX = math.min(math.max(particle.xEasing(t), 0), 1)
@@ -167,7 +177,9 @@ function Resources:drawParticles(camera)
                 scale = 1
             end
 
-            g.drawImage(particle.image, x, y, 0, scale, scale)
+            -- print("particle", particle.image, phase, x, y, scale)
+            local sx, sy = camera:toScreen(x, y)
+            g.drawImage(particle.image, sx, sy, 0, scale * 2)
         end
     end
 end
@@ -201,8 +213,8 @@ function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
 
     local angle = math.rad(love.math.random() * 360)
     local radius = love.math.random() * AROUND_TOKEN_RADIUS
-    local px = math.cos(angle) * radius
-    local py = math.sin(angle) * radius
+    local px = x + math.cos(angle) * radius
+    local py = y + math.sin(angle) * radius
 
     self.particles[#self.particles+1] = {
         kind = kind,
