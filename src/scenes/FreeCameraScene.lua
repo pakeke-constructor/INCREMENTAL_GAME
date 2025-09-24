@@ -18,11 +18,12 @@ Contains a bunch of lil helpers n stuff
 ---@class FreeCameraScene
 ---@field camera Camera
 ---@field panSpeed number
+---@field _windowDim [number, number]
 local FreeCameraScene = {}
 local FreeCameraScene_mt = {
     __index = FreeCameraScene,
     __newindex = function(t,k,v)
-        assert(not FreeCameraScene[k], "Attempted to overwrite method!")
+        assert(type(FreeCameraScene[k]) ~= "function", "Attempted to overwrite method!")
         rawset(t,k,v)
     end
 }
@@ -148,6 +149,13 @@ end
 ---@param dt number
 function FreeCameraScene:updateCamera(dt)
     local camera = self.camera
+    local gw, gh = love.graphics.getDimensions()
+    if self._windowDim[1] ~= gw or self._windowDim[2] ~= gh then
+        camera:setViewport(0, 0, gw, gh)
+        self._windowDim[1] = gw
+        self._windowDim[2] = gh
+    end
+
     local spd = self.panSpeed / math.sqrt(camera:getZoom())
     local movX,movY = 0,0
     if love.keyboard.isScancodeDown("w") then
@@ -199,7 +207,9 @@ local function newFreeCameraScene()
         _isCamAttached = false,
         _zoomIndex = 0,
         allowMousePan = true,
+        _windowDim = {love.graphics.getDimensions()}
     }, FreeCameraScene_mt)
+    scene.camera:setViewport(0, 0, scene._windowDim[1], scene._windowDim[2])
 
     return scene
 end
