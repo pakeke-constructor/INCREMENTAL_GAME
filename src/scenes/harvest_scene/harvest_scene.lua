@@ -8,6 +8,7 @@ local harvest = FreeCameraScene()
 
 
 function harvest:init()
+    self.allowMousePan = false
 end
 
 
@@ -19,7 +20,6 @@ local function centerCamera(self)
     local cy = world.HEIGHT / 2
     self._zoomIndex = 0
     self.camera:setPos(cx, cy)
-    self.camera:setDirty(true) -- else it wont update on resize
     self:setCamera()
 end
 
