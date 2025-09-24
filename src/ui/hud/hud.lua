@@ -39,4 +39,12 @@ function HUD:drawResourceHUD(camera)
     return self.resourceHUD:draw(camera)
 end
 
+---@param kind g.hud._ResourceKind
+---@param x number Position of the token in world-space.
+---@param y number Position of the token in world-space.
+---@param amount number Amount to add to the display once it's done.
+function HUD:spawnResourceParticle(kind, x, y, amount)
+    return self.resourceHUD:spawnParticle(kind, x, y, amount)
+end
+
 return HUD
