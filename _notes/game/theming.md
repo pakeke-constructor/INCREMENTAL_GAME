@@ -20,6 +20,16 @@ Whatever the case, theming *MUST BE CONSISTENT.*
 Feel free to make up new words/concepts.
 
 
+IDEA: For tokens, we should have cats as tokens.  
+(Less early-game... more cats late-game)
+E.g. copycat-sprite, crappy-cat-sprite, etc etc.  
+I think that this would add a lot of "heart" to the game.
+=---  
+Besides, the number of visual variations of cats is huge.
+
+
+
+
 
 # NAMING:
 Try to avoid generic names for stuff! We don't want it to be boring.  

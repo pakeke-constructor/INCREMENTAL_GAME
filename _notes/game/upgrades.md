@@ -51,7 +51,45 @@ We can't keep going "up".
 Once there's a bunch of shit on screen, we need a way to "reel it back in".  
 
 Since there is finite-space on the upgrade-tree,  
-I propose the following:  
+I propose the following:    
+Each "prestige" has a different upgrade-tree.
+
+Many upgrades span across multiple prestiges.  
+
+What's cool is that every time the player prestiges, they discover and unlock new upgrades; so it always feels "fresh".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## =======================================
+## OLD NOTES; about "categorical prestige upgrades.
+I'm not wanting to do this anymore, since I think it adds a bit of complexity for not much gain.  
+Also it makes game harder to balance.
+## =======================================
+
 
 ## CATEGORICAL PRESTIGE UPGRADES. 
 To start with, we group upgrades together, in "categories".
