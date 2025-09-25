@@ -92,6 +92,10 @@ local function getSwingTime()
     return g.stats.HitDuration * 0.75
 end
 
+local function getAxeSwingTime()
+    return getSwingTime() / 2
+end
+
 
 ---@param tok g.Token
 ---@param dt number
@@ -100,7 +104,7 @@ local function updateToken(tok,dt)
     tok.timeSinceDamaged = tok.timeSinceDamaged + dt
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
 
-    if tok.timeSinceHitStart >= getSwingTime() and tok.timeSinceHitStart < tok.timeSinceDamaged then
+    if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceDamaged then
         -- Damage token
         local hitMult = g.ask("getTokenHitMultiplier", tok)
         g.call("tokenHit", tok)
@@ -151,10 +155,10 @@ local function getTokScale(tok)
         sy = v*1.2
     end
 
-    local tsh = tok.timeSinceHitStart
-    if tsh < TOKEN_HIT_ANIMATION_DURATION then
+    local tsd = tok.timeSinceDamaged
+    if tsd < TOKEN_HIT_ANIMATION_DURATION then
         -- Make it look "squashed" down
-        local mag = (TOKEN_HIT_ANIMATION_DURATION - tsh)*TOKEN_HIT_SQUASH_AMOUNT
+        local mag = (TOKEN_HIT_ANIMATION_DURATION - tsd)*TOKEN_HIT_SQUASH_AMOUNT
         sx = sx * (1+mag)
         sy = sy * (1+mag)
     end
@@ -177,10 +181,10 @@ local function getTokRotation(tok)
         rot = rot + (TOKEN_DAMAGE_JERK_DURATION - tsd) * TOKEN_DAMAGE_JERK_AMPLITUDE
     end
 
-    local tsh = tok.timeSinceHitStart
-    if tsh < TOKEN_DAMAGE_JERK_DURATION then
-        rot = rot + (TOKEN_HIT_ANIMATION_DURATION - tsh) * TOKEN_HIT_JERK_AMPLITUDE
-    end
+    -- local tsh = tok.timeSinceHitStart
+    -- if tsh < TOKEN_DAMAGE_JERK_DURATION then
+    --     rot = rot + (TOKEN_HIT_ANIMATION_DURATION - tsh) * TOKEN_HIT_JERK_AMPLITUDE
+    -- end
 
     if tok.id % 2 == 0 then
         return -rot
@@ -214,9 +218,8 @@ end
 ---@param tok g.Token
 local function drawAxe(tok)
     love.graphics.setColor(1,1,1)
-    local tsh = tok.timeSinceHitStart
-    local t = (tsh - getSwingTime()) / getSwingTime()
-    g.drawImage("iron_axe", tok.x - 10, tok.y - 10, t)
+    local t = math.min(tok.timeSinceHitStart / getAxeSwingTime(), 1)
+    g.drawImageOffset("iron_axe", tok.x - 14, tok.y + 4, t * t - 0.9, 1, 1, 0.1, 0.9)
 end
 
 
