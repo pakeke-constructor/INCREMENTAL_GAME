@@ -6,8 +6,7 @@
 ```lua
 
 upgrades.defineUpgrade("unlock_map", {
-    prestigeType = "MISC",
-    prestigeLevel = 1,
+    prestige = 1,
 })
 
 
@@ -18,8 +17,7 @@ g.defineToken("basic_log", {
     logs = 1
 })
 upgrades.defineUpgrade("basic_log", {
-    prestigeType = "TOKENS",
-    prestigeLevel = 1,
+    prestige = 1,
 
     -- (`level` inserted as a first argument automatically)
     populateTokenPool = function(level, tokens)
@@ -46,8 +44,7 @@ g.defineToken("basic_bomb", {
     end
 })
 upgrades.defineUpgrade("basic_bomb", {
-    prestigeType = "TOKENS",
-    prestigeLevel = 1,
+    prestige = 0,
 
     populateTokenPool = function(level, tokens)
         -- TODO:
@@ -77,8 +74,7 @@ upgrades.defineUpgrade("carpet_bomber", {
 upgrades.defineUpgrade("lucky_diamond", {
     description = loc("{level}% chance to spawn a lucky diamond every second!"),
 
-    prestigeType = "TOKEN_UPGRADES",
-    prestigeLevel = 1,
+    prestige = 0,
 
     -- perSecondUpdate, called once per second
     perSecondUpdate = function(level)
@@ -95,8 +91,7 @@ upgrades.defineUpgrade("lucky_diamond", {
 upgrades.defineUpgrade("Logbait", {
     description = loc("Logs earn +$2"),
 
-    prestigeType = "TOKEN_UPGRADES",
-    prestigeLevel = 1,
+    prestige = 1,
 
     getTokenMoneyModifier = function(level, token)
         if isType(token, "log") then
