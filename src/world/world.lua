@@ -181,11 +181,6 @@ local function getTokRotation(tok)
         rot = rot + (TOKEN_DAMAGE_JERK_DURATION - tsd) * TOKEN_DAMAGE_JERK_AMPLITUDE
     end
 
-    -- local tsh = tok.timeSinceHitStart
-    -- if tsh < TOKEN_DAMAGE_JERK_DURATION then
-    --     rot = rot + (TOKEN_HIT_ANIMATION_DURATION - tsh) * TOKEN_HIT_JERK_AMPLITUDE
-    -- end
-
     if tok.id % 2 == 0 then
         return -rot
     end
