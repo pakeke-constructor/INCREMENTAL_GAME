@@ -83,8 +83,8 @@ function Resources:init()
         rocks = 0,
         bones = 0,
     }
-    -- Animation interpolation (e.g. increasing text scale)
-    self.interpolateTime = {
+    -- Used for animation interpolation (e.g. increasing text scale)
+    self.timeSinceChanged = {
         money = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
         logs = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
         rocks = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
@@ -114,7 +114,7 @@ function Resources:update(dt)
         local truthValue = PARTICLE_SPAWN_CATEGORY[kind].getter()
         -- If truth value is less than the display value, reset.
         self.displayValue[kind] = math.min(self.displayValue[kind], truthValue)
-        self.interpolateTime[kind] = math.min(self.interpolateTime[kind] + dt, PARTICLE_HUD_VISUAL_ATTENTION_DURATION)
+        self.timeSinceChanged[kind] = self.timeSinceChanged[kind] + dt
     end
 end
 
@@ -306,14 +306,14 @@ end
 ---From 0 to 1.
 ---@param kind g.hud._ResourceKind
 function Resources:_getInterpolationTime(kind)
-    return self.interpolateTime[kind] / PARTICLE_HUD_VISUAL_ATTENTION_DURATION
+    return math.min(self.timeSinceChanged[kind] / PARTICLE_HUD_VISUAL_ATTENTION_DURATION, 1)
 end
 
 ---@param kind g.hud._ResourceKind
 ---@param amount integer
 function Resources:_animateHudFor(kind, amount)
     self.displayValue[kind] = math.min(self.displayValue[kind] + amount, PARTICLE_SPAWN_CATEGORY[kind].getter())
-    self.interpolateTime[kind] = 0
+    self.timeSinceChanged[kind] = 0
 end
 
 ---@param kind g.hud._ResourceKind
