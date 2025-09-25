@@ -26,6 +26,7 @@ local AFTERSPAWN_ANIMATION_DELAY = 0.1
 local TOHUD_ANIMATION_DURATION = {0.4, 0.5} -- random between these
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
+local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.5
 
 local PARTICLE_SPAWN_CATEGORY = {
     money = {
@@ -58,6 +59,8 @@ local EASINGS = {
     function(x) return -(math.cos(math.pi * x) - 1) / 2 end
 }
 
+local RESOURCE_KIND_LIST = {"money", "logs", "rocks", "bones"}
+
 function Resources:init()
     ---@type g.hud._ResourceParticle[]
     self.particles = {}
@@ -67,6 +70,26 @@ function Resources:init()
         logs = {0, 0},
         rocks = {0, 0},
         bones = {0, 0},
+    }
+    -- Initial value
+    self.displayValueBefore = {
+        money = 0,
+        logs = 0,
+        rocks = 0,
+        bones = 0,
+    }
+    -- Target value
+    self.displayValueAfter = {
+        money = 0,
+        logs = 0,
+        rocks = 0,
+        bones = 0,
+    }
+    self.interpolateTime = {
+        money = 0,
+        logs = 0,
+        rocks = 0,
+        bones = 0,
     }
 end
 
@@ -84,7 +107,14 @@ function Resources:update(dt)
         particle.time = particle.time + dt
         if particle.time >= BEFOREHUD_TIME + particle.tohudTime then
             table.remove(self.particles, i)
-            -- TODO: Animate HUD
+            self:_animateHudFor(particle.kind, particle.amount)
+        end
+    end
+
+    for _, kind in ipairs(RESOURCE_KIND_LIST) do
+        self.interpolateTime[kind] = math.max(self.interpolateTime[kind] - dt, 0)
+        if self.interpolateTime[kind] <= 0 then
+            self.displayValueBefore[kind] = self.displayValueAfter[kind]
         end
     end
 end
@@ -93,13 +123,29 @@ end
 ---@param font love.Font
 ---@param region layout.Region
 ---@param align love.AlignMode
-local function printTextAt(text, font, region, align)
+---@param scale number?
+local function printTextAt(text, font, region, align, scale)
+    scale = scale or 1
     local x, y, w, h = region:get()
     local maxw, lines = font:getWrap(text, w)
 
     local th = #lines * font:getHeight()
-    local ty = y + (h - th) / 2
-    love.graphics.printf(text, font, x, ty, w, align)
+    local tx = x + w / 2 -- default center
+    local ty = y + h / 2
+
+    if align == "left" then
+        tx = tx - (w - maxw) / 2
+    elseif align == "right" then
+        tx = tx + (w - maxw) / 2
+    end
+
+    love.graphics.printf(text, font, tx, ty, maxw, "left", 0, scale, scale, maxw / 2, th / 2)
+    love.graphics.circle("line", tx, ty, 8)
+end
+
+---@param x number
+local function easeInCubic(x)
+    return x * x * x
 end
 
 ---@param camera Camera
@@ -117,14 +163,18 @@ function Resources:drawHUD(camera)
     love.graphics.setColor(1, 1, 0)
     love.graphics.rectangle("line", moneyR:get())
     love.graphics.setColor(0, 0, 0)
-    printTextAt("$"..g.getMoney(), self._moneyFont, moneyR, "center")
+    local value, t = self:_getDisplayValueFor("money")
+    printTextAt("$"..value, self._moneyFont, moneyR, "center", 1 + easeInCubic(t) * 0.5)
 
     -- Draw resources
     local logsR, rocksR, bonesR = resourcesR:splitVertical(1, 1, 1)
     love.graphics.setColor(1, 1, 1)
-    printTextAt("Logs: "..g.getLogs(), self._resourceFont, logsR, "left")
-    printTextAt("Rocks: "..g.getRocks(), self._resourceFont, rocksR, "left")
-    printTextAt("Bones: "..g.getBones(), self._resourceFont, bonesR, "left")
+    value, t = self:_getDisplayValueFor("logs")
+    printTextAt("Logs: "..value, self._resourceFont, logsR, "left", 1 + easeInCubic(t) * 0.5)
+    value, t = self:_getDisplayValueFor("rocks")
+    printTextAt("Rocks: "..value, self._resourceFont, rocksR, "left", 1 + easeInCubic(t) * 0.5)
+    value, t = self:_getDisplayValueFor("bones")
+    printTextAt("Bones: "..value, self._resourceFont, bonesR, "left", 1 + easeInCubic(t) * 0.5)
 
     -- TODO: Tweak
     self.poses.money[1], self.poses.money[2] = camera:toWorld(moneyR:getCenter())
@@ -145,10 +195,10 @@ end
 ---@param camera Camera
 function Resources:drawParticles(camera)
     for _, particle in ipairs(self.particles) do
-        local x, y, scale
-
         -- Time can be negative to delay it slightly
         if particle.time >= 0 then
+            local x, y, scale
+
             -- Which phase are we in?
             if particle.time < SPAWN_ANIMATION_DURATION then
                 -- Spawning
@@ -186,6 +236,19 @@ function Resources:draw(camera)
 end
 
 function Resources:reset()
+    if not g.getSn() then return end
+
+    self.displayValueAfter.money = g.getMoney()
+    self.displayValueAfter.logs = g.getLogs()
+    self.displayValueAfter.rocks = g.getRocks()
+    self.displayValueAfter.bones = g.getBones()
+
+    for _, kind in ipairs(RESOURCE_KIND_LIST) do
+        self.displayValueBefore[kind] = self.displayValueAfter[kind]
+        self.interpolateTime[kind] = 0
+    end
+
+    self.particles = {}
 end
 
 ---@generic T
@@ -233,6 +296,21 @@ function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
 end
 
 ---@param kind g.hud._ResourceKind
+function Resources:_getDisplayValueFor(kind)
+    local t = self.interpolateTime[kind] / PARTICLE_HUD_VISUAL_ATTENTION_DURATION
+    local easeT = easeInCubic(t)
+    return math.ceil(lerp(self.displayValueAfter[kind], self.displayValueBefore[kind], easeT)), t
+end
+
+---@param kind g.hud._ResourceKind
+---@param incramount integer
+function Resources:_animateHudFor(kind, incramount)
+    self.displayValueBefore[kind] = self:_getDisplayValueFor(kind)
+    self.displayValueAfter[kind] = self.displayValueAfter[kind] + incramount
+    self.interpolateTime[kind] = PARTICLE_HUD_VISUAL_ATTENTION_DURATION
+end
+
+---@param kind g.hud._ResourceKind
 ---@param x number Position of the token in world-space.
 ---@param y number Position of the token in world-space.
 ---@param amount number Amount to add to the display once it's done.
@@ -245,7 +323,7 @@ function Resources:spawnParticle(kind, x, y, amount)
 
     for i = #category.counts, 1, -1 do
         local spawnCount = math.floor(amount / category.counts[i])
-        amount = amount - spawnCount
+        amount = amount - spawnCount * category.counts[i]
         table.insert(tiersToSpawn, 1, spawnCount)
     end
 
