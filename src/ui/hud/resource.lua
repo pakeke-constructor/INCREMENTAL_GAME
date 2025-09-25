@@ -149,24 +149,20 @@ function Resources:drawParticles(camera)
 
         -- Time can be negative to delay it slightly
         if particle.time >= 0 then
-            local phase
             -- Which phase are we in?
             if particle.time < SPAWN_ANIMATION_DURATION then
-                phase = 1
                 -- Spawning
                 local t = particle.time / SPAWN_ANIMATION_DURATION
                 local easeT = math.min(math.max(particle.spawnEasing(t), 0), 1)
-                x = particle.x - math.cos(particle.tokenAngle) * particle.tokenRadius * easeT
-                y = particle.y - math.sin(particle.tokenAngle) * particle.tokenRadius * easeT
+                x = particle.x - math.cos(particle.tokenAngle) * particle.tokenRadius * (1 - easeT)
+                y = particle.y - math.sin(particle.tokenAngle) * particle.tokenRadius * (1 - easeT)
                 scale = easeT
             elseif particle.time < BEFOREHUD_TIME then
-                phase = 2
                 -- Idling
                 x = particle.x
                 y = particle.y
                 scale = 1
             else
-                phase = 3
                 -- Moving to HUD
                 local t = (particle.time - BEFOREHUD_TIME) / particle.tohudTime
                 local easeX = math.min(math.max(particle.xEasing(t), 0), 1)
@@ -177,7 +173,6 @@ function Resources:drawParticles(camera)
                 scale = 1
             end
 
-            -- print("particle", particle.image, phase, x, y, scale)
             local sx, sy = camera:toScreen(x, y)
             g.drawImage(particle.image, sx, sy, 0, scale * 2)
         end
