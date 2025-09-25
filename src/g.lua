@@ -8,6 +8,7 @@ local upgrades = require("src.upgrades.upgrades")
 
 local World = require("src.world.world")
 local Session = require("src.Session")
+local HUD = require("src.ui.hud.hud")
 
 ---@class g
 local g = {}
@@ -687,6 +688,22 @@ function g.spawnToken(tokType, x,y)
 end
 
 
+---@param tok g.Token
+local function spawnTokenResource(tok)
+    local hud = g.getHUD()
+    if tok.resources.money then
+        hud:spawnResourceParticle("money", tok.x, tok.y, tok.resources.money)
+    end
+    if tok.resources.logs then
+        hud:spawnResourceParticle("logs", tok.x, tok.y, tok.resources.logs)
+    end
+    if tok.resources.rocks then
+        hud:spawnResourceParticle("rocks", tok.x, tok.y, tok.resources.rocks)
+    end
+    if tok.resources.bones then
+        hud:spawnResourceParticle("bones", tok.x, tok.y, tok.resources.bones)
+    end
+end
 
 ---@param tok g.Token
 ---@return boolean
@@ -699,6 +716,8 @@ function g.destroyToken(tok)
     local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
     g.addResources(tok.resources)
+    spawnTokenResource(tok)
+
     tok.___destroyed = true
     w.tokens:removeBuffered(tok)
     return true
@@ -732,7 +751,11 @@ function g.tryHitToken(tok)
 end
 
 
+local hud = HUD()
 
+function g.getHUD()
+    return hud
+end
 
 
 

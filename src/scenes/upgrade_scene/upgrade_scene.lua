@@ -27,6 +27,8 @@ function upgscene:draw()
     self:resetCamera()
 
     self:renderNavbar()
+
+    g.getHUD():drawResourceHUD(self.camera)
 end
 
 
@@ -34,6 +36,7 @@ end
 
 function upgscene:update(dt)
     self:updateCamera(dt)
+    g.getHUD():update(dt)
 end
 
 
