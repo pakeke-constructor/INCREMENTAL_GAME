@@ -194,13 +194,27 @@ end
 local function drawUpgrade(uinfo, upgradeId)
     local level = g.getSn():getUpgradeLevel(upgradeId)
 
-    local x,y,size = upgrades.getCoords(uinfo)
+    local cx,cy,size = upgrades.getCoords(uinfo)
+    local x,y,w,h = cx-size/2, cy-size/2, size, size
 
-    g.drawImage(uinfo.image, x, y)
-    love.graphics.rectangle("line", x-size/2, y-size/2, size, size)
+    if iml.isHovered(x,y,w,h) then
+        love.graphics.setColor(0.7,0.7,0.85)
+    else
+        love.graphics.setColor(1,1,1)
+    end
+
+    g.drawImage(uinfo.image, cx, cy)
+    love.graphics.rectangle("line", x,y,w,h)
 
     if level > 0 then
-        love.graphics.print(tostring(level), x + size/3, y + size/3)
+        love.graphics.print(tostring(level), cx + size/3, cy + size/3)
+    end
+
+    if iml.wasJustClicked(x,y,w,h) then
+        if g.trySubtractResources(uinfo.price) then
+            local sn = g.getSn()
+            sn:increaseUpgrade(uinfo.id)
+        end
     end
 end
 
@@ -217,15 +231,6 @@ function upgrades._draw()
     end
 end
 
-
-function upgrades._click(worldX, worldY)
-    local uinfo = upgrades.getUpgradeAt(worldX, worldY)
-    if uinfo and g.canAfford(uinfo.price) then
-        assert(g.trySubtractResources(uinfo.price))
-        local sn = g.getSn()
-        sn:increaseUpgrade(uinfo.id)
-    end
-end
 
 
 

@@ -21,7 +21,7 @@ Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24,
 ---@field package time number
 ---@field package tohudTime number
 
-local SPAWN_ANIMATION_DURATION = 0.2
+local SPAWN_ANIMATION_DURATION = 0.1
 local AFTERSPAWN_ANIMATION_DELAY = 0.1
 local TOHUD_ANIMATION_DURATION = {0.4, 0.5} -- random between these
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
@@ -242,7 +242,7 @@ function Resources:drawParticles(camera)
             end
 
             local sx, sy = camera:toScreen(x, y)
-            g.drawImage(particle.image, sx, sy, 0, scale * 2)
+            g.drawImage(particle.image, sx, sy, 0, scale)
         end
     end
 end

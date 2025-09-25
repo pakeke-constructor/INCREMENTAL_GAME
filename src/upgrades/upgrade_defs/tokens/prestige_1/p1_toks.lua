@@ -3,9 +3,7 @@
 g.defineToken("basic_grass", {
     image = "basic_grass",
 
-    resources = {
-        money = 1,
-    },
+    resources = {money = 1},
 
     maxHealth = 4
 })
@@ -13,6 +11,8 @@ g.defineToken("basic_grass", {
 g.defineUpgrade("basic_grass", {
     image = "basic_grass",
     prestige = 0,
+
+    price = {money=1},
 
     x=1,y=1,
 
@@ -38,6 +38,8 @@ g.defineToken("basic_log", {
 g.defineUpgrade("basic_log", {
     image = "basic_log",
     prestige = 0,
+
+    price = {money=10},
 
     x=2,y=1,
 })

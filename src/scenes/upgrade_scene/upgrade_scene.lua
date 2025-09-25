@@ -45,6 +45,7 @@ end
 
 
 function upgscene:mousepressed(x,y, button)
+    
 end
 
 function upgscene:mousereleased(x,y, button)
