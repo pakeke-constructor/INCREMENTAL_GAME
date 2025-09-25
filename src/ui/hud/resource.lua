@@ -140,12 +140,18 @@ local function printTextAt(text, font, region, align, scale)
     end
 
     love.graphics.printf(text, font, tx, ty, maxw, "left", 0, scale, scale, maxw / 2, th / 2)
-    love.graphics.circle("line", tx, ty, 8)
 end
 
 ---@param x number
 local function easeInCubic(x)
     return x * x * x
+end
+
+---@param reg layout.Region
+local function makeIconAndTextRegion(reg)
+    local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0)
+    local textR = reg:attachToRightOf(iconR)
+    return iconR:padUnit(4), textR
 end
 
 ---@param camera Camera
@@ -164,23 +170,35 @@ function Resources:drawHUD(camera)
     love.graphics.rectangle("line", moneyR:get())
     love.graphics.setColor(0, 0, 0)
     local value, t = self:_getDisplayValueFor("money")
-    printTextAt("$"..value, self._moneyFont, moneyR, "center", 1 + easeInCubic(t) * 0.5)
+    printTextAt("$"..g.formatNumber(value), self._moneyFont, moneyR, "center", 1 + easeInCubic(t) * 0.5)
 
-    -- Draw resources
+    -- Prepare resource layout
     local logsR, rocksR, bonesR = resourcesR:splitVertical(1, 1, 1)
+    local logsIconR, logsTextR = makeIconAndTextRegion(logsR)
+    local rocksIconR, rocksTextR = makeIconAndTextRegion(rocksR)
+    local bonesIconR, bonesTextR = makeIconAndTextRegion(bonesR)
+
+    -- Draw resource text
     love.graphics.setColor(1, 1, 1)
     value, t = self:_getDisplayValueFor("logs")
-    printTextAt("Logs: "..value, self._resourceFont, logsR, "left", 1 + easeInCubic(t) * 0.5)
+    printTextAt(g.formatNumber(value), self._resourceFont, logsTextR, "left", 1 + easeInCubic(t) * 0.5)
     value, t = self:_getDisplayValueFor("rocks")
-    printTextAt("Rocks: "..value, self._resourceFont, rocksR, "left", 1 + easeInCubic(t) * 0.5)
+    printTextAt(g.formatNumber(value), self._resourceFont, rocksTextR, "left", 1 + easeInCubic(t) * 0.5)
     value, t = self:_getDisplayValueFor("bones")
-    printTextAt("Bones: "..value, self._resourceFont, bonesR, "left", 1 + easeInCubic(t) * 0.5)
+    printTextAt(g.formatNumber(value), self._resourceFont, bonesTextR, "left", 1 + easeInCubic(t) * 0.5)
 
-    -- TODO: Tweak
+    -- Draw resource icon
+    local icx, icy = logsIconR:getCenter()
+    g.drawImage("logs_icon", icx, icy, 0, 1.5)
+    icx, icy = rocksIconR:getCenter()
+    g.drawImage("rocks_icon", icx, icy, 0, 1.5)
+    icx, icy = bonesIconR:getCenter()
+    g.drawImage("bones_icon", icx, icy, 0, 1.5)
+
     self.poses.money[1], self.poses.money[2] = camera:toWorld(moneyR:getCenter())
-    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(logsR:getCenter())
-    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(rocksR:getCenter())
-    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(bonesR:getCenter())
+    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(logsIconR:getCenter())
+    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(rocksIconR:getCenter())
+    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(bonesIconR:getCenter())
 end
 
 
