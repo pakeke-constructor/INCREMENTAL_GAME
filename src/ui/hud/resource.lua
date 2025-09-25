@@ -32,18 +32,23 @@ local PARTICLE_SPAWN_CATEGORY = {
     money = {
         format = "money_particle_%d",
         counts = {1, 10, 100, 1000},
+        -- Note: g is not yet defined when this file is loaded
+        getter = function() return g.getMoney() end,
     },
     logs = {
         format = "log_particle_%d",
         counts = {1, 10, 100},
+        getter = function() return g.getLogs() end,
     },
     rocks = {
         format = "rock_particle_%d",
         counts = {1, 10},
+        getter = function() return g.getRocks() end,
     },
     bones = {
         format = "bone_particle_%d",
         counts = {1, 10, 100},
+        getter = function() return g.getBones() end
     },
 }
 local AROUND_TOKEN_RADIUS = 10
@@ -71,25 +76,19 @@ function Resources:init()
         rocks = {0, 0},
         bones = {0, 0},
     }
-    -- Initial value
-    self.displayValueBefore = {
+    -- Shown value
+    self.displayValue = {
         money = 0,
         logs = 0,
         rocks = 0,
         bones = 0,
     }
-    -- Target value
-    self.displayValueAfter = {
-        money = 0,
-        logs = 0,
-        rocks = 0,
-        bones = 0,
-    }
+    -- Animation interpolation (e.g. increasing text scale)
     self.interpolateTime = {
-        money = 0,
-        logs = 0,
-        rocks = 0,
-        bones = 0,
+        money = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
+        logs = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
+        rocks = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
+        bones = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
     }
 end
 
@@ -112,10 +111,10 @@ function Resources:update(dt)
     end
 
     for _, kind in ipairs(RESOURCE_KIND_LIST) do
-        self.interpolateTime[kind] = math.max(self.interpolateTime[kind] - dt, 0)
-        if self.interpolateTime[kind] <= 0 then
-            self.displayValueBefore[kind] = self.displayValueAfter[kind]
-        end
+        local truthValue = PARTICLE_SPAWN_CATEGORY[kind].getter()
+        -- If truth value is less than the display value, reset.
+        self.displayValue[kind] = math.min(self.displayValue[kind], truthValue)
+        self.interpolateTime[kind] = math.min(self.interpolateTime[kind] + dt, PARTICLE_HUD_VISUAL_ATTENTION_DURATION)
     end
 end
 
@@ -169,8 +168,8 @@ function Resources:drawHUD(camera)
     love.graphics.setColor(1, 1, 0)
     love.graphics.rectangle("line", moneyR:get())
     love.graphics.setColor(0, 0, 0)
-    local value, t = self:_getDisplayValueFor("money")
-    printTextAt("$"..g.formatNumber(value), self._moneyFont, moneyR, "center", 1 + easeInCubic(t) * 0.5)
+    local t = self:_getInterpolationTime("money")
+    printTextAt("$"..g.formatNumber(self.displayValue.money), self._moneyFont, moneyR, "center", 1 + easeInCubic(1 - t) * 0.5)
 
     -- Prepare resource layout
     local logsR, rocksR, bonesR = resourcesR:splitVertical(1, 1, 1)
@@ -180,12 +179,12 @@ function Resources:drawHUD(camera)
 
     -- Draw resource text
     love.graphics.setColor(1, 1, 1)
-    value, t = self:_getDisplayValueFor("logs")
-    printTextAt(g.formatNumber(value), self._resourceFont, logsTextR, "left", 1 + easeInCubic(t) * 0.5)
-    value, t = self:_getDisplayValueFor("rocks")
-    printTextAt(g.formatNumber(value), self._resourceFont, rocksTextR, "left", 1 + easeInCubic(t) * 0.5)
-    value, t = self:_getDisplayValueFor("bones")
-    printTextAt(g.formatNumber(value), self._resourceFont, bonesTextR, "left", 1 + easeInCubic(t) * 0.5)
+    t = self:_getInterpolationTime("logs")
+    printTextAt(g.formatNumber(self.displayValue.logs), self._resourceFont, logsTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
+    t = self:_getInterpolationTime("rocks")
+    printTextAt(g.formatNumber(self.displayValue.rocks), self._resourceFont, rocksTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
+    t = self:_getInterpolationTime("bones")
+    printTextAt(g.formatNumber(self.displayValue.bones), self._resourceFont, bonesTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
 
     -- Draw resource icon
     local icx, icy = logsIconR:getCenter()
@@ -253,22 +252,6 @@ function Resources:draw(camera)
     return self:drawParticles(camera)
 end
 
-function Resources:reset()
-    if not g.getSn() then return end
-
-    self.displayValueAfter.money = g.getMoney()
-    self.displayValueAfter.logs = g.getLogs()
-    self.displayValueAfter.rocks = g.getRocks()
-    self.displayValueAfter.bones = g.getBones()
-
-    for _, kind in ipairs(RESOURCE_KIND_LIST) do
-        self.displayValueBefore[kind] = self.displayValueAfter[kind]
-        self.interpolateTime[kind] = 0
-    end
-
-    self.particles = {}
-end
-
 ---@generic T
 ---@param tab T[] Table to pick elements of.
 ---@param rng (fun(max:integer):integer)? Function that returns random number from 1 to `max` both inclusive.
@@ -285,6 +268,13 @@ end
 ---@param amount integer
 ---@private
 function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
+    local smallAmount = 0
+    -- 20% chance to spawn 1 additional smaller particles
+    if tier > 1 and love.math.random() < 0.2 then
+        smallAmount = math.ceil(amount * 0.9)
+        amount = amount - smallAmount
+    end
+
     local category = PARTICLE_SPAWN_CATEGORY[kind]
 
     local angle = math.rad(love.math.random() * 360)
@@ -307,25 +297,22 @@ function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
         tohudTime = lerp(TOHUD_ANIMATION_DURATION[1], TOHUD_ANIMATION_DURATION[2], love.math.random())
     }
 
-    -- 20% chance to spawn 1 additional cosmetic particles
-    if tier > 1 and love.math.random() < 0.2 then
-        self:_spawnParticleImpl(kind, tier - 1, x, y, 0)
+    if smallAmount > 0 then
+        return self:_spawnParticleImpl(kind, tier - 1, x, y, smallAmount)
     end
 end
 
+---From 0 to 1.
 ---@param kind g.hud._ResourceKind
-function Resources:_getDisplayValueFor(kind)
-    local t = self.interpolateTime[kind] / PARTICLE_HUD_VISUAL_ATTENTION_DURATION
-    local easeT = easeInCubic(t)
-    return math.ceil(lerp(self.displayValueAfter[kind], self.displayValueBefore[kind], easeT)), t
+function Resources:_getInterpolationTime(kind)
+    return self.interpolateTime[kind] / PARTICLE_HUD_VISUAL_ATTENTION_DURATION
 end
 
 ---@param kind g.hud._ResourceKind
----@param incramount integer
-function Resources:_animateHudFor(kind, incramount)
-    self.displayValueBefore[kind] = self:_getDisplayValueFor(kind)
-    self.displayValueAfter[kind] = self.displayValueAfter[kind] + incramount
-    self.interpolateTime[kind] = PARTICLE_HUD_VISUAL_ATTENTION_DURATION
+---@param amount integer
+function Resources:_animateHudFor(kind, amount)
+    self.displayValue[kind] = math.min(self.displayValue[kind] + amount, PARTICLE_SPAWN_CATEGORY[kind].getter())
+    self.interpolateTime[kind] = 0
 end
 
 ---@param kind g.hud._ResourceKind
