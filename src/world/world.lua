@@ -103,10 +103,12 @@ local function updateToken(tok,dt)
     tok.timeAlive = tok.timeAlive + dt
     tok.timeSinceDamaged = tok.timeSinceDamaged + dt
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
+    tok.timeSinceHit = tok.timeSinceHit + dt
 
-    if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceDamaged then
+    if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceHit then
         -- Damage token
         local hitMult = g.ask("getTokenHitMultiplier", tok)
+        tok.timeSinceHit = 0
         g.call("tokenHit", tok)
         g.damageToken(tok, hitMult * g.stats.HitDamage)
     end

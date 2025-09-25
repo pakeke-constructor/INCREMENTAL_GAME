@@ -641,7 +641,8 @@ end
 ---@field maxHealth number
 ---@field image string
 ---@field resources g.Bundle
----@field timeSinceHitStart number
+---@field timeSinceHitStart number Time since last `tryHitToken` is initiated (it's not immediately hit).
+---@field timeSinceHit number Time since `tryHitToken` actually hits the token.
 ---@field timeSinceDamaged number
 ---@field timeAlive number
 ---
@@ -693,6 +694,7 @@ function g.spawnToken(tokType, x,y)
 
         timeAlive = 0,
         timeSinceHitStart = 0xffffffffff,
+        timeSinceHit = 0xffffffffff,
         timeSinceDamaged = 0xfffffffff,
     }, tokenMts[tokType])
 
