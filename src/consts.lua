@@ -3,6 +3,8 @@
 ---@class consts
 local consts = {
 
+    DEV_MODE = not not love.filesystem.getInfo(".git", "directory"),
+
     FILE_LOG_LEVEL = "warn",
     CONSOLE_LOG_LEVEL = "trace",
 

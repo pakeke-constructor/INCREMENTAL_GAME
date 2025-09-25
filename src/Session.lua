@@ -7,6 +7,7 @@ local World = require("src.world.world")
 
 
 ---@class g.Session
+---@field prestige number
 ---@field upgrades table<string, boolean>
 ---@field resources g.Resources
 ---@field mainWorld g.World
@@ -16,6 +17,8 @@ local Session = objects.Class("g:Session")
 
 
 function Session:init()
+    self.prestige = 0
+
     self.resources = {
         money = 0,
         logs = 0,
@@ -63,8 +66,7 @@ end
 
 
 
----@param prestigeId string
-function Session:prestige(prestigeId)
+function Session:increasePrestige()
 
 end
 

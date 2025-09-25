@@ -36,6 +36,10 @@ function g.getMainWorld()
     return currentSession.mainWorld
 end
 
+function g.getPrestige()
+    return currentSession.prestige
+end
+
 
 
 
@@ -358,6 +362,18 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 ---@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
 
 
+---@alias g.PrestigeRange {lower: integer, upper: integer}
+
+---@alias g.UpgradeInfo {id: string, prestige: number|g.PrestigeRange, x:number, y:number, image:string, price: g.Bundle}
+
+
+
+---@param prestige integer
+---@param range g.PrestigeRange
+function g.inPrestigeRange(prestige, range)
+    return (prestige >= range.lower) and (prestige <= range.upper)
+end
+
 
 ---@param a g.Bundle
 ---@param b g.Bundle
@@ -450,15 +466,26 @@ end
 
 
 
+
 ---@param price g.Bundle
 ---@return boolean
-function g.trySubtractResources(price)
+function g.canAfford(price)
     local r = currentSession.resources
-
     if (price.money or 0) > (r.money or 0) then return false end
     if (price.bones or 0) > (r.bones or 0) then return false end
     if (price.rocks or 0) > (r.rocks or 0) then return false end
     if (price.logs or 0) > (r.logs or 0) then return false end
+    return true
+end
+
+
+---@param price g.Bundle
+---@return boolean
+function g.trySubtractResources(price)
+    local r = currentSession.resources
+    if not g.canAfford(price) then
+        return false
+    end
 
     if price.money then r.money = r.money - price.money end
     if price.bones then r.bones = r.bones - price.bones end

@@ -4,17 +4,32 @@
 ---@class upgrades
 local upgrades = {}
 
+---@type {[string]: g.UpgradeInfo?}
 local upgradeInfos = {--[[
     [upgradeId] -> Table (contains all info)
 ]]}
 
 
-local PRESTIGE_TYPES = {
-    TOKEN = "TOKEN",
-    HARVESTING = "HARVESTING",
-    TOKEN_UPGRADES = "TOKEN_UPGRADES",
-    MISC = "MISC",
-}
+---@type {[number]: g.UpgradeInfo?}
+local upgradePositions = {--[[
+    hash(x,y,prestige) -> UpgradeInfo
+]]}
+
+
+local HASHVAL = 100000
+
+---@param x integer
+---@param y integer
+---@param prestige integer
+---@return integer
+local function hash(x,y, prestige)
+    return prestige + (x * HASHVAL) + (y * HASHVAL^2)
+end
+
+
+local function assertSmallEnough(x)
+    assert(math.abs(x) < HASHVAL, "Needs to be less than " .. HASHVAL " for hashing to work correctly!")
+end
 
 
 local function niceAssert(bool, str, val)
@@ -29,26 +44,32 @@ end
 
 
 
-
-function upgrades.definePrestige(prestigeId, tabl)
-    --[[
-    TODO: implement this later.
-    ]]
-end
-
-
 local questionCache = {} -- [questionName] -> {upgradeId1, upgradeId2, ...}
 
 local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
 
 
+-- some upgrades lie across multiple ranges.
+-- EG `wood` is purchasable at prestige-0 AND prestige-1. {lower=0, upper=1}
+-- And some upgrades are valid across ALL prestiges. {lower=0, upper=INFINITY}
+
+
+
 -- Add this to defineUpgrade function
+
+---@param upgradeId string
+---@param tabl g.UpgradeInfo
 function upgrades.defineUpgrade(upgradeId, tabl)
     niceAssert(type(upgradeId) == "string")
-    niceAssert(PRESTIGE_TYPES[tabl.prestigeType], "Invalid prestige type: ", tabl.prestigeType)
-    niceAssert(type(tabl.prestigeLevel) == "number", "Invalid prestige level: ", tabl.prestigeLevel)
+    niceAssert(type(tabl.prestige) == "number", "Invalid prestige: ", tabl.prestige)
     niceAssert(g.isImage(tabl.image), "Invalid image: ", tabl.image)
     niceAssert(type(tabl.x) == "number" and type(tabl.y) == "number", "Upgrades needs x,y coords")
+
+    assertSmallEnough(tabl.x)
+    assertSmallEnough(tabl.y)
+    assertSmallEnough(tabl.prestige)
+
+    tabl.id = upgradeId
 
     assert(not upgradeInfos[upgradeId], "Redefined upgrade!")
     upgradeInfos[upgradeId] = tabl
@@ -123,29 +144,86 @@ end
 
 
 ---@param upgradeId string
----@return table
+---@return g.UpgradeInfo
 function upgrades.getInfo(upgradeId)
     return assert(upgradeInfos[upgradeId])
 end
 
 
+---@param worldX number screen x coordinate (center of box)
+---@param worldY number screen y coordinate (center of box)
+---@return number grid_x
+---@return number grid_y
+local function invertCoords(worldX, worldY)
+    local size = consts.UPGRADE_IMAGE_SIZE
+    local spacing = consts.UPGRADE_GRID_SPACING + size
+    local grid_x = worldX / spacing
+    local grid_y = worldY / spacing
+    return grid_x, grid_y
+end
+
+
+---@param worldX integer
+---@param worldY integer
+---@return g.UpgradeInfo?
+function upgrades.getUpgradeAt(worldX, worldY)
+    local prestige = g.getPrestige()
+    local x,y = invertCoords(worldX, worldY)
+    local h = hash(x,y,prestige)
+    return upgradePositions[h]
+end
+
+
+---@param uinfo g.UpgradeInfo
+---@return number
+---@return number
+---@return number
+function upgrades.getCoords(uinfo)
+    local size = consts.UPGRADE_IMAGE_SIZE
+    local spacing = consts.UPGRADE_GRID_SPACING + size
+    local x = uinfo.x * spacing
+    local y = uinfo.y * spacing
+    -- x,y is center of box
+    -- `size` is size of upgrade-box
+    return x,y,size
+end
+
+
+
+---@param uinfo g.UpgradeInfo
+local function drawUpgrade(uinfo, upgradeId)
+    local level = g.getSn():getUpgradeLevel(upgradeId)
+
+    local x,y,size = upgrades.getCoords(uinfo)
+
+    g.drawImage(uinfo.image, x, y)
+    love.graphics.rectangle("line", x-size/2, y-size/2, size, size)
+
+    if level > 0 then
+        love.graphics.print(tostring(level), x + size/3, y + size/3)
+    end
+end
 
 
 function upgrades._draw()
-    -- TODO: allow for alternative upgrade maps in future?
-    for upgradeId, info in pairs(upgradeInfos or {}) do
-        local level = g.getSn():getUpgradeLevel(upgradeId)
-        local size = consts.UPGRADE_IMAGE_SIZE
-        local spacing = consts.UPGRADE_GRID_SPACING + size
-        local x = info.x * spacing
-        local y = info.y * spacing
+    --[[
+    NOTE: there is a hard-assumption that all
+    upgrades are within the same "map".
 
-        g.drawImage(info.image, x, y)
-        love.graphics.rectangle("line", x-size/2, y-size/2, size, size)
+    I dont think there will be though; so its fine
+    ]]
+    for upgradeId, uinfo in pairs(upgradeInfos or {}) do
+        drawUpgrade(uinfo, upgradeId)
+    end
+end
 
-        if level > 0 then
-            love.graphics.print(tostring(level), x, y)
-        end
+
+function upgrades._click(worldX, worldY)
+    local uinfo = upgrades.getUpgradeAt(worldX, worldY)
+    if uinfo and g.canAfford(uinfo.price) then
+        assert(g.trySubtractResources(uinfo.price))
+        local sn = g.getSn()
+        sn:increaseUpgrade(uinfo.id)
     end
 end
 
