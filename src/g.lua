@@ -641,7 +641,7 @@ end
 ---@field maxHealth number
 ---@field image string
 ---@field resources g.Bundle
----@field timeSinceHit number
+---@field timeSinceHitStart number
 ---@field timeSinceDamaged number
 ---@field timeAlive number
 ---
@@ -692,7 +692,7 @@ function g.spawnToken(tokType, x,y)
         id = currentTokenId,
 
         timeAlive = 0,
-        timeSinceHit = 0xffffffffff,
+        timeSinceHitStart = 0xffffffffff,
         timeSinceDamaged = 0xfffffffff,
     }, tokenMts[tokType])
 
@@ -754,12 +754,12 @@ end
 
 ---@param tok g.Token
 function g.tryHitToken(tok)
-    local time = tok.timeSinceHit
+    local time = tok.timeSinceHitStart
     if time > g.stats.HitDuration then
         local hitMult = g.ask("getTokenHitMultiplier", tok)
         g.damageToken(tok, hitMult * g.stats.HitDamage)
         g.call("tokenHit", tok)
-        tok.timeSinceHit = 0
+        tok.timeSinceHitStart = 0
     end
 end
 

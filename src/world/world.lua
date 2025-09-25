@@ -95,7 +95,7 @@ end
 local function updateToken(tok,dt)
     tok.timeAlive = tok.timeAlive + dt
     tok.timeSinceDamaged = tok.timeSinceDamaged + dt
-    tok.timeSinceHit = tok.timeSinceHit + dt
+    tok.timeSinceHitStart = tok.timeSinceHitStart + dt
 end
 
 
@@ -141,7 +141,7 @@ local function getTokScale(tok)
         sy = v*1.2
     end
 
-    local tsh = tok.timeSinceHit
+    local tsh = tok.timeSinceHitStart
     if tsh < TOKEN_HIT_ANIMATION_DURATION then
         -- Make it look "squashed" down
         local mag = (TOKEN_HIT_ANIMATION_DURATION - tsh)*TOKEN_HIT_SQUASH_AMOUNT
@@ -167,7 +167,7 @@ local function getTokRotation(tok)
         rot = rot + (TOKEN_DAMAGE_JERK_DURATION - tsd) * TOKEN_DAMAGE_JERK_AMPLITUDE
     end
 
-    local tsh = tok.timeSinceHit
+    local tsh = tok.timeSinceHitStart
     if tsh < TOKEN_DAMAGE_JERK_DURATION then
         rot = rot + (TOKEN_HIT_ANIMATION_DURATION - tsh) * TOKEN_HIT_JERK_AMPLITUDE
     end
@@ -207,7 +207,7 @@ end
 ---@param tok g.Token
 local function drawAxe(tok)
     love.graphics.setColor(1,1,1)
-    local tsh = tok.timeSinceHit
+    local tsh = tok.timeSinceHitStart
     local t = (tsh - getSwingTime()) / getSwingTime()
     g.drawImage("iron_axe", tok.x - 10, tok.y - 10, t)
 end
@@ -226,7 +226,8 @@ function World:_draw()
 
     -- draw pickaxes/axes:
     for _,tok in ipairs(self.tokens) do
-        if tok.timeSinceHit < getSwingTime() then
+        ---@cast tok g.Token
+        if tok.timeSinceHitStart < getSwingTime() then
             drawAxe(tok)
         end
     end
