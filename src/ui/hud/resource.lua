@@ -240,8 +240,7 @@ function Resources:drawParticles(camera)
                 scale = 1
             end
 
-            local sx, sy = camera:toScreen(x, y)
-            g.drawImage(particle.image, sx, sy, 0, scale)
+            g.drawImage(particle.image, x, y, 0, scale)
         end
     end
 end
@@ -249,7 +248,9 @@ end
 ---@param camera Camera
 function Resources:draw(camera)
     self:drawHUD(camera)
-    return self:drawParticles(camera)
+    camera:attach()
+    self:drawParticles(camera)
+    camera:detach()
 end
 
 ---@generic T
