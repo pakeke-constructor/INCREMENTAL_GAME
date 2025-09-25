@@ -12,8 +12,7 @@ g.defineToken("basic_grass", {
 
 g.defineUpgrade("basic_grass", {
     image = "basic_grass",
-    prestigeType = "TOKEN",
-    prestigeLevel = 1,
+    prestige = 0,
 
     x=1,y=1,
 
@@ -38,8 +37,7 @@ g.defineToken("basic_log", {
 
 g.defineUpgrade("basic_log", {
     image = "basic_log",
-    prestigeType = "TOKEN",
-    prestigeLevel = 1,
+    prestige = 0,
 
     x=2,y=1,
 })

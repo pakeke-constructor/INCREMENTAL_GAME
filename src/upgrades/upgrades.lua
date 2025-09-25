@@ -28,7 +28,7 @@ end
 
 
 local function assertSmallEnough(x)
-    assert(math.abs(x) < HASHVAL, "Needs to be less than " .. HASHVAL " for hashing to work correctly!")
+    assert(math.abs(x) < HASHVAL, "Needs to be less than " .. HASHVAL .. " for hashing to work correctly!")
 end
 
 
