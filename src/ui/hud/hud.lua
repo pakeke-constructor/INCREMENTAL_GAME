@@ -39,7 +39,7 @@ function HUD:drawResourceHUD(camera)
     return self.resourceHUD:draw(camera)
 end
 
----@param kind g.hud._ResourceKind
+---@param kind g.ResourceType
 ---@param x number Position of the token in world-space.
 ---@param y number Position of the token in world-space.
 ---@param amount number Amount to add to the display once it's done.

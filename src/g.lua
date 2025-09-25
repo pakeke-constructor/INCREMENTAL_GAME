@@ -374,6 +374,7 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 ---@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
 
+---@alias g.ResourceType "money"|"logs"|"rocks"|"bones"
 
 ---@alias g.PrestigeRange {lower: integer, upper: integer}
 
@@ -454,10 +455,15 @@ function g.getLogs()
     return currentSession.resources.logs
 end
 
-
 ---@return g.Resources
 function g.getResources()
     return currentSession.resources
+end
+
+---@param restype g.ResourceType
+---@return number
+function g.getResource(restype)
+    return (assert(currentSession.resources[restype], "invalid resource type"))
 end
 
 

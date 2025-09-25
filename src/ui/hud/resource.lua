@@ -5,10 +5,8 @@ local Resources = objects.Class("g.hud:Resources")
 Resources._moneyFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 32, "mono")
 Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24, "mono")
 
----@alias g.hud._ResourceKind "money"|"logs"|"rocks"|"bones"
-
 ---@class g.hud._ResourceParticle
----@field package kind g.hud._ResourceKind
+---@field package kind g.ResourceType
 ---@field package amount integer
 ---@field package image string
 ---@field package tokenAngle number (angle between x,y and token position)
@@ -32,23 +30,18 @@ local PARTICLE_SPAWN_CATEGORY = {
     money = {
         format = "money_particle_%d",
         counts = {1, 10, 100, 1000},
-        -- Note: g is not yet defined when this file is loaded
-        getter = function() return g.getMoney() end,
     },
     logs = {
         format = "log_particle_%d",
         counts = {1, 10, 100},
-        getter = function() return g.getLogs() end,
     },
     rocks = {
         format = "rock_particle_%d",
         counts = {1, 10},
-        getter = function() return g.getRocks() end,
     },
     bones = {
         format = "bone_particle_%d",
         counts = {1, 10, 100},
-        getter = function() return g.getBones() end
     },
 }
 local AROUND_TOKEN_RADIUS = 10
@@ -64,6 +57,7 @@ local EASINGS = {
     function(x) return -(math.cos(math.pi * x) - 1) / 2 end
 }
 
+---@type g.ResourceType[]
 local RESOURCE_KIND_LIST = {"money", "logs", "rocks", "bones"}
 
 function Resources:init()
@@ -111,7 +105,7 @@ function Resources:update(dt)
     end
 
     for _, kind in ipairs(RESOURCE_KIND_LIST) do
-        local truthValue = PARTICLE_SPAWN_CATEGORY[kind].getter()
+        local truthValue = g.getResource(kind)
         -- If truth value is less than the display value, reset.
         self.displayValue[kind] = math.min(self.displayValue[kind], truthValue)
         self.timeSinceChanged[kind] = self.timeSinceChanged[kind] + dt
@@ -262,7 +256,7 @@ local function choice(tab, rng)
     return tab[rng(#tab)]
 end
 
----@param kind g.hud._ResourceKind
+---@param kind g.ResourceType
 ---@param tier integer
 ---@param x number
 ---@param y number
@@ -304,19 +298,19 @@ function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
 end
 
 ---From 0 to 1.
----@param kind g.hud._ResourceKind
+---@param kind g.ResourceType
 function Resources:_getInterpolationTime(kind)
     return math.min(self.timeSinceChanged[kind] / PARTICLE_HUD_VISUAL_ATTENTION_DURATION, 1)
 end
 
----@param kind g.hud._ResourceKind
+---@param kind g.ResourceType
 ---@param amount integer
 function Resources:_animateHudFor(kind, amount)
-    self.displayValue[kind] = math.min(self.displayValue[kind] + amount, PARTICLE_SPAWN_CATEGORY[kind].getter())
+    self.displayValue[kind] = math.min(self.displayValue[kind] + amount, g.getResource(kind))
     self.timeSinceChanged[kind] = 0
 end
 
----@param kind g.hud._ResourceKind
+---@param kind g.ResourceType
 ---@param x number Position of the token in world-space.
 ---@param y number Position of the token in world-space.
 ---@param amount number Amount to add to the display once it's done.
