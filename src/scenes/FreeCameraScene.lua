@@ -31,8 +31,6 @@ local FreeCameraScene_mt = {
 FreeCameraScene.panSpeed = 300
 FreeCameraScene._isCamAttached = false
 FreeCameraScene.allowMousePan = true
-FreeCameraScene._moneyFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 32, "mono")
-FreeCameraScene._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24, "mono")
 
 
 local Camera = require("lib.cam11")
@@ -98,50 +96,6 @@ function FreeCameraScene:renderNavbar()
 end
 
 
----@param text string
----@param font love.Font
----@param region layout.Region
----@param align love.AlignMode
-local function printTextAt(text, font, region, align)
-    local x, y, w, h = region:get()
-    local maxw, lines = font:getWrap(text, w)
-
-    local th = #lines * font:getHeight()
-    local ty = y + (h - th) / 2
-    love.graphics.printf(text, font, x, ty, w, align)
-end
-
-
-function FreeCameraScene:renderResource()
-    if not g.getSn() then return end
-
-    local r = Kirigami(0,0,love.graphics.getDimensions())
-    local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
-    local moneyR = leftR:shrinkToAspectRatio(2, 1):attachToTopOf(r):moveRatio(0, 1):padRatio(0.05)
-    local resourcesR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(moneyR):padRatio(0.05)
-    local profileR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(r):moveRatio(0, -1):padRatio(0.05)
-
-    -- Draw money
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("fill", moneyR:get())
-    love.graphics.setColor(1, 1, 0)
-    love.graphics.rectangle("line", moneyR:get())
-    love.graphics.setColor(0, 0, 0)
-    printTextAt("$"..g.getMoney(), self._moneyFont, moneyR, "center")
-
-    -- Draw resources
-    local logsR, rocksR, bonesR = resourcesR:splitVertical(1, 1, 1)
-    love.graphics.setColor(1, 1, 1)
-    printTextAt("Logs: "..g.getLogs(), self._resourceFont, logsR, "left")
-    printTextAt("Rocks: "..g.getRocks(), self._resourceFont, rocksR, "left")
-    printTextAt("Bones: "..g.getBones(), self._resourceFont, bonesR, "left")
-
-    -- Draw dummy profile picture
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("fill", profileR:get())
-    love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle("line", profileR:get())
-end
 
 
 
