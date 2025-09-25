@@ -88,6 +88,9 @@ function World:_enableMouseHarvester(x,y)
 end
 
 
+local function getSwingTime()
+    return g.stats.HitDuration * 0.75
+end
 
 
 ---@param tok g.Token
@@ -96,6 +99,13 @@ local function updateToken(tok,dt)
     tok.timeAlive = tok.timeAlive + dt
     tok.timeSinceDamaged = tok.timeSinceDamaged + dt
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
+
+    if tok.timeSinceHitStart >= getSwingTime() and tok.timeSinceHitStart < tok.timeSinceDamaged then
+        -- Damage token
+        local hitMult = g.ask("getTokenHitMultiplier", tok)
+        g.call("tokenHit", tok)
+        g.damageToken(tok, hitMult * g.stats.HitDamage)
+    end
 end
 
 
@@ -199,9 +209,6 @@ end
 
 
 
-local function getSwingTime()
-    return g.stats.HitDuration * 0.75
-end
 
 
 ---@param tok g.Token

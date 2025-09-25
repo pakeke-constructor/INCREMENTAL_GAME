@@ -756,10 +756,8 @@ end
 function g.tryHitToken(tok)
     local time = tok.timeSinceHitStart
     if time > g.stats.HitDuration then
-        local hitMult = g.ask("getTokenHitMultiplier", tok)
-        g.damageToken(tok, hitMult * g.stats.HitDamage)
-        g.call("tokenHit", tok)
         tok.timeSinceHitStart = 0
+        g.call("tokenHitStart", tok)
     end
 end
 
