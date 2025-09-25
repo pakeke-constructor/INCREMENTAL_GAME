@@ -87,7 +87,7 @@ _G.interp = _G.localization.newInterpolator
 _G.Kirigami = require("lib.kirigami")
 _G.iml = require("lib.iml.iml")
 
-_G.ui = require("src.modules.ui.ui")
+_G.ui = require("src.ui.ui")
 
 _G.g = require("src.g")
 --[[
