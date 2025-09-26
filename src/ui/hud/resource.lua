@@ -12,6 +12,7 @@ Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24,
 ---@field package tokenAngle number (angle between x,y and token position)
 ---@field package tokenRadius number (radius between x,y and token position)
 ---@field package spawnEasing fun(x:number):number
+---@field package rot number
 ---@field package x number (offsetted from tokenAngle and tokenRadius)
 ---@field package y number (offsetted from tokenAngle and tokenRadius)
 ---@field package xEasing fun(x:number):number
@@ -19,8 +20,8 @@ Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24,
 ---@field package time number
 ---@field package tohudTime number
 
-local SPAWN_ANIMATION_DURATION = 0.1
-local AFTERSPAWN_ANIMATION_DELAY = 0.1
+local SPAWN_ANIMATION_DURATION = 0.05
+local AFTERSPAWN_ANIMATION_DELAY = 0.06
 local TOHUD_ANIMATION_DURATION = {0.4, 0.5} -- random between these
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
@@ -204,6 +205,7 @@ end
 ---@param a number
 ---@param b number
 ---@param t number
+---@return number
 local function lerp(a, b, t)
     return (1.0 - t) * a + t * b
 end
@@ -239,7 +241,7 @@ function Resources:drawParticles(camera)
                 scale = 1
             end
 
-            g.drawImage(particle.image, x, y, 0, scale)
+            g.drawImage(particle.image, x, y, particle.rot, scale)
         end
     end
 end
@@ -287,6 +289,7 @@ function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
         amount = amount,
         image = string.format(category.format, tier),
         tokenAngle = angle,
+        rot = love.math.random() * (2*math.pi),
         tokenRadius = radius,
         spawnEasing = choice(EASINGS),
         x = px,
