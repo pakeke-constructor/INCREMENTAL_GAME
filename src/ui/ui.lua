@@ -111,4 +111,72 @@ function ui.jaggedRectangle(x, y, w, h, r, q, exttab)
 end
 
 
+
+
+
+-- For UI global scaling
+do
+
+local GLOBAL_SCALE_INCREMENT = 0.25
+local globalScaleTransform = love.math.newTransform()
+local globalScale = 1
+local gw, gh = 800, 600
+local globalScaleOverride = false
+
+---@param gscale number
+local function updateGlobalScale(gscale)
+	globalScale = math.max(gscale, 1)
+	globalScaleTransform:reset():scale(gscale)
+end
+
+local function updateGlobalScaleAutomatic()
+	if globalScaleOverride then
+		return
+	end
+
+	local w, h = love.graphics.getDimensions()
+	if w ~= gw or h ~= gh then
+		local wscale = w / 900
+		local hscale = h / 600
+		local scale = math.min(wscale, hscale)
+		local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
+		updateGlobalScale(gscale)
+	end
+end
+
+function ui.startUI()
+	updateGlobalScaleAutomatic()
+	iml.pushTransform(globalScaleTransform)
+end
+
+function ui.endUI()
+	iml.popTransform()
+end
+
+function ui.getUIScaling()
+	updateGlobalScaleAutomatic()
+	return globalScale
+end
+
+---Override the UI scaling to specified scale number.
+---@param scale number|nil
+function ui.overrideUIScaling(scale)
+	if scale then
+		globalScaleOverride = true
+		updateGlobalScale(scale)
+	else
+		globalScaleOverride = false
+		updateGlobalScaleAutomatic()
+	end
+end
+
+function ui.getScaledUIDimensions()
+	local w, h = love.graphics.getDimensions()
+	local s = ui.getUIScaling()
+	return w / s, h / s
+end
+
+end
+
+
 return ui
