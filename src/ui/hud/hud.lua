@@ -21,7 +21,7 @@ end
 
 ---@param camera Camera
 function HUD:draw(camera)
-    local r = Kirigami(0,0,g.getScaledUIDimensions())
+    local r = Kirigami(0,0,ui.getScaledUIDimensions())
     local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
     local profileR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(r):moveRatio(0, -1):padRatio(0.05)
 

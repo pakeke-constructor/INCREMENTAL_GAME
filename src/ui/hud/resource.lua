@@ -151,7 +151,7 @@ end
 function Resources:drawHUD(camera)
     if not g.getSn() then return end
 
-    local r = Kirigami(0,0,g.getScaledUIDimensions())
+    local r = Kirigami(0,0,ui.getScaledUIDimensions())
     local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
     local moneyR = leftR:shrinkToAspectRatio(2, 1):attachToTopOf(r):moveRatio(0, 1):padRatio(0.05)
     local resourcesR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(moneyR):padRatio(0.05)

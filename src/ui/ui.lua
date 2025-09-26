@@ -113,13 +113,55 @@ end
 
 
 
+
+-- For UI global scaling
+do
+
+local GLOBAL_SCALE_INCREMENT = 0.25
+local globalScaleTransform = love.math.newTransform()
+local globalScale = 1
+local gw, gh = 800, 600
+
+local function updateGlobalScaleAutomatic()
+	local w, h = love.graphics.getDimensions()
+	if w ~= gw or h ~= gh then
+		local wscale = w / 600
+		local hscale = h / 400
+		local scale = math.min(wscale, hscale)
+		local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
+		globalScale = math.max(gscale, 1)
+		globalScaleTransform:reset():scale(globalScale)
+		gw = w
+		gh = h
+	end
+end
+
+function ui.getUIScaling()
+	updateGlobalScaleAutomatic()
+	return globalScale
+end
+
+function ui.getScaledUIDimensions()
+	local w, h = love.graphics.getDimensions()
+	local s = ui.getUIScaling()
+	return w / s, h / s
+end
+
+function ui.getUIScalingTransform()
+	updateGlobalScaleAutomatic()
+    return globalScaleTransform
+end
+
+end
+
+
 local uiPushed = false
 
 function ui.startUI()
 	assert(not uiPushed, "attempt to call startUI twice")
 	uiPushed = true
 	love.graphics.push()
-	local t = g.getUIScalingTransform()
+	local t = ui.getUIScalingTransform()
 	love.graphics.replaceTransform(t)
 	iml.pushTransform(t)
 end
