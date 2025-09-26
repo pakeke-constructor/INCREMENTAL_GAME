@@ -126,7 +126,7 @@ local globalScaleOverride = false
 ---@param gscale number
 local function updateGlobalScale(gscale)
 	globalScale = math.max(gscale, 1)
-	globalScaleTransform:reset():scale(gscale)
+	globalScaleTransform:reset():scale(globalScale)
 end
 
 local function updateGlobalScaleAutomatic()
@@ -136,8 +136,8 @@ local function updateGlobalScaleAutomatic()
 
 	local w, h = love.graphics.getDimensions()
 	if w ~= gw or h ~= gh then
-		local wscale = w / 900
-		local hscale = h / 600
+		local wscale = w / 600
+		local hscale = h / 400
 		local scale = math.min(wscale, hscale)
 		local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
 		updateGlobalScale(gscale)
@@ -146,11 +146,14 @@ end
 
 function ui.startUI()
 	updateGlobalScaleAutomatic()
+	love.graphics.push()
+	love.graphics.replaceTransform(globalScaleTransform)
 	iml.pushTransform(globalScaleTransform)
 end
 
 function ui.endUI()
 	iml.popTransform()
+	love.graphics.pop()
 end
 
 function ui.getUIScaling()

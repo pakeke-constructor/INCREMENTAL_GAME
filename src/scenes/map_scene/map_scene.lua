@@ -31,8 +31,10 @@ function map:draw()
 
     self:resetCamera()
 
+    ui.startUI()
     self:renderNavbar()
     -- self:renderMap()
+    ui.endUI()
 end
 
 
