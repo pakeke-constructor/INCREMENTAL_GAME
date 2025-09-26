@@ -10,6 +10,7 @@ local ui = {}
 ---@param w number
 ---@param h number
 function ui.Button(richText, x,y,w,h)
+	ui.assertUIStarted()
     love.graphics.setColor(1,1,1)
     if iml.isHovered(x,y,w,h) then
         love.graphics.setColor(0.8,0.8,0.8)
@@ -130,5 +131,10 @@ function ui.endUI()
 	love.graphics.pop()
 end
 
+function ui.assertUIStarted()
+	if not uiPushed then
+		error("Not in UI context!", 2)
+	end
+end
 
 return ui
