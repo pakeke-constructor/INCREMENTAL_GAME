@@ -151,7 +151,7 @@ end
 function Resources:drawHUD(camera)
     if not g.getSn() then return end
 
-    local r = Kirigami(0,0,love.graphics.getDimensions())
+    local r = Kirigami(0,0,g.getScaledUIDimensions())
     local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
     local moneyR = leftR:shrinkToAspectRatio(2, 1):attachToTopOf(r):moveRatio(0, 1):padRatio(0.05)
     local resourcesR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(moneyR):padRatio(0.05)
@@ -188,10 +188,14 @@ function Resources:drawHUD(camera)
     icx, icy = bonesIconR:getCenter()
     g.drawImage("bones_icon", icx, icy, 0, 1.5)
 
-    self.poses.money[1], self.poses.money[2] = camera:toWorld(moneyR:getCenter())
-    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(logsIconR:getCenter())
-    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(rocksIconR:getCenter())
-    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(bonesIconR:getCenter())
+    local ux, uy = love.graphics.transformPoint(moneyR:getCenter())
+    self.poses.money[1], self.poses.money[2] = camera:toWorld(ux, uy)
+    ux, uy = love.graphics.transformPoint(logsIconR:getCenter())
+    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(ux, uy)
+    ux, uy = love.graphics.transformPoint(rocksIconR:getCenter())
+    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(ux, uy)
+    ux, uy = love.graphics.transformPoint(bonesIconR:getCenter())
+    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(ux, uy)
 end
 
 
