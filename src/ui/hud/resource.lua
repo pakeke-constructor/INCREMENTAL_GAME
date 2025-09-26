@@ -188,10 +188,14 @@ function Resources:drawHUD(camera)
     icx, icy = bonesIconR:getCenter()
     g.drawImage("bones_icon", icx, icy, 0, 1.5)
 
-    self.poses.money[1], self.poses.money[2] = camera:toWorld(moneyR:getCenter())
-    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(logsIconR:getCenter())
-    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(rocksIconR:getCenter())
-    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(bonesIconR:getCenter())
+    local ux, uy = love.graphics.transformPoint(moneyR:getCenter())
+    self.poses.money[1], self.poses.money[2] = camera:toWorld(ux, uy)
+    ux, uy = love.graphics.transformPoint(logsIconR:getCenter())
+    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(ux, uy)
+    ux, uy = love.graphics.transformPoint(rocksIconR:getCenter())
+    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(ux, uy)
+    ux, uy = love.graphics.transformPoint(bonesIconR:getCenter())
+    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(ux, uy)
 end
 
 
