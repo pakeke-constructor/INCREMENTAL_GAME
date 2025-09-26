@@ -112,7 +112,11 @@ end
 
 
 
+local uiPushed = false
+
 function ui.startUI()
+	assert(not uiPushed, "attempt to call startUI twice")
+	uiPushed = true
 	love.graphics.push()
 	local t = g.getUIScalingTransform()
 	love.graphics.replaceTransform(t)
@@ -120,6 +124,8 @@ function ui.startUI()
 end
 
 function ui.endUI()
+	assert(uiPushed, "attempt to call endUI before startUI")
+	uiPushed = false
 	iml.popTransform()
 	love.graphics.pop()
 end
