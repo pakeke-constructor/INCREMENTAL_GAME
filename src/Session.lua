@@ -51,26 +51,6 @@ function Session:init()
 end
 
 
----@param upgradeId string
-function Session:increaseUpgrade(upgradeId)
-    self.upgradeLevels[upgradeId] = (self.upgradeLevels[upgradeId] or 0) + 1
-end
-
-
----@param upgradeId string
----@return number
-function Session:getUpgradeLevel(upgradeId)
-    assert(upgrades.getInfo(upgradeId), "Upgrade doesnt exist")
-    return self.upgradeLevels[upgradeId] or 0
-end
-
-
-
-function Session:increasePrestige()
-
-end
-
-
 
 
 

@@ -90,6 +90,25 @@ end
 
 
 
+
+---@param upgradeId string
+local function increaseUpgrade(upgradeId)
+    local session = g.getSn()
+    session.upgradeLevels[upgradeId] = (session.upgradeLevels[upgradeId] or 0) + 1
+end
+
+
+
+---@param upgradeId string
+---@return number
+function upgrades.getLevel(upgradeId)
+    local session = g.getSn()
+    assert(upgradeInfos[upgradeId], "")
+    return (session.upgradeLevels[upgradeId] or 0)
+end
+
+
+
 function upgrades.ask(question, ...)
     local questionInfo = g.getQuestionInfo(question)
     local reducer = questionInfo.reducer
@@ -101,7 +120,7 @@ function upgrades.ask(question, ...)
     if not upgradeIds then return result end
 
     for _, upgradeId in ipairs(upgradeIds) do
-        local level = g.getSn():getUpgradeLevel(upgradeId)
+        local level = upgrades.getLevel(upgradeId)
         if level > 0 then
             local info = upgrades.getInfo(upgradeId)
             local answerFunc = info[question]
@@ -122,7 +141,7 @@ function upgrades.call(event, ...)
     if not upgradeIds then return end
 
     for _, upgradeId in ipairs(upgradeIds) do
-        local level = g.getSn():getUpgradeLevel(upgradeId)
+        local level = upgrades.getLevel(upgradeId)
         if level and level > 0 then
             local info = upgrades.getInfo(upgradeId)
             local eventFunc = info[event]
@@ -147,6 +166,16 @@ end
 ---@return g.UpgradeInfo
 function upgrades.getInfo(upgradeId)
     return assert(upgradeInfos[upgradeId])
+end
+
+
+---@param upgradeId string
+---@return boolean
+function upgrades.isHidden(upgradeId)
+    if upgrades.getLevel(upgradeId) > 0 then
+        return false -- cant be hidden if level>0
+    end
+    return true
 end
 
 
@@ -192,7 +221,7 @@ end
 
 ---@param uinfo g.UpgradeInfo
 local function drawUpgrade(uinfo, upgradeId)
-    local level = g.getSn():getUpgradeLevel(upgradeId)
+    local level = upgrades.getLevel(upgradeId)
 
     local cx,cy,size = upgrades.getCoords(uinfo)
     local x,y,w,h = cx-size/2, cy-size/2, size, size
@@ -212,8 +241,7 @@ local function drawUpgrade(uinfo, upgradeId)
 
     if iml.wasJustClicked(x,y,w,h) then
         if g.trySubtractResources(uinfo.price) then
-            local sn = g.getSn()
-            sn:increaseUpgrade(uinfo.id)
+            increaseUpgrade(uinfo.id)
         end
     end
 end
