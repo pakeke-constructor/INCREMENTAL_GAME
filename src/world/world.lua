@@ -17,8 +17,8 @@ The world is a container for tokens and entities.
 local World = objects.Class("g:World")
 
 -- Think of this as the "dimensions" of the harvest-area
-World.WIDTH = 450
-World.HEIGHT = 300
+World.WIDTH = 300
+World.HEIGHT = 200
 
 -- Minimum hover time before a token can be mined
 -- (Prevents players flicking their mouse all over the screen)
