@@ -216,7 +216,8 @@ end
 local function drawAxe(tok)
     love.graphics.setColor(1,1,1)
     local t = math.min(tok.timeSinceHitStart / getAxeSwingTime(), 1)
-    g.drawImageOffset("iron_axe", tok.x - 14, tok.y + 4, t * t - 0.9, 1, 1, 0.1, 0.9)
+    local scale = 2 * math.floor(tok.id % 2) - 1
+    g.drawImageOffset("iron_axe", tok.x - 14 * scale, tok.y + 4, scale * (t * t - 0.9), scale, 1, 0.1, 0.9)
 end
 
 
@@ -265,7 +266,7 @@ function World:_update(dt)
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
     if g.getPrestige() == 0 then
-        tp:add("basic_grass", 3)
+        tp:add("basic_grass", 200)
     end
     self.tokenPool = tp
 
