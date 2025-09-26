@@ -378,12 +378,40 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 ---@alias g.PrestigeRange {lower: integer, upper: integer}
 
----@alias g.UpgradeInfo {id: string, prestige: number|g.PrestigeRange, x:number, y:number, image:string, price: g.Bundle}
+
+
+
+---@class g.UpgradeDefinition
+---@field prestige number|g.PrestigeRange
+---@field x number
+---@field y number
+---@field image string
+---@field price g.Bundle
+---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
+local g_UpgradeDefinition = {}
+
+
+---@class g.TokenDefinition
+---@field maxHealth number
+---@field image string
+---@field resources g.Bundle
+local g_TokenDefinition = {}
+
+
+---@alias g.UpgradeInfo g.UpgradeDefinition|{id:string}
+
+
+---@alias g.TokenInfo g.TokenDefinition|{id:string}
+
+
 
 
 ---@param prestige integer
----@param range g.PrestigeRange
+---@param range g.PrestigeRange|integer
 function g.inPrestigeRange(prestige, range)
+    if type(range) == "number" then
+        return prestige == range
+    end
     return (prestige >= range.lower) and (prestige <= range.upper)
 end
 
@@ -594,10 +622,9 @@ local tokenMts = {--[[
 ]]}
 
 
----@alias TokenDefinition {maxHealth:number, image:string, resources:g.Bundle, money:number? }
 
 ---@param tokType string
----@param tabl TokenDefinition
+---@param tabl g.TokenDefinition
 function g.defineToken(tokType, tabl)
     assert(not tabl.type, ".type is a reserved field!")
     assert(tabl.maxHealth, "Tokens need .maxHealth")

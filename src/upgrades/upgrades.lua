@@ -172,10 +172,20 @@ end
 ---@param upgradeId string
 ---@return boolean
 function upgrades.isHidden(upgradeId)
+    local uinfo = upgrades.getInfo(upgradeId)
+    if not g.inPrestigeRange(g.getPrestige(), uinfo.prestige) then
+        -- not in prestige range... its obviously hidden
+        return true
+    end
+
     if upgrades.getLevel(upgradeId) > 0 then
         return false -- cant be hidden if level>0
     end
-    return true
+    if uinfo.isHidden and uinfo:isHidden() then
+        return true
+    end
+
+    return false
 end
 
 
@@ -255,7 +265,9 @@ function upgrades._draw()
     I dont think there will be though; so its fine
     ]]
     for upgradeId, uinfo in pairs(upgradeInfos or {}) do
-        drawUpgrade(uinfo, upgradeId)
+        if not upgrades.isHidden(upgradeId) then
+            drawUpgrade(uinfo, upgradeId)
+        end
     end
 end
 

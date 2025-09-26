@@ -12,7 +12,7 @@ Make sure to build the *systems* for prestige tho.
 ## Upgrade-theming:
 Upgrades should *feel* fun, and should have fun names/theming.  
 Dont just have boring "increase damage by 2".  
-Instead: "Cat spikes! Harvesting emits spikes that deal +2 damage"
+Instead: "Cat spikes! Harvesting a cat emits spikes that deal +2 damage"
 
 
 
@@ -37,10 +37,6 @@ Instead: "Cat spikes! Harvesting emits spikes that deal +2 damage"
 - Spinning axes: Bounces around the screen, damaging objects
 - TOKEN: Bombs now spawn! Blows up, dealing damage
 - TOKEN: Slime Blobs now spawn! When destroyed, cover objects in slime!
-
-**HARVESTING PRESTIGE**:
-Prestige in harvesting -> Removes all upgrades, but *MASSIVELY* increased damage.
-
 
 ^^^^ To prevent noob-traps, we should make token-upgrades **CHEAPER** than harvesting upgrades.   
 *THE WORST POSSIBLE SCENARIO* would be players that purchase great harvesting-upgrades, but dont have enough tokens to harvest with.
@@ -86,20 +82,30 @@ Whereas if players purchase expensive tokens, but harvesting is bad; at least th
 - Golden-tipped: 10% chance for tokens to spawn golden (Earns +$10)
 
 
+<br/>
+<br/>
 
-# MISC: (Not affected by prestige)
+
+
+## MISC-UPGRADES:
+- STORAGE: Upgrades storage of resources (One for each category) Money, Logs, Rock etc
+- Capitalist: All upgrades become 5% cheaper
+- Land Value Tax: Increase size of land by 10%, and earn 8% more for ALL resources!
+
+
+<br/>
+<br/>
+
+
+# NON-PRESTIGE-UPGRADES:
+these upgrades arent affected by prestige:
 
 - Map: Unlocks the map!
 
-- STORAGE: Upgrades storage of resources
-- Money storage, logs storage, Rock storage, etc etc
-
 - Farmer-cat: Automatic harvesting! (harvest-circle bounces around)
     ^^^ NOTE: Player can use mouse to harvest manually too.  
-    Farmer-cat is *additive*; so the harvest-areas combines together.
 
 - Manager-cat: Harvests whilst you are offline!
-    (20% efficiency, max 2 hours)
 - Director-cat: Offline harvesting time 3 hours -> 5 hours (7,9,11, ...)
 - Shareholder-cat: Offline harvesting efficiency 20% -> 30% (40,50...)
 
