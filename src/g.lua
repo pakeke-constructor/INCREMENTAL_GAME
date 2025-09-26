@@ -463,7 +463,11 @@ end
 ---@param restype g.ResourceType
 ---@return number
 function g.getResource(restype)
-    return (assert(currentSession.resources[restype], "invalid resource type"))
+    local res = currentSession.resources[restype]
+    if not res then
+        error("invalid resource type: " .. tostring(restype))
+    end
+    return res
 end
 
 

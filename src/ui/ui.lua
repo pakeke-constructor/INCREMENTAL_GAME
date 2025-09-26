@@ -22,6 +22,8 @@ end
 
 
 
+
+
 ---@param value number
 ---@param qpx integer
 local function quantize(value, qpx)
@@ -60,8 +62,6 @@ local function quantizedArc(x, y, r, a1, a2, q)
 
 	return vertices
 end
-
-
 
 ---@param x number
 ---@param y number
