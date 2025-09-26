@@ -16,7 +16,7 @@ local TITLE = localization.localize("{o}UPGRADES!")
 
 function upgscene:draw()
     self:setCamera()
-    local header, body = Kirigami(0,0,ui.getScaledUIDimensions()):splitVertical(1,5)
+    local header, body = Kirigami(0,0,g.getScaledUIDimensions()):splitVertical(1,5)
     header = header:padRatio(0.2)
 
     love.graphics.clear(0.2,0.4,0.8)

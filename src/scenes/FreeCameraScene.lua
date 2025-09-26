@@ -82,7 +82,7 @@ end
 
 
 function FreeCameraScene:renderNavbar()
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r = Kirigami(0,0,g.getScaledUIDimensions())
     local header,_ = r:splitVertical(1,6)
 
     local left, right = header:splitHorizontal(1,1)
