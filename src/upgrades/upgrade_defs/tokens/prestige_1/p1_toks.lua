@@ -14,6 +14,10 @@ g.defineUpgrade("basic_grass", {
 
     price = {money=1},
 
+    populateTokenPool = function(level, tokens)
+        tokens:add("basic_grass", level)
+    end,
+
     x=1,y=1,
 
     description = loc"hi",

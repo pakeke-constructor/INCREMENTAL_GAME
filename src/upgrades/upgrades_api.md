@@ -12,11 +12,14 @@ upgrades.defineUpgrade("unlock_map", {
 
 
 g.defineToken("basic_log", {
-    health = 12,
-    money = 5,
-    logs = 1
+    resources = {
+        money = 5, 
+        logs = 1
+    },
+    maxHealth = 12,
 })
-upgrades.defineUpgrade("basic_log", {
+
+g.defineUpgrade("basic_log", {
     prestige = 1,
 
     -- (`level` inserted as a first argument automatically)
@@ -25,6 +28,22 @@ upgrades.defineUpgrade("basic_log", {
         tokens:add("basic_log", level)
     end,
 })
+
+
+
+-- alternatively, we can define an upgrade as a "pair":
+g.defineTokenUpgradePair("basic_log", {
+    token = {
+        maxHealth = 12,
+        resources = {money = 5}
+    },
+
+    upgrade = {
+        prestige = 1,
+
+    }
+})
+
 
 
 

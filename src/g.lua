@@ -364,7 +364,7 @@ g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
 g.stats.MoneyLimit = g.defineStat("MoneyLimit", 10000)
 
-g.stats.LogsLimit = g.defineStat("LogsLimit", 1000)
+g.stats.LogLimit = g.defineStat("LogLimit", 1000)
 g.stats.RockLimit = g.defineStat("RockLimit", 1000)
 g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
@@ -381,11 +381,39 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 ---@alias g.UpgradeInfo {id: string, prestige: number|g.PrestigeRange, x:number, y:number, image:string, price: g.Bundle}
 
 
-
 ---@param prestige integer
 ---@param range g.PrestigeRange
 function g.inPrestigeRange(prestige, range)
     return (prestige >= range.lower) and (prestige <= range.upper)
+end
+
+
+local VALID_RESOURCES = {
+    money=true,
+    logs=true,
+    rocks=true,
+    bones=true,
+}
+
+local RESOURCE_LIMIT_STAT_NAMES = {
+    money = "MoneyLimit",
+    logs = "LogLimit",
+    rocks = "RockLimit",
+    bones = "BoneLimit"
+}
+
+
+---@param r string
+---@return boolean
+function g.isValidResource(r)
+    return VALID_RESOURCES[r]
+end
+
+---@param resId string
+local function assertValidResource(resId)
+    if not g.isValidResource(resId) then
+        error("invalid resource type: " .. tostring(resId), 2)
+    end
 end
 
 
@@ -447,7 +475,7 @@ end
 
 ---@param x number
 function g.addLogs(x)
-    currentSession.resources.logs = math.min(currentSession.resources.logs + x, g.stats.LogsLimit)
+    currentSession.resources.logs = math.min(currentSession.resources.logs + x, g.stats.LogLimit)
 end
 
 ---@return number
@@ -460,14 +488,21 @@ function g.getResources()
     return currentSession.resources
 end
 
----@param restype g.ResourceType
+---@param resId g.ResourceType
 ---@return number
-function g.getResource(restype)
-    local res = currentSession.resources[restype]
-    if not res then
-        error("invalid resource type: " .. tostring(restype))
-    end
-    return res
+function g.getResource(resId)
+    assertValidResource(resId)
+    return currentSession.resources[resId]
+end
+
+
+---@param resId g.ResourceType
+function g.addResource(resId, amount)
+    assertValidResource(resId)
+    local r = currentSession.resources
+    local statName = RESOURCE_LIMIT_STAT_NAMES[resId]
+    local limit = assert(g.stats[statName])
+    r[resId] = math.min(r[resId] + amount, limit)
 end
 
 
@@ -518,6 +553,11 @@ function g.trySubtractResources(price)
 end
 
 
+function g.addResourceFrom(tok, resId, amount)
+    local mult = g.ask("getTokenResourceMultiplier", tok, resId)
+    -- TODO: MAKE g.call here!  "tokenEarnedResource"
+    g.addResource(resId, amount * mult)
+end
 
 
 

@@ -22,7 +22,7 @@ World.HEIGHT = 300
 
 -- Minimum hover time before a token can be mined
 -- (Prevents players flicking their mouse all over the screen)
-local MIN_HOVER_TIME = 0.2
+local MIN_HOVER_TIME = 0.07
 
 
 function World:init()
