@@ -26,8 +26,6 @@ end
 
 function harvest:draw()
     centerCamera(self)
-    local main = Kirigami(0,0,ui.getScaledUIDimensions())
-    local header, body = main:splitVertical(1,5)
 
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
@@ -55,9 +53,6 @@ function harvest:update(dt)
 
     local sn = g.getSn()
     sn:_updateMainWorld(dt)
-
-    local mx,my = love.mouse.getPosition()
-
 end
 
 
