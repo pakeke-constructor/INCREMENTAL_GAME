@@ -240,13 +240,26 @@ local nameToQuad = {--[[
 ---@param kx number?
 ---@param ky number?
 function g.drawImage(imageName, x,y, r,sx,sy,kx,ky)
+    return g.drawImageOffset(imageName, x, y, r, sx, sy, 0.5, 0.5, kx, ky)
+end
+
+---@param imageName string
+---@param x number
+---@param y number
+---@param r number?
+---@param sx number?
+---@param sy number?
+---@param ox number?
+---@param oy number?
+---@param kx number?
+---@param ky number?
+function g.drawImageOffset(imageName, x,y, r, sx,sy, ox,oy, kx,ky)
     local quad = nameToQuad[imageName]
     if not quad then
         error("Invalid quad: "..tostring(imageName))
     end
     local _,_,w,h = quad:getViewport()
-    local ox,oy = w/2,h/2
-    atlas:draw(quad,x,y,r,sx,sy,ox,oy,kx,ky)
+    atlas:draw(quad, x, y, r, sx, sy, ox * w, oy * h, kx, ky)
 end
 
 
@@ -361,6 +374,7 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 ---@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
 
+---@alias g.ResourceType "money"|"logs"|"rocks"|"bones"
 
 ---@alias g.PrestigeRange {lower: integer, upper: integer}
 
@@ -441,10 +455,15 @@ function g.getLogs()
     return currentSession.resources.logs
 end
 
-
 ---@return g.Resources
 function g.getResources()
     return currentSession.resources
+end
+
+---@param restype g.ResourceType
+---@return number
+function g.getResource(restype)
+    return (assert(currentSession.resources[restype], "invalid resource type"))
 end
 
 
@@ -628,7 +647,8 @@ end
 ---@field maxHealth number
 ---@field image string
 ---@field resources g.Bundle
----@field timeSinceHit number
+---@field timeSinceHitStart number Time since last `tryHitToken` is initiated (it's not immediately hit).
+---@field timeSinceHit number Time since `tryHitToken` actually hits the token.
 ---@field timeSinceDamaged number
 ---@field timeAlive number
 ---
@@ -679,6 +699,7 @@ function g.spawnToken(tokType, x,y)
         id = currentTokenId,
 
         timeAlive = 0,
+        timeSinceHitStart = 0xffffffffff,
         timeSinceHit = 0xffffffffff,
         timeSinceDamaged = 0xfffffffff,
     }, tokenMts[tokType])
@@ -741,12 +762,10 @@ end
 
 ---@param tok g.Token
 function g.tryHitToken(tok)
-    local time = tok.timeSinceHit
+    local time = tok.timeSinceHitStart
     if time > g.stats.HitDuration then
-        local hitMult = g.ask("getTokenHitMultiplier", tok)
-        g.damageToken(tok, hitMult * g.stats.HitDamage)
-        g.call("tokenHit", tok)
-        tok.timeSinceHit = 0
+        tok.timeSinceHitStart = 0
+        g.call("tokenHitStart", tok)
     end
 end
 
