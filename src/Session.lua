@@ -16,6 +16,19 @@ local World = require("src.world.world")
 local Session = objects.Class("g:Session")
 
 
+
+--[[
+
+Session class.
+
+IMPORTANT NOTE:
+Session should be like a data-class.
+
+Dont create complex getters.
+just provide the raw data, keep it simple.
+
+]]
+
 function Session:init()
     self.prestige = 0
 

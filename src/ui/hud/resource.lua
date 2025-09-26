@@ -95,12 +95,13 @@ end
 ---@param dt number
 function Resources:update(dt)
     for i = #self.particles, 1, -1 do
-        local particle = self.particles[i]
+        local p = self.particles[i]
 
-        particle.time = particle.time + dt
-        if particle.time >= BEFOREHUD_TIME + particle.tohudTime then
+        p.time = p.time + dt
+        if p.time >= BEFOREHUD_TIME + p.tohudTime then
             table.remove(self.particles, i)
-            self:_animateHudFor(particle.kind, particle.amount)
+            self.displayValue[p.kind] = math.min(self.displayValue[p.kind] + p.amount, g.getResource(p.kind))
+            self.timeSinceChanged[p.kind] = 0
         end
     end
 
@@ -307,12 +308,6 @@ function Resources:_getInterpolationTime(kind)
     return math.min(self.timeSinceChanged[kind] / PARTICLE_HUD_VISUAL_ATTENTION_DURATION, 1)
 end
 
----@param kind g.ResourceType
----@param amount integer
-function Resources:_animateHudFor(kind, amount)
-    self.displayValue[kind] = math.min(self.displayValue[kind] + amount, g.getResource(kind))
-    self.timeSinceChanged[kind] = 0
-end
 
 ---@param kind g.ResourceType
 ---@param x number Position of the token in world-space.
