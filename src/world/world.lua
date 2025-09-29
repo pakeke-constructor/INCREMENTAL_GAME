@@ -213,11 +213,19 @@ end
 
 
 ---@param tok g.Token
-local function drawAxe(tok)
+local function drawAxeAndCrosshair(tok)
     love.graphics.setColor(1,1,1)
     local t = math.min(tok.timeSinceHitStart / getAxeSwingTime(), 1)
+
+    -- Draw crosshair
+    if t >= 1 then
+        g.drawImage("crosshair", tok.x, tok.y)
+    end
+
+    -- Draw axe
     local scale = 2 * math.floor(tok.id % 2) - 1
     g.drawImageOffset("iron_axe", tok.x - 14 * scale, tok.y + 4, scale * (t * t - 0.9), scale, 1, 0.1, 0.9)
+
 end
 
 
@@ -236,7 +244,7 @@ function World:_draw()
     for _,tok in ipairs(self.tokens) do
         ---@cast tok g.Token
         if tok.timeSinceHitStart < getSwingTime() then
-            drawAxe(tok)
+            drawAxeAndCrosshair(tok)
         end
     end
 

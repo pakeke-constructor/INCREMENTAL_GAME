@@ -849,6 +849,87 @@ end
 
 
 
+-- g.playSound defined here
+do
+
+local MAX_SOURCE_POOL = 20
+---@type table<string, love.Source[]>
+local sourcePool = {} -- first source always the one to clone
+
+---@param name string
+local function getSourceFromPool(name)
+    local sources = sourcePool[name]
+    if not sources then
+        error("invalid sound '"..name.."'")
+    end
+
+    -- Linear search won't be expensive as long as source pool is low
+    for _, s in ipairs(sources) do
+        if not s:isPlaying() then
+            s:stop()
+            return s
+        end
+    end
+
+    if #sources < MAX_SOURCE_POOL then
+        -- first source always the one to clone
+        local s = sources[1]:clone()
+        sources[#sources+1] = s
+        s:stop()
+        return s
+    end
+
+    return nil
+end
+
+---@param soundname string
+---@param pitch number? (defaults to 1)
+---@param volume number? (defaults to 1)
+function g.playSound(soundname, pitch, volume)
+    local s = getSourceFromPool(soundname)
+    if not s then
+        return false
+    end
+
+    pitch = pitch or 1
+    volume = math.max(volume or 1, 0)
+    if pitch <= 0 then
+        error("invalid pitch "..pitch)
+    end
+
+    s:setPitch(pitch)
+    s:setVolume(volume)
+    s:play()
+    return true
+end
+
+local validExtensions = {
+    wav = true,
+    mp3 = true,
+    ogg = true,
+    flac = true
+}
+
+---@param path string
+local function loadSound(path)
+    local pathrev = path:reverse()
+    local ext = pathrev:sub(1, (pathrev:find(".", 1, true) or 1) - 1):reverse():lower()
+
+    if validExtensions[ext] then
+        local basename = pathrev:sub(1, pathrev:find("/", 1, true)):reverse()
+
+        if #basename > 0 then
+            local name = basename:sub(1, -#ext - 2)
+            local mainSource = love.audio.newSource(path, "static")
+            sourcePool[name] = {mainSource}
+        end
+    end
+end
+
+g.walkDirectory("assets/sounds", loadSound)
+
+
+end
 
 
 
