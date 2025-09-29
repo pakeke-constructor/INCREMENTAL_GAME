@@ -50,13 +50,44 @@ end
 
 -- We can't define particles at load-time 
 --  because g is not defined yet
-local initialized = false
+local initParticles
 
-local function tryInitParticles()
-    if initialized then return end
-    initialized = true
 
-    -- Define all particles here
+
+local particles = {}
+
+---@param name string
+function particles.makeParticleSystem(name)
+    if initParticles then
+        initParticles()
+        initParticles = false
+    end
+
+    if not particleTypes[name] then
+        error("particle '"..name.."' is not defined")
+    end
+    return particleTypes[name]:clone()
+end
+
+
+
+
+
+
+
+
+
+--[[
+
+==============================
+Particle definitions go below this line,
+  Inside initParticles.
+==============================
+
+]]
+
+function initParticles()
+
     defineParticle("crosshair", {
         frames = {"crosshair"},
         lifetime = 0.2,
@@ -65,18 +96,15 @@ local function tryInitParticles()
             distance = {4, 4}
         }
     })
+
+    -- ... 
+
+    -- ... 
+
+    -- ... 
+
 end
 
 
-local particles = {}
-
----@param name string
-function particles.makeParticleSystem(name)
-    tryInitParticles()
-    if not particleTypes[name] then
-        error("particle '"..name.."' is not defined")
-    end
-    return particleTypes[name]:clone()
-end
 
 return particles
