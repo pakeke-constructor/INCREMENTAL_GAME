@@ -231,6 +231,22 @@ local nameToQuad = {--[[
 ]]}
 ---@cast nameToQuad table<string, love.Quad>
 
+
+---@return love.Texture
+function g.getAtlas()
+    return atlas:getTexture()
+end
+
+---@param imageName string
+function g.getImageQuad(imageName)
+    local quad = nameToQuad[imageName]
+    if not quad then
+        error("Invalid quad: "..tostring(imageName))
+    end
+    return quad
+end
+
+
 ---@param imageName string
 ---@param x number
 ---@param y number
@@ -254,10 +270,7 @@ end
 ---@param kx number?
 ---@param ky number?
 function g.drawImageOffset(imageName, x,y, r, sx,sy, ox,oy, kx,ky)
-    local quad = nameToQuad[imageName]
-    if not quad then
-        error("Invalid quad: "..tostring(imageName))
-    end
+    local quad = g.getImageQuad(imageName)
     local _,_,w,h = quad:getViewport()
     atlas:draw(quad, x, y, r, sx, sy, ox * w, oy * h, kx, ky)
 end
@@ -931,6 +944,15 @@ g.walkDirectory("assets/sounds", loadSound)
 
 end
 
+
+
+---@param particleName string
+---@param x number
+---@param y number
+---@param amount integer?
+function g.spawnParticle(particleName, x, y, amount)
+    return currentSession.mainWorld.particles:spawnParticles(particleName, x, y, amount)
+end
 
 
 return g

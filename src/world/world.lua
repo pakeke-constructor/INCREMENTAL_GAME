@@ -6,8 +6,9 @@ The world is a container for tokens and entities.
 
 ]]
 
+local ParticleService = require(".particle.ParticleService")
 
----@class g.World
+---@class g.World: objects.Class
 ---@field entities objects.BufferedSet
 ---@field tokens objects.BufferedSet
 ---@field tokensToHoverTime {[table]: number}
@@ -36,6 +37,8 @@ function World:init()
     self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
     ]]})
+
+    self.particles = ParticleService()
 end
 
 
@@ -111,6 +114,7 @@ local function updateToken(tok,dt)
         tok.timeSinceHit = 0
         g.call("tokenHit", tok)
         g.damageToken(tok, hitMult * g.stats.HitDamage)
+        g.spawnParticle("crosshair", tok.x, tok.y, 1)
     end
 end
 
@@ -213,19 +217,11 @@ end
 
 
 ---@param tok g.Token
-local function drawAxeAndCrosshair(tok)
+local function drawAxe(tok)
     love.graphics.setColor(1,1,1)
     local t = math.min(tok.timeSinceHitStart / getAxeSwingTime(), 1)
-
-    -- Draw crosshair
-    if t >= 1 then
-        g.drawImage("crosshair", tok.x, tok.y)
-    end
-
-    -- Draw axe
     local scale = 2 * math.floor(tok.id % 2) - 1
     g.drawImageOffset("iron_axe", tok.x - 14 * scale, tok.y + 4, scale * (t * t - 0.9), scale, 1, 0.1, 0.9)
-
 end
 
 
@@ -244,9 +240,12 @@ function World:_draw()
     for _,tok in ipairs(self.tokens) do
         ---@cast tok g.Token
         if tok.timeSinceHitStart < getSwingTime() then
-            drawAxeAndCrosshair(tok)
+            drawAxe(tok)
         end
     end
+
+    love.graphics.setColor(1, 1, 1)
+    self.particles:draw()
 
     if self.mouseX then
         drawHarvestCircle(self)
@@ -316,6 +315,8 @@ function World:_update(dt)
     end
 
     self.tokens:flush()
+
+    self.particles:update(dt)
 end
 
 
