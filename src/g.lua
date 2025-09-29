@@ -236,7 +236,7 @@ local smolCache = {}
 ---@return love.Font
 function g.getBigFont(size)
     if bigCache[size] then return bigCache[size] end
-    bigCache[size] = love.graphics.newFont("assets/fonts/ttfs/Smart 9h.ttf", size)
+    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size)
     return bigCache[size]
 end
 
@@ -244,7 +244,7 @@ end
 ---@return love.Font
 function g.getSmallFont(size)
     if smolCache[size] then return smolCache[size] end
-    smolCache[size] = love.graphics.newFont("assets/fonts/ttfs/Match 7h.ttf", size)
+    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size)
     return smolCache[size]
 end
 
