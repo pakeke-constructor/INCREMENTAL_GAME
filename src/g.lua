@@ -17,7 +17,6 @@ local g = {}
 
 
 
-
 ---@type g.Session
 local currentSession
 
@@ -224,7 +223,40 @@ end
 
 
 
--- g.drawImage defined here!
+
+
+
+
+-- fonts:   getBigFont, getSmallFont
+do
+local bigCache = {}
+local smolCache = {}
+
+---@param size number
+---@return love.Font
+function g.getBigFont(size)
+    if bigCache[size] then return bigCache[size] end
+    bigCache[size] = love.graphics.newFont("assets/fonts/Awesome 9.ttf", size)
+    return bigCache[size]
+end
+
+---@param size number
+---@return love.Font
+function g.getSmallFont(size)
+    if smolCache[size] then return smolCache[size] end
+    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size)
+    return smolCache[size]
+end
+
+end
+
+
+
+
+
+-- Images,
+-- atlas handling
+-- g.drawImage, etc defined here!
 do
 local nameToQuad = {--[[
     [name] -> Quad
@@ -367,6 +399,11 @@ function g.defineStat(name, startingValue)
 end
 
 
+
+
+-- stats are recomputed every frame.
+-- Think of them as like "global properties".
+-- (EG. harvestingSpeed, harvestingDamage)
 ---@class g.stats
 g.stats = {}
 

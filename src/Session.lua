@@ -55,12 +55,10 @@ function Session:init()
         [metricName] -> number
     ]]}
 
-    -- stats are recomputed every frame.
-    -- Think of them as like "global properties".
-    -- (EG. harvestingSpeed, harvestingDamage)
-    self.stats = {--[[
-        [statName] -> number
-    ]]}
+    -- reset stats:
+    for k,sta in pairs(g.VALID_STATS) do
+        g.stats[k] = sta.startingValue
+    end
 end
 
 
