@@ -304,22 +304,38 @@ this means we shouldnt draw anything, and instead,
 we should just collect the dimensions of the ui.
 ]]
 
----@param x number?
----@param y number?
-local function drawTitle(uinfo, x,y)
-    -- for now; assume 
-    if isTokenUpgrade(uinfo) then
-        -- draw (title, image)
-    else
 
+local W = 200
+
+---@param uinfo g.UpgradeInfo
+---@param x number
+---@param y number
+---@return number
+local function drawTitle(uinfo, x,y, noDraw)
+    -- for now; assume all upgrades are tokens
+    -- (Title, Image)
+
+    local f = g.getBigFont(32)
+    local tW,tH = f:getWidth(uinfo.name), f:getHeight()
+    local h = (tH * 1)
+    local h1 = (tH * 1.2)
+    if not noDraw then
+        love.graphics.setColor(1,1,1)
+        richtext.printRichContained(uinfo.name, f, x,y, W,h)
     end
+
+    love.graphics.line(x + 16, y+h1, x+W-16, y+h1)
+
+    return h
 end
+
+
 
 ---@param tinfo g.TokenInfo
 ---@param x number?
 ---@param currentY number?
 local function drawTokenInfo(tinfo, x, currentY)
-    -- draw 
+    
 end
 
 
@@ -341,7 +357,7 @@ end
 ---@return number
 ---@return number
 function upgrades.getUpgradeDescriptionSize(uinfo)
-    return 180,120
+    return W,120
 end
 
 
@@ -355,13 +371,14 @@ function upgrades.drawUpgradeDescription(uinfo, x,y)
 
     -- bg:
     love.graphics.setColor(0.2,0.2,0.4,0.8)
-    love.graphics.rectangle("fill", x,y, w,h)
+    ui.jaggedRectangle("fill", x,y, w,h)
     -- border:
     love.graphics.setColor(1,1,1)
     love.graphics.setLineWidth(2)
     love.graphics.setColor(0.,0.,0.08)
-    love.graphics.rectangle("line", x,y, w,h)
+    ui.jaggedRectangle("line", x,y, w,h)
 
+    drawTitle(uinfo, x,y)
     -- draw (title, image)
     -----------
     -- draw token-info

@@ -2,8 +2,8 @@ local objects = require("src.modules.objects.objects")
 
 ---@class g.hud.Resources: objects.Class
 local Resources = objects.Class("g.hud:Resources")
-Resources._moneyFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 32, "mono")
-Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24, "mono")
+Resources._moneyFont = love.graphics.newFont("assets/fonts/ttfs/Smart 9h.ttf", 32, "mono")
+Resources._resourceFont = love.graphics.newFont("assets/fonts/ttfs/Smart 9h.ttf", 24, "mono")
 
 ---@class g.hud._ResourceParticle
 ---@field package kind g.ResourceType

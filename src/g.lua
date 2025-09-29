@@ -236,7 +236,7 @@ local smolCache = {}
 ---@return love.Font
 function g.getBigFont(size)
     if bigCache[size] then return bigCache[size] end
-    bigCache[size] = love.graphics.newFont("assets/fonts/Awesome 9.ttf", size)
+    bigCache[size] = love.graphics.newFont("assets/fonts/ttfs/Smart 9h.ttf", size)
     return bigCache[size]
 end
 
@@ -244,7 +244,7 @@ end
 ---@return love.Font
 function g.getSmallFont(size)
     if smolCache[size] then return smolCache[size] end
-    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size)
+    smolCache[size] = love.graphics.newFont("assets/fonts/ttfs/Match 7h.ttf", size)
     return smolCache[size]
 end
 
@@ -435,7 +435,7 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 ---@field prestige number|g.PrestigeRange
 ---@field x number
 ---@field y number
----@field image string
+---@field image string?
 ---@field price g.Bundle
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 local g_UpgradeDefinition = {}
@@ -443,15 +443,14 @@ local g_UpgradeDefinition = {}
 
 ---@class g.TokenDefinition
 ---@field maxHealth number
----@field image string
 ---@field resources g.Bundle
 local g_TokenDefinition = {}
 
 
----@alias g.UpgradeInfo g.UpgradeDefinition|{type:string}
+---@alias g.UpgradeInfo g.UpgradeDefinition|{type:string,name:string}
 
 
----@alias g.TokenInfo g.TokenDefinition|{type:string}
+---@alias g.TokenInfo g.TokenDefinition|{type:string,name:string}
 
 
 
@@ -640,11 +639,29 @@ end
 
 
 
----@param upgradeId string
----@param tabl {}
-function g.defineUpgrade(upgradeId, tabl)
-    upgrades.defineUpgrade(upgradeId, tabl)
+---@param id string
+---@param name string
+---@param def g.UpgradeDefinition
+function g.defineUpgrade(id, name, def)
+    def.name = loc(name) ---@diagnostic disable-line
+    def.image = id
+    upgrades.defineUpgrade(id, def)
 end
+
+
+
+---@param id string
+---@param name string
+---@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition }
+function g.defineTokenUpgrade(id, name, def)
+    def.upgrade.populateTokenPool = function(level, tokens) ---@diagnostic disable-line
+        tokens:add(id, level)
+    end
+
+    g.defineUpgrade(id, name, def.upgrade)
+    g.defineToken(id, name, def.token)
+end
+
 
 
 
@@ -675,11 +692,13 @@ local tokenMts = {--[[
 
 ---@param tokType string
 ---@param tabl g.TokenDefinition
-function g.defineToken(tokType, tabl)
+function g.defineToken(tokType, name, tabl)
     assert(not tabl.type, ".type is a reserved field!")
     assert(tabl.maxHealth, "Tokens need .maxHealth")
     assert(tabl.resources, "Tokens need .resources")
     tabl.type = tokType ---@diagnostic disable-line
+    tabl.image = tabl.image or tokType ---@diagnostic disable-line
+    tabl.name = loc(name) ---@diagnostic disable-line
     tokenTypes[tokType] = tabl
     tokenMts[tokType] = {__index = tabl}
 end
