@@ -114,6 +114,7 @@ local function updateToken(tok,dt)
         tok.timeSinceHit = 0
         g.call("tokenHit", tok)
         g.damageToken(tok, hitMult * g.stats.HitDamage)
+        g.spawnParticle("crosshair", tok.x, tok.y, 1)
     end
 end
 
@@ -243,6 +244,7 @@ function World:_draw()
         end
     end
 
+    love.graphics.setColor(1, 1, 1)
     self.particles:draw()
 
     if self.mouseX then

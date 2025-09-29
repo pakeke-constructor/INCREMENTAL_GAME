@@ -6,6 +6,11 @@ local love = require("love")
 ---@class particle.definitions
 ---@field public frames string[]
 ---@field public lifetime number
+---@field public emissionArea particle.emissionArea?
+
+---@class particle.emissionArea
+---@field public distribution love.AreaSpreadDistribution
+---@field public distance [number, number]
 
 ---@type table<string, particle.definitions>
 local particleList = {}
@@ -13,6 +18,7 @@ local particleList = {}
 ---@class particle.params
 ---@field public frames string[]
 ---@field public lifetime number
+---@field public emissionArea particle.emissionArea?
 
 ---@param name string
 ---@param def particle.params
@@ -25,9 +31,22 @@ local function defineParticle(name, def)
     -- the parameter validation.
     assert(def.frames and #def.frames > 0, "missing particle frames")
     assert(def.lifetime and def.lifetime > 0, "missing or invalid particle lifetime")
+    particleList[name] = {
+        frames = def.frames,
+        lifetime = def.lifetime,
+        emissionArea = def.emissionArea
+    }
 end
 
 -- Define particles here
+defineParticle("crosshair", {
+    frames = {"crosshair"},
+    lifetime = 0.2,
+    emissionArea = {
+        distribution = "ellipse",
+        distance = {4, 4}
+    }
+})
 
 -- End define particles
 
@@ -35,7 +54,7 @@ local particles = {}
 
 ---@param name string
 function particles.makeParticleSystem(name)
-    if particleList[name] then
+    if not particleList[name] then
         error("particle '"..name.."' is not defined")
     end
 
@@ -48,6 +67,10 @@ function particles.makeParticleSystem(name)
     local ps = love.graphics.newParticleSystem(g.getAtlas())
     ps:setQuads(quads)
     ps:setParticleLifetime(def.lifetime)
+    if def.emissionArea then
+        ps:setEmissionArea(def.emissionArea.distribution, def.emissionArea.distance[1], def.emissionArea.distance[2])
+    end
+
     return ps
 end
 
