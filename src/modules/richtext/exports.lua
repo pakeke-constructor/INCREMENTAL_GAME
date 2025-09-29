@@ -1,9 +1,6 @@
 ---Availability: **Client**
 ---@class text
 local text = {}
-if false then
-    _G.text = text
-end
 
 text.EffectGroup = require(".EffectGroup")
 text.RichText = require(".Text")

@@ -257,7 +257,9 @@ local function drawUpgrade(uinfo, upgradeId)
     love.graphics.setColor(1,1,1)
 
     if level > 0 then
-        love.graphics.print(tostring(level), cx + size/3, cy + size/3)
+        local xx,yy,ww,hh = cx, cy, size,size
+        --love.graphics.rectangle("line",xx,yy,ww,hh)
+        richtext.printRichContained("{o}"..tostring(level), love.graphics.getFont(), xx,yy,ww,hh)
     end
 
     if iml.wasJustClicked(x,y,w,h) then
