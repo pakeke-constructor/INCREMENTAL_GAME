@@ -113,16 +113,24 @@ end
 
 
 
----@param mode "fill"|"line"
+---@param mode love.DrawMode
 ---@param x number
 ---@param y number
 ---@param w number
 ---@param h number
 ---@param radius number?
 function ui.jaggedRectangle(mode, x,y,w,h, radius)
-	local quantize = 4
-	local verts = jaggedRectangleVerts(x,y,w,h,radius, quantize)
+	-- local quantize = 4
+	local verts = jaggedRectangleVerts(x,y,w,h,radius, 2)
 	love.graphics.polygon(mode, verts)
+end
+
+---@param mode "fill"|"line"
+---@param region layout.Region
+---@param radius number?
+function ui.jaggedRectangleRegion(mode, region, radius)
+	local x, y, w, h = region:get()
+	return ui.jaggedRectangle(mode, x, y, w, h, radius)
 end
 
 
