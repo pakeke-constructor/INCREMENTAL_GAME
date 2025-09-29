@@ -298,14 +298,36 @@ end
 
 do
 
---[[
-if x,y is nil;
-this means we shouldnt draw anything, and instead,
-we should just collect the dimensions of the ui.
-]]
-
 
 local W = 200
+
+
+local TITLE_H = math.floor(32 * 1.2)
+
+--[[
+
+TODO:
+We almost certainly want retained-UI here.
+
+Or else we will be doing weird double-passes all the time.
+- When we hover a new element, create a retained-ui upgrade-description
+- (retained-ui object should be instantiated and stored inside upgrade-scene)
+- Check it's w,h and then render it. :) ez
+
+We should probably make a new file,
+`src/ui/upgrade_description.lua`?
+^^^ Maybe something like that?
+
+And then for API:
+upgDesc:addHeight()
+upgDesc:expandWidth()
+upgDesc:addText()
+upgDesc:addSeparator()
+
+and have it *tightly coupled* with upgrade-descriptions.
+KEEP IT SIMPLE, DONT OVERENGINEER.
+
+]]
 
 ---@param uinfo g.UpgradeInfo
 ---@param x number
@@ -322,9 +344,8 @@ local function drawTitle(uinfo, x,y, noDraw)
     if not noDraw then
         love.graphics.setColor(1,1,1)
         richtext.printRichContained(uinfo.name, f, x,y, W,h)
+        love.graphics.line(x + 16, y+h1, x+W-16, y+h1)
     end
-
-    love.graphics.line(x + 16, y+h1, x+W-16, y+h1)
 
     return h
 end
