@@ -48,6 +48,8 @@ local function defineParticle(name, def)
 end
 
 
+-- We can't define particles at load-time 
+--  because g is not defined yet
 local initialized = false
 
 local function tryInitParticles()
