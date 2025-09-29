@@ -142,11 +142,52 @@ local function easeInCubic(x)
     return x * x * x
 end
 
+---@param kind g.ResourceType
 ---@param reg layout.Region
-local function makeIconAndTextRegion(reg)
-    local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0)
-    local textR = reg:attachToRightOf(iconR)
-    return iconR:padUnit(4), textR
+---@param image string
+---@param bgcolor [number, number, number, number?]
+---@param barcolor [number, number, number, number?]
+function Resources:_drawOtherResourcesMeter(kind, reg, image, bgcolor, barcolor)
+    local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0):padUnit(4)
+    local textR = reg:attachToRightOf(iconR):padUnit(0, 4)
+
+    -- Draw resource icon
+    local icx, icy = iconR:getCenter()
+    g.drawImage(image, icx, icy, 0, 1.5)
+
+    -- Draw meter
+    -- Draw jagged rectangle with base color AND the stencil at same time
+    -- FIXME: Actually enable the stencil. Figure out how to do it in LOVE 12 way.
+    love.graphics.setColor(bgcolor)
+    love.graphics.setColorMask(true, true, true, true)
+    -- love.graphics.setStencilMode("draw", 1)
+    ui.jaggedRectangleRegion("fill", textR, 8)
+
+    -- Enter test mode to just draw rectangle with stencil test active
+    local tx, ty, tw, th = textR:get()
+    love.graphics.setColor(barcolor)
+    -- love.graphics.setStencilMode("draw", 1)
+    love.graphics.setColorMask(true, true, true, true)
+    love.graphics.rectangle("fill", tx, ty, tw * self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1), th)
+
+    -- Disable stencil test to draw outline.
+    -- love.graphics.setStencilMode()
+    love.graphics.setColorMask(true, true, true, true)
+    love.graphics.setColor(0, 0, 0)
+    ui.jaggedRectangleRegion("line", textR, 8)
+
+    -- Draw resource value
+    local t = self:_getInterpolationTime(kind)
+    love.graphics.setColor(1, 1, 1)
+    printTextAt(
+        g.formatNumber(self.displayValue[kind]),
+        self._resourceFont,
+        textR:padUnit(4, 0),
+        "left",
+        1 + easeInCubic(1 - t) * 0.5
+    )
+
+    return iconR:getCenter()
 end
 
 ---@param camera Camera
@@ -167,36 +208,22 @@ function Resources:drawHUD(camera)
     local t = self:_getInterpolationTime("money")
     printTextAt("$"..g.formatNumber(self.displayValue.money), self._moneyFont, moneyR, "center", 1 + easeInCubic(1 - t) * 0.5)
 
-    -- Prepare resource layout
-    local logsR, rocksR, bonesR = resourcesR:splitVertical(1, 1, 1)
-    local logsIconR, logsTextR = makeIconAndTextRegion(logsR)
-    local rocksIconR, rocksTextR = makeIconAndTextRegion(rocksR)
-    local bonesIconR, bonesTextR = makeIconAndTextRegion(bonesR)
-
-    -- Draw resource text
+    -- Draw resource
     love.graphics.setColor(1, 1, 1)
-    t = self:_getInterpolationTime("logs")
-    printTextAt(g.formatNumber(self.displayValue.logs), self._resourceFont, logsTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
-    t = self:_getInterpolationTime("rocks")
-    printTextAt(g.formatNumber(self.displayValue.rocks), self._resourceFont, rocksTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
-    t = self:_getInterpolationTime("bones")
-    printTextAt(g.formatNumber(self.displayValue.bones), self._resourceFont, bonesTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
-
-    -- Draw resource icon
-    local icx, icy = logsIconR:getCenter()
-    g.drawImage("logs_icon", icx, icy, 0, 1.5)
-    icx, icy = rocksIconR:getCenter()
-    g.drawImage("rocks_icon", icx, icy, 0, 1.5)
-    icx, icy = bonesIconR:getCenter()
-    g.drawImage("bones_icon", icx, icy, 0, 1.5)
-
+    local logsR, rocksR, bonesR = resourcesR:splitVertical(1, 1, 1)
     local ux, uy = love.graphics.transformPoint(moneyR:getCenter())
     self.poses.money[1], self.poses.money[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(logsIconR:getCenter())
+    ux, uy = love.graphics.transformPoint(
+        self:_drawOtherResourcesMeter("logs", logsR, "logs_icon", {0.33, 0.25, 0.07}, {0.6, 0.47, 0.2})
+    )
     self.poses.logs[1], self.poses.logs[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(rocksIconR:getCenter())
+    ux, uy = love.graphics.transformPoint(
+        self:_drawOtherResourcesMeter("rocks", rocksR, "rocks_icon", {0.23, 0.23, 0.23}, {0.35, 0.35, 0.35})
+    )
     self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(bonesIconR:getCenter())
+    ux, uy = love.graphics.transformPoint(
+        self:_drawOtherResourcesMeter("bones", bonesR, "bones_icon", {0.41, 0.11, 0.01}, {0.75, 0.27, 0.1})
+    )
     self.poses.bones[1], self.poses.bones[2] = camera:toWorld(ux, uy)
 end
 
