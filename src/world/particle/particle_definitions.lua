@@ -12,8 +12,8 @@ local love = require("love")
 ---@field public distribution love.AreaSpreadDistribution
 ---@field public distance [number, number]
 
----@type table<string, particle.definitions>
-local particleList = {}
+---@type table<string, love.ParticleSystem>
+local particleTypes = {}
 
 ---@class particle.params
 ---@field public frames string[]
@@ -23,7 +23,7 @@ local particleList = {}
 ---@param name string
 ---@param def particle.params
 local function defineParticle(name, def)
-    if particleList[name] then
+    if particleTypes[name] then
         error("particle '"..name.."' already defined")
     end
 
@@ -31,34 +31,7 @@ local function defineParticle(name, def)
     -- the parameter validation.
     assert(def.frames and #def.frames > 0, "missing particle frames")
     assert(def.lifetime and def.lifetime > 0, "missing or invalid particle lifetime")
-    particleList[name] = {
-        frames = def.frames,
-        lifetime = def.lifetime,
-        emissionArea = def.emissionArea
-    }
-end
 
--- Define particles here
-defineParticle("crosshair", {
-    frames = {"crosshair"},
-    lifetime = 0.2,
-    emissionArea = {
-        distribution = "ellipse",
-        distance = {4, 4}
-    }
-})
-
--- End define particles
-
-local particles = {}
-
----@param name string
-function particles.makeParticleSystem(name)
-    if not particleList[name] then
-        error("particle '"..name.."' is not defined")
-    end
-
-    local def = particleList[name]
     local quads = {}
     for _, v in ipairs(def.frames) do
         quads[#quads+1] = g.getImageQuad(v)
@@ -71,7 +44,37 @@ function particles.makeParticleSystem(name)
         ps:setEmissionArea(def.emissionArea.distribution, def.emissionArea.distance[1], def.emissionArea.distance[2])
     end
 
-    return ps
+    particleTypes[name] = ps
+end
+
+
+local initialized = false
+
+local function tryInitParticles()
+    if initialized then return end
+    initialized = true
+
+    -- Define all particles here
+    defineParticle("crosshair", {
+        frames = {"crosshair"},
+        lifetime = 0.2,
+        emissionArea = {
+            distribution = "ellipse",
+            distance = {4, 4}
+        }
+    })
+end
+
+
+local particles = {}
+
+---@param name string
+function particles.makeParticleSystem(name)
+    tryInitParticles()
+    if not particleTypes[name] then
+        error("particle '"..name.."' is not defined")
+    end
+    return particleTypes[name]:clone()
 end
 
 return particles
