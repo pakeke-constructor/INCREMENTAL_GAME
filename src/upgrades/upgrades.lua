@@ -69,7 +69,7 @@ function upgrades.defineUpgrade(upgradeId, tabl)
     assertSmallEnough(tabl.y)
     assertSmallEnough(tabl.prestige)
 
-    tabl.id = upgradeId
+    tabl.type = upgradeId
 
     assert(not upgradeInfos[upgradeId], "Redefined upgrade!")
     upgradeInfos[upgradeId] = tabl
@@ -230,20 +230,31 @@ end
 
 
 ---@param uinfo g.UpgradeInfo
+---@param upgradeId string
+---@return boolean isHovered
 local function drawUpgrade(uinfo, upgradeId)
     local level = upgrades.getLevel(upgradeId)
 
     local cx,cy,size = upgrades.getCoords(uinfo)
     local x,y,w,h = cx-size/2, cy-size/2, size, size
 
+    local isHovered = false
     if iml.isHovered(x,y,w,h) then
         love.graphics.setColor(0.7,0.7,0.85)
+        isHovered = true
     else
         love.graphics.setColor(1,1,1)
     end
 
+    -- background:
+    love.graphics.rectangle("fill",x,y,w,h)
+
     g.drawImage(uinfo.image, cx, cy)
+
+    love.graphics.setColor(1,0.3,0.2)
+    love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", x,y,w,h)
+    love.graphics.setColor(1,1,1)
 
     if level > 0 then
         love.graphics.print(tostring(level), cx + size/3, cy + size/3)
@@ -251,12 +262,15 @@ local function drawUpgrade(uinfo, upgradeId)
 
     if iml.wasJustClicked(x,y,w,h) then
         if g.trySubtractResources(uinfo.price) then
-            increaseUpgrade(uinfo.id)
+            increaseUpgrade(uinfo.type)
         end
     end
+    return isHovered
 end
 
 
+
+---@return g.UpgradeInfo?
 function upgrades._draw()
     --[[
     NOTE: there is a hard-assumption that all
@@ -264,13 +278,97 @@ function upgrades._draw()
 
     I dont think there will be though; so its fine
     ]]
+    local hoveredUpgrade = nil
+
     for upgradeId, uinfo in pairs(upgradeInfos or {}) do
         if not upgrades.isHidden(upgradeId) then
-            drawUpgrade(uinfo, upgradeId)
+            local isHovered = drawUpgrade(uinfo, upgradeId)
+            if isHovered then
+                hoveredUpgrade = uinfo
+            end
         end
+    end
+
+    return hoveredUpgrade
+end
+
+
+
+do
+
+--[[
+if x,y is nil;
+this means we shouldnt draw anything, and instead,
+we should just collect the dimensions of the ui.
+]]
+
+---@param x number?
+---@param y number?
+local function drawTitle(uinfo, x,y)
+    if isTokenUpgrade(uinfo) then
+        -- draw (title, image)
+    else
+
     end
 end
 
+---@param tinfo g.TokenInfo
+---@param x number?
+---@param currentY number?
+local function drawTokenInfo(tinfo, x, currentY)
+    -- draw 
+end
+
+
+---@param x number?
+---@param currentY number?
+local function drawDescription(uinfo, x, currentY)
+    -- draw 
+end
+
+
+---@param x number?
+---@param currentY number?
+local function drawPrice(uinfo, x, currentY)
+    -- draw price at bottom
+end
+
+
+---@param uinfo g.UpgradeInfo
+---@return number
+---@return number
+function upgrades.getUpgradeDescriptionSize(uinfo)
+    return 180,120
+end
+
+
+---@param uinfo g.UpgradeInfo
+---@param x number
+---@param y number
+function upgrades.drawUpgradeDescription(uinfo, x,y)
+    -- x,y top left
+
+    local w,h = upgrades.getUpgradeDescriptionSize(uinfo)
+
+    -- bg:
+    love.graphics.setColor(0.2,0.2,0.4,0.8)
+    love.graphics.rectangle("fill", x,y, w,h)
+    -- border:
+    love.graphics.setColor(1,1,1)
+    love.graphics.setLineWidth(2)
+    love.graphics.setColor(0.,0.,0.08)
+    love.graphics.rectangle("line", x,y, w,h)
+
+    -- draw (title, image)
+    -----------
+    -- draw token-info
+    -----------
+    -- draw description
+    -----------
+    -- draw price
+end
+
+end
 
 
 

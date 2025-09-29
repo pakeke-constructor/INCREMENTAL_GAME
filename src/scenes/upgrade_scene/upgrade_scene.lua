@@ -22,7 +22,7 @@ function upgscene:draw()
     love.graphics.clear(0.2,0.4,0.8)
     love.graphics.setColor(1,1,1)
 
-    upgrades._draw()
+    local hoveredUpgrade = upgrades._draw()
 
     self:resetCamera()
 
@@ -30,6 +30,15 @@ function upgscene:draw()
     self:renderNavbar()
 
     g.getHUD():drawResourceHUD(self.camera)
+
+    if hoveredUpgrade then
+        -- figure out if we render left or right.
+        local w,h = upgrades.getUpgradeDescriptionSize(hoveredUpgrade)
+
+        local mx,my = ui.getMouse()
+        upgrades.drawUpgradeDescription(hoveredUpgrade, mx+14,my-h/3)
+    end
+
     ui.endUI()
 end
 

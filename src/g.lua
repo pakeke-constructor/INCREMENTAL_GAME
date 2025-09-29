@@ -398,10 +398,10 @@ local g_UpgradeDefinition = {}
 local g_TokenDefinition = {}
 
 
----@alias g.UpgradeInfo g.UpgradeDefinition|{id:string}
+---@alias g.UpgradeInfo g.UpgradeDefinition|{type:string}
 
 
----@alias g.TokenInfo g.TokenDefinition|{id:string}
+---@alias g.TokenInfo g.TokenDefinition|{type:string}
 
 
 

@@ -68,11 +68,11 @@ end
 ---@param y number
 ---@param w number
 ---@param h number
----@param r number?
+---@param radius number?
 ---@param q integer?
 ---@param exttab number[]?
-function ui.jaggedRectangle(x, y, w, h, r, q, exttab)
-	r = r or 0
+local function jaggedRectangleVerts(x, y, w, h, radius, q, exttab)
+	local r = radius or 0
 	q = q or 1
 	if r == 0 then
 		return {
@@ -113,6 +113,20 @@ end
 
 
 
+---@param mode "fill"|"line"
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param radius number?
+---@param q integer?
+function ui.jaggedRectangle(mode, x,y,w,h, radius)
+	local quantize = 4
+	local verts = jaggedRectangleVerts(x,y,w,h,radius, quantize)
+	love.graphics.polygon(mode, verts)
+end
+
+
 
 -- For UI global scaling
 do
@@ -150,6 +164,12 @@ end
 function ui.getUIScalingTransform()
 	updateGlobalScaleAutomatic()
     return globalScaleTransform
+end
+
+---@return number
+---@return number
+function ui.getMouse()
+    return globalScaleTransform:inverseTransformPoint(love.mouse.getPosition())
 end
 
 end
