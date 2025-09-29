@@ -544,14 +544,21 @@ function g.getResource(resId)
     return currentSession.resources[resId]
 end
 
+---@param resId g.ResourceType
+---@return number
+function g.getResourceLimit(resId)
+    assertValidResource(resId)
+    local statName = RESOURCE_LIMIT_STAT_NAMES[resId]
+    local limit = assert(g.stats[statName])
+    return limit
+end
+
 
 ---@param resId g.ResourceType
 function g.addResource(resId, amount)
     assertValidResource(resId)
     local r = currentSession.resources
-    local statName = RESOURCE_LIMIT_STAT_NAMES[resId]
-    local limit = assert(g.stats[statName])
-    r[resId] = math.min(r[resId] + amount, limit)
+    r[resId] = math.min(r[resId] + amount, g.getResourceLimit(resId))
 end
 
 
