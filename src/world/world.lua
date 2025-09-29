@@ -6,8 +6,9 @@ The world is a container for tokens and entities.
 
 ]]
 
+local ParticleService = require(".particle.ParticleService")
 
----@class g.World
+---@class g.World: objects.Class
 ---@field entities objects.BufferedSet
 ---@field tokens objects.BufferedSet
 ---@field tokensToHoverTime {[table]: number}
@@ -36,6 +37,8 @@ function World:init()
     self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
     ]]})
+
+    self.particles = ParticleService()
 end
 
 
@@ -248,6 +251,8 @@ function World:_draw()
         end
     end
 
+    self.particles:draw()
+
     if self.mouseX then
         drawHarvestCircle(self)
     end
@@ -316,6 +321,8 @@ function World:_update(dt)
     end
 
     self.tokens:flush()
+
+    self.particles:update(dt)
 end
 
 

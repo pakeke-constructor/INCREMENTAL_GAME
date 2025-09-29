@@ -946,5 +946,14 @@ end
 
 
 
+---@param particleName string
+---@param x number
+---@param y number
+---@param amount integer?
+function g.spawnParticle(particleName, x, y, amount)
+    return currentSession.mainWorld.particles:spawnParticles(particleName, x, y, amount)
+end
+
+
 return g
 

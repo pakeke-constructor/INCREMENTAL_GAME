@@ -4,7 +4,7 @@ local objects = require("src.modules.objects.objects")
 local particles = require(".particle_definitions")
 
 ---@class g.ParticleService: objects.Class
-local ParticleService = objects.Class("g.ParticleService")
+local ParticleService = objects.Class("g:ParticleService")
 
 function ParticleService:init()
     ---@type table<string, love.ParticleSystem>
