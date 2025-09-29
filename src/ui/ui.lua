@@ -119,11 +119,19 @@ end
 ---@param w number
 ---@param h number
 ---@param radius number?
----@param q integer?
 function ui.jaggedRectangle(mode, x,y,w,h, radius)
 	local quantize = 4
 	local verts = jaggedRectangleVerts(x,y,w,h,radius, quantize)
 	love.graphics.polygon(mode, verts)
+end
+
+
+
+---For debugging purpose only
+---@param region layout.Region
+---@param mode love.DrawMode?
+function ui.debugRegion(region, mode)
+	love.graphics.rectangle(mode or "line", region:get())
 end
 
 
