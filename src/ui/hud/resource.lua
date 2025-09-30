@@ -25,7 +25,7 @@ local AFTERSPAWN_ANIMATION_DELAY = 0.06
 local TOHUD_ANIMATION_DURATION = {0.4, 0.5} -- random between these
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
-local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.5
+local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.3
 
 local PARTICLE_SPAWN_CATEGORY = {
     money = {
@@ -118,8 +118,10 @@ end
 ---@param font love.Font
 ---@param region layout.Region
 ---@param align love.AlignMode
+---@param baseScale number?
 ---@param scale number?
-local function printTextAt(text, font, region, align, scale)
+local function printTextAt(text, font, region, align, baseScale, scale)
+    baseScale = baseScale or 1
     scale = scale or 1
     local x, y, w, h = region:get()
     local maxw, lines = font:getWrap(text, w)
@@ -129,12 +131,13 @@ local function printTextAt(text, font, region, align, scale)
     local ty = y + h / 2
 
     if align == "left" then
-        tx = tx - (w - maxw) / 2
+        tx = tx - (w - maxw * baseScale) / 2
     elseif align == "right" then
-        tx = tx + (w - maxw) / 2
+        tx = tx + (w - maxw * baseScale) / 2
     end
 
-    love.graphics.printf(text, font, tx, ty, maxw, "left", 0, scale, scale, maxw / 2, th / 2)
+    local s = baseScale * scale
+    love.graphics.printf(text, font, tx, ty, maxw, "left", 0, s, s, maxw / 2, th / 2)
 end
 
 ---@param x number
@@ -151,13 +154,11 @@ end
 function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolor)
     local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0):padUnit(4)
     local textR = reg:attachToRightOf(iconR):padUnit(4, 6)
-
-    ui.debugRegion(iconR)
-    ui.debugRegion(textR)
+    local t = self:_getInterpolationTime(kind)
 
     -- Draw resource icon
     local icx, icy = iconR:getCenter()
-    g.drawImage(image, icx, icy, 0, 1.5 * scale)
+    g.drawImage(image, icx, icy, 0, 1.5 * (scale + 0.25 * (1 - t) ^ 2))
 
     -- Draw meter
     love.graphics.setColor(bgcolor)
@@ -167,7 +168,7 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
     love.graphics.setColorMask(true, true, true, true)
     ui.jaggedRectangleRegion("fill", textR, 8)
 
-    -- Enter test mode to just draw rectangle with stencil test active
+    -- Enter stecil test mode to just draw rectangle with stencil test active
     local tx, ty, tw, th = textR:get()
     love.graphics.setColor(barcolor)
     love.graphics.setStencilMode("test", 1)
@@ -179,14 +180,14 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
     ui.jaggedRectangleRegion("line", textR, 8)
 
     -- Draw resource value
-    local t = self:_getInterpolationTime(kind)
     love.graphics.setColor(1, 1, 1)
     printTextAt(
         g.formatNumber(self.displayValue[kind]),
         self._resourceFont,
         textR:padUnit(8, 0, 0, 0),
         "left",
-        (1 + easeInCubic(1 - t) * 0.5) * scale
+        scale,
+        1 + easeInCubic(1 - t) * 0.25
     )
 
     return iconR:getCenter()
@@ -197,35 +198,37 @@ function Resources:drawHUD(camera)
     if not g.getSn() then return end
 
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
-    local moneyR = Kirigami(0, 0, 160, 50)
+
+    -- Draw resources
+    local mainResourceR = Kirigami(0, 0, 160, 50)
         :attachToTopOf(r)
         :attachToLeftOf(r)
         :moveRatio(1, 1)
         :moveUnit(4, 4)
-    local baseResourceR = Kirigami(0, 0, 100, 32):moveUnit(4, 4)
-    -- TODO: Replace this with loop once we have generic resources.
-    local logsR = baseResourceR:attachToBottomOf(moneyR):moveUnit(0, 4)
-    local rocksR = baseResourceR:attachToBottomOf(logsR):moveUnit(0, 4)
-    local bonesR = baseResourceR:attachToBottomOf(rocksR):moveUnit(0, 4)
+    local otherBaseResourceR = Kirigami(0, 0, 100, 32):moveUnit(4, 4)
+    local prevR = nil
 
-    -- Draw resource
     love.graphics.setColor(1, 1, 1)
-    local ux, uy = love.graphics.transformPoint(
-        self:_drawResourcesMeter("money", moneyR, "money_icon", 1.5, {0.31, 0.26, 0.01}, {0.71, 0.55, 0.02})
-    )
-    self.poses.money[1], self.poses.money[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(
-        self:_drawResourcesMeter("logs", logsR, "logs_icon", 1, {0.34, 0.32, 0.27}, {0.53, 0.5, 0.41})
-    )
-    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(
-        self:_drawResourcesMeter("rocks", rocksR, "rocks_icon", 1, {0.23, 0.23, 0.23}, {0.35, 0.35, 0.35})
-    )
-    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(
-        self:_drawResourcesMeter("bones", bonesR, "bones_icon", 1, {0.41, 0.11, 0.01}, {0.75, 0.27, 0.1})
-    )
-    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(ux, uy)
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        if g.isResourceUnlocked(resId) then
+            local targetR, scale
+            if not prevR then
+                targetR = mainResourceR
+                scale = 1.5
+            else
+                targetR = otherBaseResourceR:attachToBottomOf(prevR):moveUnit(0, 4)
+                scale = 1
+            end
+
+            local resdef = g.getResourceDefinition(resId)
+            local ux, uy = love.graphics.transformPoint(self:_drawResourcesMeter(
+                resId, targetR, resdef.image, scale, resdef.meterBgColor, resdef.meterFgColor
+            ))
+            local pos = self.poses[resId]
+            pos[1], pos[2] = camera:toWorld(ux, uy)
+            prevR = targetR
+        end
+    end
 end
 
 
