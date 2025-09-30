@@ -1020,5 +1020,19 @@ function g.spawnParticle(particleName, x, y, amount)
 end
 
 
+
+g.COLORS = {
+    UPGRADE_KINDS = {
+        HARVESTING = objects.Color("#" .. "FFCB8B14"),
+        TOKENS = objects.Color("#" .. "FF1479CB"),
+        TOKEN_MODIFIER = objects.Color("#" .. "FF15C39A"),
+        MISC = objects.Color("#" .. "FFFFFFFF"),
+    },
+
+    MONEY = objects.Color(g.getResourceInfo("money").color),
+}
+
+
+
 return g
 
