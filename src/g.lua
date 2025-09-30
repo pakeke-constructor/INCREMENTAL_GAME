@@ -492,7 +492,6 @@ function g.defineResource(resId, tabl)
 end
 
 
-
 g.defineResource("money", {image="money_icon", limitStat="MoneyLimit", startingLimit=10000})
 g.defineResource("logs", {image="logs_icon", limitStat="LogLimit"})
 g.defineResource("rocks", {image="rocks_icon", limitStat="RockLimit"})
@@ -512,6 +511,12 @@ local function assertValidResource(resId)
         error("invalid resource type: " .. tostring(resId), 2)
     end
 end
+
+function g.isResourceUnlocked(resId)
+    assertValidResource(resId)
+    return true
+end
+
 
 
 ---@param a g.Bundle
