@@ -465,12 +465,15 @@ function g.inPrestigeRange(prestige, range)
 end
 
 
-local VALID_RESOURCES = {
-    money=true,
-    logs=true,
-    rocks=true,
-    bones=true,
-}
+
+---@alias g._ResourceDefinition {limitStat:string, image:string}
+
+---@type g.ResourceType[]
+local RESOURCE_LIST = {}
+
+---@type table<string, g._ResourceDefinition>
+local RESOURCES = {}
+
 
 local RESOURCE_LIMIT_STAT_NAMES = {
     money = "MoneyLimit",
@@ -480,16 +483,27 @@ local RESOURCE_LIMIT_STAT_NAMES = {
 }
 
 
-function g.defineResource(resId, resourceLimitStat, resourceImage)
-    VALID_RESOURCES[resId] = true
-    g.defineStat(resourceLimitStat, 100)
+---@param resId string
+---@param tabl g._ResourceDefinition
+function g.defineResource(resId, tabl)
+    RESOURCES[resId] = tabl
+    g.defineStat(tabl.limitStat, 100)
+    table.insert(RESOURCE_LIST, resId)
 end
+
+
+
+g.defineResource("money", {image="money_icon", limitStat="MoneyLimit"})
+g.defineResource("logs", {image="logs_icon", limitStat="LogLimit"})
+g.defineResource("rocks", {image="rocks_icon", limitStat="RockLimit"})
+g.defineResource("bones", {image="bones_icon", limitStat="BoneLimit"})
+
 
 
 ---@param r string
 ---@return boolean
 function g.isValidResource(r)
-    return VALID_RESOURCES[r]
+    return not not RESOURCES[r]
 end
 
 ---@param resId string
@@ -504,13 +518,13 @@ end
 ---@param b g.Bundle
 ---@return g.Resources
 function g.addBundles(a,b)
-    return {
-        money = (a.money or 0) + (b.money or 0),
-        bones = (a.bones or 0) + (b.bones or 0),
-        rocks = (a.rocks or 0) + (b.rocks or 0),
-        logs = (a.logs or 0) + (b.logs or 0)
-    }
+    local result = {}
+    for _, resId in ipairs(RESOURCE_LIST) do
+        result[resId] = (a[resId] or 0) + (b[resId] or 0)
+    end
+    return result
 end
+
 
 
 ---@return g.Resources
@@ -538,17 +552,10 @@ end
 
 ---@param bundle g.Bundle
 function g.addResources(bundle)
-    if bundle.money then
-        g.addMoney(bundle.money)
-    end
-    if bundle.bones then
-        g.addBones(bundle.bones)
-    end
-    if bundle.rocks then
-        g.addRocks(bundle.rocks)
-    end
-    if bundle.logs then
-        g.addLogs(bundle.logs)
+    for resId, amount in pairs(bundle) do
+        assertValidResource(resId)
+        assert(type(amount) == "number", "?")
+        g.addResource(resId, amount)
     end
 end
 
@@ -559,10 +566,11 @@ end
 ---@return boolean
 function g.canAfford(price)
     local r = currentSession.resources
-    if (price.money or 0) > (r.money or 0) then return false end
-    if (price.bones or 0) > (r.bones or 0) then return false end
-    if (price.rocks or 0) > (r.rocks or 0) then return false end
-    if (price.logs or 0) > (r.logs or 0) then return false end
+    for resId, amount in pairs(price) do
+        if amount > (r[resId] or 0) then
+            return false
+        end
+    end
     return true
 end
 
@@ -575,10 +583,9 @@ function g.trySubtractResources(price)
         return false
     end
 
-    if price.money then r.money = r.money - price.money end
-    if price.bones then r.bones = r.bones - price.bones end
-    if price.rocks then r.rocks = r.rocks - price.rocks end
-    if price.logs then r.logs = r.logs - price.logs end
+    for resId, amount in pairs(price) do
+        r[resId] = r[resId] - amount
+    end
     return true
 end
 
