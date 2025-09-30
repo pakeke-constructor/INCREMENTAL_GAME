@@ -235,6 +235,7 @@ local smolCache = {}
 ---@param size number
 ---@return love.Font
 function g.getBigFont(size)
+    assert(size % 16 == 0, "Size must by divisible by 16")
     if bigCache[size] then return bigCache[size] end
     bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size)
     return bigCache[size]
@@ -243,6 +244,7 @@ end
 ---@param size number
 ---@return love.Font
 function g.getSmallFont(size)
+    assert(size % 16 == 0, "Size must by divisible by 16")
     if smolCache[size] then return smolCache[size] end
     smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size)
     return smolCache[size]
@@ -430,8 +432,22 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 
 
+---@alias g.UpgradeDefinitionKind
+---token upgrade, always +1 <token> per level. 1-1 mapping with a token.
+---| "TOKEN"
+---upgrade relating to harvesting-speed, or dealing extra damage
+---| "HARVESTING"
+--- Token modifers. Eg. "all grass-tokens earn +$5". 
+--- "When a log-token is destroyed, spawn a bomb"
+---| "TOKEN_MODIFIER"
+--- Misc upgrades; 
+--- (eg. double the money-limit. Harvest stuff automatically.)
+---| "MISC"
+
+
 
 ---@class g.UpgradeDefinition
+---@field kind g.UpgradeDefinitionKind
 ---@field prestige number|g.PrestigeRange
 ---@field x number
 ---@field y number

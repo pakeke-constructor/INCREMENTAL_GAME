@@ -51,13 +51,13 @@ g.defineToken("basic_bomb", {
     -- after 3 seconds, blows up
     health = 10000,
     _lifetime = 3,
-    onUpdate = function(self, dt)
+    tokenUpdate = function(self, dt)
         self._lifetime = self._lifetime - dt
         if self._lifetime <= 0 then
             g.destroy(self)
         end
     end,
-    onDestroyed = function(self)
+    tokenDestroyed = function(self)
         ...
         -- damage surrounding tokens
     end

@@ -55,6 +55,14 @@ local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
 
 
 
+
+-- a list of "special" functions that upgrades use,
+-- that ARENT q-bus or ev-bus. (eg ignore them)
+local SPECIAL_FUNCTIONS = {
+    getValues = true
+}
+
+
 -- Add this to defineUpgrade function
 
 ---@param upgradeId string
@@ -76,13 +84,15 @@ function upgrades.defineUpgrade(upgradeId, tabl)
 
     -- Cache questions and events this upgrade can handle
     for key, func in pairs(tabl) do
-        if type(func) == "function" then
+        if type(func) == "function"  then
             if g.getQuestionInfo(key) then
                 if not questionCache[key] then questionCache[key] = {} end
                 table.insert(questionCache[key], upgradeId)
             elseif g.isEvent(key) then
                 if not eventCache[key] then eventCache[key] = {} end
                 table.insert(eventCache[key], upgradeId)
+            elseif (not SPECIAL_FUNCTIONS[key]) then
+                error("Not a question, event, or special-function: "..tostring(key))
             end
         end
     end
