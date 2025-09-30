@@ -145,15 +145,19 @@ end
 ---@param kind g.ResourceType
 ---@param reg layout.Region
 ---@param image string
+---@param scale number
 ---@param bgcolor [number, number, number, number?]
 ---@param barcolor [number, number, number, number?]
-function Resources:_drawOtherResourcesMeter(kind, reg, image, bgcolor, barcolor)
+function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolor)
     local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0):padUnit(4)
     local textR = reg:attachToRightOf(iconR):padUnit(4, 6)
 
+    ui.debugRegion(iconR)
+    ui.debugRegion(textR)
+
     -- Draw resource icon
     local icx, icy = iconR:getCenter()
-    g.drawImage(image, icx, icy, 0, 1.5)
+    g.drawImage(image, icx, icy, 0, 1.5 * scale)
 
     -- Draw meter
     love.graphics.setColor(bgcolor)
@@ -182,7 +186,7 @@ function Resources:_drawOtherResourcesMeter(kind, reg, image, bgcolor, barcolor)
         self._resourceFont,
         textR:padUnit(8, 0, 0, 0),
         "left",
-        1 + easeInCubic(1 - t) * 0.5
+        (1 + easeInCubic(1 - t) * 0.5) * scale
     )
 
     return iconR:getCenter()
@@ -193,34 +197,33 @@ function Resources:drawHUD(camera)
     if not g.getSn() then return end
 
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
-    local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
-    local moneyR = leftR:shrinkToAspectRatio(2, 1):attachToTopOf(r):moveRatio(0, 1):padRatio(0.05)
-    local resourcesR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(moneyR):padRatio(0.05)
-
-    -- Draw money
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("fill", moneyR:get())
-    love.graphics.setColor(1, 1, 0)
-    love.graphics.rectangle("line", moneyR:get())
-    love.graphics.setColor(0, 0, 0)
-    local t = self:_getInterpolationTime("money")
-    printTextAt("$"..g.formatNumber(self.displayValue.money), self._moneyFont, moneyR, "center", 1 + easeInCubic(1 - t) * 0.5)
+    local moneyR = Kirigami(0, 0, 160, 50)
+        :attachToTopOf(r)
+        :attachToLeftOf(r)
+        :moveRatio(1, 1)
+        :moveUnit(4, 4)
+    local baseResourceR = Kirigami(0, 0, 100, 32):moveUnit(4, 4)
+    -- TODO: Replace this with loop once we have generic resources.
+    local logsR = baseResourceR:attachToBottomOf(moneyR):moveUnit(0, 4)
+    local rocksR = baseResourceR:attachToBottomOf(logsR):moveUnit(0, 4)
+    local bonesR = baseResourceR:attachToBottomOf(rocksR):moveUnit(0, 4)
 
     -- Draw resource
     love.graphics.setColor(1, 1, 1)
-    local logsR, rocksR, bonesR = resourcesR:splitVertical(1, 1, 1)
-    local ux, uy = love.graphics.transformPoint(moneyR:getCenter())
+    local ux, uy = love.graphics.transformPoint(
+        self:_drawResourcesMeter("money", moneyR, "money_icon", 1.5, {0.31, 0.26, 0.01}, {0.71, 0.55, 0.02})
+    )
     self.poses.money[1], self.poses.money[2] = camera:toWorld(ux, uy)
     ux, uy = love.graphics.transformPoint(
-        self:_drawOtherResourcesMeter("logs", logsR, "logs_icon", {0.33, 0.25, 0.07}, {0.6, 0.47, 0.2})
+        self:_drawResourcesMeter("logs", logsR, "logs_icon", 1, {0.34, 0.32, 0.27}, {0.53, 0.5, 0.41})
     )
     self.poses.logs[1], self.poses.logs[2] = camera:toWorld(ux, uy)
     ux, uy = love.graphics.transformPoint(
-        self:_drawOtherResourcesMeter("rocks", rocksR, "rocks_icon", {0.23, 0.23, 0.23}, {0.35, 0.35, 0.35})
+        self:_drawResourcesMeter("rocks", rocksR, "rocks_icon", 1, {0.23, 0.23, 0.23}, {0.35, 0.35, 0.35})
     )
     self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(ux, uy)
     ux, uy = love.graphics.transformPoint(
-        self:_drawOtherResourcesMeter("bones", bonesR, "bones_icon", {0.41, 0.11, 0.01}, {0.75, 0.27, 0.1})
+        self:_drawResourcesMeter("bones", bonesR, "bones_icon", 1, {0.41, 0.11, 0.01}, {0.75, 0.27, 0.1})
     )
     self.poses.bones[1], self.poses.bones[2] = camera:toWorld(ux, uy)
 end
