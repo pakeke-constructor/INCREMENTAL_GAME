@@ -432,7 +432,7 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 
 
----@alias g.UpgradeDefinitionKind
+---@alias g.UpgradeKind
 ---token upgrade, always +1 <token> per level. 1-1 mapping with a token.
 ---| "TOKEN"
 ---upgrade relating to harvesting-speed, or dealing extra damage
@@ -447,7 +447,7 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 
 
 ---@class g.UpgradeDefinition
----@field kind g.UpgradeDefinitionKind
+---@field kind g.UpgradeKind
 ---@field prestige number|g.PrestigeRange
 ---@field x number
 ---@field y number
