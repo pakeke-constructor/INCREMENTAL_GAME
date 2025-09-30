@@ -138,6 +138,7 @@ TESTS END
 local sceneManager = require("src.scenes.sceneManager")
 
 function love.load()
+    love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades/upgrade_defs")
 
     g.newSession()

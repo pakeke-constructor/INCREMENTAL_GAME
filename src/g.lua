@@ -466,7 +466,12 @@ end
 
 
 
----@alias g._ResourceDefinition {limitStat:string, image:string, startingLimit:number?}
+---@class g._ResourceDefinition
+---@field public limitStat string
+---@field public image string
+---@field public meterBgColor [number, number, number, number?] Used by resource HUD
+---@field public meterFgColor [number, number, number, number?] Used by resource HUD
+---@field public startingLimit number?
 
 ---@type g.ResourceType[]
 g.RESOURCE_LIST = {}
@@ -492,10 +497,31 @@ function g.defineResource(resId, tabl)
 end
 
 
-g.defineResource("money", {image="money_icon", limitStat="MoneyLimit", startingLimit=10000})
-g.defineResource("logs", {image="logs_icon", limitStat="LogLimit"})
-g.defineResource("rocks", {image="rocks_icon", limitStat="RockLimit"})
-g.defineResource("bones", {image="bones_icon", limitStat="BoneLimit"})
+g.defineResource("money", {
+    image="money_icon",
+    limitStat="MoneyLimit",
+    startingLimit=10000,
+    meterBgColor={0.31, 0.26, 0.01},
+    meterFgColor={0.71, 0.55, 0.02}
+})
+g.defineResource("logs", {
+    image="logs_icon",
+    limitStat="LogLimit",
+    meterBgColor={0.34, 0.32, 0.27},
+    meterFgColor={0.53, 0.5, 0.41}
+})
+g.defineResource("rocks", {
+    image="rocks_icon",
+    limitStat="RockLimit",
+    meterBgColor={0.23, 0.23, 0.23},
+    meterFgColor={0.35, 0.35, 0.35}
+})
+g.defineResource("bones", {
+    image="bones_icon",
+    limitStat="BoneLimit",
+    meterBgColor={0.41, 0.11, 0.01},
+    meterFgColor={0.75, 0.27, 0.1}
+})
 
 
 
@@ -512,9 +538,16 @@ local function assertValidResource(resId)
     end
 end
 
+---@param resId string
 function g.isResourceUnlocked(resId)
     assertValidResource(resId)
     return true
+end
+
+---@param resId string
+function g.getResourceDefinition(resId)
+    assertValidResource(resId)
+    return RESOURCES[resId]
 end
 
 
@@ -544,14 +577,21 @@ function g.getResource(resId)
     return currentSession.resources[resId]
 end
 
+---@param resId g.ResourceType
+---@return number
+function g.getResourceLimit(resId)
+    assertValidResource(resId)
+    local statName = RESOURCE_LIMIT_STAT_NAMES[resId]
+    local limit = assert(g.stats[statName])
+    return limit
+end
+
 
 ---@param resId g.ResourceType
 function g.addResource(resId, amount)
     assertValidResource(resId)
     local r = currentSession.resources
-    local statName = RESOURCE_LIMIT_STAT_NAMES[resId]
-    local limit = assert(g.stats[statName])
-    r[resId] = math.min(r[resId] + amount, limit)
+    r[resId] = math.min(r[resId] + amount, g.getResourceLimit(resId))
 end
 
 

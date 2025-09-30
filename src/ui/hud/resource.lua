@@ -25,7 +25,7 @@ local AFTERSPAWN_ANIMATION_DELAY = 0.06
 local TOHUD_ANIMATION_DURATION = {0.4, 0.5} -- random between these
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
-local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.5
+local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.3
 
 local PARTICLE_SPAWN_CATEGORY = {
     money = {
@@ -118,8 +118,10 @@ end
 ---@param font love.Font
 ---@param region layout.Region
 ---@param align love.AlignMode
+---@param baseScale number?
 ---@param scale number?
-local function printTextAt(text, font, region, align, scale)
+local function printTextAt(text, font, region, align, baseScale, scale)
+    baseScale = baseScale or 1
     scale = scale or 1
     local x, y, w, h = region:get()
     local maxw, lines = font:getWrap(text, w)
@@ -129,12 +131,13 @@ local function printTextAt(text, font, region, align, scale)
     local ty = y + h / 2
 
     if align == "left" then
-        tx = tx - (w - maxw) / 2
+        tx = tx - (w - maxw * baseScale) / 2
     elseif align == "right" then
-        tx = tx + (w - maxw) / 2
+        tx = tx + (w - maxw * baseScale) / 2
     end
 
-    love.graphics.printf(text, font, tx, ty, maxw, "left", 0, scale, scale, maxw / 2, th / 2)
+    local s = baseScale * scale
+    love.graphics.printf(text, font, tx, ty, maxw, "left", 0, s, s, maxw / 2, th / 2)
 end
 
 ---@param x number
@@ -142,11 +145,52 @@ local function easeInCubic(x)
     return x * x * x
 end
 
+---@param kind g.ResourceType
 ---@param reg layout.Region
-local function makeIconAndTextRegion(reg)
-    local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0)
-    local textR = reg:attachToRightOf(iconR)
-    return iconR:padUnit(4), textR
+---@param image string
+---@param scale number
+---@param bgcolor [number, number, number, number?]
+---@param barcolor [number, number, number, number?]
+function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolor)
+    local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0):padUnit(4)
+    local textR = reg:attachToRightOf(iconR):padUnit(4, 6)
+    local t = self:_getInterpolationTime(kind)
+
+    -- Draw resource icon
+    local icx, icy = iconR:getCenter()
+    g.drawImage(image, icx, icy, 0, 1.5 * (scale + 0.25 * (1 - t) ^ 2))
+
+    -- Draw meter
+    love.graphics.setColor(bgcolor)
+    love.graphics.setStencilMode("draw", 1)
+    -- Explicitly enable color mask.
+    -- We want to draw the jagged rectangle AND the stencil at same time
+    love.graphics.setColorMask(true, true, true, true)
+    ui.jaggedRectangleRegion("fill", textR, 8)
+
+    -- Enter stecil test mode to just draw rectangle with stencil test active
+    local tx, ty, tw, th = textR:get()
+    love.graphics.setColor(barcolor)
+    love.graphics.setStencilMode("test", 1)
+    love.graphics.rectangle("fill", tx, ty, tw * self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1), th)
+
+    -- Disable stencil test to draw outline.
+    love.graphics.setStencilMode()
+    love.graphics.setColor(0, 0, 0)
+    ui.jaggedRectangleRegion("line", textR, 8)
+
+    -- Draw resource value
+    love.graphics.setColor(1, 1, 1)
+    printTextAt(
+        g.formatNumber(self.displayValue[kind]),
+        self._resourceFont,
+        textR:padUnit(8, 0, 0, 0),
+        "left",
+        scale,
+        1 + easeInCubic(1 - t) * 0.25
+    )
+
+    return iconR:getCenter()
 end
 
 ---@param camera Camera
@@ -154,50 +198,37 @@ function Resources:drawHUD(camera)
     if not g.getSn() then return end
 
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
-    local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
-    local moneyR = leftR:shrinkToAspectRatio(2, 1):attachToTopOf(r):moveRatio(0, 1):padRatio(0.05)
-    local resourcesR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(moneyR):padRatio(0.05)
 
-    -- Draw money
+    -- Draw resources
+    local mainResourceR = Kirigami(0, 0, 160, 50)
+        :attachToTopOf(r)
+        :attachToLeftOf(r)
+        :moveRatio(1, 1)
+        :moveUnit(4, 4)
+    local otherBaseResourceR = Kirigami(0, 0, 100, 32):moveUnit(4, 4)
+    local prevR = nil
+
     love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("fill", moneyR:get())
-    love.graphics.setColor(1, 1, 0)
-    love.graphics.rectangle("line", moneyR:get())
-    love.graphics.setColor(0, 0, 0)
-    local t = self:_getInterpolationTime("money")
-    printTextAt("$"..g.formatNumber(self.displayValue.money), self._moneyFont, moneyR, "center", 1 + easeInCubic(1 - t) * 0.5)
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        if g.isResourceUnlocked(resId) then
+            local targetR, scale
+            if not prevR then
+                targetR = mainResourceR
+                scale = 1.5
+            else
+                targetR = otherBaseResourceR:attachToBottomOf(prevR):moveUnit(0, 4)
+                scale = 1
+            end
 
-    -- Prepare resource layout
-    local logsR, rocksR, bonesR = resourcesR:splitVertical(1, 1, 1)
-    local logsIconR, logsTextR = makeIconAndTextRegion(logsR)
-    local rocksIconR, rocksTextR = makeIconAndTextRegion(rocksR)
-    local bonesIconR, bonesTextR = makeIconAndTextRegion(bonesR)
-
-    -- Draw resource text
-    love.graphics.setColor(1, 1, 1)
-    t = self:_getInterpolationTime("logs")
-    printTextAt(g.formatNumber(self.displayValue.logs), self._resourceFont, logsTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
-    t = self:_getInterpolationTime("rocks")
-    printTextAt(g.formatNumber(self.displayValue.rocks), self._resourceFont, rocksTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
-    t = self:_getInterpolationTime("bones")
-    printTextAt(g.formatNumber(self.displayValue.bones), self._resourceFont, bonesTextR, "left", 1 + easeInCubic(1 - t) * 0.5)
-
-    -- Draw resource icon
-    local icx, icy = logsIconR:getCenter()
-    g.drawImage("logs_icon", icx, icy, 0, 1.5)
-    icx, icy = rocksIconR:getCenter()
-    g.drawImage("rocks_icon", icx, icy, 0, 1.5)
-    icx, icy = bonesIconR:getCenter()
-    g.drawImage("bones_icon", icx, icy, 0, 1.5)
-
-    local ux, uy = love.graphics.transformPoint(moneyR:getCenter())
-    self.poses.money[1], self.poses.money[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(logsIconR:getCenter())
-    self.poses.logs[1], self.poses.logs[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(rocksIconR:getCenter())
-    self.poses.rocks[1], self.poses.rocks[2] = camera:toWorld(ux, uy)
-    ux, uy = love.graphics.transformPoint(bonesIconR:getCenter())
-    self.poses.bones[1], self.poses.bones[2] = camera:toWorld(ux, uy)
+            local resdef = g.getResourceDefinition(resId)
+            local ux, uy = love.graphics.transformPoint(self:_drawResourcesMeter(
+                resId, targetR, resdef.image, scale, resdef.meterBgColor, resdef.meterFgColor
+            ))
+            local pos = self.poses[resId]
+            pos[1], pos[2] = camera:toWorld(ux, uy)
+            prevR = targetR
+        end
+    end
 end
 
 
