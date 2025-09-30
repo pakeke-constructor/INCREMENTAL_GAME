@@ -160,6 +160,9 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
     local icx, icy = iconR:getCenter()
     g.drawImage(image, icx, icy, 0, 1.5 * (scale + 0.25 * (1 - t) ^ 2))
 
+    local lw = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(2)
+
     -- Draw meter
     love.graphics.setColor(bgcolor)
     love.graphics.setStencilMode("draw", 1)
@@ -189,6 +192,8 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
         scale,
         1 + easeInCubic(1 - t) * 0.25
     )
+
+    love.graphics.setLineWidth(lw)
 
     return iconR:getCenter()
 end
@@ -220,9 +225,15 @@ function Resources:drawHUD(camera)
                 scale = 1
             end
 
-            local resdef = g.getResourceDefinition(resId)
+            local resInfo = g.getResourceInfo(resId)
+
+            local bgCol = objects.Color(resInfo.color)
+            bgCol.value = bgCol.value/2
+            bgCol.a = bgCol.a / 3
+
             local ux, uy = love.graphics.transformPoint(self:_drawResourcesMeter(
-                resId, targetR, resdef.image, scale, resdef.meterBgColor, resdef.meterFgColor
+                resId, targetR, resInfo.image, scale,
+                bgCol, resInfo.color
             ))
             local pos = self.poses[resId]
             pos[1], pos[2] = camera:toWorld(ux, uy)

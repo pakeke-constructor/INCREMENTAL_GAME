@@ -469,8 +469,7 @@ end
 ---@class g._ResourceDefinition
 ---@field public limitStat string
 ---@field public image string
----@field public meterBgColor [number, number, number, number?] Used by resource HUD
----@field public meterFgColor [number, number, number, number?] Used by resource HUD
+---@field public color [number, number, number, number?] Used by resource HUD
 ---@field public startingLimit number?
 
 ---@type g.ResourceType[]
@@ -478,14 +477,6 @@ g.RESOURCE_LIST = {}
 
 ---@type table<string, g._ResourceDefinition>
 local RESOURCES = {}
-
-
-local RESOURCE_LIMIT_STAT_NAMES = {
-    money = "MoneyLimit",
-    logs = "LogLimit",
-    rocks = "RockLimit",
-    bones = "BoneLimit"
-}
 
 
 ---@param resId string
@@ -500,27 +491,23 @@ end
 g.defineResource("money", {
     image="money_icon",
     limitStat="MoneyLimit",
-    startingLimit=10000,
-    meterBgColor={0.31, 0.26, 0.01},
-    meterFgColor={0.71, 0.55, 0.02}
+    startingLimit=100,
+    color = {0.71, 0.55, 0.02},
 })
 g.defineResource("logs", {
     image="logs_icon",
     limitStat="LogLimit",
-    meterBgColor={0.34, 0.32, 0.27},
-    meterFgColor={0.53, 0.5, 0.41}
+    color={0.53, 0.5, 0.41}
 })
 g.defineResource("rocks", {
     image="rocks_icon",
     limitStat="RockLimit",
-    meterBgColor={0.23, 0.23, 0.23},
-    meterFgColor={0.35, 0.35, 0.35}
+    color={0.35, 0.35, 0.35}
 })
 g.defineResource("bones", {
     image="bones_icon",
     limitStat="BoneLimit",
-    meterBgColor={0.41, 0.11, 0.01},
-    meterFgColor={0.75, 0.27, 0.1}
+    color={0.75, 0.27, 0.1}
 })
 
 
@@ -545,7 +532,7 @@ function g.isResourceUnlocked(resId)
 end
 
 ---@param resId string
-function g.getResourceDefinition(resId)
+function g.getResourceInfo(resId)
     assertValidResource(resId)
     return RESOURCES[resId]
 end
@@ -581,8 +568,8 @@ end
 ---@return number
 function g.getResourceLimit(resId)
     assertValidResource(resId)
-    local statName = RESOURCE_LIMIT_STAT_NAMES[resId]
-    local limit = assert(g.stats[statName])
+    local info = g.getResourceInfo(resId)
+    local limit = assert(g.stats[info.limitStat])
     return limit
 end
 
