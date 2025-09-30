@@ -169,7 +169,7 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
     -- Explicitly enable color mask.
     -- We want to draw the jagged rectangle AND the stencil at same time
     love.graphics.setColorMask(true, true, true, true)
-    ui.jaggedRectangleRegion("fill", textR, 8)
+    ui.jaggedRectangle("fill", 8, textR:get())
 
     -- Enter stecil test mode to just draw rectangle with stencil test active
     local tx, ty, tw, th = textR:get()
@@ -180,7 +180,7 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
     -- Disable stencil test to draw outline.
     love.graphics.setStencilMode()
     love.graphics.setColor(0, 0, 0)
-    ui.jaggedRectangleRegion("line", textR, 8)
+    ui.jaggedRectangle("line", 8, textR:get())
 
     -- Draw resource value
     love.graphics.setColor(1, 1, 1)

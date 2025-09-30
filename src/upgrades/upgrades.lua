@@ -390,12 +390,13 @@ function upgrades.drawUpgradeDescription(uinfo, x,y)
 
     -- bg:
     love.graphics.setColor(0.2,0.2,0.4,0.8)
-    ui.jaggedRectangle("fill", x,y, w,h)
+    love.graphics.rectangle("fill",x,y,w,h)
+
     -- border:
     love.graphics.setColor(1,1,1)
     love.graphics.setLineWidth(2)
     love.graphics.setColor(0.,0.,0.08)
-    ui.jaggedRectangle("line", x,y, w,h)
+    love.graphics.rectangle("line",x,y,w,h)
 
     drawTitle(uinfo, x,y)
     -- draw (title, image)
