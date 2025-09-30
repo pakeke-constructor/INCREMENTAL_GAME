@@ -149,30 +149,28 @@ end
 ---@param barcolor [number, number, number, number?]
 function Resources:_drawOtherResourcesMeter(kind, reg, image, bgcolor, barcolor)
     local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0):padUnit(4)
-    local textR = reg:attachToRightOf(iconR):padUnit(0, 4)
+    local textR = reg:attachToRightOf(iconR):padUnit(4, 6)
 
     -- Draw resource icon
     local icx, icy = iconR:getCenter()
     g.drawImage(image, icx, icy, 0, 1.5)
 
     -- Draw meter
-    -- Draw jagged rectangle with base color AND the stencil at same time
-    -- FIXME: Actually enable the stencil. Figure out how to do it in LOVE 12 way.
     love.graphics.setColor(bgcolor)
+    love.graphics.setStencilMode("draw", 1)
+    -- Explicitly enable color mask.
+    -- We want to draw the jagged rectangle AND the stencil at same time
     love.graphics.setColorMask(true, true, true, true)
-    -- love.graphics.setStencilMode("draw", 1)
     ui.jaggedRectangleRegion("fill", textR, 8)
 
     -- Enter test mode to just draw rectangle with stencil test active
     local tx, ty, tw, th = textR:get()
     love.graphics.setColor(barcolor)
-    -- love.graphics.setStencilMode("draw", 1)
-    love.graphics.setColorMask(true, true, true, true)
+    love.graphics.setStencilMode("test", 1)
     love.graphics.rectangle("fill", tx, ty, tw * self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1), th)
 
     -- Disable stencil test to draw outline.
-    -- love.graphics.setStencilMode()
-    love.graphics.setColorMask(true, true, true, true)
+    love.graphics.setStencilMode()
     love.graphics.setColor(0, 0, 0)
     ui.jaggedRectangleRegion("line", textR, 8)
 
@@ -182,7 +180,7 @@ function Resources:_drawOtherResourcesMeter(kind, reg, image, bgcolor, barcolor)
     printTextAt(
         g.formatNumber(self.displayValue[kind]),
         self._resourceFont,
-        textR:padUnit(4, 0),
+        textR:padUnit(8, 0, 0, 0),
         "left",
         1 + easeInCubic(1 - t) * 0.5
     )
