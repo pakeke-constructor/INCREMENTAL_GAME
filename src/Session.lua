@@ -32,12 +32,10 @@ just provide the raw data, keep it simple.
 function Session:init()
     self.prestige = 0
 
-    self.resources = {
-        money = 0,
-        logs = 0,
-        bones = 0,
-        rocks = 0,
-    }
+    self.resources = {}
+    for _,resId in ipairs(g.RESOURCE_LIST) do
+        self.resources[resId] = 0
+    end
 
     self.upgradeLevels = {--[[
         [upgradeId] -> level

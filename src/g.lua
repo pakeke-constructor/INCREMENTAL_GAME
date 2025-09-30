@@ -466,10 +466,10 @@ end
 
 
 
----@alias g._ResourceDefinition {limitStat:string, image:string}
+---@alias g._ResourceDefinition {limitStat:string, image:string, startingLimit:number?}
 
 ---@type g.ResourceType[]
-local RESOURCE_LIST = {}
+g.RESOURCE_LIST = {}
 
 ---@type table<string, g._ResourceDefinition>
 local RESOURCES = {}
@@ -487,13 +487,13 @@ local RESOURCE_LIMIT_STAT_NAMES = {
 ---@param tabl g._ResourceDefinition
 function g.defineResource(resId, tabl)
     RESOURCES[resId] = tabl
-    g.defineStat(tabl.limitStat, 100)
-    table.insert(RESOURCE_LIST, resId)
+    g.defineStat(tabl.limitStat, tabl.startingLimit or 100)
+    table.insert(g.RESOURCE_LIST, resId)
 end
 
 
 
-g.defineResource("money", {image="money_icon", limitStat="MoneyLimit"})
+g.defineResource("money", {image="money_icon", limitStat="MoneyLimit", startingLimit=10000})
 g.defineResource("logs", {image="logs_icon", limitStat="LogLimit"})
 g.defineResource("rocks", {image="rocks_icon", limitStat="RockLimit"})
 g.defineResource("bones", {image="bones_icon", limitStat="BoneLimit"})
@@ -519,7 +519,7 @@ end
 ---@return g.Resources
 function g.addBundles(a,b)
     local result = {}
-    for _, resId in ipairs(RESOURCE_LIST) do
+    for _, resId in ipairs(g.RESOURCE_LIST) do
         result[resId] = (a[resId] or 0) + (b[resId] or 0)
     end
     return result
@@ -567,6 +567,7 @@ end
 function g.canAfford(price)
     local r = currentSession.resources
     for resId, amount in pairs(price) do
+        assertValidResource(resId)
         if amount > (r[resId] or 0) then
             return false
         end
