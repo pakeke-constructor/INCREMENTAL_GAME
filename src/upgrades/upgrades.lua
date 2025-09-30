@@ -338,24 +338,52 @@ KEEP IT SIMPLE, DONT OVERENGINEER.
 ]]
 
 ---@param uinfo g.UpgradeInfo
----@param x number
----@param y number
----@return number
-local function drawTitle(uinfo, x,y, noDraw)
+---@param r layout.Region
+local function drawTitle(uinfo, r, noDraw)
     -- for now; assume all upgrades are tokens
     -- (Title, Image)
 
     local f = g.getBigFont(32)
-    local tW,tH = f:getWidth(uinfo.name), f:getHeight()
+    local tW,tH = f:getWidth(richtext.stripEffects(uinfo.name)), f:getHeight()
+
+    local textR = Kirigami(0, 0, tW, tH)
+        :attachToTopOf(r)
+        :moveRatio(0, 1)
+        :centerX(r)
+    local imageR = nil
+    if uinfo.image then
+        -- The idea in here is that both icon and upgrade name are in center side-by-side.
+        local leftPadding = 4
+        imageR = Kirigami(0, 0, 32, 32)
+        textR = Kirigami(0, 0, tW, tH)
+            :attachToTopOf(r)
+            :moveRatio(0, 1)
+            :centerX(r)
+            :moveUnit(-(imageR.w + leftPadding) / 2, 0)
+        imageR = imageR:attachToRightOf(textR):centerY(textR):moveUnit(leftPadding)
+    end
+
     local h = (tH * 1)
     local h1 = (tH * 1.2)
     if not noDraw then
-        love.graphics.setColor(1,1,1)
-        richtext.printRichContained(uinfo.name, f, x,y, W,h)
-        love.graphics.line(x + 16, y+h1, x+W-16, y+h1)
+        love.graphics.setColor(1, 1, 1)
+
+        -- Draw text
+        local tX, tY = textR:get()
+        richtext.printRich(uinfo.name, f, tX, tY, tW, "left")
+
+        -- Draw image
+        if imageR and uinfo.image then
+            local iX, iY = imageR:getCenter()
+            g.drawImage(uinfo.image, iX, iY, 0, 2, 2)
+        end
     end
 
-    return h
+    if imageR then
+        return textR:union(imageR)
+    else
+        return textR
+    end
 end
 
 
@@ -397,19 +425,29 @@ function upgrades.drawUpgradeDescription(uinfo, x,y)
     -- x,y top left
 
     local w,h = upgrades.getUpgradeDescriptionSize(uinfo)
+    local r = Kirigami(x, y, w, h)
 
     -- bg:
     love.graphics.setColor(0.2,0.2,0.4,0.8)
-    love.graphics.rectangle("fill",x,y,w,h)
+    love.graphics.rectangle("fill", r:get())
 
     -- border:
     love.graphics.setColor(1,1,1)
     love.graphics.setLineWidth(2)
     love.graphics.setColor(0.,0.,0.08)
-    love.graphics.rectangle("line",x,y,w,h)
+    love.graphics.rectangle("line", r:get())
 
-    drawTitle(uinfo, x,y)
-    -- draw (title, image)
+    local contentR = r:padUnit(4)
+
+    -- Draw title
+    local titleR = drawTitle(uinfo, contentR)
+    -- Draw outline
+    local outlineR = contentR:padUnit(16, 0)
+        :set(nil, nil, nil, 1)
+        :attachToBottomOf(titleR)
+        :moveUnit(0, 4)
+    love.graphics.rectangle("fill", outlineR:get())
+
     -----------
     -- draw token-info
     -----------
