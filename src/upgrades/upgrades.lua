@@ -302,8 +302,6 @@ do
 local W = 200
 
 
-local TITLE_H = math.floor(32 * 1.2)
-
 --[[
 
 TODO:
