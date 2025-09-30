@@ -445,15 +445,16 @@ g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
 ---| "MISC"
 
 
-
----@class g.UpgradeDefinition
----@field kind g.UpgradeKind
+---@class g.UpgradeDefinitionBase
 ---@field prestige number|g.PrestigeRange
 ---@field x number
 ---@field y number
 ---@field image string?
 ---@field price g.Bundle
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
+
+---@class g.UpgradeDefinition: g.UpgradeDefinitionBase
+---@field kind g.UpgradeKind
 local g_UpgradeDefinition = {}
 
 
@@ -661,13 +662,15 @@ end
 
 ---@param id string
 ---@param name string
----@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition }
+---@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinitionBase }
 function g.defineTokenUpgrade(id, name, def)
     def.upgrade.populateTokenPool = function(level, tokens) ---@diagnostic disable-line
         tokens:add(id, level)
     end
 
-    g.defineUpgrade(id, name, def.upgrade)
+    local upgrade = def.upgrade --[[@as g.UpgradeDefinition]]
+    upgrade.kind = "TOKEN"
+    g.defineUpgrade(id, name, upgrade)
     g.defineToken(id, name, def.token)
 end
 
