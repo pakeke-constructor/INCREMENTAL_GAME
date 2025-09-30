@@ -8,7 +8,7 @@ local upgrades = require("src.upgrades.upgrades")
 
 local World = require("src.world.world")
 local Session = require("src.Session")
-local HUD = require("src.ui.hud.hud")
+local HUD = require("src.ui.hud.HUD")
 
 ---@class g
 local g = {}

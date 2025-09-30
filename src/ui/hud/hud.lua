@@ -1,5 +1,5 @@
 local objects = require("src.modules.objects.objects")
-local Resources = require("src.ui.hud.resource")
+local Resources = require("src.ui.hud.ResourcesHUD")
 
 ---@class g.HUD: objects.Class
 local HUD = objects.Class("g:HUD")
