@@ -388,6 +388,7 @@ g.VALID_STATS = {}
 ---@return number
 function g.defineStat(name, startingValue)
     strTc(name)
+    assert(not g.VALID_STATS[name], "Redefined stat")
     assert(name:sub(1,1):upper() == name:sub(1,1), "Stats must have first letter capitalized")
     local addQ = "get" .. name .. "Modifier"
     g.defineQuestion(addQ, reducers.ADD, 0)
@@ -414,19 +415,14 @@ g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
 
-g.stats.MoneyLimit = g.defineStat("MoneyLimit", 10000)
 
-g.stats.LogLimit = g.defineStat("LogLimit", 1000)
-g.stats.RockLimit = g.defineStat("RockLimit", 1000)
-g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
-
-
-
----@alias g.Bundle {money?: number, bones?: number, rocks?: number, logs?: number}
-
----@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
 
 ---@alias g.ResourceType "money"|"logs"|"rocks"|"bones"
+
+-- i wish we could define this as { [g.ResourceType]: number } but it doesnt work that way
+---@alias g.Bundle {money?: number, bones?: number, rocks?: number, logs?: number}
+---@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
+
 
 ---@alias g.PrestigeRange {lower: integer, upper: integer}
 
