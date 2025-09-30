@@ -480,6 +480,12 @@ local RESOURCE_LIMIT_STAT_NAMES = {
 }
 
 
+function g.defineResource(resId, resourceLimitStat, resourceImage)
+    VALID_RESOURCES[resId] = true
+    g.defineStat(resourceLimitStat, 100)
+end
+
+
 ---@param r string
 ---@return boolean
 function g.isValidResource(r)
@@ -506,59 +512,6 @@ function g.addBundles(a,b)
     }
 end
 
-
----@param x number
-function g.addMoney(x)
-    currentSession.resources.money = math.min(currentSession.resources.money + x, g.stats.MoneyLimit)
-end
-
----@param x number
----@return boolean
-function g.trySubtractMoney(x)
-    -- used for shopping:  
-    -- if g.trySubtractMoney(COST) then  getUpgrade()  end
-    local r = currentSession.resources
-    if x <= r.money then
-        r.money = r.money - x
-        return true
-    end
-    return false
-end
-
----@return number
-function g.getMoney()
-    return currentSession.resources.money
-end
-
----@param x number
-function g.addBones(x)
-    currentSession.resources.bones = math.min(currentSession.resources.bones + x, g.stats.BoneLimit)
-end
-
----@return number
-function g.getBones()
-    return currentSession.resources.bones
-end
-
----@param x number
-function g.addRocks(x)
-    currentSession.resources.rocks = math.min(currentSession.resources.rocks + x, g.stats.RockLimit)
-end
-
----@return number
-function g.getRocks()
-    return currentSession.resources.rocks
-end
-
----@param x number
-function g.addLogs(x)
-    currentSession.resources.logs = math.min(currentSession.resources.logs + x, g.stats.LogLimit)
-end
-
----@return number
-function g.getLogs()
-    return currentSession.resources.logs
-end
 
 ---@return g.Resources
 function g.getResources()
