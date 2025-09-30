@@ -184,10 +184,11 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
 
     -- Draw resource value
     love.graphics.setColor(1, 1, 1)
+    local r = textR:padUnit(8, 0, 0, 0):moveUnit(0, math.sin(love.timer.getTime()*3)-2)
     printTextAt(
         g.formatNumber(self.displayValue[kind]),
         self._resourceFont,
-        textR:padUnit(8, 0, 0, 0),
+        r,
         "left",
         scale,
         1 + easeInCubic(1 - t) * 0.25
@@ -205,22 +206,24 @@ function Resources:drawHUD(camera)
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
 
     -- Draw resources
-    local mainResourceR = Kirigami(0, 0, 160, 50)
+    local mainResourceR = Kirigami(0, 0, 140, 40)
         :attachToTopOf(r)
         :attachToLeftOf(r)
         :moveRatio(1, 1)
         :moveUnit(4, 4)
-    local otherBaseResourceR = Kirigami(0, 0, 100, 32):moveUnit(4, 4)
+    local otherBaseResourceR = Kirigami(0, 0, 80, 32):moveUnit(4, 4)
     local prevR = nil
 
     love.graphics.setColor(1, 1, 1)
-    for _, resId in ipairs(g.RESOURCE_LIST) do
+    for i, resId in ipairs(g.RESOURCE_LIST) do
         if g.isResourceUnlocked(resId) then
             local targetR, scale
             if not prevR then
+                -- its money (aka main-resource)
                 targetR = mainResourceR
                 scale = 1.5
             else
+                -- Otherwise, treat it normally
                 targetR = otherBaseResourceR:attachToBottomOf(prevR):moveUnit(0, 4)
                 scale = 1
             end
