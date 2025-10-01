@@ -71,6 +71,8 @@ end
 
 
 
+
+local callUpgrades, askUpgrades
 local definedEvents = objects.Set()
 
 function g.defineEvent(ev)
@@ -101,7 +103,7 @@ function g.call(ev, arg1, ...)
         arg1[ev](arg1, ...)
     end
 
-    upgrades.call(ev, arg1, ...)
+    callUpgrades(ev, arg1, ...)
 end
 
 
@@ -140,7 +142,7 @@ function g.ask(q, arg1, ...)
         val = reducer(arg1[q](arg1, ...), val)
     end
 
-    return reducer(val, upgrades.ask(q, arg1, ...))
+    return reducer(val, askUpgrades(q, arg1, ...))
 end
 
 
@@ -460,7 +462,9 @@ local g_UpgradeDefinition = {}
 local g_TokenDefinition = {}
 
 
----@alias g.UpgradeInfo g.UpgradeDefinition|{type:string,name:string}
+---@class g.UpgradeInfo : g.UpgradeDefinition
+---@field type string
+---@field name string
 
 
 ---@alias g.TokenInfo g.TokenDefinition|{type:string,name:string}
@@ -605,6 +609,17 @@ function g.addResources(bundle)
 end
 
 
+---@param bundle g.Bundle
+function g.subtractResources(bundle)
+    for resId, amount in pairs(bundle) do
+        assertValidResource(resId)
+        assert(type(amount) == "number", "?")
+        g.addResource(resId, -amount)
+    end
+end
+
+
+
 
 
 ---@param price g.Bundle
@@ -619,6 +634,8 @@ function g.canAfford(price)
     end
     return true
 end
+
+
 
 
 ---@param price g.Bundle
@@ -645,17 +662,33 @@ end
 
 
 
----@param id string
----@param name string
----@param def g.UpgradeDefinition
-function g.defineUpgrade(id, name, def)
-    if not (def.kind and UPGRADE_KINDS[def.kind]) then
-        error("Invalid upgrade-kind: " .. tostring(def.kind),2)
-    end
-    def.name = loc(name) ---@diagnostic disable-line
-    def.image = id
-    upgrades.defineUpgrade(id, def)
-end
+
+
+
+--------------------------------------------------
+-- Upgrades.
+--- 
+-- g.getUpgradeInfo(upgradeId)
+-- g.getUpgradeLevel(uinfo)
+-- g.isUpgradeLocked(uinfo)
+-- g.isUpgradeHidden(uinfo)
+--------------------------------------------------
+do
+
+---@type string[]
+g.UPGRADE_LIST = {}
+
+
+---@type {[string]: g.UpgradeInfo?}
+local upgradeInfos = {--[[
+    [upgradeId] -> Table (contains all info)
+]]}
+
+---@type {[number]: g.UpgradeInfo?}
+local upgradePositions = {--[[
+    hash(x,y,prestige) -> UpgradeInfo
+]]}
+
 
 
 
@@ -674,6 +707,247 @@ end
 
 
 
+local HASHVAL = 100000
+
+---@param x integer
+---@param y integer
+---@param prestige integer
+---@return integer
+local function hash(x,y, prestige)
+    return prestige + (x * HASHVAL) + (y * HASHVAL^2)
+end
+
+
+local function assertSmallEnough(x)
+    assert(math.abs(x) < HASHVAL, "Needs to be less than " .. HASHVAL .. " for hashing to work correctly!")
+end
+
+
+local function niceAssert(bool, str, val)
+    if not bool then
+        str = str or "Assertion failed"
+        if str and val then
+            str = str .. " " .. tostring(val)
+        end
+        error(str, 2)
+    end
+end
+
+
+
+local questionCache = {} -- [questionName] -> {upgradeId1, upgradeId2, ...}
+
+local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
+
+
+-- some upgrades lie across multiple ranges.
+-- EG `wood` is purchasable at prestige-0 AND prestige-1. {lower=0, upper=1}
+-- And some upgrades are valid across ALL prestiges. {lower=0, upper=INFINITY}
+
+
+
+
+-- a list of "special" functions that upgrades use,
+-- that ARENT q-bus or ev-bus. (eg ignore them)
+local SPECIAL_FUNCTIONS = {
+    getValues = true
+}
+
+
+---@param id string
+---@param def g.UpgradeInfo
+function g.defineUpgrade(id, name, def)
+    if not (def.kind and UPGRADE_KINDS[def.kind]) then
+        error("Invalid upgrade-kind: " .. tostring(def.kind),2)
+    end
+    def.name = loc(name) ---@diagnostic disable-line
+    def.image = id
+    table.insert(g.UPGRADE_LIST, id)
+
+    niceAssert(type(id) == "string")
+    niceAssert(type(def.prestige) == "number", "Invalid prestige: ", def.prestige)
+    niceAssert(g.isImage(def.image), "Invalid image: ", def.image)
+    niceAssert(type(def.x) == "number" and type(def.y) == "number", "Upgrades needs x,y coords")
+
+    assertSmallEnough(def.x)
+    assertSmallEnough(def.y)
+    assertSmallEnough(def.prestige)
+
+    def.type = id
+
+    assert(not upgradeInfos[id], "Redefined upgrade!")
+    upgradeInfos[id] = def
+
+    -- Cache questions and events this upgrade can handle
+    for key, func in pairs(def) do
+        if type(func) == "function"  then
+            if g.getQuestionInfo(key) then
+                if not questionCache[key] then questionCache[key] = {} end
+                table.insert(questionCache[key], id)
+            elseif g.isEvent(key) then
+                if not eventCache[key] then eventCache[key] = {} end
+                table.insert(eventCache[key], id)
+            elseif (not SPECIAL_FUNCTIONS[key]) then
+                error("Not a question, event, or special-function: "..tostring(key))
+            end
+        end
+    end
+end
+
+
+---@param upgradeId string
+---@return g.UpgradeInfo
+function g.getUpgradeInfo(upgradeId)
+    return assert(upgradeInfos[upgradeId])
+end
+
+
+
+
+---@param uinfo g.UpgradeInfo
+---@return boolean
+function g.isUpgradeLocked(uinfo)
+    if not g.inPrestigeRange(g.getPrestige(), uinfo.prestige) then
+        -- not in prestige range... its obviously hidden
+        return true
+    end
+
+    if g.getUpgradeLevel(uinfo) > 0 then
+        return false -- cant be hidden if level>0
+    end
+    if uinfo.isHidden and uinfo:isHidden() then
+        return true
+    end
+
+    return false
+end
+
+
+
+---@param uinfo g.UpgradeInfo
+---@return boolean
+function g.isUpgradeHidden(uinfo)
+    if not g.inPrestigeRange(g.getPrestige(), uinfo.prestige) then
+        -- not in prestige range... its obviously hidden
+        return true
+    end
+
+    if g.getUpgradeLevel(uinfo) > 0 then
+        return false -- cant be hidden if level>0
+    end
+    if uinfo.isHidden and uinfo:isHidden() then
+        return true
+    end
+
+    return false
+end
+
+
+
+local function upgradePriceMult(uinfo)
+    local level = g.getUpgradeLevel(uinfo)
+    return (level + 1)
+end
+
+
+---WARNING: This incurs a table allocation.
+---@param uinfo g.UpgradeInfo
+---@return g.Bundle
+function g.getUpgradePrice(uinfo)
+    local mult = upgradePriceMult(uinfo)
+    local truePrice = {}
+    for _,res in ipairs(g.RESOURCE_LIST)do
+        if uinfo.price[res] then
+            truePrice[res] = uinfo.price[res]*mult
+        end
+    end
+    return truePrice
+end
+
+
+---@param uinfo g.UpgradeInfo
+function g.canAffordUpgrade(uinfo)
+    local mult = upgradePriceMult(uinfo)
+    for res,p in pairs(uinfo.price) do
+        local truePrice = p*mult
+        if truePrice > g.getResource(res) then
+            return false -- cant afford
+        end
+    end
+    return true
+end
+
+
+
+---@param uinfo g.UpgradeInfo
+function g.tryBuyUpgrade(uinfo)
+    local session = g.getSn()
+    local typ = uinfo.type
+    if g.canAffordUpgrade(uinfo) then
+        local price = g.getUpgradePrice(uinfo)
+        g.subtractResources(price)
+        session.upgradeLevels[typ] = (session.upgradeLevels[typ] or 0) + 1
+    end
+end
+
+
+
+---@param uinfo g.UpgradeInfo
+---@return number
+function g.getUpgradeLevel(uinfo)
+    local session = g.getSn()
+    assert(upgradeInfos[uinfo.type], "Invalid upgrade")
+    return (session.upgradeLevels[uinfo.type] or 0)
+end
+
+
+
+function askUpgrades(question, ...)
+    local questionInfo = g.getQuestionInfo(question)
+    local reducer = questionInfo.reducer
+    local defaultValue = questionInfo.defaultValue
+    local upgradeIds = questionCache[question]
+
+    local result = defaultValue
+
+    if not upgradeIds then return result end
+
+    for _, upgradeId in ipairs(upgradeIds) do
+        local uinfo = g.getUpgradeInfo(upgradeId)
+        local level = g.getUpgradeLevel(uinfo)
+        if level > 0 then
+            local answerFunc = uinfo[question]
+            if answerFunc then
+                local answer = answerFunc(level, ...) or defaultValue
+                result = reducer(answer, result)
+            end
+        end
+    end
+
+    return result
+end
+
+
+function callUpgrades(event, ...)
+    local upgradeIds = eventCache[event]
+    if not upgradeIds then return end
+
+    for _, id in ipairs(upgradeIds) do
+        local uinfo = g.getUpgradeInfo(id)
+        local level = g.getUpgradeLevel(uinfo)
+        if level and level > 0 then
+            local eventFunc = uinfo[event]
+            if eventFunc then
+                eventFunc(level, ...)
+            end
+        end
+    end
+end
+
+
+
+
+end
 
 
 
@@ -685,7 +959,10 @@ end
 
 
 
-local tokenTypes = {--[[
+
+
+
+local tokenDefinitions = {--[[
     [tokenType] -> {
         health = X,
         
@@ -709,7 +986,7 @@ function g.defineToken(tokType, name, tabl)
     tabl.type = tokType ---@diagnostic disable-line
     tabl.image = tabl.image or tokType ---@diagnostic disable-line
     tabl.name = loc(name) ---@diagnostic disable-line
-    tokenTypes[tokType] = tabl
+    tokenDefinitions[tokType] = tabl
     tokenMts[tokType] = {__index = tabl}
 end
 
@@ -834,7 +1111,7 @@ function g.spawnToken(tokType, x,y)
     local w = g.getMainWorld()
     assert(type(tokType) == "string")
     assert(x and y)
-    local tabl = tokenTypes[tokType]
+    local tabl = tokenDefinitions[tokType]
     if not (tabl) then
         error("Invalid token type: " .. tostring(tokType))
     end
