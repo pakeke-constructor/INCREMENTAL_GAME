@@ -411,6 +411,9 @@ end
 ---@class g.stats
 g.stats = {}
 
+
+-- SSTATS 
+-- (if you ever want to quickly search the name of stats, search "sstats")
 g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
@@ -447,13 +450,15 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 
 ---@class g.UpgradeDefinition
 ---@field prestige number|g.PrestigeRange
+---@field kind string
 ---@field x number
 ---@field y number
 ---@field price g.Bundle
 ---@field image string?
 ---@field priceScaling? number
 ---@field description string?
----@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
+---@field isHidden (fun(self: g.UpgradeInfo): boolean)?
+---@field getValues (fun(self: g.UpgradeInfo, level: number): number,number?)?
 local g_UpgradeDefinition = {}
 
 
@@ -510,7 +515,7 @@ end
 g.defineResource("money", {
     image="money_icon",
     limitStat="MoneyLimit",
-    startingLimit=100,
+    startingLimit=(consts.DEV_MODE and 10000000000000) or 1000,
     color = {0.71, 0.55, 0.02},
 })
 g.defineResource("logs", {
@@ -698,7 +703,7 @@ local upgradePositions = {--[[
 ---@param name string
 ---@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil,kind:nil} }
 function g.defineTokenUpgrade(id, name, def)
-    def.upgrade.populateTokenPool = function(level, tokens) ---@diagnostic disable-line
+    def.upgrade.populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
         tokens:add(id, level)
     end
 
@@ -757,7 +762,7 @@ local SPECIAL_FUNCTIONS = {
 
 
 ---@param id string
----@param def g.UpgradeInfo
+---@param def g.UpgradeDefinition
 function g.defineUpgrade(id, name, def)
     if not (def.kind and UPGRADE_KINDS[def.kind]) then
         error("Invalid upgrade-kind: " .. tostring(def.kind),2)
@@ -939,7 +944,7 @@ function askUpgrades(question, ...)
         if level > 0 then
             local answerFunc = uinfo[question]
             if answerFunc then
-                local answer = answerFunc(level, ...) or defaultValue
+                local answer = answerFunc(uinfo, level, ...) or defaultValue
                 result = reducer(answer, result)
             end
         end
@@ -959,7 +964,7 @@ function callUpgrades(event, ...)
         if level and level > 0 then
             local eventFunc = uinfo[event]
             if eventFunc then
-                eventFunc(level, ...)
+                eventFunc(uinfo, level, ...)
             end
         end
     end
@@ -1120,6 +1125,25 @@ function g.getRandomPositionForToken()
 end
 
 
+---@param filter (fun(tok:g.Token):boolean)?
+---@return g.Token?
+function g.getRandomToken(filter)
+    local maxTries = 30
+    for _=1, maxTries do
+        local tokens = currentSession.mainWorld.tokens
+        local len = #tokens
+        local i = math.min(math.max(1, math.floor(love.math.random() * len)), len)
+        local tok = tokens[i]
+        if tok then
+            if (not filter) or filter(tok) then
+                return tok
+            end
+        end
+    end
+    return nil
+end
+
+
 
 -- each token is given a unique id. (Used for animations and stuff)
 local currentTokenId = 1
@@ -1208,10 +1232,17 @@ function g.damageToken(tok, dmg)
 end
 
 
+--- checks if a token is being hit
+---@param tok g.Token
+---@return boolean
+function g.isBeingHit(tok)
+    local time = tok.timeSinceHitStart
+    return time <= g.stats.HitDuration
+end
+
 ---@param tok g.Token
 function g.tryHitToken(tok)
-    local time = tok.timeSinceHitStart
-    if time > g.stats.HitDuration then
+    if not g.isBeingHit(tok) then
         tok.timeSinceHitStart = 0
         g.call("tokenHitStart", tok)
     end

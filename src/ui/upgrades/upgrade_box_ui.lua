@@ -59,7 +59,7 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h)
     -- draw background:
     --------------------
     local col = cpy(UPCOLS[uinfo.kind])
-    col.l = col.l - 0.3
+    col.l = col.l - 0.2
     adjustColor(uinfo,level,col)
     if uinfo.kind == "TOKEN" then
         -- tokens have transparent bg

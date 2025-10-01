@@ -94,7 +94,7 @@ g.defineTokenUpgrade("basic_log", "Basic Log", {
 
 do
 
-local X,Y = -3,-1
+local X,Y = 2,-1
 g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
     token = {
         resources = {
