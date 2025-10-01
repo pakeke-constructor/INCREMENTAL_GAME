@@ -238,7 +238,7 @@ local smolCache = {}
 function g.getBigFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
     if bigCache[size] then return bigCache[size] end
-    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size,"mono")
+    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size,"mono",1)
     return bigCache[size]
 end
 
@@ -247,7 +247,7 @@ end
 function g.getSmallFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
     if smolCache[size] then return smolCache[size] end
-    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size,"mono")
+    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size,"mono",1)
     return smolCache[size]
 end
 
@@ -450,7 +450,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 
 ---@class g.UpgradeDefinition
 ---@field prestige number|g.PrestigeRange
----@field kind string
+---@field kind g.UpgradeKind
 ---@field x number
 ---@field y number
 ---@field price g.Bundle
