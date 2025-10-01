@@ -53,6 +53,24 @@ function harvest:update(dt)
 
     local sn = g.getSn()
     sn:_updateMainWorld(dt)
+
+    -- Move the camera such that harvest area is not obstructed by the HUD
+    local safeArea = g.getHUD():getSafeArea()
+    -- These are in "true" screen-space now (non-scaled)
+    local uis = ui.getUIScaling()
+    local sx, sy = safeArea.x * uis, safeArea.y * uis
+    local sw, sh = safeArea.w * uis, safeArea.h * uis
+    local scale = math.min(sw / sn.mainWorld.WIDTH, sh / sn.mainWorld.HEIGHT)
+    local zf = self:zoomFromScale(scale)
+    -- Make sure it's in 0.2 increments
+    zf = math.floor(zf / 0.2) * 0.2
+    self:setZoom(zf)
+
+    -- Now move the position
+    scale = self:scaleFromZoom(zf)
+    local w, h = love.graphics.getDimensions()
+    self.camera:setViewport(0, 0, w, h, (sx + sw / 2) / w, (sy + sh / 2) / h)
+    self.camera:setPos(sn.mainWorld.WIDTH / 2, sn.mainWorld.HEIGHT / 2)
 end
 
 

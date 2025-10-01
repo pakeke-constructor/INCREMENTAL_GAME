@@ -85,6 +85,8 @@ function Resources:init()
         rocks = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
         bones = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
     }
+
+    self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
 end
 
 if false then
@@ -196,7 +198,8 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
 
     love.graphics.setLineWidth(lw)
 
-    return iconR:getCenter()
+    local ux, uy = iconR:getCenter()
+    return ux, uy, iconR:union(textR)
 end
 
 ---@param camera Camera
@@ -213,6 +216,7 @@ function Resources:drawHUD(camera)
         :moveUnit(4, 4)
     local otherBaseResourceR = Kirigami(0, 0, 80, 32):moveUnit(4, 4)
     local prevR = nil
+    local leftPad = 0 -- For free area computation
 
     love.graphics.setColor(1, 1, 1)
     for i, resId in ipairs(g.RESOURCE_LIST) do
@@ -226,6 +230,7 @@ function Resources:drawHUD(camera)
                 -- Otherwise, treat it normally
                 targetR = otherBaseResourceR:attachToBottomOf(prevR):moveUnit(0, 4)
                 scale = 1
+                leftPad = targetR.x + targetR.w
             end
 
             local resInfo = g.getResourceInfo(resId)
@@ -234,15 +239,26 @@ function Resources:drawHUD(camera)
             bgCol.value = bgCol.value/2
             bgCol.a = bgCol.a / 3
 
-            local ux, uy = love.graphics.transformPoint(self:_drawResourcesMeter(
+            local icx, icy, finalR = self:_drawResourcesMeter(
                 resId, targetR, resInfo.image, scale,
                 bgCol, resInfo.color
-            ))
+            )
+            local ux, uy = love.graphics.transformPoint(icx, icy)
             local pos = self.poses[resId]
             pos[1], pos[2] = camera:toWorld(ux, uy)
+
+            if prevR then
+                leftPad = finalR.x + finalR.w
+            end
             prevR = targetR
         end
     end
+
+    self.freeArea = r:padUnit(leftPad, mainResourceR.y + mainResourceR.h, 0, 0)
+end
+
+function Resources:getSafeArea()
+    return self.freeArea:set()
 end
 
 
