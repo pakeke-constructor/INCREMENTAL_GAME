@@ -8,7 +8,7 @@ local upgrades = require("src.upgrades.upgrades")
 
 local World = require("src.world.world")
 local Session = require("src.Session")
-local HUD = require("src.ui.hud.HUD")
+local HUD = require("src.ui.hud.hud")
 
 ---@class g
 local g = {}
@@ -446,9 +446,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---| "MISC"
 
 
-
 ---@class g.UpgradeDefinition
----@field kind g.UpgradeKind
 ---@field prestige number|g.PrestigeRange
 ---@field x number
 ---@field y number
@@ -696,7 +694,7 @@ local upgradePositions = {--[[
 
 ---@param id string
 ---@param name string
----@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil} }
+---@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil,kind:nil} }
 function g.defineTokenUpgrade(id, name, def)
     def.upgrade.populateTokenPool = function(level, tokens) ---@diagnostic disable-line
         tokens:add(id, level)

@@ -46,7 +46,6 @@ function text.cloneDefaultEffectGroup()
     return defaultEffectGroup:clone()
 end
 
----@module "client.parser"
 local parser = require(".parser")
 
 ---Parse rich text to a table of text and effects.

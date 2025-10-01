@@ -123,15 +123,25 @@ function FreeCameraScene:updateCamera(dt)
 end
 
 
-local function zoom(x, k)
-    k = k or 1.0  -- growth/decay rate
-    return math.exp(k * x)
+---@param x number
+function FreeCameraScene:scaleFromZoom(x)
+    return math.exp(x)
+end
+
+---@param x number
+function FreeCameraScene:zoomFromScale(x)
+    return math.log(x)
 end
 
 
 function FreeCameraScene:wheelmoved(dx,dy)
-    self._zoomIndex = self._zoomIndex + dy/5
-    self.camera:setZoom(zoom(self._zoomIndex, 1))
+    return self:setZoom(self._zoomIndex + dy/5)
+end
+
+---@param z number
+function FreeCameraScene:setZoom(z)
+    self._zoomIndex = z
+    self.camera:setZoom(self:scaleFromZoom(self._zoomIndex))
 end
 
 ---@param x number
@@ -141,7 +151,7 @@ end
 function FreeCameraScene:mousemoved(x, y, dx, dy)
     if self.allowMousePan and love.mouse.isDown(2, 3) then
         local cx, cy = self.camera:getPos() --[[@as number]]
-        local z = zoom(self._zoomIndex, 1)
+        local z = self:scaleFromZoom(self._zoomIndex)
 
         self.camera:setPos(cx - dx / z, cy - dy / z)
     end

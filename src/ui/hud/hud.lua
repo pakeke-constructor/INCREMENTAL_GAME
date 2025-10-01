@@ -6,6 +6,7 @@ local HUD = objects.Class("g:HUD")
 
 function HUD:init()
     self.resourceHUD = Resources()
+    self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
 end
 
 if false then
@@ -31,6 +32,7 @@ function HUD:draw(camera)
     love.graphics.setColor(1, 0, 0)
     love.graphics.rectangle("line", profileR:get())
 
+    self.freeArea = r:padUnit(profileR.x + profileR.w, 0, 0, 0)
     return self:drawResourceHUD(camera)
 end
 
@@ -45,6 +47,10 @@ end
 ---@param amount number Amount to add to the display once it's done.
 function HUD:spawnResourceParticle(kind, x, y, amount)
     return self.resourceHUD:spawnParticle(kind, x, y, amount)
+end
+
+function HUD:getSafeArea()
+    return self.freeArea:intersection(self.resourceHUD:getSafeArea())
 end
 
 return HUD
