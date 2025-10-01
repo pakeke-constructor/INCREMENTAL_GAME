@@ -58,9 +58,6 @@ local EASINGS = {
     function(x) return -(math.cos(math.pi * x) - 1) / 2 end
 }
 
----@type g.ResourceType[]
-local RESOURCE_KIND_LIST = {"money", "logs", "rocks", "bones"}
-
 function Resources:init()
     ---@type g.hud._ResourceParticle[]
     self.particles = {}
@@ -97,21 +94,30 @@ end
 
 ---@param dt number
 function Resources:update(dt)
+    local resourcesInFlight = {}
+    -- the amount of resources that are currently flying towards HUD
+
     for i = #self.particles, 1, -1 do
         local p = self.particles[i]
+        resourcesInFlight[p.kind] = (resourcesInFlight[p.kind] or 0) + p.amount
 
         p.time = p.time + dt
         if p.time >= BEFOREHUD_TIME + p.tohudTime then
+            -- particle hit!
             table.remove(self.particles, i)
-            self.displayValue[p.kind] = math.min(self.displayValue[p.kind] + p.amount, g.getResource(p.kind))
             self.timeSinceChanged[p.kind] = 0
         end
     end
 
-    for _, kind in ipairs(RESOURCE_KIND_LIST) do
+    for _, kind in ipairs(g.RESOURCE_LIST) do
         local truthValue = g.getResource(kind)
-        -- If truth value is less than the display value, reset.
-        self.displayValue[kind] = math.min(self.displayValue[kind], truthValue)
+        local limit = g.getResourceLimit(kind)
+        local amount = resourcesInFlight[kind] or 0
+        if truthValue == limit then
+            -- dont subtract resources if its at limit.
+            amount = 0
+        end
+        self.displayValue[kind] = truthValue - amount
         self.timeSinceChanged[kind] = self.timeSinceChanged[kind] + dt
     end
 end
