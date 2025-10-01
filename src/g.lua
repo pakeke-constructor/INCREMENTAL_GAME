@@ -428,6 +428,9 @@ g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
 
 
+
+local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
+
 ---@alias g.UpgradeKind
 ---token upgrade, always +1 <token> per level. 1-1 mapping with a token.
 ---| "TOKEN"
@@ -648,6 +651,9 @@ end
 ---@param name string
 ---@param def g.UpgradeDefinition
 function g.defineUpgrade(id, name, def)
+    if not (def.kind and UPGRADE_KINDS[def.kind]) then
+        error("Invalid upgrade-kind: " .. tostring(def.kind),2)
+    end
     def.name = loc(name) ---@diagnostic disable-line
     def.image = id
     upgrades.defineUpgrade(id, def)
@@ -663,6 +669,7 @@ function g.defineTokenUpgrade(id, name, def)
         tokens:add(id, level)
     end
 
+    def.upgrade.kind = "TOKEN"
     g.defineUpgrade(id, name, def.upgrade)
     g.defineToken(id, name, def.token)
 end
@@ -1020,11 +1027,12 @@ end
 g.COLORS = {
     UPGRADE_KINDS = {
         HARVESTING = objects.Color("#" .. "FFCB8B14"),
-        TOKENS = objects.Color("#" .. "FF1479CB"),
+        TOKEN = objects.Color("#" .. "FF1479CB"),
         TOKEN_MODIFIER = objects.Color("#" .. "FF15C39A"),
         MISC = objects.Color("#" .. "FFFFFFFF"),
     },
 
+    CANT_AFFORD = objects.Color("#".."FFC81515"),
     MONEY = objects.Color(g.getResourceInfo("money").color),
 }
 

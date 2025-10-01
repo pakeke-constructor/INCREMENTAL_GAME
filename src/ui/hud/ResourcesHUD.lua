@@ -137,7 +137,7 @@ local function printTextAt(text, font, region, align, baseScale, scale)
     end
 
     local s = baseScale * scale
-    love.graphics.printf(text, font, tx, ty, maxw, "left", 0, s, s, maxw / 2, th / 2)
+    richtext.printRich(text, font, tx, ty, maxw, "left", 0, s, s, maxw / 2, th / 2)
 end
 
 ---@param x number
