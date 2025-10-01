@@ -56,11 +56,9 @@ g.defineTokenUpgrade("bamboo", "Bamboo", {
 
 
 
-
-g.defineTokenUpgrade("basic_log", "Basic Log", {
+g.defineTokenUpgrade("stick", "Stick", {
     token = {
         resources = {
-            money = 5,
             logs = 1,
         },
 
@@ -70,7 +68,25 @@ g.defineTokenUpgrade("basic_log", "Basic Log", {
     upgrade = {
         prestige = 0,
         price = {money=10},
-        x=2,y=1,
+        x=4,y=1,
+    }
+})
+
+
+g.defineTokenUpgrade("basic_log", "Basic Log", {
+    token = {
+        resources = {
+            money = 10,
+            logs = 3,
+        },
+
+        maxHealth = 30
+    },
+
+    upgrade = {
+        prestige = 0,
+        price = {money=10},
+        x=3,y=1,
     }
 })
 

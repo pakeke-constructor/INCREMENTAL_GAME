@@ -35,6 +35,10 @@ function Session:init()
     self.resources = {}
     for _,resId in ipairs(g.RESOURCE_LIST) do
         self.resources[resId] = 0
+        if consts.DEV_MODE then
+            self.resources[resId] = 1000000000
+            print(resId,self.resources[resId])
+        end
     end
 
     self.upgradeLevels = {--[[
