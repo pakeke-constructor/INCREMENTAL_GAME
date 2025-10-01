@@ -32,17 +32,9 @@ function upgscene:draw()
     g.getHUD():drawResourceHUD(self.camera)
 
     if hoveredUpgrade then
-        local uiW = ui.getScaledUIDimensions()
-        local mx,my = ui.getMouse()
-        local w,h = upgrades.getUpgradeDescriptionSize(hoveredUpgrade)
-
         -- figure out if we render left or right.
-        local ox = 14
-        if mx + ox + w > uiW then
-            ox = -w - ox
-        end
 
-        upgrades.drawUpgradeDescription(hoveredUpgrade, mx+ox,my-h/3)
+        -- TODO: draw upgrade-hover-description here
     end
 
     ui.endUI()

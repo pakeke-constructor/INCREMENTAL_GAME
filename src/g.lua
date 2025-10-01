@@ -237,7 +237,7 @@ local smolCache = {}
 function g.getBigFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
     if bigCache[size] then return bigCache[size] end
-    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size)
+    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size,"mono")
     return bigCache[size]
 end
 
@@ -246,7 +246,7 @@ end
 function g.getSmallFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
     if smolCache[size] then return smolCache[size] end
-    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size)
+    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size,"mono")
     return smolCache[size]
 end
 
@@ -388,6 +388,7 @@ g.VALID_STATS = {}
 ---@return number
 function g.defineStat(name, startingValue)
     strTc(name)
+    assert(not g.VALID_STATS[name], "Redefined stat")
     assert(name:sub(1,1):upper() == name:sub(1,1), "Stats must have first letter capitalized")
     local addQ = "get" .. name .. "Modifier"
     g.defineQuestion(addQ, reducers.ADD, 0)
@@ -409,28 +410,26 @@ end
 ---@class g.stats
 g.stats = {}
 
-g.stats.HitDuration = g.defineStat("HitDuration", 0.4)
+g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
 
-g.stats.MoneyLimit = g.defineStat("MoneyLimit", 10000)
 
-g.stats.LogLimit = g.defineStat("LogLimit", 1000)
-g.stats.RockLimit = g.defineStat("RockLimit", 1000)
-g.stats.BoneLimit = g.defineStat("BoneLimit", 1000)
-
-
-
----@alias g.Bundle {money?: number, bones?: number, rocks?: number, logs?: number}
-
----@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
 
 ---@alias g.ResourceType "money"|"logs"|"rocks"|"bones"
+
+-- i wish we could define this as { [g.ResourceType]: number } but it doesnt work that way
+---@alias g.Bundle {money?: number, bones?: number, rocks?: number, logs?: number}
+---@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
+
 
 ---@alias g.PrestigeRange {lower: integer, upper: integer}
 
 
+
+
+local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 
 ---@alias g.UpgradeKind
 ---token upgrade, always +1 <token> per level. 1-1 mapping with a token.
@@ -653,6 +652,9 @@ end
 ---@param name string
 ---@param def g.UpgradeDefinition
 function g.defineUpgrade(id, name, def)
+    if not (def.kind and UPGRADE_KINDS[def.kind]) then
+        error("Invalid upgrade-kind: " .. tostring(def.kind),2)
+    end
     def.name = loc(name) ---@diagnostic disable-line
     def.image = id
     upgrades.defineUpgrade(id, def)
@@ -662,15 +664,14 @@ end
 
 ---@param id string
 ---@param name string
----@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinitionBase }
+---@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil} }
 function g.defineTokenUpgrade(id, name, def)
     def.upgrade.populateTokenPool = function(level, tokens) ---@diagnostic disable-line
         tokens:add(id, level)
     end
 
-    local upgrade = def.upgrade --[[@as g.UpgradeDefinition]]
-    upgrade.kind = "TOKEN"
-    g.defineUpgrade(id, name, upgrade)
+    def.upgrade.kind = "TOKEN"
+    g.defineUpgrade(id, name, def.upgrade)
     g.defineToken(id, name, def.token)
 end
 
@@ -1021,6 +1022,21 @@ end
 function g.spawnParticle(particleName, x, y, amount)
     return currentSession.mainWorld.particles:spawnParticles(particleName, x, y, amount)
 end
+
+
+
+g.COLORS = {
+    UPGRADE_KINDS = {
+        HARVESTING = objects.Color("#" .. "FFCB8B14"),
+        TOKEN = objects.Color("#" .. "FF1479CB"),
+        TOKEN_MODIFIER = objects.Color("#" .. "FF15C39A"),
+        MISC = objects.Color("#" .. "FFFFFFFF"),
+    },
+
+    CANT_AFFORD = objects.Color("#".."FFC81515"),
+    MONEY = objects.Color(g.getResourceInfo("money").color),
+}
+
 
 
 return g

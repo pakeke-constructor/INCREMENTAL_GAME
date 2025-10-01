@@ -273,7 +273,7 @@ function World:_update(dt)
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
     if g.getPrestige() == 0 then
-        tp:add("basic_grass", 3)
+        tp:add("grass_blades", 3)
     end
     self.tokenPool = tp
 
@@ -308,8 +308,9 @@ function World:_update(dt)
                 -- TODO: this randomness sucks! 
                 -- Its random and it sometimes takes ages to respawn
                 local x,y = g.getRandomPositionForToken()
-                assert(x and y)
-                g.spawnToken(tokType, x,y)
+                if x and y then
+                    g.spawnToken(tokType, x,y)
+                end
             end
         end
     end

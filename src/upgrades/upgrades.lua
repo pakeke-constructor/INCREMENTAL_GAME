@@ -179,6 +179,28 @@ function upgrades.getInfo(upgradeId)
 end
 
 
+
+---@param upgradeId string
+---@return boolean
+function upgrades.isLocked(upgradeId)
+    local uinfo = upgrades.getInfo(upgradeId)
+    if not g.inPrestigeRange(g.getPrestige(), uinfo.prestige) then
+        -- not in prestige range... its obviously hidden
+        return true
+    end
+
+    if upgrades.getLevel(upgradeId) > 0 then
+        return false -- cant be hidden if level>0
+    end
+    if uinfo.isHidden and uinfo:isHidden() then
+        return true
+    end
+
+    return false
+end
+
+
+
 ---@param upgradeId string
 ---@return boolean
 function upgrades.isHidden(upgradeId)
@@ -239,47 +261,6 @@ end
 
 
 
----@param uinfo g.UpgradeInfo
----@param upgradeId string
----@return boolean isHovered
-local function drawUpgrade(uinfo, upgradeId)
-    local level = upgrades.getLevel(upgradeId)
-
-    local cx,cy,size = upgrades.getCoords(uinfo)
-    local x,y,w,h = cx-size/2, cy-size/2, size, size
-
-    local isHovered = false
-    if iml.isHovered(x,y,w,h) then
-        love.graphics.setColor(0.7,0.7,0.85)
-        isHovered = true
-    else
-        love.graphics.setColor(1,1,1)
-    end
-
-    -- background:
-    love.graphics.rectangle("fill",x,y,w,h)
-
-    g.drawImage(uinfo.image, cx, cy)
-
-    love.graphics.setColor(1,0.3,0.2)
-    love.graphics.setLineWidth(2)
-    love.graphics.rectangle("line", x,y,w,h)
-    love.graphics.setColor(1,1,1)
-
-    if level > 0 then
-        local xx,yy,ww,hh = cx, cy, size,size
-        --love.graphics.rectangle("line",xx,yy,ww,hh)
-        richtext.printRichContained("{o thickness=4}"..tostring(level), love.graphics.getFont(), xx,yy,ww,hh)
-    end
-
-    if iml.wasJustClicked(x,y,w,h) then
-        if g.trySubtractResources(uinfo.price) then
-            increaseUpgrade(uinfo.type)
-        end
-    end
-    return isHovered
-end
-
 
 
 ---@return g.UpgradeInfo?
@@ -294,9 +275,16 @@ function upgrades._draw()
 
     for upgradeId, uinfo in pairs(upgradeInfos or {}) do
         if not upgrades.isHidden(upgradeId) then
-            local isHovered = drawUpgrade(uinfo, upgradeId)
+            local level = upgrades.getLevel(upgradeId)
+            local cx,cy,size = upgrades.getCoords(uinfo)
+            local x,y,w,h = cx-size/2, cy-size/2, size, size
+
+            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h)
             if isHovered then
                 hoveredUpgrade = uinfo
+            end
+            if wasJustClicked and g.trySubtractResources(uinfo.price) then
+                increaseUpgrade(upgradeId)
             end
         end
     end
@@ -304,159 +292,6 @@ function upgrades._draw()
     return hoveredUpgrade
 end
 
-
-
-do
-
-
-local W = 200
-
-
---[[
-
-TODO:
-We almost certainly want retained-UI here.
-
-Or else we will be doing weird double-passes all the time.
-- When we hover a new element, create a retained-ui upgrade-description
-- (retained-ui object should be instantiated and stored inside upgrade-scene)
-- Check it's w,h and then render it. :) ez
-
-We should probably make a new file,
-`src/ui/upgrade_description.lua`?
-^^^ Maybe something like that?
-
-And then for API:
-upgDesc:addHeight()
-upgDesc:expandWidth()
-upgDesc:addText()
-upgDesc:addSeparator()
-
-and have it *tightly coupled* with upgrade-descriptions.
-KEEP IT SIMPLE, DONT OVERENGINEER.
-
-]]
-
----@param uinfo g.UpgradeInfo
----@param r layout.Region
-local function drawTitle(uinfo, r, noDraw)
-    -- for now; assume all upgrades are tokens
-    -- (Title, Image)
-
-    local f = g.getBigFont(32)
-    local tW,tH = f:getWidth(richtext.stripEffects(uinfo.name)), f:getHeight()
-
-    local textR = Kirigami(0, 0, tW, tH)
-        :attachToTopOf(r)
-        :moveRatio(0, 1)
-        :centerX(r)
-    local imageR = nil
-    if uinfo.image then
-        -- The idea in here is that both icon and upgrade name are in center side-by-side.
-        local leftPadding = 4
-        imageR = Kirigami(0, 0, 32, 32)
-        textR = Kirigami(0, 0, tW, tH)
-            :attachToTopOf(r)
-            :moveRatio(0, 1)
-            :centerX(r)
-            :moveUnit(-(imageR.w + leftPadding) / 2, 0)
-        imageR = imageR:attachToRightOf(textR):centerY(textR):moveUnit(leftPadding)
-    end
-
-    local h = (tH * 1)
-    local h1 = (tH * 1.2)
-    if not noDraw then
-        love.graphics.setColor(1, 1, 1)
-
-        -- Draw text
-        local tX, tY = textR:get()
-        richtext.printRich(uinfo.name, f, tX, tY, tW, "left")
-
-        -- Draw image
-        if imageR and uinfo.image then
-            local iX, iY = imageR:getCenter()
-            g.drawImage(uinfo.image, iX, iY, 0, 2, 2)
-        end
-    end
-
-    if imageR then
-        return textR:union(imageR)
-    else
-        return textR
-    end
-end
-
-
-
----@param tinfo g.TokenInfo
----@param x number?
----@param currentY number?
-local function drawTokenInfo(tinfo, x, currentY)
-    
-end
-
-
----@param x number?
----@param currentY number?
-local function drawDescription(uinfo, x, currentY)
-    -- draw 
-end
-
-
----@param x number?
----@param currentY number?
-local function drawPrice(uinfo, x, currentY)
-    -- draw price at bottom
-end
-
-
----@param uinfo g.UpgradeInfo
----@return number
----@return number
-function upgrades.getUpgradeDescriptionSize(uinfo)
-    return W,120
-end
-
-
----@param uinfo g.UpgradeInfo
----@param x number
----@param y number
-function upgrades.drawUpgradeDescription(uinfo, x,y)
-    -- x,y top left
-
-    local w,h = upgrades.getUpgradeDescriptionSize(uinfo)
-    local r = Kirigami(x, y, w, h)
-
-    -- bg:
-    love.graphics.setColor(0.2,0.2,0.4,0.8)
-    love.graphics.rectangle("fill", r:get())
-
-    -- border:
-    love.graphics.setColor(1,1,1)
-    love.graphics.setLineWidth(2)
-    love.graphics.setColor(0.,0.,0.08)
-    love.graphics.rectangle("line", r:get())
-
-    local contentR = r:padUnit(4)
-
-    -- Draw title
-    local titleR = drawTitle(uinfo, contentR)
-    -- Draw outline
-    local outlineR = contentR:padUnit(16, 0)
-        :set(nil, nil, nil, 1)
-        :attachToBottomOf(titleR)
-        :moveUnit(0, 4)
-    love.graphics.rectangle("fill", outlineR:get())
-
-    -----------
-    -- draw token-info
-    -----------
-    -- draw description
-    -----------
-    -- draw price
-end
-
-end
 
 
 
