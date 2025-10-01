@@ -452,6 +452,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field price g.Bundle
 ---@field image string?
 ---@field priceScaling? number
+---@field description string?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 local g_UpgradeDefinition = {}
 
@@ -459,6 +460,7 @@ local g_UpgradeDefinition = {}
 ---@class g.TokenDefinition
 ---@field maxHealth number
 ---@field resources g.Bundle
+---@field description string?
 local g_TokenDefinition = {}
 
 
