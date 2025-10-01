@@ -33,10 +33,8 @@ function upgscene:draw()
 
     if hoveredUpgrade then
         -- figure out if we render left or right.
-        local w,h = upgrades.getUpgradeDescriptionSize(hoveredUpgrade)
 
-        local mx,my = ui.getMouse()
-        upgrades.drawUpgradeDescription(hoveredUpgrade, mx+14,my-h/3)
+        -- TODO: draw upgrade-hover-description here
     end
 
     ui.endUI()

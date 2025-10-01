@@ -48,12 +48,12 @@ end
 
 
 ---@param uinfo g.UpgradeInfo
+---@return boolean isHovered
 ---@return boolean wasJustClicked
 local function upgradeBoxUI(uinfo, level, x,y,w,h)
     local cpy = objects.Color
     local UPCOLS = g.COLORS.UPGRADE_KINDS
     local cx,cy = x+w/2, y+h/2
-
 
     --------------------
     -- draw background:
@@ -79,9 +79,12 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h)
         borderCol = cpy(g.COLORS.CANT_AFFORD)
     end
     adjustColor(uinfo, level, borderCol)
-    lg.setColor(borderCol)
     local lw = lg.getLineWidth()
     lg.setLineWidth(2)
+    lg.setColor(0,0,0)
+    lg.rectangle("line",x-1,y-1,w+2,h+2)
+    lg.setLineWidth(2)
+    lg.setColor(borderCol)
     lg.rectangle("line",x,y,w,h)
 
 
@@ -101,11 +104,12 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h)
     --------------------
     if level > 0 then
         --love.graphics.rectangle("line",xx,yy,ww,hh)
-        richtext.printRich("{o thickness=4}"..tostring(level), love.graphics.getFont(), cx+w/4, cy+h/4, 0xfffff, "left")
+        local font = g.getBigFont(16)
+        richtext.printRich("{o thickness=1}"..tostring(level), font, math.floor(cx+w/4), math.floor(cy), 0xfffff, "left")
     end
 
     lg.setLineWidth(lw)
-    return iml.wasJustClicked(x,y,w,h)
+    return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h)
 end
 
 

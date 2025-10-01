@@ -279,9 +279,12 @@ function upgrades._draw()
             local cx,cy,size = upgrades.getCoords(uinfo)
             local x,y,w,h = cx-size/2, cy-size/2, size, size
 
-            local isHovered = ui.upgradeBoxUI(uinfo, level, x,y,w,h)
+            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h)
             if isHovered then
                 hoveredUpgrade = uinfo
+            end
+            if wasJustClicked and g.trySubtractResources(uinfo.price) then
+                increaseUpgrade(upgradeId)
             end
         end
     end

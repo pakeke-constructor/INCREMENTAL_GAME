@@ -237,7 +237,7 @@ local smolCache = {}
 function g.getBigFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
     if bigCache[size] then return bigCache[size] end
-    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size)
+    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size,"mono")
     return bigCache[size]
 end
 
@@ -246,7 +246,7 @@ end
 function g.getSmallFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
     if smolCache[size] then return smolCache[size] end
-    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size)
+    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size,"mono")
     return smolCache[size]
 end
 
@@ -663,7 +663,7 @@ end
 
 ---@param id string
 ---@param name string
----@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition }
+---@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil} }
 function g.defineTokenUpgrade(id, name, def)
     def.upgrade.populateTokenPool = function(level, tokens) ---@diagnostic disable-line
         tokens:add(id, level)
