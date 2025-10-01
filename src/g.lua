@@ -307,7 +307,7 @@ end
 function g.drawImageOffset(imageName, x,y, r, sx,sy, ox,oy, kx,ky)
     local quad = g.getImageQuad(imageName)
     local _,_,w,h = quad:getViewport()
-    atlas:draw(quad, x, y, r, sx, sy, ox * w, oy * h, kx, ky)
+    atlas:draw(quad, x, y, r, sx, sy, (ox or 0.5) * w, (oy or 0.5) * h, kx, ky)
 end
 
 
@@ -447,19 +447,24 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 --- (eg. double the money-limit. Harvest stuff automatically.)
 ---| "MISC"
 
-
 ---@class g.UpgradeDefinition
 ---@field prestige number|g.PrestigeRange
 ---@field kind g.UpgradeKind
+---@field tokenType string? (only for kind == "TOKEN")
 ---@field x number
 ---@field y number
 ---@field price g.Bundle
 ---@field image string?
 ---@field priceScaling? number
 ---@field description string?
----@field isHidden (fun(self: g.UpgradeInfo): boolean)?
----@field getValues (fun(self: g.UpgradeInfo, level: number): number,number?)?
+---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
+---@field valueFormatter (string|(fun(x:number):string))[]
 local g_UpgradeDefinition = {}
+---@param self g.UpgradeInfo
+---@param level integer
+---@return integer ...
+function g_UpgradeDefinition:getValues(level)
+end
 
 
 ---@class g.TokenDefinition
@@ -769,6 +774,7 @@ function g.defineUpgrade(id, name, def)
     end
     def.name = loc(name) ---@diagnostic disable-line
     def.image = id
+    def.valueFormatter = def.valueFormatter or {}
     table.insert(g.UPGRADE_LIST, id)
 
     niceAssert(type(id) == "string")
@@ -996,6 +1002,7 @@ local tokenDefinitions = {--[[
         onDestroyed = func
     }
 ]]}
+---@cast tokenDefinitions table<string,g.TokenInfo>
 
 local tokenMts = {--[[
     [tokenType] -> tokenMt
@@ -1014,6 +1021,14 @@ function g.defineToken(tokType, name, tabl)
     tabl.name = loc(name) ---@diagnostic disable-line
     tokenDefinitions[tokType] = tabl
     tokenMts[tokType] = {__index = tabl}
+end
+
+---@param tokType string
+function g.getTokenInfo(tokType)
+    if not tokenDefinitions[tokType] then
+        error("token '"..tokType.."' does not exist")
+    end
+    return tokenDefinitions[tokType]
 end
 
 
