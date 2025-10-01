@@ -7,7 +7,7 @@ g.defineTokenUpgrade("grass_blades", "Grass Blades", {
     },
     upgrade = {
         prestige = 0,
-        price = {money=1},
+        price = {money=3},
         x=1,y=1,
     }
 })
@@ -16,7 +16,7 @@ g.defineTokenUpgrade("grass_blades", "Grass Blades", {
 g.defineTokenUpgrade("small_grass", "Small Grass", {
     token = {
         resources = {money = 3},
-        maxHealth = 8
+        maxHealth = 6
     },
     upgrade = {
         prestige = 0,

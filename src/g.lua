@@ -220,7 +220,6 @@ function g.formatNumber(num)
     return (isNegative and "-" or "") .. tostring(num)
 end
 
-
 end
 
 
@@ -450,8 +449,9 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field prestige number|g.PrestigeRange
 ---@field x number
 ---@field y number
----@field image string?
 ---@field price g.Bundle
+---@field image string?
+---@field priceScaling? number
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 local g_UpgradeDefinition = {}
 
@@ -843,10 +843,28 @@ function g.isUpgradeHidden(uinfo)
 end
 
 
+--- Floors a number, removing insignificant digits.
+--- Useful for adjusting prices to look a bit "nicer"
+---
+--- g.floorSignificant(12345, 1) -> 10000
+--- g.floorSignificant(12345, 2) -> 12000
+--- g.floorSignificant(12345, 3) -> 12300
+--- g.floorSignificant(12345, 4) -> 12340
+--- g.floorSignificant(12345, 5) -> 12345
+---@param value number
+---@param nsig integer
+---@return integer
+local function floorSignificant(value, nsig)
+	local zeros = math.floor(math.log10(math.max(math.abs(value), 1)))
+	local mulby = 10 ^ (1+math.max(zeros-nsig, -1))
+	return math.floor(math.floor(value / mulby) * mulby)
+end
 
-local function upgradePriceMult(uinfo)
+local function modifyUpgradePrice(uinfo, val)
     local level = g.getUpgradeLevel(uinfo)
-    return (level + 1)
+    local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
+    val = floorSignificant(val*mult, 2)
+    return val
 end
 
 
@@ -854,11 +872,10 @@ end
 ---@param uinfo g.UpgradeInfo
 ---@return g.Bundle
 function g.getUpgradePrice(uinfo)
-    local mult = upgradePriceMult(uinfo)
     local truePrice = {}
     for _,res in ipairs(g.RESOURCE_LIST)do
         if uinfo.price[res] then
-            truePrice[res] = uinfo.price[res]*mult
+            truePrice[res] = modifyUpgradePrice(uinfo, uinfo.price[res])
         end
     end
     return truePrice
@@ -867,9 +884,8 @@ end
 
 ---@param uinfo g.UpgradeInfo
 function g.canAffordUpgrade(uinfo)
-    local mult = upgradePriceMult(uinfo)
     for res,p in pairs(uinfo.price) do
-        local truePrice = p*mult
+        local truePrice = modifyUpgradePrice(uinfo,p)
         if truePrice > g.getResource(res) then
             return false -- cant afford
         end
