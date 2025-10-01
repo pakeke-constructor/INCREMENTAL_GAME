@@ -896,6 +896,7 @@ end
 
 
 ---@param uinfo g.UpgradeInfo
+---@return boolean wasPurchased
 function g.tryBuyUpgrade(uinfo)
     local session = g.getSn()
     local typ = uinfo.type
@@ -903,7 +904,9 @@ function g.tryBuyUpgrade(uinfo)
         local price = g.getUpgradePrice(uinfo)
         g.subtractResources(price)
         session.upgradeLevels[typ] = (session.upgradeLevels[typ] or 0) + 1
+        return true
     end
+    return false
 end
 
 

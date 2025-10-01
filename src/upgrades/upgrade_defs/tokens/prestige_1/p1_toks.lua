@@ -29,7 +29,7 @@ g.defineTokenUpgrade("small_grass", "Small Grass", {
 g.defineTokenUpgrade("thick_grass", "Thick Grass", {
     token = {
         resources = {money = 6},
-        maxHealth = 15
+        maxHealth = 10
     },
     upgrade = {
         prestige = 0,
@@ -43,7 +43,7 @@ g.defineTokenUpgrade("thick_grass", "Thick Grass", {
 g.defineTokenUpgrade("bamboo", "Bamboo", {
     token = {
         resources = {money = 15},
-        maxHealth = 30
+        maxHealth = 20
     },
     upgrade = {
         prestige = 0,
@@ -62,7 +62,7 @@ g.defineTokenUpgrade("stick", "Stick", {
             logs = 1,
         },
 
-        maxHealth = 15
+        maxHealth = 5
     },
 
     upgrade = {
@@ -80,7 +80,7 @@ g.defineTokenUpgrade("basic_log", "Basic Log", {
             logs = 3,
         },
 
-        maxHealth = 30
+        maxHealth = 15
     },
 
     upgrade = {
@@ -90,5 +90,57 @@ g.defineTokenUpgrade("basic_log", "Basic Log", {
     }
 })
 
+
+
+do
+
+local X,Y = -3,-1
+g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
+    token = {
+        resources = {
+            money = 15,
+        },
+        maxHealth = 10
+    },
+
+    upgrade = {
+        prestige = 0,
+        price = {money=100},
+        x=X-1,y=Y
+    }
+})
+
+
+g.defineTokenUpgrade("happy_cat", "Happy Cat", {
+    token = {
+        resources = {
+            money = 30,
+        },
+        maxHealth = 20
+    },
+
+    upgrade = {
+        prestige = 0,
+        price = {money = 400},
+        x = X, y = Y
+    }
+})
+
+g.defineTokenUpgrade("business_cat", "Business Cat", {
+    token = {
+        resources = {
+            money = 300,
+        },
+        maxHealth = 50
+    },
+
+    upgrade = {
+        prestige = 0,
+        price = {money = 5000},
+        x = X + 1, y = Y
+    }
+})
+
+end
 
 

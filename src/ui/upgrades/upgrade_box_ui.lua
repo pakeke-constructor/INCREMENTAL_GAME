@@ -39,7 +39,7 @@ local function adjustColor(uinfo, level, color)
         return
     end
 
-    if not g.canAfford(uinfo.price) then
+    if not g.canAffordUpgrade(uinfo) then
         -- make it red.
         local lerped = objects.Color.lerp(color, g.COLORS.CANT_AFFORD,0.8)
         color:setRGBA(lerped:getRGBA())
@@ -73,7 +73,7 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h)
     -- draw border:
     --------------------
     local borderCol
-    if g.canAfford(uinfo.price) then
+    if g.canAffordUpgrade(uinfo) then
         borderCol = cpy(UPCOLS[uinfo.kind] or g.COLORS.UPGRADE_KINDS.MISC)
     else
         borderCol = cpy(g.COLORS.CANT_AFFORD)
