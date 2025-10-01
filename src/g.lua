@@ -410,7 +410,7 @@ end
 ---@class g.stats
 g.stats = {}
 
-g.stats.HitDuration = g.defineStat("HitDuration", 0.4)
+g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
