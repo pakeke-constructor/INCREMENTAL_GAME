@@ -1,7 +1,7 @@
 
 
 
----@class g.UpgradeDescription: objects.Class
+---@class ui.UpgradeDescription: objects.Class
 local UpgradeDescription = objects.Class("g:UpgradeDescription")
 
 
@@ -25,7 +25,7 @@ end
 
 if false then
     ---@param uinfo g.UpgradeInfo
-    ---@return g.UpgradeDescription
+    ---@return ui.UpgradeDescription
     ---@diagnostic disable-next-line: cast-local-type, missing-return
     function UpgradeDescription(uinfo) end
 end
