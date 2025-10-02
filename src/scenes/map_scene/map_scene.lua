@@ -17,8 +17,14 @@ local MAP_TITLE = localization.localize("{o thickness=4}THE MAP.")
 local mapImg = love.graphics.newImage("src/scenes/map_scene/map_image.png")
 
 
+function map:init()
+    local w,h = mapImg:getDimensions()
+    self.camera:setPos(w/2,h/2-200)
+end
+
 function map:draw()
-    love.graphics.clear(0.5,0.4,0.7)
+    local COL = objects.Color("#FF00A2E8")
+    love.graphics.clear(COL)
 
     self:setCamera()
     local header, body = Kirigami(0,0,mapImg:getDimensions()):splitVertical(1,5)
