@@ -1,0 +1,190 @@
+name: Build
+on:
+  workflow_dispatch:
+    inputs:
+      push_itch:
+        description: Push to itch.io?
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-love:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Checkout
+      uses: actions/checkout@v5
+      with:
+        path: game
+        fetch-depth: 1
+
+    - name: Build .love File
+      working-directory: game
+      run: 7z a -mx9 -tzip ../game.love assets lib src *.lua
+
+    - name: Artifact .love File
+      uses: actions/upload-artifact@v4
+      with:
+        name: lovegame
+        path: game.love
+        if-no-files-found: error
+        compression-level: 0
+
+  build-windows:
+    runs-on: windows-latest
+    needs: build-love
+    defaults:
+      run:
+        shell: cmd
+    steps:
+    - name: Setup Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Download ImageMagick
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: ImageMagick/ImageMagick
+        tag: 7.1.2-3
+        fileName: ImageMagick.Q16-HDRI.msixbundle
+
+    - name: Add ImageMagick to bin
+      shell: python
+      run: |
+        import os
+        import zipfile
+
+        # Make bin directory
+        os.makedirs("bin", exist_ok=True)
+
+        # Extract ImageMagick
+        with zipfile.ZipFile("ImageMagick.Q16-HDRI.msixbundle", "r") as z:
+            with zipfile.ZipFile(z.open("main-x64.appx", "r")) as z2:
+                with open("bin/magick.exe", "wb") as f0:
+                    with z2.open("magick.exe", "r") as f1:
+                        f0.write(f1.read())
+
+    - name: Add bin to path
+      working-directory: bin
+      run: echo %CD% >> "%GITHUB_PATH%"
+
+    - name: Checkout
+      uses: actions/checkout@v5
+
+    - name: Extract LOVE
+      run: 7z x -olove build\windows\love-12.0-win64.zip
+
+    - name: Copy love.exe to Resource Build
+      # Could be changed to lovec.exe too if needed
+      run: copy /y love\love-12.0-win64\love.exe build\windows\love.exe
+
+    - name: Delete love.exe and lovec.exe
+      working-directory: love/love-12.0-win64
+      run: del /q love.exe && del /q lovec.exe
+
+    - name: Generate Iconset Resource
+      working-directory: build/windows
+      run: python generate_icon.py
+
+    - name: Generate VersionInfo Resource
+      env:
+        VERSION: '0.0.0' # TODO: More reliable versioning
+      working-directory: build/windows
+      run: python generate_resource_data.py %VERSION% version.rc.in version.rc
+
+    - name: Compile VersionInfo Resource
+      working-directory: build/windows
+      run: start /WAIT ResourceHacker.exe -open version.rc -save version.res -action compile
+
+    - name: Replace love.exe Resources
+      shell: cmd
+      working-directory: build/windows
+      run: start /WAIT ResourceHacker.exe -script resourcehackerscript.txt
+
+    - name: Download game.love Artifact
+      uses: actions/download-artifact@v5
+      with:
+        name: lovegame
+        # The artifact name is lovegame, contains 1 file: game.love
+
+    - name: Fuse
+      run: copy /b build\windows\love_manifested.exe+game.love love\love-12.0-win64\game.exe
+
+    - name: Archive Game
+      working-directory: love/love-12.0-win64
+      run: 7z a -mx9 ..\..\game.zip *
+
+    - name: Artifact Windows Builds
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-build
+        path: game.zip
+        if-no-files-found: error
+        compression-level: 0
+
+  publish-build:
+    runs-on: ubuntu-latest
+    needs: [build-love, build-windows]
+    if: inputs.push_itch
+    steps:
+    - name: Setup Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Secrets Check
+      id: check
+      shell: python
+      env:
+        BUTLER_CREDENTIALS : ${{ secrets.BUTLER_KEY }}
+        ITCH_GAME: ${{ secrets.ITCH_PROJECT }}
+        ITCH_USER: ${{ secrets.ITCH_USERNAME }}
+      run: |
+        import os
+
+        def test_env(name: str):
+            return not not os.environ.get(name)
+
+        ENV_TO_TEST = ["BUTLER_CREDENTIALS", "ITCH_GAME", "ITCH_USER"]
+        ok = int(all(map(test_env, ENV_TO_TEST)))
+
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"ok={ok}\n")
+
+    - name: Download game.love Artifact
+      uses: actions/download-artifact@v5
+      if: 'steps.check.outputs.ok == 1'
+      with:
+        name: lovegame
+
+    - name: Download Windows Binaries Artifact
+      uses: actions/download-artifact@v5
+      if: 'steps.check.outputs.ok == 1'
+      with:
+        name: windows-build
+
+    - name: Butler Push .love
+      uses: yeslayla/butler-publish-itchio-action@v1
+      if: 'steps.check.outputs.ok == 1'
+      with:
+        BUTLER_CREDENTIALS: ${{ secrets.BUTLER_KEY }}
+        CHANNEL: love
+        ITCH_GAME: ${{ secrets.ITCH_PROJECT }}
+        ITCH_USER: ${{ secrets.ITCH_USERNAME }}
+        PACKAGE: game.love
+
+    - name: Butler Push Windows
+      uses: yeslayla/butler-publish-itchio-action@v1
+      if: 'steps.check.outputs.ok == 1'
+      with:
+        BUTLER_CREDENTIALS: ${{ secrets.BUTLER_KEY }}
+        CHANNEL: windows
+        ITCH_GAME: ${{ secrets.ITCH_PROJECT }}
+        ITCH_USER: ${{ secrets.ITCH_USERNAME }}
+        PACKAGE: game.zip
