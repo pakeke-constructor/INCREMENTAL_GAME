@@ -1,5 +1,6 @@
 
 local upgrades = require("src.upgrades.upgrades")
+local UpgradeDescription = require("src.ui.upgrades.upgrade_description_ui")
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
@@ -8,7 +9,8 @@ local FreeCameraScene = require("src.scenes.FreeCameraScene")
 ---@class UpgradesScene: FreeCameraScene
 local upgscene = FreeCameraScene()
 
-
+---@type ui.UpgradeDescription|nil
+upgscene.upgradeDescription = nil
 
 
 local TITLE = localization.localize("{o}UPGRADES!")
@@ -32,9 +34,20 @@ function upgscene:draw()
     g.getHUD():drawResourceHUD(self.camera)
 
     if hoveredUpgrade then
-        -- figure out if we render left or right.
+        if not self.upgradeDescription or self.upgradeDescription:getType() ~= hoveredUpgrade.type then
+            self.upgradeDescription = UpgradeDescription(hoveredUpgrade)
+        end
 
-        -- TODO: draw upgrade-hover-description here
+        local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+        local mx, my = ui.getMouse()
+        local descriptionBoxR = Kirigami(0, 0, self.upgradeDescription:getDimensions())
+            :set(mx + 14, my - 3)
+            :clampInside(r:padUnit(4))
+
+        -- Upgrade description
+        self.upgradeDescription:draw(descriptionBoxR.x, descriptionBoxR.y)
+    else
+        self.upgradeDescription = nil
     end
 
     ui.endUI()

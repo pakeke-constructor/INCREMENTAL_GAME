@@ -238,7 +238,7 @@ local smolCache = {}
 function g.getBigFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
     if bigCache[size] then return bigCache[size] end
-    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size,"mono")
+    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size,"mono",1)
     return bigCache[size]
 end
 
@@ -247,7 +247,7 @@ end
 function g.getSmallFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
     if smolCache[size] then return smolCache[size] end
-    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size,"mono")
+    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size,"mono",1)
     return smolCache[size]
 end
 
@@ -307,7 +307,7 @@ end
 function g.drawImageOffset(imageName, x,y, r, sx,sy, ox,oy, kx,ky)
     local quad = g.getImageQuad(imageName)
     local _,_,w,h = quad:getViewport()
-    atlas:draw(quad, x, y, r, sx, sy, ox * w, oy * h, kx, ky)
+    atlas:draw(quad, x, y, r, sx, sy, (ox or 0.5) * w, (oy or 0.5) * h, kx, ky)
 end
 
 
@@ -447,24 +447,30 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 --- (eg. double the money-limit. Harvest stuff automatically.)
 ---| "MISC"
 
-
 ---@class g.UpgradeDefinition
 ---@field prestige number|g.PrestigeRange
----@field kind string
+---@field kind g.UpgradeKind
+---@field tokenType string? (only for kind == "TOKEN")
 ---@field x number
 ---@field y number
 ---@field price g.Bundle
 ---@field image string?
 ---@field priceScaling? number
 ---@field description string?
----@field isHidden (fun(self: g.UpgradeInfo): boolean)?
----@field getValues (fun(self: g.UpgradeInfo, level: number): number,number?)?
+---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
+---@field valueFormatter (string|(fun(x:number):string))[]
 local g_UpgradeDefinition = {}
+---@param self g.UpgradeInfo
+---@param level integer
+---@return integer ...
+function g_UpgradeDefinition:getValues(level)
+end
 
 
 ---@class g.TokenDefinition
 ---@field maxHealth number
 ---@field resources g.Bundle
+---@field image string
 ---@field description string?
 local g_TokenDefinition = {}
 
@@ -509,6 +515,7 @@ function g.defineResource(resId, tabl)
     RESOURCES[resId] = tabl
     g.defineStat(tabl.limitStat, tabl.startingLimit or 100)
     table.insert(g.RESOURCE_LIST, resId)
+    richtext.defineImage(tabl.image, g.getAtlas(), g.getImageQuad(tabl.image))
 end
 
 
@@ -772,6 +779,7 @@ function g.defineUpgrade(id, name, def)
     end
     def.name = loc(name) ---@diagnostic disable-line
     def.image = id
+    def.valueFormatter = def.valueFormatter or {}
     table.insert(g.UPGRADE_LIST, id)
 
     niceAssert(type(id) == "string")
@@ -999,6 +1007,7 @@ local tokenDefinitions = {--[[
         onDestroyed = func
     }
 ]]}
+---@cast tokenDefinitions table<string,g.TokenInfo>
 
 local tokenMts = {--[[
     [tokenType] -> tokenMt
@@ -1017,6 +1026,14 @@ function g.defineToken(tokType, name, tabl)
     tabl.name = loc(name) ---@diagnostic disable-line
     tokenDefinitions[tokType] = tabl
     tokenMts[tokType] = {__index = tabl}
+end
+
+---@param tokType string
+function g.getTokenInfo(tokType)
+    if not tokenDefinitions[tokType] then
+        error("token '"..tokType.."' does not exist")
+    end
+    return tokenDefinitions[tokType]
 end
 
 
@@ -1367,7 +1384,6 @@ g.COLORS = {
 }
 
 
-richtext.defineImage("logs_icon", g.getAtlas(), assert(g.getImageQuad("logs_icon")))
+richtext.defineImage("health_icon", g.getAtlas(), g.getImageQuad("health_icon"))
 
 return g
-
