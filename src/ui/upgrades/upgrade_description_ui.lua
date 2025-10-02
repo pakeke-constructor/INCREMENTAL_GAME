@@ -6,8 +6,10 @@ local UpgradeDescription = objects.Class("g:UpgradeDescription")
 
 
 local UPGRADE_DESC_MAX_WIDTH = 200
+local CONTENT_PADDING = 8
 
-function UpgradeDescription:init()
+---@param uinfo g.UpgradeInfo
+function UpgradeDescription:init(uinfo)
     self.font = g.getSmallFont(16)
     self.titleFont = g.getBigFont(32)
 
@@ -19,13 +21,20 @@ function UpgradeDescription:init()
     ---@field package render fun(x:number,y:number,w:number,h:number)
     ---@type ui._UpgradeDescriptionElem[]
     self.elements = {}
+    self.uinfo = uinfo
 
+    self:autoBuild(uinfo)
 end
 
 if false then
+    ---@param uinfo g.UpgradeInfo
     ---@return ui.UpgradeDescription
     ---@diagnostic disable-next-line: cast-local-type, missing-return
-    function UpgradeDescription() end
+    function UpgradeDescription(uinfo) end
+end
+
+function UpgradeDescription:getType()
+    return self.uinfo.type
 end
 
 
@@ -243,14 +252,36 @@ function UpgradeDescription:addTokenInfo(tinfo)
 end
 
 
----@param startx number
----@param starty number
-function UpgradeDescription:draw(startx, starty)
+---@param x number
+---@param y number
+function UpgradeDescription:draw(x, y)
+    local w, h = self:getDimensions()
+
+    -- Draw background color
+    if g.canAfford(g.getUpgradePrice(self.uinfo)) then
+        love.graphics.setColor(0.2, 0.2, 0.4, 0.8)
+    else
+        love.graphics.setColor(0.4, 0.2, 0.2, 0.8)
+    end
+    love.graphics.rectangle("fill", x, y, w, h)
+
+    -- Draw border
+    local lw = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(2)
+    love.graphics.setColor(0.,0.,0.08)
+    love.graphics.rectangle("line", x, y, w, h)
+    love.graphics.setLineWidth(lw)
+
+    -- Start drawing the content
+    love.graphics.setColor(1,1,1)
+    x = x + CONTENT_PADDING
+    y = y + CONTENT_PADDING
+
     local yoff = 0
     for _, elem in ipairs(self.elements) do
         local width = elem.width or self.boxWidth
         local xoff = (self.boxWidth - width) / 2
-        elem.render(startx + xoff, starty + yoff, width, elem.height)
+        elem.render(x + xoff, y + yoff, width, elem.height)
         yoff = yoff + elem.height
     end
 end
@@ -265,7 +296,7 @@ function UpgradeDescription:getDimensions()
         height = height + elem.height
     end
 
-    return width, height
+    return width + 2 * CONTENT_PADDING, height + 2 * CONTENT_PADDING
 end
 
 
