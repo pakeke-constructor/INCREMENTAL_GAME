@@ -114,9 +114,9 @@ local function drawImageInline(x,y, fontH, tex, quad, scale)
 
     local o = fontH/2
     if quad then
-        love.graphics.draw(tex,quad,x-o,y+o,0,scale,scale,w/2,h/2)
+        love.graphics.draw(tex,quad,x+o,y+o,0,scale,scale,w/2,h/2)
     else
-        love.graphics.draw(tex,x-o,y+o,0,scale,scale,w/2,h/2)
+        love.graphics.draw(tex,x+o,y+o,0,scale,scale,w/2,h/2)
     end
 end
 
@@ -177,8 +177,8 @@ function Pass:flushLine()
 
             else -- if a table! (image)
                 local scale = char.scale
-                prevX = prevX + self.fontHeight
                 drawImageInline(prevX+offsetX, offsetY, self.fontHeight, char.texture, char.quad, scale)
+                prevX = prevX + self.fontHeight
             end
         end
 
