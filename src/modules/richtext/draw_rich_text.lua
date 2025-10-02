@@ -1,8 +1,9 @@
 local Pass = require(".Pass")
 local parser = require(".parser")
+local defaultEffectGroup = require(".defaultEffectGroup")
 
 -- ---@type text.Pass
--- local passInstance = Pass(nil, 0, "left", nil)
+-- local pass = Pass(nil, 0, "left", nil)
 local drawRichText
 
 ---Draw rich text.
@@ -44,19 +45,25 @@ function drawRichText(txt, font, x, y, limit, align, rot, sx, sy, ox, oy, kx, ky
     love.graphics.applyTransform(x, y, rot, sx, sy, ox, oy, kx, ky)
 
     local r, g, b, a = love.graphics.getColor()
-    local passInstance = Pass(font, limit, align, {r, g, b, a})
+    local pass = Pass(font, limit, align, {r, g, b, a})
 
     for _, data in ipairs(assert(parser.ensure(txt))) do
         if type(data) == "table" then
-            passInstance:updateEffect(data)
+            local effectName = data[1]
+            local isImage = defaultEffectGroup:getType(effectName) == "IMAGE"
+            if isImage then
+                pass:addImage(defaultEffectGroup:getImageInfo(effectName), data.scale)
+            else
+                pass:addEffect(data)
+            end
         else
             for _, c in utf8.codes(data) do
-                passInstance:add(utf8.char(c))
+                pass:add(utf8.char(c))
             end
         end
     end
 
-    passInstance:add(nil) -- flush
+    pass:add(nil) -- flush
 
     love.graphics.pop()
     return true

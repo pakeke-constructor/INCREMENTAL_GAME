@@ -37,6 +37,9 @@ function harvest:draw()
 
     world:_draw()
 
+    local ss = 150 + 100*math.sin(love.timer.getTime())
+    richtext.printRich("{o}Hello hello={logs_icon scale=2}=!!!", g.getBigFont(32), 100,100, ss+100, "center")
+
     self:resetCamera()
 
     ui.startUI()

@@ -27,17 +27,24 @@ end
 ---@param effectupdate fun(context:T,characters:text.Character) Function that apply the effect to subtext.
 function text.defineEffect(name, effectupdate)
     assertNameValid(name)
-    return defaultEffectGroup:addEffect(name, effectupdate)
+    defaultEffectGroup.effectList[name] = effectupdate
 end
+
+
+--- Define a new effect for rich text formatting 
+---@generic T
+---@param name string Effect name.
+---@param tex love.Texture
+---@param quad love.Quad?
+function text.defineImage(name, tex, quad)
+    assertNameValid(name)
+    defaultEffectGroup:defineImage(name, tex, quad)
+end
+
+
 
 local strTc = typecheck.assert("string")
 
----Remove the effect from the default effect group.
----@param name string Effect name.
-function text.removeEffect(name)
-    strTc(name)
-    return defaultEffectGroup:removeEffect(name)
-end
 
 ---Duplicate the default effect group, inheriting all the added effects in the default effect group to new independent
 ---effect group.

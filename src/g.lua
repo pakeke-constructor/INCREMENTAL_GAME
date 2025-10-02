@@ -1364,6 +1364,7 @@ g.COLORS = {
 }
 
 
+richtext.defineImage("logs_icon", g.getAtlas(), assert(g.getImageQuad("logs_icon")))
 
 return g
 

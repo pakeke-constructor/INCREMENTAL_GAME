@@ -45,7 +45,7 @@ function Pass:init(font, maxwidth, alignment, color)
     if self.bufferedLine then
         table.clear(self.bufferedLine)
     else
-        ---@type string[]
+        ---@type (string|{texture:love.Texture,quad?:love.Quad,scale?:number})[]
         self.bufferedLine = {}
     end
 
@@ -65,9 +65,14 @@ function Pass:init(font, maxwidth, alignment, color)
     self.lastEffectIndexAt = 0
 end
 
----@param left string
----@param right string
+---@param left string|{texture:love.Texture}
+---@param right string|{texture:love.Texture}
 function Pass:getKerning(left, right)
+    if (type(left)== "table") or (type(right)=="table") then
+        -- kerning between textures; return 0.
+        return 0
+    end
+
     local key = left..right
     local value = self.kerningCache[key]
     if not value then
@@ -94,6 +99,28 @@ local function isWhitespace(char)
     return char == " " or char == "\t"
 end
 
+
+
+local function drawImageInline(x,y, fontH, tex, quad, scale)
+    local _,w,h
+    if quad then
+        _,_,w,h = quad:getViewport()
+    else
+        w,h = tex:getDimensions()
+    end
+
+    local sc = (fontH / h)
+    scale = (scale or 1) * sc
+
+    local o = fontH/2
+    if quad then
+        love.graphics.draw(tex,quad,x-o,y+o,0,scale,scale,w/2,h/2)
+    else
+        love.graphics.draw(tex,x-o,y+o,0,scale,scale,w/2,h/2)
+    end
+end
+
+
 function Pass:flushLine()
     if #self.bufferedLine > 0 then
         local offsetX = 0
@@ -105,7 +132,7 @@ function Pass:flushLine()
             -- Don't take whitespace width at the end of line into account.
             for i = #self.bufferedLine, 1, -1 do
                 local char = self.bufferedLine[i]
-                if isWhitespace(char) then
+                if type(char) == "string" and isWhitespace(char) then
                     local kerning = self:getKerning(self.bufferedLine[i - 1] or " ", char)
                     offsetX = offsetX + kerning + self:getCharacterWidth(char)
                 else
@@ -128,24 +155,31 @@ function Pass:flushLine()
                 self.lastEffectApplied = self.effectChangeIndex[absIndex]
             end
 
-            local kerning = 0
-            if i > 1 then
-                kerning = self:getKerning(self.bufferedLine[i - 1], char)
-            end
-            self.character:init(self.font, char, absIndex)
-            self.character:reset()
-            self.character:setPosition(offsetX + prevX + kerning, offsetY)
-            prevX = prevX + kerning + self:getCharacterWidth(char)
-
-            -- Apply effects
-            if self.lastEffectApplied then
-                for _, eff in ipairs(self.lastEffectApplied) do
-                    eff.func(eff.args, self.character)
+            if type(char) == "string" then
+                local kerning = 0
+                if i > 1 then
+                    kerning = self:getKerning(self.bufferedLine[i - 1], char)
                 end
-            end
+                self.character:init(self.font, char, absIndex)
+                self.character:reset()
+                self.character:setPosition(offsetX + prevX + kerning, offsetY)
+                prevX = prevX + kerning + self:getCharacterWidth(char)
 
-            -- Draw character
-            self.character:draw(self.color[1], self.color[2], self.color[3], self.color[4] or 1)
+                -- Apply effects
+                if self.lastEffectApplied then
+                    for _, eff in ipairs(self.lastEffectApplied) do
+                        eff.func(eff.args, self.character)
+                    end
+                end
+
+                -- Draw character
+                self.character:draw(self.color[1], self.color[2], self.color[3], self.color[4] or 1)
+
+            else -- if a table! (image)
+                local scale = char.scale
+                prevX = prevX + self.fontHeight
+                drawImageInline(prevX+offsetX, offsetY, self.fontHeight, char.texture, char.quad, scale)
+            end
         end
 
         self.currentLineStartIndex = self.currentLineStartIndex + #self.bufferedLine
@@ -192,6 +226,44 @@ local function shallowCopy(t)
         result[k]=v
     end
     return result
+end
+
+
+
+---@param texdata {texture:love.Texture, quad?:love.Quad}
+function Pass:addImage(texdata, scale)
+    --[[
+    NOTE:
+    This has been vibe-coded, and needs testing.
+    ]]
+
+    local imageWidth = self.fontHeight * (scale or 1)
+
+    -- Check if we need to flush the current word first
+    if #self.bufferedWord > 0 then
+        self:flushWord()
+    end
+
+    -- Check if adding this image would exceed max width
+    if self.bufferedLineWidth + imageWidth > self.maxWidth then
+        if self.bufferedLineWidth > 0 then
+            -- Flush current line first
+            self:flushLine()
+        end
+    end
+
+    -- Add the image to the buffered line
+    self.bufferedLine[#self.bufferedLine + 1] = {
+        texture = texdata.texture,
+        quad = texdata.quad,
+        scale = scale or 1
+    }
+
+    -- Update line width
+    self.bufferedLineWidth = self.bufferedLineWidth + imageWidth
+    -- Increment character index to maintain proper positioning
+    self.addedCharacterIndex = self.addedCharacterIndex + 1
+
 end
 
 
@@ -250,7 +322,7 @@ function Pass:add(char)
 end
 
 ---@param effectInfo {[1]:string,[string]:number}
-function Pass:updateEffect(effectInfo)
+function Pass:addEffect(effectInfo)
     local name = effectInfo[1]
 
     if name:sub(1, 1) == "/" then

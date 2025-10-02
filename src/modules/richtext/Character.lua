@@ -14,7 +14,7 @@ function Character:init(font, char, start)
     self:reset()
 end
 
----Reset the subtext changes from previous effects.
+---Reset the changes from previous effects.
 function Character:reset()
     self.color = objects.Color.WHITE
     self.x = 0
@@ -30,21 +30,21 @@ function Character:reset()
     self.ky = 0
 end
 
----Return the character(s) in this subtext.
----@return string char The character(s) in this subtext.
+---Return the character in this subtext.
+---@return string char The character in this subtext.
 function Character:getChar()
     return self.char
 end
 
----Return the length of character(s) in this subtext.
+---Return the length of character in this subtext.
 ---
 ---The returned length is Unicode-aware, which may not same as `#Character:getChar()`.
----@return integer length Length of the character(s).
+---@return integer length Length of the character.
 function Character:getLength()
     return self.length
 end
 
----Get the index of the current character(s) relative to the parent Text object.
+---Get the index of the current character relative to the parent Text object.
 ---@return integer index Index of the starting string relative to the parent Text object.
 function Character:getIndex()
     return self.start
