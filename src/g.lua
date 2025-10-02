@@ -470,6 +470,7 @@ end
 ---@class g.TokenDefinition
 ---@field maxHealth number
 ---@field resources g.Bundle
+---@field image string
 ---@field description string?
 local g_TokenDefinition = {}
 
@@ -514,6 +515,7 @@ function g.defineResource(resId, tabl)
     RESOURCES[resId] = tabl
     g.defineStat(tabl.limitStat, tabl.startingLimit or 100)
     table.insert(g.RESOURCE_LIST, resId)
+    richtext.defineImage(tabl.image, g.getAtlas(), g.getImageQuad(tabl.image))
 end
 
 
@@ -1379,7 +1381,6 @@ g.COLORS = {
 }
 
 
-richtext.defineImage("logs_icon", g.getAtlas(), assert(g.getImageQuad("logs_icon")))
+richtext.defineImage("health_icon", g.getAtlas(), g.getImageQuad("health_icon"))
 
 return g
-
