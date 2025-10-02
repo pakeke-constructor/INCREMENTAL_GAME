@@ -552,6 +552,9 @@ end
 ---@param resId string
 function g.isResourceUnlocked(resId)
     assertValidResource(resId)
+    if g.getPrestige() == 0 and (resId == "bones" or resId == "rocks") then
+        return false
+    end
     return true
 end
 
