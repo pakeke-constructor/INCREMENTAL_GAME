@@ -1,0 +1,8 @@
+[FILENAMES]
+Open=love.exe
+Save=love_manifested.exe
+Log=con
+[COMMANDS]
+-modify version.res, VERSIONINFO,1,1033
+-modify icon.ico, ICONGROUP,1,1033
+-modify manifest.manifest, MANIFEST,1,1033

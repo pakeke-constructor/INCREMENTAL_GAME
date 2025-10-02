@@ -1,0 +1,25 @@
+1 VERSIONINFO
+FILEVERSION %(major)d,%(minor)d,%(patch)d,0
+PRODUCTVERSION %(major)d,%(minor)d,%(patch)d,0
+FILEOS 0x40004
+FILETYPE 0x1
+{
+BLOCK "StringFileInfo"
+{
+	BLOCK "040904B0"
+	{
+		VALUE "FileDescription", "GAME %(major)d.%(minor)d.%(patch)d"
+		VALUE "FileVersion", "%(major)d.%(minor)d.%(patch)d"
+		VALUE "CompanyName", "CodeTheory Ltd."
+		VALUE "LegalCopyright", "Copyright \xA9 2025 CodeTheory Ltd."
+		VALUE "ProductName", "GAME"
+		VALUE "ProductVersion", "%(major)d.%(minor)d.%(patch)d"
+		VALUE "OriginalFilename", "love.exe"
+	}
+}
+
+BLOCK "VarFileInfo"
+{
+	VALUE "Translation", 0x0409 0x04E4  
+}
+}
