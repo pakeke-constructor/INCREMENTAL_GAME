@@ -277,8 +277,8 @@ local function lerp(a, b, t)
     return (1.0 - t) * a + t * b
 end
 
----@param camera Camera
-function Resources:drawParticles(camera)
+function Resources:drawParticles()
+    love.graphics.setColor(1,1,1)
     for _, particle in ipairs(self.particles) do
         -- Time can be negative to delay it slightly
         if particle.time >= 0 then
@@ -315,10 +315,10 @@ end
 
 ---@param camera Camera
 function Resources:draw(camera)
-    self:drawHUD(camera)
     camera:attach()
-    self:drawParticles(camera)
+    self:drawParticles()
     camera:detach()
+    self:drawHUD(camera)
 end
 
 ---@generic T
