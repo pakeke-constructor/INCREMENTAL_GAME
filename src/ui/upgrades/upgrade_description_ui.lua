@@ -29,6 +29,12 @@ if false then
 end
 
 
+local STAT_UP_COLOR = {0.94, 0.56, 0.99}
+---@param col [number, number, number]
+---@param text string
+local function wrapColor(col, text)
+    return "{c r="..col[1].." g="..col[2].." b="..col[3].."}"..text.."{/c}"
+end
 
 ---@param uinfo g.UpgradeInfo
 ---@param level integer
@@ -46,19 +52,18 @@ local function getUpgradeDescription(uinfo, level, nextLevel)
     end
     local displayValue = {}
     for i = 1, #currentValues do
-        local formatter = uinfo.valueFormatter[i]
+        local formatter = uinfo.valueFormatter[i] or "%.14g"
         local value
 
         if type(formatter) == "string" then
+            value = string.format(formatter, currentValues[i])
             if nextValues then
-                value = string.format(formatter.." -> "..formatter, currentValues[i], nextValues[i])
-            else
-                value = string.format(formatter, currentValues[i])
+                value = value..string.format(wrapColor(STAT_UP_COLOR, " -> "..formatter), nextValues[i])
             end
         else
-            local val = formatter(currentValues[i])
+            value = formatter(currentValues[i])
             if nextValues then
-                val = val.." -> "..formatter(nextValues[i])
+                value = value..wrapColor(STAT_UP_COLOR, " -> "..formatter(nextValues[i]))
             end
         end
 
@@ -73,29 +78,18 @@ end
 ---Create upgrade description automatically.
 ---@param uinfo g.UpgradeInfo
 function UpgradeDescription:autoBuild(uinfo)
-    self:addTitle(uinfo.name, uinfo.image)
+    local isTokenUpgrade = uinfo.kind == "TOKEN"
+    if isTokenUpgrade then
+        local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
+        self:addTitle(uinfo.name, tinfo.image)
+    else
+        self:addTitle(uinfo.name)
+    end
     self:addDivider()
 
-    if uinfo.kind == "TOKEN" then
+    if isTokenUpgrade then
         local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
-
-        -- Draw token info
-        ---@type [string, string][]
-        local defs = {}
-        for _, resId in ipairs(g.RESOURCE_LIST) do
-            if tinfo.resources[resId] then
-                defs[#defs+1] = {g.getResourceInfo(resId).image, "+"..g.formatNumber(tinfo.resources[resId])}
-            end
-        end
-
-        -- Lifetime always on 2nd column 1stfirst row
-        if #defs > 0 then
-            table.insert(defs, 2, {"health_icon", tostring(tinfo.maxHealth)})
-        else
-            defs[#defs+1] = {"health_icon", tostring(tinfo.maxHealth)}
-        end
-
-        self:addTextImageGrid(false, defs)
+        self:addTokenInfo(tinfo)
         self:addDivider()
 
         if tinfo.description then
@@ -109,7 +103,6 @@ function UpgradeDescription:autoBuild(uinfo)
         self:addDivider()
     end
 
-    -- Just pick first price in resource for now
     self:addPrice(g.getUpgradePrice(uinfo))
 end
 
@@ -182,106 +175,71 @@ function UpgradeDescription:addBox(w, h, render)
     end
 end
 
-
-local DISTANCE_BETWEEN_TEXT_AND_IMAGE = 2
-
----@param font love.Font
----@param image string
----@param text string
----@return number
-local function computeWidthOfImageText(font, image, text)
-    local imgq = g.getImageQuad(image)
-    local textw = font:getWidth(richtext.stripEffects(text))
-    return select(3, imgq:getViewport()) + textw + DISTANCE_BETWEEN_TEXT_AND_IMAGE
-end
-
----@param imagefirst boolean
----@param defs {[1]:string,[2]:string}[] (first element is image, second element is text)
----@param scale number?
-function UpgradeDescription:addTextImageGrid(imagefirst, defs, scale)
-    scale = scale or 1
-    local rows = math.ceil(#defs / 2)
-    local minwidth = self.boxWidth
-
-    for i = 1, #defs, 2 do
-        local width = computeWidthOfImageText(self.font, defs[i][1], defs[i][2]) * scale
-
-        if defs[i + 1] then
-            width = width + 8 + computeWidthOfImageText(self.font, defs[i + 1][1], defs[i + 1][2]) * scale
-        end
-
-        minwidth = math.max(minwidth, width)
-    end
-
-    -- Used for splitVertical
-    local rowgen = {}
-    for _ = 1, rows do
-        rowgen[#rowgen+1] = 1
-    end
-
-    -- Update the box width
-    self.boxWidth = math.max(self.boxWidth, minwidth)
-    -- But respect the boxWidth dimension in case it's larger (so width is nil)
-    return self:addBox(nil, rows * 16, function(x, y, w, h)
-        local root = Kirigami(x, y, w, h)
-        ---@type layout.Region[][]
-        local rowsR = {}
-
-        -- Generate cells
-        for _, rowR in ipairs({root:splitVertical(unpack(rowgen))}) do
-            rowsR[#rowsR+1] = {rowR:splitHorizontal(1, 1)}
-        end
-
-        for i, def in ipairs(defs) do
-            local cellR = rowsR[math.floor((i - 1) / 2) + 1][(i - 1) % 2 + 1]
-            local rx, ry, rw, rh = cellR:get()
-            local imageWidth = select(3, g.getImageQuad(def[1]):getViewport()) --[[@as number]]
-            local textWidth = self.font:getWidth(richtext.stripEffects(def[2]))
-
-            if imagefirst then
-                g.drawImageOffset(def[1], rx, ry, 0, 1, 1, 0, 0)
-                richtext.printRich(
-                    def[2], self.font, rx + imageWidth + DISTANCE_BETWEEN_TEXT_AND_IMAGE, ry, textWidth, "left"
-                )
-            else
-                richtext.printRich(def[2], self.font, rx, ry, textWidth, "left")
-                g.drawImageOffset(def[1], rx + textWidth + DISTANCE_BETWEEN_TEXT_AND_IMAGE, ry, 0, 1, 1, 0, 0)
-            end
-        end
-    end)
-end
-
-
 ---@param bundle g.Bundle
 function UpgradeDescription:addPrice(bundle)
     -- TODO: Support more than 1 resource while keeping the "Price" text inline
     -- It will be layouting nightmare though!
-    local res, value = next(bundle)
-    if res then
-        assert(value)
-        local resInfo = g.getResourceInfo(res)
-        local imageWidth = select(3, g.getImageQuad(resInfo.image):getViewport()) --[[@as number]]
-        self:addBox(nil, 16, function(x, y, w, h)
-            local priceR, resourceR = Kirigami(x, y, w, h):splitHorizontal(1, 1)
+    ---@type string[]
+    local resdata = {"Price"}
 
-            local px, py = priceR:get()
-            love.graphics.print("Price", self.font, px, py)
-
-            local rx, ry = resourceR:get()
-            g.drawImageOffset(resInfo.image, rx, ry, 0, 1, 1, 0, 0)
-            love.graphics.print(g.formatNumber(value), self.font, rx + imageWidth + 2, ry)
-        end)
-    end
-    --[[
-    -- adds the price at the bottom
-    local prices = {}
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if bundle[resId] then
-            prices[#prices+1] = {g.getResourceInfo(resId).image, g.formatNumber(bundle[resId])}
+            local resInfo = g.getResourceInfo(resId)
+            resdata[#resdata+1] = "{"..resInfo.image.."}"..g.formatNumber(bundle[resId])
         end
     end
-    self:addTextImageGrid(true, prices)
-    ]]
+
+    local actualText = table.concat(resdata, " ")
+    local textWidth = self.font:getWidth(richtext.stripEffects(actualText)) + 16 * (#resdata - 1)
+    return self:addBox(textWidth, self.font:getHeight(), function(x, y, w, h)
+        richtext.printRich(actualText, self.font, x, y, w, "center")
+    end)
+end
+
+---@param tinfo g.TokenInfo
+function UpgradeDescription:addTokenInfo(tinfo)
+    -- Token info layout is:
+    -- * Left-side: List of resource it gives
+    -- * Right-side: Health icon, centered.
+
+    ---@type string[]
+    local resources = {}
+    local splits = {} -- For Kirigami only
+    local healthText = tostring(tinfo.maxHealth)
+    local healthWidth = (self.font:getWidth(healthText) + 16 + 2) * 2 -- +2 padding, x2 scaling
+    local minWidth = healthWidth * 2 + 8 -- +8 distance between text
+
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        if tinfo.resources[resId] then
+            -- TODO: Dynamic resource output
+            local resInfo = g.getResourceInfo(resId)
+            local value = "+"..g.formatNumber(tinfo.resources[resId])
+            local textWidth = (self.font:getWidth(value) + 16 + 2) * 2
+            resources[#resources+1] = value.."{"..resInfo.image.."}"
+            splits[#splits+1] = 1
+            minWidth = math.max(minWidth, textWidth + healthWidth + 8)
+        end
+    end
+
+    local fontHeight = self.font:getHeight() * 2
+    local height = #resources * fontHeight
+    -- Update the box width
+    self.boxWidth = math.max(self.boxWidth, minWidth)
+    -- But respect the boxWidth dimension in case it's larger (so width is nil)
+    return self:addBox(nil, height, function (x, y, w, h)
+        local r = Kirigami(x, y, w, h)
+        local leftR, rightR = r:splitHorizontal(1, 1)
+        local rowsR = {leftR:splitVertical(unpack(splits))}
+
+        for i, res in ipairs(resources) do
+            local ix, iy, iw = rowsR[i]:get()
+            richtext.printRich(res, self.font, ix, iy, iw / 2, "center", 0, 2, 2)
+        end
+
+        local healthR = rightR:set(nil, nil, nil, fontHeight):center(rightR)
+        local ix, iy, iw = healthR:get()
+        richtext.printRich("{health_icon}"..healthText, self.font, ix, iy, iw / 2, "center", 0, 2, 2)
+    end)
 end
 
 
