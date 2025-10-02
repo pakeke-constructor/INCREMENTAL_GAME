@@ -120,6 +120,9 @@ end
 
 
 local function drawTokenHealthBar(tok)
+    if tok.health >= tok.maxHealth then
+        return -- dont draw
+    end
     local x,y = tok.x, tok.y
     love.graphics.setColor(1,0,0)
     local HP_BAR_W = 14
