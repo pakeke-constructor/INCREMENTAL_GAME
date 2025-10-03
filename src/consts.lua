@@ -15,7 +15,7 @@ local consts = {
 
     HARVEST_AREA_LEEWAY = 4, -- harvest area extends by this amount so it "feels good"
 
-    DEFAULT_UPGRADE_PRICE_SCALING = 1.4,
+    DEFAULT_UPGRADE_PRICE_SCALING = 2,
     -- upgrade-price is multiplied by this amount every level (unless specified)
 
     TEST = true

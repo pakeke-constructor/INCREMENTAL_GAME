@@ -18,8 +18,8 @@ local ParticleService = require(".particle.ParticleService")
 local World = objects.Class("g:World")
 
 -- Think of this as the "dimensions" of the harvest-area
-World.WIDTH = 450
-World.HEIGHT = 300
+World.WIDTH = 400
+World.HEIGHT = 250
 
 -- Minimum hover time before a token can be mined
 -- (Prevents players flicking their mouse all over the screen)
@@ -171,6 +171,10 @@ local function getTokScale(tok)
         sy = sy * (1-mag)
     end
 
+    if tok.id % 2 == 0 then
+        -- some tokens are flipped
+        sx=sx*-1
+    end
     return sx,sy
 end
 
@@ -306,7 +310,7 @@ function World:_update(dt)
         local ct = tokenCounts[tokType] or 0
         local toSpawn = poolCount - ct
         for _=1, toSpawn do
-            if love.math.random() < (dt*3) then
+            if love.math.random() < (dt*5) then
                 -- TODO: this randomness sucks! 
                 -- Its random and it sometimes takes ages to respawn
                 local x,y = g.getRandomPositionForToken()
