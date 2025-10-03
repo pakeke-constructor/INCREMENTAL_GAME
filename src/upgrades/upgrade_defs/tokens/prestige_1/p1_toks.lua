@@ -2,6 +2,7 @@
 
 g.defineTokenUpgrade("grass_blades", "Grass Blades", {
     token = {
+        particles = "grass",
         resources = {money = 1},
         maxHealth = 3
     },
@@ -15,6 +16,7 @@ g.defineTokenUpgrade("grass_blades", "Grass Blades", {
 
 g.defineTokenUpgrade("small_grass", "Small Grass", {
     token = {
+        particles = "grass",
         resources = {money = 3},
         maxHealth = 6
     },
@@ -28,6 +30,7 @@ g.defineTokenUpgrade("small_grass", "Small Grass", {
 
 g.defineTokenUpgrade("thick_grass", "Thick Grass", {
     token = {
+        particles = "grass",
         resources = {money = 6},
         maxHealth = 10
     },

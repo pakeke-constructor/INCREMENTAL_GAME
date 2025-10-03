@@ -276,7 +276,7 @@ function World:_update(dt)
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
     if g.getPrestige() == 0 then
-        tp:add("grass_blades", 3)
+        tp:add("grass_blades", 5)
     end
     self.tokenPool = tp
 

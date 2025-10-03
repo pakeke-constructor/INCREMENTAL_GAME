@@ -22,6 +22,7 @@ local particleTypes = {}
 
 ---@param name string
 ---@param def particle.params
+---@return love.ParticleSystem
 local function defineParticle(name, def)
     if particleTypes[name] then
         error("particle '"..name.."' already defined")
@@ -44,7 +45,15 @@ local function defineParticle(name, def)
         ps:setEmissionArea(def.emissionArea.distribution, def.emissionArea.distance[1], def.emissionArea.distance[2])
     end
 
+    local GRAVITY = 100
+    ps:setLinearAcceleration(0, GRAVITY, 0, GRAVITY)
+    ps:setSpeed(50, 80)
+    ps:setDirection(0)
+    ps:setSpread(math.pi * 2)
+    ps:setRotation(0, math.pi * 2)
+
     particleTypes[name] = ps
+    return ps
 end
 
 
@@ -86,11 +95,44 @@ Particle definitions go below this line,
 
 ]]
 
+---@param prefix string
+---@param len integer
+local function makeFrames(prefix, len)
+    local t = {}
+    for i=1,len do
+        table.insert(t, prefix .. tostring(i))
+    end
+    return t
+end
+
 function initParticles()
 
-    defineParticle("crosshair", {
+    local crosshair = defineParticle("crosshair", {
         frames = {"crosshair"},
         lifetime = 0.2,
+        emissionArea = {
+            distribution = "ellipse",
+            distance = {4, 4}
+        }
+    })
+    crosshair:setLinearAcceleration(0, 0, 0, 0)
+    crosshair:setSpeed(0, 0)
+    crosshair:setRotation(0, 0)
+
+
+    local grass = defineParticle("grass", {
+        frames = makeFrames("grass_particle_", 3),
+        lifetime = 0.3,
+        emissionArea = {
+            distribution = "ellipse",
+            distance = {4, 4}
+        }
+    })
+
+
+    local wood = defineParticle("wood", {
+        frames = makeFrames("wooden_particle_", 3),
+        lifetime = 0.3,
         emissionArea = {
             distribution = "ellipse",
             distance = {4, 4}

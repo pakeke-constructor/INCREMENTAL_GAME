@@ -328,6 +328,9 @@ local function loadImage(path)
     if validExtensions[ext] then
         local name = path:match("([^/]+)%.%w+$") -- path/to/foo.png --> "foo"
         local quad = atlas:add(love.image.newImageData(path))
+        if nameToQuad[name] then
+            error("Duplicate image: "..name)
+        end
         nameToQuad[name] = quad
     end
 end
@@ -470,8 +473,9 @@ end
 ---@class g.TokenDefinition
 ---@field maxHealth number
 ---@field resources g.Bundle
----@field image string
+---@field image string?
 ---@field description string?
+---@field particles string?
 local g_TokenDefinition = {}
 
 
@@ -1111,7 +1115,7 @@ end
 
 
 
----@class g.Token
+---@class g.Token: g.TokenDefinition
 ---@field type string
 ---@field x number
 ---@field y number
@@ -1126,13 +1130,8 @@ end
 ---@field timeAlive number
 ---
 ---@field slimed boolean?
----@field money number?
----@field logs number?
----@field rocks number?
----@field bones number?
----
 ---@field ___destroyed boolean?
-local Token = {}
+local g_Token = {}
 
 
 
@@ -1230,6 +1229,9 @@ function g.destroyToken(tok)
     g.call("tokenDestroyed", tok)
     g.addResources(tok.resources)
     spawnTokenResource(tok)
+    if tok.particles then
+        g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))
+    end
 
     tok.___destroyed = true
     w.tokens:removeBuffered(tok)
