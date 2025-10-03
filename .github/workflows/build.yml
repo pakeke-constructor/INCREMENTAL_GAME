@@ -145,7 +145,7 @@ jobs:
     - name: Butler Push Windows
       uses: yeslayla/butler-publish-itchio-action@master
       if: 'steps.check.outputs.ok == 1'
-      with:
+      env:
         BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY }}
         CHANNEL: windows
         ITCH_GAME: incremental-game-1
