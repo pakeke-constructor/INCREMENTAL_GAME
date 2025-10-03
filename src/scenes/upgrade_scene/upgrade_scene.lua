@@ -30,6 +30,43 @@ local function getUpgradeCoords(uinfo)
 end
 
 
+---@param bundle g.Bundle
+---@return number
+local function sumPriceBundle(bundle)
+    local result = 0
+
+    for _, v in pairs(bundle) do
+        result = result + v
+    end
+
+    return result
+end
+
+local function getBestUpgradeType()
+    local target = nil
+    -- Prioritize sumprice then level
+    local sumprice = math.huge
+    local level = math.huge
+
+    for _, id in ipairs(g.UPGRADE_LIST) do
+        local uinfo = g.getUpgradeInfo(id)
+        local price = g.getUpgradePrice(uinfo)
+
+        if not g.isUpgradeHidden(uinfo) and g.canAfford(price) then
+            local sp = sumPriceBundle(price)
+            local lvl = g.getUpgradeLevel(uinfo)
+            if sp < sumprice or (sp == sumprice and lvl < level) then
+                target = uinfo
+                sumprice = sp
+                level = lvl
+            end
+        end
+    end
+
+    return target
+end
+
+
 ---@return g.UpgradeInfo?
 local function drawUpgradeBoxes()
     --[[
@@ -37,6 +74,7 @@ local function drawUpgradeBoxes()
     upgrades are within the same "map".
     ]]
     local hoveredUpgrade = nil
+    local bestUpgrade = getBestUpgradeType()
 
     for _, id in ipairs(g.UPGRADE_LIST) do
         local uinfo = g.getUpgradeInfo(id)
@@ -45,7 +83,8 @@ local function drawUpgradeBoxes()
             local cx,cy,size = getUpgradeCoords(uinfo)
             local x,y,w,h = cx-size/2, cy-size/2, size, size
 
-            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h)
+            local recommended = not not (bestUpgrade and bestUpgrade.type == uinfo.type)
+            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h, recommended)
             if isHovered then
                 hoveredUpgrade = uinfo
             end

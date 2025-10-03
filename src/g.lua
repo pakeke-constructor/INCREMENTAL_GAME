@@ -1381,6 +1381,7 @@ g.COLORS = {
 
     CANT_AFFORD = objects.Color("#".."FFC81515"),
     MONEY = objects.Color(g.getResourceInfo("money").color),
+    RECOMMENDED = objects.Color("#".."FF9DEC4E"),
 }
 
 
