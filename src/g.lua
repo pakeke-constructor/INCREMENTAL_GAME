@@ -455,6 +455,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field x number
 ---@field y number
 ---@field price g.Bundle
+---@field maxLevel integer?
 ---@field startingUpgrade boolean? starting-upgrades will be visible at the start, no matter what.
 ---@field image string?
 ---@field priceScaling number?
@@ -972,6 +973,9 @@ end
 function g.tryBuyUpgrade(uinfo)
     local session = g.getSn()
     local typ = uinfo.type
+    if g.getUpgradeLevel(uinfo) >= (uinfo.maxLevel or consts.DEFAULT_UPGRADE_MAX_LEVEL) then
+        return false -- already max level
+    end
     if g.canAffordUpgrade(uinfo) then
         local price = g.getUpgradePrice(uinfo)
         g.subtractResources(price)

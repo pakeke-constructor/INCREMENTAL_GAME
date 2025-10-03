@@ -13,10 +13,13 @@ local consts = {
     UPGRADE_IMAGE_SIZE = 24,
     UPGRADE_GRID_SPACING = 8, -- spaced 8 units apart
 
-    HARVEST_AREA_LEEWAY = 4, -- harvest area extends by this amount so it "feels good"
+    HARVEST_AREA_LEEWAY = 4, -- Mouse-harvest extends by this amount so it "feels good"
+
 
     DEFAULT_UPGRADE_PRICE_SCALING = 2,
     -- upgrade-price is multiplied by this amount every level (unless specified)
+
+    DEFAULT_UPGRADE_MAX_LEVEL = 10,
 
     TEST = true
 }
