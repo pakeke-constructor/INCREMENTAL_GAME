@@ -1,6 +1,5 @@
 
 
-local upgrades = require("src.upgrades.upgrades")
 
 local World = require("src.world.world")
 

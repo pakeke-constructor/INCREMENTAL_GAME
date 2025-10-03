@@ -4,7 +4,6 @@
 -- Gotta go fast, i dont care about "best practice"
 
 local reducers = require("src.modules.reducers")
-local upgrades = require("src.upgrades.upgrades")
 
 local World = require("src.world.world")
 local Session = require("src.Session")

@@ -1,5 +1,4 @@
 
-local upgrades = require("src.upgrades.upgrades")
 local UpgradeDescription = require("src.ui.upgrades.upgrade_description_ui")
 
 
@@ -13,7 +12,51 @@ local upgscene = FreeCameraScene()
 upgscene.upgradeDescription = nil
 
 
-local TITLE = localization.localize("{o}UPGRADES!")
+
+
+
+---@param uinfo g.UpgradeInfo
+---@return number
+---@return number
+---@return number
+local function getUpgradeCoords(uinfo)
+    local size = consts.UPGRADE_IMAGE_SIZE
+    local spacing = consts.UPGRADE_GRID_SPACING + size
+    local x = uinfo.x * spacing
+    local y = uinfo.y * spacing
+    -- x,y is center of box
+    -- `size` is size of upgrade-box
+    return x,y,size
+end
+
+
+---@return g.UpgradeInfo?
+local function drawUpgradeBoxes()
+    --[[
+    NOTE: there is a hard-assumption that all
+    upgrades are within the same "map".
+    ]]
+    local hoveredUpgrade = nil
+
+    for _, id in ipairs(g.UPGRADE_LIST) do
+        local uinfo = g.getUpgradeInfo(id)
+        if not g.isUpgradeHidden(uinfo) then
+            local level = g.getUpgradeLevel(uinfo)
+            local cx,cy,size = getUpgradeCoords(uinfo)
+            local x,y,w,h = cx-size/2, cy-size/2, size, size
+
+            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h)
+            if isHovered then
+                hoveredUpgrade = uinfo
+            end
+            if wasJustClicked then
+                g.tryBuyUpgrade(uinfo)
+            end
+        end
+    end
+    return hoveredUpgrade
+end
+
 
 
 function upgscene:draw()
@@ -24,7 +67,7 @@ function upgscene:draw()
     love.graphics.clear(0.2,0.4,0.8)
     love.graphics.setColor(1,1,1)
 
-    local hoveredUpgrade = upgrades._draw()
+    local hoveredUpgrade = drawUpgradeBoxes()
 
     self:resetCamera()
 
