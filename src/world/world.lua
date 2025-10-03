@@ -144,8 +144,7 @@ local TOKEN_SPAWN_ANIMATION_DURATION = 0.2
 local TOKEN_SPAWN_ANIMATION_AMPLITUDE = 1.3
 
 local TOKEN_HIT_ANIMATION_DURATION = 0.15
-local TOKEN_HIT_JERK_AMPLITUDE = 1.3
-local TOKEN_HIT_SQUASH_AMOUNT = 1
+local TOKEN_HIT_SQUASH_AMOUNT = 0.5
 
 
 ---@param tok g.Token
@@ -167,9 +166,9 @@ local function getTokScale(tok)
     local tsd = tok.timeSinceDamaged
     if tsd < TOKEN_HIT_ANIMATION_DURATION then
         -- Make it look "squashed" down
-        local mag = (TOKEN_HIT_ANIMATION_DURATION - tsd)*TOKEN_HIT_SQUASH_AMOUNT
-        sx = sx * (1+mag)
-        sy = sy * (1+mag)
+        local mag = ((TOKEN_HIT_ANIMATION_DURATION - tsd)/TOKEN_HIT_ANIMATION_DURATION)*TOKEN_HIT_SQUASH_AMOUNT
+        --sx = sx * (1-mag)
+        sy = sy * (1-mag)
     end
 
     return sx,sy
