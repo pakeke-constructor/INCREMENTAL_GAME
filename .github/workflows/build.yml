@@ -115,9 +115,9 @@ jobs:
       id: check
       shell: python
       env:
-        BUTLER_CREDENTIALS : ${{ secrets.BUTLER_KEY }}
-        ITCH_GAME: ${{ secrets.ITCH_PROJECT }}
-        ITCH_USER: ${{ secrets.ITCH_USERNAME }}
+        BUTLER_CREDENTIALS : ${{ secrets.BUTLER_API_KEY }}
+        ITCH_GAME: incremental-game-1
+        ITCH_USER: codetheory
       run: |
         import os
 
@@ -142,22 +142,12 @@ jobs:
       with:
         name: windows-build
 
-    - name: Butler Push .love
-      uses: yeslayla/butler-publish-itchio-action@v1
-      if: 'steps.check.outputs.ok == 1'
-      with:
-        BUTLER_CREDENTIALS: ${{ secrets.BUTLER_KEY }}
-        CHANNEL: love
-        ITCH_GAME: ${{ secrets.ITCH_PROJECT }}
-        ITCH_USER: ${{ secrets.ITCH_USERNAME }}
-        PACKAGE: game.love
-
     - name: Butler Push Windows
       uses: yeslayla/butler-publish-itchio-action@v1
       if: 'steps.check.outputs.ok == 1'
       with:
-        BUTLER_CREDENTIALS: ${{ secrets.BUTLER_KEY }}
+        BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY }}
         CHANNEL: windows
-        ITCH_GAME: ${{ secrets.ITCH_PROJECT }}
-        ITCH_USER: ${{ secrets.ITCH_USERNAME }}
+        ITCH_GAME: incremental-game-1
+        ITCH_USER: codetheory
         PACKAGE: game.zip
