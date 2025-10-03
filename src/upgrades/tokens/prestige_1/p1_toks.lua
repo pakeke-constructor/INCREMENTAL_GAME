@@ -32,7 +32,7 @@ g.defineTokenUpgrade("thick_grass", "Thick Grass", {
     token = {
         particles = "grass",
         resources = {money = 6},
-        maxHealth = 10
+        maxHealth = 8
     },
     upgrade = {
         prestige = 0,
@@ -46,7 +46,7 @@ g.defineTokenUpgrade("thick_grass", "Thick Grass", {
 g.defineTokenUpgrade("bamboo", "Bamboo", {
     token = {
         resources = {money = 15},
-        maxHealth = 20
+        maxHealth = 12
     },
     upgrade = {
         prestige = 0,
@@ -83,7 +83,7 @@ g.defineTokenUpgrade("basic_log", "Basic Log", {
             logs = 3,
         },
 
-        maxHealth = 15
+        maxHealth = 10
     },
 
     upgrade = {
@@ -103,7 +103,7 @@ g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
         resources = {
             money = 15,
         },
-        maxHealth = 10
+        maxHealth = 8
     },
 
     upgrade = {
@@ -119,7 +119,7 @@ g.defineTokenUpgrade("happy_cat", "Happy Cat", {
         resources = {
             money = 30,
         },
-        maxHealth = 20
+        maxHealth = 10
     },
 
     upgrade = {
@@ -134,7 +134,7 @@ g.defineTokenUpgrade("business_cat", "Business Cat", {
         resources = {
             money = 300,
         },
-        maxHealth = 50
+        maxHealth = 15
     },
 
     upgrade = {
