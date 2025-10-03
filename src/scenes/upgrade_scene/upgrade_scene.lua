@@ -67,7 +67,7 @@ local function getBestUpgradeType()
 end
 
 
----@return g.UpgradeInfo?
+---@return g.UpgradeInfo? hoveredUpgrade
 local function drawUpgradeBoxes()
     --[[
     NOTE: there is a hard-assumption that all
@@ -83,8 +83,8 @@ local function drawUpgradeBoxes()
             local cx,cy,size = getUpgradeCoords(uinfo)
             local x,y,w,h = cx-size/2, cy-size/2, size, size
 
-            local recommended = not not (bestUpgrade and bestUpgrade.type == uinfo.type)
-            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h, recommended)
+            local isRecommended = not not (bestUpgrade and (bestUpgrade.type == uinfo.type))
+            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h, isRecommended)
             if isHovered then
                 hoveredUpgrade = uinfo
             end
