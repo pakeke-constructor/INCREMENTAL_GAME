@@ -219,8 +219,8 @@ function Resources:drawHUD(camera)
         :attachToTopOf(r)
         :attachToLeftOf(r)
         :moveRatio(1, 1)
-        :moveUnit(4, 4)
-    local otherBaseResourceR = Kirigami(0, 0, 80, 32):moveUnit(4, 4)
+        :moveUnit(14, 10)
+    local otherBaseResourceR = Kirigami(0, 0, 80, 32):moveUnit(14, 4)
     local prevR = nil
     local leftPad = 0 -- For free area computation
 
