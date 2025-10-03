@@ -47,33 +47,6 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Download ImageMagick
-      uses: robinraju/release-downloader@v1
-      with:
-        repository: ImageMagick/ImageMagick
-        tag: 7.1.2-3
-        fileName: ImageMagick.Q16-HDRI.msixbundle
-
-    - name: Add ImageMagick to bin
-      shell: python
-      run: |
-        import os
-        import zipfile
-
-        # Make bin directory
-        os.makedirs("bin", exist_ok=True)
-
-        # Extract ImageMagick
-        with zipfile.ZipFile("ImageMagick.Q16-HDRI.msixbundle", "r") as z:
-            with zipfile.ZipFile(z.open("main-x64.appx", "r")) as z2:
-                with open("bin/magick.exe", "wb") as f0:
-                    with z2.open("magick.exe", "r") as f1:
-                        f0.write(f1.read())
-
-    - name: Add bin to path
-      working-directory: bin
-      run: echo %CD% >> "%GITHUB_PATH%"
-
     - name: Checkout
       uses: actions/checkout@v5
 

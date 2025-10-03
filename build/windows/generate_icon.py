@@ -14,7 +14,7 @@ ICON_SIZES = [32, 48, 64, 128, 256]
 def main():
     assert magick is not None
 
-    cmd = [magick, CURRENT_DIR / "icon_main_replace_this_only.png"]
+    cmd = [magick, CURRENT_DIR / ".." / "icon_main_replace_this_only.png"]
     for size in ICON_SIZES:
         cmd.extend(("(", "-clone", "0", "-scale", f"{size}x{size}", ")"))
     cmd.append("icon.ico")
