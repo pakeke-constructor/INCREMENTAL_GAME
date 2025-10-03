@@ -43,6 +43,17 @@ local function sumPriceBundle(bundle)
 end
 
 local function getBestUpgradeType()
+    --[[
+    TODO: in future, instead of only highlighting "the best"
+    upgrade,
+
+    we should highlight all upgrades that
+    the player should OBVIOUSLY buy.
+
+    EG if the player has $12,000
+    and there is an upgrade that costs $50,
+    then they should obviously buy it, and we should highlight that upgrade.
+    ]]
     local target = nil
     -- Prioritize sumprice then level
     local sumprice = math.huge
@@ -90,6 +101,7 @@ local function drawUpgradeBoxes()
             end
             if wasJustClicked then
                 g.tryBuyUpgrade(uinfo)
+                hoveredUpgrade=nil
             end
         end
     end
