@@ -143,7 +143,7 @@ local sceneManager = require("src.scenes.sceneManager")
 
 function love.load()
     love.graphics.setLineStyle("rough")
-    g.requireFolder("src/upgrades/upgrade_defs")
+    g.requireFolder("src/upgrades")
 
     g.newSession()
     sceneManager.gotoScene("map_scene")
