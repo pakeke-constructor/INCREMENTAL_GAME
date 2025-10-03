@@ -71,7 +71,7 @@ g.defineTokenUpgrade("stick", "Stick", {
     upgrade = {
         prestige = 0,
         price = {money=10},
-        x=4,y=1,
+        x=2,y=1,
     }
 })
 
@@ -97,7 +97,7 @@ g.defineTokenUpgrade("basic_log", "Basic Log", {
 
 do
 
-local X,Y = 2,-1
+local X,Y = 2,0
 g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
     token = {
         resources = {
@@ -109,7 +109,7 @@ g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
     upgrade = {
         prestige = 0,
         price = {money=100},
-        x=X-1,y=Y
+        x=X,y=Y
     }
 })
 
@@ -125,7 +125,7 @@ g.defineTokenUpgrade("happy_cat", "Happy Cat", {
     upgrade = {
         prestige = 0,
         price = {money = 400},
-        x = X, y = Y
+        x = X, y = Y-1
     }
 })
 
@@ -140,7 +140,7 @@ g.defineTokenUpgrade("business_cat", "Business Cat", {
     upgrade = {
         prestige = 0,
         price = {money = 5000},
-        x = X + 1, y = Y
+        x = X, y = Y-2
     }
 })
 
