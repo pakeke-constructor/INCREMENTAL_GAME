@@ -20,6 +20,8 @@ defUpgrade("more_damage", "More Damage", {
     x=X,y=Y,
     prestige=0,
 
+    startingUpgrade=true,
+
     price = {money=10},
 
     getValues = function(self,level)

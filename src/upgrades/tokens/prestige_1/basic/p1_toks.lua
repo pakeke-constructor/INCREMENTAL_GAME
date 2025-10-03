@@ -7,6 +7,7 @@ g.defineTokenUpgrade("grass_blades", "Grass Blades", {
         maxHealth = 3
     },
     upgrade = {
+        startingUpgrade=true,
         prestige = 0,
         price = {money=3},
         x=1,y=1,

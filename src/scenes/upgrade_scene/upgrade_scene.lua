@@ -144,7 +144,21 @@ function upgscene:update(dt)
 end
 
 
-function upgscene:keypressed()
+function upgscene:keypressed(k)
+    if consts.DEV_MODE then
+        -- upgrades for dev
+        if k == "u" then
+            local u = getBestUpgradeType()
+            local _ = u and g.tryBuyUpgrade(u)
+        end
+
+        if k == "u" and love.keyboard.isDown("lshift")then
+            for i=1,20 do
+                local u = getBestUpgradeType()
+                local _ = u and g.tryBuyUpgrade(u)
+            end
+        end
+    end
 end
 
 

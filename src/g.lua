@@ -455,8 +455,9 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field x number
 ---@field y number
 ---@field price g.Bundle
+---@field startingUpgrade boolean? starting-upgrades will be visible at the start, no matter what.
 ---@field image string?
----@field priceScaling? number
+---@field priceScaling number?
 ---@field description string?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field valueFormatter (string|(fun(x:number):string))[]
@@ -726,19 +727,67 @@ end
 
 
 
-local HASHVAL = 100000
 
----@param x integer
----@param y integer
----@param prestige integer
+
+-- Dont ask me how this hash/unhash shit works, i vibecoded it.
+-- (And YES, i tested it thoroughly)
+-- just make sure args are in range.
+local MAX_VAL = 500
+
+---@param x integer (-499 to 499)
+---@param y integer (-499 to 499)
+---@param prestige integer (0 to 499)
 ---@return integer
-local function hash(x,y, prestige)
-    return prestige + (x * HASHVAL) + (y * HASHVAL^2)
+local function hash(x, y, prestige)
+    -- M_X = 499500 (999 * 500)
+    -- M_Y = 500
+    -- Offset = 499
+    assert(prestige>=0,"prestige must be positive")
+    return (x + 499) * 499500 + (y + 499) * 500 + prestige
+end
+
+---@param h integer
+---@return integer x, integer y, integer prestige
+local function unhash(h)
+    -- M_X = 499500, S_Y = 999, M_Y = 500, Offset = 499
+    local p = h % 500
+    local r = math.floor(h/500)
+    local y = r % 999 - 499
+    local x = math.floor(r/999) - 499
+    return x, y, p
 end
 
 
 local function assertSmallEnough(x)
-    assert(math.abs(x) < HASHVAL, "Needs to be less than " .. HASHVAL .. " for hashing to work correctly!")
+    assert(math.abs(x) < MAX_VAL, "Needs to be less than " .. MAX_VAL .. " for hashing to work correctly!")
+end
+
+
+
+---@param uinfo g.UpgradeInfo
+---@param prestige number
+---@return g.UpgradeInfo
+local function getNeighbor(uinfo, prestige, dx,dy)
+    local ux, uy = uinfo.x+dx, uinfo.y+dy
+    local h = hash(ux,uy,prestige)
+    return upgradePositions[h]
+end
+
+
+local NEIGHBORS = {
+    {1,0},{-1,0},{0,1},{0,-1}
+}
+
+local function hasAnyPurchasedNeighbors(uinfo)
+    -- checks if any of `uinfo`s neighbors have been purchased (level>1)
+    local prestige = g.getPrestige()
+    for _,c in ipairs(NEIGHBORS) do
+        local a = getNeighbor(uinfo, prestige, c[1],c[2])
+        if a and g.getUpgradeLevel(a) > 0 then
+            return true
+        end
+    end
+    return false
 end
 
 
@@ -793,6 +842,8 @@ function g.defineUpgrade(id, name, def)
     assertSmallEnough(def.y)
     assertSmallEnough(def.prestige)
 
+    upgradePositions[hash(def.x,def.y,def.prestige)] = def
+
     def.type = id
 
     assert(not upgradeInfos[id], "Redefined upgrade!")
@@ -827,20 +878,16 @@ end
 ---@param uinfo g.UpgradeInfo
 ---@return boolean
 function g.isUpgradeLocked(uinfo)
-    if not g.inPrestigeRange(g.getPrestige(), uinfo.prestige) then
-        -- not in prestige range... its obviously hidden
-        return true
-    end
+    error([[
+        todo: should we have this?
 
-    if g.getUpgradeLevel(uinfo) > 0 then
-        return false -- cant be hidden if level>0
-    end
-    if uinfo.isHidden and uinfo:isHidden() then
-        return true
-    end
+        the idea is that we have some upgrades that can be 
+        purchased later on in the game,
 
-    return false
+        eg. late-game upgrades.
+    ]])
 end
+
 
 
 
@@ -859,7 +906,12 @@ function g.isUpgradeHidden(uinfo)
         return true
     end
 
-    return false
+    if uinfo.startingUpgrade then
+        return false
+    end
+
+    local isHidden = not hasAnyPurchasedNeighbors(uinfo)
+    return isHidden
 end
 
 
@@ -1138,7 +1190,8 @@ local g_Token = {}
 ---@return number
 function g.getRandomPositionForToken()
     local world = g.getMainWorld()
-    return getRandomPos(world, 0,0, world.WIDTH,world.HEIGHT) ---@diagnostic disable-line
+    local pad=4
+    return getRandomPos(world, pad,pad, world.WIDTH-pad*2,world.HEIGHT-pad*2) ---@diagnostic disable-line
 end
 
 
