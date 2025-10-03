@@ -1,3 +1,4 @@
+
 local love = require("love")
 
 
@@ -107,6 +108,9 @@ setmetatable(_G, {
 })
 
 
+local vignette = require("src.modules.vignette.vignette")
+vignette.setStrength(0.35)
+
 require("src.ev_q_definitions")
 
 
@@ -162,6 +166,7 @@ function love.draw()
         sc:draw()
         iml.endFrame()
     end
+    vignette.draw()
 end
 
 
@@ -221,6 +226,7 @@ function love.wheelmoved(dx, dy)
 end
 
 function love.resize(w, h)
+    vignette.resize()
     local sc = sceneManager.getCurrentScene()
     if sc and sc.resize then
         sc:resize(w, h)
