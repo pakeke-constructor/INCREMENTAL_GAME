@@ -205,13 +205,12 @@ function g.formatNumber(num)
             local scaled = num / suffix[1]
             local formatted
             if scaled >= 100 then
-                formatted = string.format("%.0f", scaled)
+                formatted = string.format("%.0f", math.floor(scaled))
             elseif scaled >= 10 then
-                formatted = string.format("%.1f", scaled)
+                formatted = string.format("%.14g", math.floor(scaled * 10) / 10)
             else
-                formatted = string.format("%.2f", scaled)
+                formatted = string.format("%.14g", math.floor(scaled * 100) / 100)
             end
-            formatted = formatted:gsub("%.?0+$", "")
 
             return (isNegative and "-" or "") .. formatted .. suffix[2]
         end
@@ -1382,6 +1381,7 @@ g.COLORS = {
 
     CANT_AFFORD = objects.Color("#".."FFC81515"),
     MONEY = objects.Color(g.getResourceInfo("money").color),
+    RECOMMENDED = objects.Color("#".."FF9DEC4E"),
 }
 
 

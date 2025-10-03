@@ -47,13 +47,33 @@ local function adjustColor(uinfo, level, color)
 end
 
 
+---@param x number
+local function triangleWave(x)
+    return 2 * math.min(x, 1 - x)
+end
+
+---@param x number
+local function easeInOutSine(x)
+    return -(math.cos(math.pi * x) - 1) / 2;
+end
+
 ---@param uinfo g.UpgradeInfo
+---@param level integer
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param recommend boolean
 ---@return boolean isHovered
 ---@return boolean wasJustClicked
-local function upgradeBoxUI(uinfo, level, x,y,w,h)
+local function upgradeBoxUI(uinfo, level, x,y,w,h, recommend)
     local cpy = objects.Color
     local UPCOLS = g.COLORS.UPGRADE_KINDS
     local cx,cy = x+w/2, y+h/2
+    local recommendedT = 0
+    if recommend then
+        recommendedT = love.timer.getTime() / 2 % 1
+    end
 
     --------------------
     -- draw background:
@@ -83,7 +103,12 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h)
     lg.setLineWidth(2)
     lg.setColor(0,0,0)
     lg.rectangle("line",x-1,y-1,w+2,h+2)
-    lg.setLineWidth(2)
+    if recommend then
+        local alpha = triangleWave(recommendedT)
+        local cr, cg, cb = g.COLORS.RECOMMENDED:getRGBA()
+        lg.setColor(cr, cg, cb, alpha)
+        lg.rectangle("line",x-2,y-2,w+4,h+4)
+    end
     lg.setColor(borderCol)
     lg.rectangle("line",x,y,w,h)
 
@@ -91,12 +116,19 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h)
     --------------------
     -- draw image/icon:
     --------------------
+    local rot = 0
     if level > 0 then
         lg.setColor(1,1,1)
     else
         lg.setColor(0,0,0)
     end
-    g.drawImage(uinfo.image, cx, cy)
+    if recommend then
+        -- We want to complete full 3 sine period in 0.5 time
+        local t = math.min(recommendedT / 0.5, 1)
+        local s = math.sin(2 * math.pi * 3 * t)
+        rot = rot + s * 0.4 * (1 - t)
+    end
+    g.drawImage(uinfo.image, cx, cy, rot)
 
 
     --------------------
