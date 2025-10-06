@@ -616,7 +616,7 @@ end
 function g.addResource(resId, amount)
     assertValidResource(resId)
     local r = currentSession.resources
-    r[resId] = math.min(r[resId] + amount, g.getResourceLimit(resId))
+    r[resId] = math.min(math.max(r[resId] + amount, 0), g.getResourceLimit(resId))
 end
 
 
