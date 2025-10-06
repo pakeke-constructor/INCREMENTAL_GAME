@@ -100,7 +100,83 @@ local function drawHarvestSceneUI(r)
 end
 
 
+----------------
+-- Upgrade scene
+----------------
 
+if consts.DEV_MODE and not love.filesystem.isFused() then
+    local srcdir = love.filesystem.getSource().."/src"
+    assert(love.filesystem.mountFullPath(srcdir, "root/src", "readwrite", true))
+end
+
+---@class _dev.UpgradePosition
+---@field public type string
+---@field public x integer
+---@field public y integer
+
+---@param prestige integer
+---@return _dev.UpgradePosition[], boolean
+local function loadUpgradeList(prestige)
+    local path = "src/upgrades/prestige_"..prestige..".json"
+    if love.filesystem.getInfo(path, "file") then
+        return json.decode((love.filesystem.read(path))), true
+    end
+    return {}, false
+end
+
+---@return _dev.UpgradePosition[][]
+local function loadAllUpgrades()
+    local prestige = 0
+    local output = {}
+    while true do
+        local r, continue = loadUpgradeList(prestige)
+
+        output[#output+1] = r
+
+        if not continue then
+            break
+        end
+
+        prestige = prestige + 1
+    end
+
+    return output
+end
+
+local upgradePosList = loadAllUpgrades()
+local currentPrestige = 1 -- Note: This is for Lua indexing only. for display, subtract by 1.
+
+local function saveUpgradePositions()
+    for i, ulist in ipairs(upgradePosList) do
+        if #ulist == 0 and i == #upgradePosList then
+            break
+        end
+
+        -- "root" is our game source directory but RW.
+        -- i - 1 because prestige starts at 0
+        love.filesystem.write("root/src/upgrades/prestige_"..(i - 1)..".json", json.encode(ulist))
+    end
+end
+
+---@param x integer
+---@param y integer
+local function getUpgradeCoords(x, y)
+    local size = consts.UPGRADE_IMAGE_SIZE
+    local spacing = consts.UPGRADE_GRID_SPACING + size
+    -- x,y is center of box
+    -- `size` is size of upgrade-box
+    return x * spacing, y * spacing, size
+end
+
+local function drawUpgradeScene()
+    for _, ulist in ipairs(upgradePosList[currentPrestige]) do
+    end
+end
+
+
+---------------
+-- Main handler
+---------------
 
 local function dummy() end
 local SCENES = {
@@ -115,7 +191,8 @@ local currentSceneNumber = 1
 local helpText = table.concat({
     "[H] = Show Harvest Area",
     "[U] = Show Upgrade Editor",
-    "[R] = Toggle Resource Modification Mode"
+    "[R] = Show Resource Hack",
+    "[C] = Reset Camera"
 }, "\n")
 
 
@@ -171,11 +248,15 @@ local function trySpawnTokenAtMouse(scene)
     end
 end
 
+---@param self DevScene
 rawset(dev, "keyreleased", function(self, k)
     if k == "h" then
         currentSceneNumber = 2
     elseif k == "r" then
         currentSceneNumber = 1
+    elseif k == "c" then
+        self.camera:setPos(0, 0)
+        self:setZoom(0)
     elseif currentSceneNumber == 2 then
         if k == "up" then
             selectedTokenIndex = (selectedTokenIndex - 2) % #g.TOKEN_LIST + 1
