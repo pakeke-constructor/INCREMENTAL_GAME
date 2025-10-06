@@ -18,8 +18,43 @@ local function regionFromText(font, width, text)
 end
 
 
+---------------------
+-- Resource Mod scene
+---------------------
 
+---@param r layout.Region
+---@param resId string
+local function drawResourceType(r, resId)
+    local b1, b2, b3, b4 = r:splitVertical(1, 1, 1, 1)
+    local limit = g.getResourceLimit(resId)
+
+    if ui.Button("MAX "..resId, b1:padUnit(4):get()) then
+        g.addResource(resId, limit)
+    end
+    if ui.Button("+10% "..resId, b2:padUnit(4):get()) then
+        g.addResource(resId, math.floor(limit/10+0.5))
+    end
+    if ui.Button("-10% ".. resId, b3:padUnit(4):get()) then
+        g.addResource(resId, -math.floor(limit/10+0.5))
+    end
+    if ui.Button("ZERO "..resId, b4:padUnit(4):get()) then
+        g.addResource(resId, -limit)
+    end
+end
+
+---@param r layout.Region
+local function drawResourceSceneUI(r)
+    local grid = r:padRatio(0.05):grid(#g.RESOURCE_LIST, 1)
+
+    for i, resId in ipairs(g.RESOURCE_LIST) do
+        drawResourceType(grid[i], resId)
+    end
+end
+
+
+----------------
 -- Harvest scene
+----------------
 
 ---@param dt number
 local function updateHarvestScene(dt)
@@ -65,9 +100,13 @@ local function drawHarvestSceneUI(r)
 end
 
 
+
+
+local function dummy() end
 local SCENES = {
-    {function(dt) end, function() end},
-    {updateHarvestScene, drawHarvestScene}
+    -- Update, draw, drawUI
+    {dummy, dummy, drawResourceSceneUI},
+    {updateHarvestScene, drawHarvestScene, drawHarvestSceneUI}
 }
 local currentSceneNumber = 1
 
@@ -81,6 +120,8 @@ local helpText = table.concat({
 
 
 local function drawDevUI()
+    SCENES[currentSceneNumber][3](g.getHUD():getSafeArea())
+
     local font = g.getSmallFont(16)
     local finalText = "{o}"..helpText.."{/o}"
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
@@ -92,11 +133,6 @@ local function drawDevUI()
 
     love.graphics.setColor(1, 1, 1)
     richtext.printRich(finalText, font, textR.x, textR.y, textR.w, "left")
-
-    if currentSceneNumber == 2 then
-        -- Harvest scene
-        drawHarvestSceneUI(r)
-    end
 end
 
 function dev:draw()
@@ -120,6 +156,7 @@ end
 
 function dev:update(dt)
     self:updateCamera(dt)
+    g.getHUD():update(dt)
     SCENES[currentSceneNumber][1](dt)
 end
 
