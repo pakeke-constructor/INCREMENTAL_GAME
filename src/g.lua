@@ -1071,6 +1071,7 @@ local tokenMts = {--[[
     [tokenType] -> tokenMt
 ]]}
 
+g.TOKEN_LIST = {}
 
 
 ---@param tokType string
@@ -1084,6 +1085,7 @@ function g.defineToken(tokType, name, tabl)
     tabl.name = loc(name) ---@diagnostic disable-line
     tokenDefinitions[tokType] = tabl
     tokenMts[tokType] = {__index = tabl}
+    g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
 end
 
 ---@param tokType string
