@@ -1,20 +1,29 @@
 
 
-# UPGRADE IDEAS:
-Different "categories" of upgrades.  
-Some categories contain prestige; others dont.
+# UPGRADE PLANNING:
+Upgrades are primary things that the player can purchase to improve their harvesting.  
 
-**FOR THE INITIAL GAME VERSION, DONT HAVE ANY PRESTIGE.**  
-Just have regular upgrades.  
-Make sure to build the *systems* for prestige tho.
+Most upgrades can be purchased multiple times (e.g, they have "levels")
+
+
+
+## Prestige:
+"Prestige" is when the player resets all of their upgrades,
+and "progresses" to the next upgrade-tree.
+
+Crucially, each prestige-level can have completely different upgrades.
+(For the initial game version, dont have prestige.)
+
+
+## Upgrade Tree Layout:
+Upgrades are layed-out in a grid-like upgrade tree.
+
 
 
 ## Upgrade-theming:
 Upgrades should *feel* fun, and should have fun names/theming.  
 Dont just have boring "increase damage by 2".  
 Instead: "Cat spikes! Harvesting a cat emits spikes that deal +2 damage"
-
-
 
 
 
@@ -90,7 +99,7 @@ Whereas if players purchase expensive tokens, but harvesting is bad; at least th
 ## MISC-UPGRADES:
 - STORAGE: Upgrades storage of resources (One for each category) Money, Logs, Rock etc
 - Capitalist: All upgrades become 5% cheaper
-- Land Value Tax: Increase size of land by 10%, and earn 8% more for ALL resources!
+- Land Value Tax: Increase size of land by 10%, and earn 10% more for ALL resources!
 
 
 <br/>

@@ -1,6 +1,6 @@
 
 
-# Market:
+# Incremental Game Concept:
 
 Idle games have been performing [extremely well recently.](https://howtomarketagame.com/2025/08/04/2025-q2-games-that-are-selling/)
 
@@ -11,13 +11,16 @@ Idle games have been performing [extremely well recently.](https://howtomarketag
 - Play minigames and discover new things
 
 The overall goal is to increase your resource production.
-(Similar to cookie-clicker, Banana, IdleOn MMO, etc)
+(Similar to cookie-clicker, Banana, Keep-on-Mining, IdleOn MMO, etc)
 
 
 
 ## MAIN CONCEPT: Upgrades + Tokens
 
-There is a "harvesting area" where you harvest tokens in.  
+Harvesting area is where you harvest tokens in.  
+Harvesting earns money.
+
+Upgrade-tree is where you purchase more upgrades (eg improved harvesting-speed) or, purchase 
 
 You can upgrade harvesting-speed,
 AND you can upgrade what tokens spawn. 
@@ -31,19 +34,10 @@ Or you can buy extra basic tokens so theres more of them
 <br/>
 
 
-## Harvesting gameplay loop:
-Mouse-usage:  
-Player needs to mouse over logs to mine/axe it.
-- *AFTER LEVEL 5*, you can buy automatic-cat that mines for you.  
-(See [Keep on mining](https://store.steampowered.com/app/3769130/Keep_on_Mining/) as an example.)
-
-
 ## Progressive map unlocks and upgrades:
-Keep it DEAD FUCKING SIMPLE to start with. SUPER SIMPLE.  
 **First upgrades should be VISUAL upgrades. We need to hook the player!!!**  
 
 Over time, player unlocks more stuff as they progress.
-This could work by more of the map being unlocked, and the player completing quests/tasks.  
 We also need to make the player *excited* to unlock new stuff.
 
 
@@ -57,19 +51,6 @@ Players should ALWAYS have multiple things to look-forward to.
 
 Likewise, upgrade pacing should be decently fast.  
 We dont want it to take 30 minutes to get the next upgrade. Players should get it easily.
-
-
-
-
-
-## Items:
-How should these work?  
-
-MUST HAVES / OBJECTIVES OF THE ITEM-SYSTEM:
-- Must be *simple*, but still sufficiently deep
-- DOES NOT punish players who don't optimize
-- Players should be excited to get "the next big thing"
-- Must be *multiplicative content*. We dont wanna spend the entire time creating content
 
 
 
@@ -98,7 +79,7 @@ Ideally, we want players to progress *steadily*, but not toooo fast.
 (We should weigh exciting progress more towards the start of the game;
 ie the "hook". Every minute or so when starting, a new upgrade.)
 
-#### Pacing: Upgradable Resource-limits. 
+### Pacing: Upgradable Resource-limits. 
 EG: money capped at $5000 (can be upgraded)
 With limits, offline/idle gameplay becomes a LOT less damaging.  
 (If the player idles for many hours, they don't become giga-rich.)  

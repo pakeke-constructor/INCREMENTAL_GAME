@@ -3,8 +3,8 @@
 
 # THEMING:
 
-A lot of the "theming" will be using assets that we already have,  
-Or assets that we can find on itch.
+For art, try to use assets that we already have,  
+(Or assets that we can find on itch.)
 
 Whatever the case, theming *MUST BE CONSISTENT.*  
 
