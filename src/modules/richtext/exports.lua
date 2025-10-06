@@ -136,7 +136,7 @@ function text.printRichContained(txt, font, x,y,w,h)
     local scale = math.min(limit/tw, h/th)
     local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
 
-    drawRichText(parsed, font, drawX, drawY, limit, "left", 0, scale, scale, tw / 2, th / 2)
+    drawRichText(parsed, font, drawX, drawY, limit / scale, "left", 0, scale, scale, tw / 2, th / 2)
 end
 
 
