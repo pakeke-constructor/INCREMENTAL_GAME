@@ -1290,6 +1290,10 @@ function g.destroyToken(tok)
 
     tok.___destroyed = true
     w.tokens:removeBuffered(tok)
+
+    -- todo: rework/rethink this.
+    -- Each token should have different "sound"
+    g.playSound("pop", 1, 1, 0.15)
     return true
 end
 
@@ -1302,6 +1306,14 @@ function g.damageToken(tok, dmg)
     dmg = dmg * dmgMult
     tok.health = tok.health - dmg
     g.call("tokenDamaged", tok, dmg)
+
+    -- todo: rework all this.
+    if love.math.random()<0.5 then
+        g.playSound("hit_billiard", 1, 0.18, 0.3)
+    else
+        g.playSound("hit_soft", 1, 0.18, 0.3)
+    end
+
     tok.timeSinceDamaged = 0
     if tok.health <= 0 then
         g.destroyToken(tok)
@@ -1337,7 +1349,7 @@ end
 -- g.playSound defined here
 do
 
-local MAX_SOURCE_POOL = 20
+local MAX_SOURCE_POOL = 15
 ---@type table<string, love.Source[]>
 local sourcePool = {} -- first source always the one to clone
 
@@ -1370,14 +1382,19 @@ end
 ---@param soundname string
 ---@param pitch number? (defaults to 1)
 ---@param volume number? (defaults to 1)
-function g.playSound(soundname, pitch, volume)
+---@param pitchVar number? (pitch variance, default 0)
+---@param volumeVar number? (volume variance, default 0)
+function g.playSound(soundname, pitch, volume, pitchVar, volumeVar)
     local s = getSourceFromPool(soundname)
     if not s then
         return false
     end
 
-    pitch = pitch or 1
-    volume = math.max(volume or 1, 0)
+    local dv = (volumeVar or 0) * (love.math.random()-0.5)*2
+    local dp = (pitchVar or 0) * (love.math.random()-0.5)*2
+
+    pitch = (pitch or 1) + dp
+    volume = math.max((volume or 1) + dv, 0)
     if pitch <= 0 then
         error("invalid pitch "..pitch)
     end
@@ -1401,17 +1418,18 @@ local function loadSound(path)
     local ext = pathrev:sub(1, (pathrev:find(".", 1, true) or 1) - 1):reverse():lower()
 
     if validExtensions[ext] then
-        local basename = pathrev:sub(1, pathrev:find("/", 1, true)):reverse()
+        local basename = pathrev:sub(1, pathrev:find("/", 1, true)-1):reverse()
 
         if #basename > 0 then
             local name = basename:sub(1, -#ext - 2)
             local mainSource = love.audio.newSource(path, "static")
+            print("n:",name)
             sourcePool[name] = {mainSource}
         end
     end
 end
 
-g.walkDirectory("assets/sounds", loadSound)
+g.walkDirectory("assets/sfx", loadSound)
 
 
 end
