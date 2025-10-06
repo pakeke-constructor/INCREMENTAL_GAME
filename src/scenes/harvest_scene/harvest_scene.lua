@@ -1,6 +1,7 @@
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+local vignette = require("src.modules.vignette.vignette")
 
 ---@class HarvestScene: FreeCameraScene
 local harvest = FreeCameraScene()
@@ -38,6 +39,8 @@ function harvest:draw()
     world:_draw()
 
     self:resetCamera()
+
+    vignette.draw()
 
     ui.startUI()
     self:renderNavbar()

@@ -58,6 +58,8 @@ end
 ]]
 local DEFAULT_VIGNETTE_IMAGE = "src/modules/vignette/vignette.png"
 local vignetteImage = love.graphics.newImage(DEFAULT_VIGNETTE_IMAGE)
+-- Explicitly set linear filtering to avoid banding
+vignetteImage:setFilter("linear", "linear")
 
 
 

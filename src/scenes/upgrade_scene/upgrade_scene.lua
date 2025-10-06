@@ -3,6 +3,7 @@ local UpgradeDescription = require("src.ui.upgrades.upgrade_description_ui")
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+local vignette = require("src.modules.vignette.vignette")
 
 
 ---@class UpgradesScene: FreeCameraScene
@@ -121,6 +122,8 @@ function upgscene:draw()
     local hoveredUpgrade = drawUpgradeBoxes()
 
     self:resetCamera()
+
+    vignette.draw()
 
     ui.startUI()
     self:renderNavbar()
