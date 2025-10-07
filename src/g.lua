@@ -679,6 +679,15 @@ end
 
 
 
+--------------------------------------------------
+-- Upgrades.
+--- 
+-- g.getUpgradeInfo(upgradeId)
+-- g.getUpgradeLevel(uinfo)
+-- g.isUpgradeLocked(uinfo)
+-- g.isUpgradeHidden(uinfo)
+--------------------------------------------------
+do
 
 -- Dont ask me how this hash/unhash shit works, i vibecoded it.
 -- (And YES, i tested it thoroughly)
@@ -713,18 +722,6 @@ end
 local function assertSmallEnough(x)
     assert(math.abs(x) < MAX_VAL, "Needs to be less than " .. MAX_VAL .. " for hashing to work correctly!")
 end
-
-
-
---------------------------------------------------
--- Upgrades.
---- 
--- g.getUpgradeInfo(upgradeId)
--- g.getUpgradeLevel(uinfo)
--- g.isUpgradeLocked(uinfo)
--- g.isUpgradeHidden(uinfo)
---------------------------------------------------
-do
 
 ---@type string[]
 g.UPGRADE_LIST = {}
