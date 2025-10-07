@@ -21,24 +21,25 @@ function HUD:update(dt)
 end
 
 ---@param camera Camera
-function HUD:draw(camera)
+---@param show {resource:boolean?,profile:boolean?}?
+function HUD:draw(camera, show)
+    show = show or {}
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
     local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
     local profileR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(r):moveRatio(0, -1):padRatio(0.05)
+    local hideResource = show.resource == false
+    local hideProfile = show.profile == false
 
-    -- Draw dummy profile picture
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("fill", profileR:get())
-    love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle("line", profileR:get())
+    if not hideProfile then
+        -- Draw dummy profile picture
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.rectangle("fill", profileR:get())
+        love.graphics.setColor(1, 0, 0)
+        love.graphics.rectangle("line", profileR:get())
+    end
 
+    self.resourceHUD:draw(camera, hideResource)
     self.freeArea = r:padUnit(profileR.x + profileR.w, 0, 0, 0)
-    return self:drawResourceHUD(camera)
-end
-
----@param camera Camera
-function HUD:drawResourceHUD(camera)
-    return self.resourceHUD:draw(camera)
 end
 
 ---@param kind g.ResourceType

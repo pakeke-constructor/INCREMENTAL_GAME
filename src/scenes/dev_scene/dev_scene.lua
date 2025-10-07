@@ -514,7 +514,7 @@ function dev:draw()
     ui.startUI()
     drawDevUI(self)
     self:renderNavbar()
-    g.getHUD():drawResourceHUD(self.camera)
+    g.getHUD():draw(self.camera, {profile = false})
     ui.endUI()
 end
 

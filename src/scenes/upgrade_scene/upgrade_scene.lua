@@ -128,7 +128,7 @@ function upgscene:draw()
     ui.startUI()
     self:renderNavbar()
 
-    g.getHUD():drawResourceHUD(self.camera)
+    g.getHUD():draw(self.camera, {profile = false})
 
     if hoveredUpgrade then
         if not self.upgradeDescription or self.upgradeDescription:getType() ~= hoveredUpgrade.type then
