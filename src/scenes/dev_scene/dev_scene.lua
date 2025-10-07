@@ -408,7 +408,6 @@ local function drawUpgradeSceneUI(r, cam)
         :moveUnit(-4, -4)
     love.graphics.setColor(1, 1, 1)
     richtext.printRich(helpText, font, textR.x, textR.y, textR.w, "left")
-    ui.debugRegion(r)
 end
 
 ---@param x integer
