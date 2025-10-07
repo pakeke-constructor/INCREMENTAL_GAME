@@ -149,6 +149,7 @@ local function loadAllUpgrades()
 end
 
 local upgradePosList, upgradeHashmap = loadAllUpgrades()
+local isUpgradeDataModified = false
 local currentPrestige = 0
 ---@type {pos:_dev.UpgradePosition,info:g.UpgradeInfo}|nil
 local lastUpgradeHovered = nil
@@ -179,6 +180,7 @@ local function saveUpgradePositions()
     lastUpgradeHovered = nil
     lastUpgradeSelected = nil
     upgradePosList, upgradeHashmap = loadAllUpgrades()
+    isUpgradeDataModified = false
 end
 
 ---@param x integer
@@ -266,6 +268,7 @@ local function spawnUpgrade(utype, x, y)
     upgradeHashmap[g.hashPos(tx, ty, currentPrestige)] = utype
     table.insert(upgradePosList[currentPrestige + 1], upos)
     lastUpgradeSelected = {pos = upos, info = g.getUpgradeInfo(utype)}
+    isUpgradeDataModified = true
 end
 
 ---@type string[]|nil
@@ -285,7 +288,7 @@ local upgradePrestigeChangerText = "{o}"..table.concat({
     colorRichText(ABOVE_PRESTIGE_COLOR, "Upgrade Above Prestige Level"),
     "",
     "[/] = Open Upgrade Spawner",
-    "[Ctrl+S] = Save Upgrade Pos",
+    "[Ctrl+S] = Save Upgrade Pos%s", -- (the %s is if it's modified)
     "",
     "Prestige: %d",
     "[T] = Increase Prestige",
@@ -297,7 +300,7 @@ local selectedUpgradeText = "{o}"..table.concat({
     -- string.format("X: %d | Y: %d", lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y),
     "%s (%s)",
     "X: %d | Y: %d",
-    "[Esc] = Deselect",
+    "[Esc|Enter] = Deselect",
     "[Arrow Keys] = Move",
     "[Delete] = Delete",
     "[T] = Increase Prestige",
@@ -397,7 +400,7 @@ local function drawUpgradeSceneUI(r, cam)
         end
     end
 
-    local helpText = string.format(upgradePrestigeChangerText, currentPrestige)
+    local helpText = string.format(upgradePrestigeChangerText, isUpgradeDataModified and " *" or "", currentPrestige)
     local textR = regionFromText(font, 1000, helpText)
         :attachToRightOf(r)
         :attachToBottomOf(r)
@@ -405,6 +408,7 @@ local function drawUpgradeSceneUI(r, cam)
         :moveUnit(-4, -4)
     love.graphics.setColor(1, 1, 1)
     richtext.printRich(helpText, font, textR.x, textR.y, textR.w, "left")
+    ui.debugRegion(r)
 end
 
 ---@param x integer
@@ -449,6 +453,8 @@ local function moveUpgradeTo(upos, x, y, prestige)
     -- Update
     upos.x = x
     upos.y = y
+    -- Mark as modified
+    isUpgradeDataModified = true
 end
 
 
@@ -532,8 +538,25 @@ end
 ---@param self DevScene
 rawset(dev, "keyreleased", function(self, k)
     if typedUpgradeId then
-        if k == "enter" then
-            -- TODO: Pick first candidate
+        if k == "return" then
+            -- Pick first candidate
+            local query = table.concat(typedUpgradeId):lower()
+
+            if #query > 0 then
+                for _, utype in ipairs(g.UPGRADE_LIST) do
+                    local uinfo = g.getUpgradeInfo(utype)
+
+                    if utype:lower():find(query, 1, true) or uinfo.name:lower():find(query) then
+                        local wx, wy = self.camera:getPos()
+                        local usz = consts.UPGRADE_IMAGE_SIZE + consts.UPGRADE_GRID_SPACING
+                        local ux = math.floor(wx / usz)
+                        local uy = math.floor(wy / usz)
+                        spawnUpgrade(utype, ux, uy)
+                        break
+                    end
+                end
+            end
+
             typedUpgradeId = nil
             love.keyboard.setTextInput(false)
         elseif k == "escape" then
@@ -605,11 +628,13 @@ rawset(dev, "keyreleased", function(self, k)
             typedUpgradeId = {}
             love.keyboard.setTextInput(true)
         elseif lastUpgradeSelected then
-            if k == "escape" then
+            if k == "escape" or k == "return" then
                 lastUpgradeSelected = nil
             elseif k == "delete" then
                 for i, upos in ipairs(upgradePosList[currentPrestige + 1]) do
                     if upos == lastUpgradeSelected.pos then
+                        local h = g.hashPos(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, currentPrestige)
+                        upgradeHashmap[h] = nil
                         table.remove(upgradePosList[currentPrestige + 1], i)
                         lastUpgradeSelected = nil
                         lastUpgradeHovered = nil -- just in case
