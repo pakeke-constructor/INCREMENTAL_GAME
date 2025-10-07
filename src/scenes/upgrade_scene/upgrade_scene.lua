@@ -17,14 +17,16 @@ upgscene.upgradeDescription = nil
 
 
 ---@param uinfo g.UpgradeInfo
+---@param prestige integer
 ---@return number
 ---@return number
 ---@return number
-local function getUpgradeCoords(uinfo)
+local function getUpgradeCoords(uinfo, prestige)
+    local upos = g.getUpgradePosition(uinfo, prestige)
     local size = consts.UPGRADE_IMAGE_SIZE
     local spacing = consts.UPGRADE_GRID_SPACING + size
-    local x = uinfo.x * spacing
-    local y = uinfo.y * spacing
+    local x = upos[1] * spacing
+    local y = upos[2] * spacing
     -- x,y is center of box
     -- `size` is size of upgrade-box
     return x,y,size
@@ -92,7 +94,7 @@ local function drawUpgradeBoxes()
         local uinfo = g.getUpgradeInfo(id)
         if not g.isUpgradeHidden(uinfo) then
             local level = g.getUpgradeLevel(uinfo)
-            local cx,cy,size = getUpgradeCoords(uinfo)
+            local cx,cy,size = getUpgradeCoords(uinfo, g.getPrestige())
             local x,y,w,h = cx-size/2, cy-size/2, size, size
 
             local isRecommended = not not (bestUpgrade and (bestUpgrade.type == uinfo.type))

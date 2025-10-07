@@ -17,9 +17,6 @@ local X=-3
 local Y=0
 
 defUpgrade("more_damage", "More Damage", {
-    x=X,y=Y,
-    prestige=0,
-
     startingUpgrade=true,
 
     price = {money=10},
@@ -38,9 +35,6 @@ defUpgrade("more_damage", "More Damage", {
 
 
 defUpgrade("hit_speed", "Hit Speed", {
-    x=X,y=Y-1,
-    prestige=0,
-
     price = {money=10},
 
     getValues = function(self,level)
@@ -57,9 +51,6 @@ defUpgrade("hit_speed", "Hit Speed", {
 
 
 defUpgrade("more_area", "More Area", {
-    x=X-1,y=Y,
-    prestige=0,
-
     price = {money=10},
 
     getValues = function(self,level)
@@ -77,9 +68,6 @@ defUpgrade("more_area", "More Area", {
 
 
 defUpgrade("lucky_hit", "Lucky Hit", {
-    x=X,y=Y-2,
-    prestige=0,
-
     price = {money=10},
 
     getValues = function(self,level)
