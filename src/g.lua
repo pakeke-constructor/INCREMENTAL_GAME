@@ -737,9 +737,8 @@ local upgradePositionsHash = {--[[
 ]]}
 ---@cast upgradePositionsHash {[number]: string?}
 
----The mapping is `positions: [number,number][] = t[prestige+1][upgradename]`
----Note that prestige numbering here is 1-based!!!
----@type table<string, [integer, integer][]>[]
+---The mapping is `positions: [number,number][] = t[prestige][upgradename]`
+---@type table<integer, table<string, [integer, integer][]>>
 local upgradePositionByPrestige = {}
 
 -- Load prestiges
@@ -764,7 +763,7 @@ do
                 upgradePositionsHash[hash(upos.x, upos.y, i)] = upos.type
             end
 
-            upgradePositionByPrestige[#upgradePositionByPrestige+1] = upgradePoses
+            upgradePositionByPrestige[i] = upgradePoses
         else
             break
         end
@@ -918,7 +917,7 @@ end
 ---@param uinfo g.UpgradeInfo
 ---@param prestige integer
 function g.isUpgradeDefinedInPrestige(uinfo, prestige)
-    return not not upgradePositionByPrestige[prestige + 1][uinfo.type]
+    return not not upgradePositionByPrestige[prestige][uinfo.type]
 end
 
 
@@ -931,7 +930,7 @@ function g.getUpgradePositions(uinfo, prestige)
         error("upgrade '"..uinfo.type.."' not defined in prestige "..prestige)
     end
 
-    return upgradePositionByPrestige[prestige + 1][uinfo.type]
+    return upgradePositionByPrestige[prestige][uinfo.type]
 end
 
 ---@param uinfo g.UpgradeInfo
