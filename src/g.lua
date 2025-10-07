@@ -746,6 +746,7 @@ local function hash(x, y, prestige)
     assert(prestige>=0,"prestige must be positive")
     return (x + 499) * 499500 + (y + 499) * 500 + prestige
 end
+g.hashPos = hash
 
 ---@param h integer
 ---@return integer x, integer y, integer prestige
