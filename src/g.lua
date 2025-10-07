@@ -616,7 +616,7 @@ end
 function g.addResource(resId, amount)
     assertValidResource(resId)
     local r = currentSession.resources
-    r[resId] = math.min(r[resId] + amount, g.getResourceLimit(resId))
+    r[resId] = math.min(math.max(r[resId] + amount, 0), g.getResourceLimit(resId))
 end
 
 
@@ -746,6 +746,7 @@ local function hash(x, y, prestige)
     assert(prestige>=0,"prestige must be positive")
     return (x + 499) * 499500 + (y + 499) * 500 + prestige
 end
+g.hashPos = hash
 
 ---@param h integer
 ---@return integer x, integer y, integer prestige
@@ -1071,6 +1072,7 @@ local tokenMts = {--[[
     [tokenType] -> tokenMt
 ]]}
 
+g.TOKEN_LIST = {}
 
 
 ---@param tokType string
@@ -1084,6 +1086,7 @@ function g.defineToken(tokType, name, tabl)
     tabl.name = loc(name) ---@diagnostic disable-line
     tokenDefinitions[tokType] = tabl
     tokenMts[tokType] = {__index = tabl}
+    g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
 end
 
 ---@param tokType string

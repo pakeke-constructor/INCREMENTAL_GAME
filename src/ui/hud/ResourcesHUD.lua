@@ -159,57 +159,61 @@ end
 ---@param scale number
 ---@param bgcolor [number, number, number, number?]
 ---@param barcolor [number, number, number, number?]
-function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolor)
+---@param noDraw boolean?
+function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolor, noDraw)
     local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0):padUnit(4)
     local textR = reg:attachToRightOf(iconR):padUnit(4, 6)
     local t = self:_getInterpolationTime(kind)
 
-    -- Draw resource icon
-    local icx, icy = iconR:getCenter()
-    g.drawImage(image, icx, icy, 0, 1.5 * (scale + 0.25 * (1 - t) ^ 2))
+    if not noDraw then
+        -- Draw resource icon
+        local icx, icy = iconR:getCenter()
+        g.drawImage(image, icx, icy, 0, 1.5 * (scale + 0.25 * (1 - t) ^ 2))
 
-    local lw = love.graphics.getLineWidth()
-    love.graphics.setLineWidth(2)
+        local lw = love.graphics.getLineWidth()
+        love.graphics.setLineWidth(2)
 
-    -- Draw meter
-    love.graphics.setColor(bgcolor)
-    love.graphics.setStencilMode("draw", 1)
-    -- Explicitly enable color mask.
-    -- We want to draw the jagged rectangle AND the stencil at same time
-    love.graphics.setColorMask(true, true, true, true)
-    ui.jaggedRectangle("fill", 8, textR:get())
+        -- Draw meter
+        love.graphics.setColor(bgcolor)
+        love.graphics.setStencilMode("draw", 1)
+        -- Explicitly enable color mask.
+        -- We want to draw the jagged rectangle AND the stencil at same time
+        love.graphics.setColorMask(true, true, true, true)
+        ui.jaggedRectangle("fill", 8, textR:get())
 
-    -- Enter stecil test mode to just draw rectangle with stencil test active
-    local tx, ty, tw, th = textR:get()
-    love.graphics.setColor(barcolor)
-    love.graphics.setStencilMode("test", 1)
-    love.graphics.rectangle("fill", tx, ty, tw * self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1), th)
+        -- Enter stecil test mode to just draw rectangle with stencil test active
+        local tx, ty, tw, th = textR:get()
+        love.graphics.setColor(barcolor)
+        love.graphics.setStencilMode("test", 1)
+        love.graphics.rectangle("fill", tx, ty, tw * self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1), th)
 
-    -- Disable stencil test to draw outline.
-    love.graphics.setStencilMode()
-    love.graphics.setColor(0, 0, 0)
-    ui.jaggedRectangle("line", 8, textR:get())
+        -- Disable stencil test to draw outline.
+        love.graphics.setStencilMode()
+        love.graphics.setColor(0, 0, 0)
+        ui.jaggedRectangle("line", 8, textR:get())
 
-    -- Draw resource value
-    love.graphics.setColor(1, 1, 1)
-    local r = textR:padUnit(8, 0, 0, 0):moveUnit(0, math.sin(love.timer.getTime()*3)-2)
-    printTextAt(
-        g.formatNumber(self.displayValue[kind]),
-        self._resourceFont,
-        r,
-        "left",
-        scale,
-        1 + easeInCubic(1 - t) * 0.25
-    )
+        -- Draw resource value
+        love.graphics.setColor(1, 1, 1)
+        local r = textR:padUnit(8, 0, 0, 0):moveUnit(0, math.sin(love.timer.getTime()*3)-2)
+        printTextAt(
+            g.formatNumber(self.displayValue[kind]),
+            self._resourceFont,
+            r,
+            "left",
+            scale,
+            1 + easeInCubic(1 - t) * 0.25
+        )
 
-    love.graphics.setLineWidth(lw)
+        love.graphics.setLineWidth(lw)
+    end
 
     local ux, uy = iconR:getCenter()
     return ux, uy, iconR:union(textR)
 end
 
 ---@param camera Camera
-function Resources:drawHUD(camera)
+---@param noDraw boolean?
+function Resources:drawHUD(camera, noDraw)
     if not g.getSn() then return end
 
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
@@ -247,7 +251,7 @@ function Resources:drawHUD(camera)
 
             local icx, icy, finalR = self:_drawResourcesMeter(
                 resId, targetR, resInfo.image, scale,
-                bgCol, resInfo.color
+                bgCol, resInfo.color, noDraw
             )
             local ux, uy = love.graphics.transformPoint(icx, icy)
             local pos = self.poses[resId]
@@ -314,11 +318,14 @@ function Resources:drawParticles()
 end
 
 ---@param camera Camera
-function Resources:draw(camera)
+---@param noDraw boolean?
+function Resources:draw(camera, noDraw)
     camera:attach()
-    self:drawParticles()
+    if not noDraw then
+        self:drawParticles()
+    end
     camera:detach()
-    self:drawHUD(camera)
+    self:drawHUD(camera, noDraw)
 end
 
 ---@generic T

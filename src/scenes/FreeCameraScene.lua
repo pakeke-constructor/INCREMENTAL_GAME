@@ -158,6 +158,13 @@ function FreeCameraScene:mousemoved(x, y, dx, dy)
 end
 
 
+function FreeCameraScene:keyreleased(k)
+    if k == "f1" and consts.DEV_MODE then
+        g.gotoScene("dev_scene")
+    end
+end
+
+
 
 local function newFreeCameraScene()
     local scene = setmetatable({

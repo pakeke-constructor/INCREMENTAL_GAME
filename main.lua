@@ -166,7 +166,6 @@ function love.draw()
         sc:draw()
         iml.endFrame()
     end
-    vignette.draw()
 end
 
 

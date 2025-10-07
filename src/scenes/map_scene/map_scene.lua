@@ -1,6 +1,7 @@
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+local vignette = require("src.modules.vignette.vignette")
 
 
 
@@ -36,6 +37,8 @@ function map:draw()
     richtext.printRichContained(MAP_TITLE, love.graphics.getFont(), header:get())
 
     self:resetCamera()
+
+    vignette.draw()
 
     ui.startUI()
     self:renderNavbar()

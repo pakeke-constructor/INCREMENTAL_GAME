@@ -3,6 +3,7 @@ local UpgradeDescription = require("src.ui.upgrades.upgrade_description_ui")
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+local vignette = require("src.modules.vignette.vignette")
 
 
 ---@class UpgradesScene: FreeCameraScene
@@ -122,10 +123,12 @@ function upgscene:draw()
 
     self:resetCamera()
 
+    vignette.draw()
+
     ui.startUI()
     self:renderNavbar()
 
-    g.getHUD():drawResourceHUD(self.camera)
+    g.getHUD():draw(self.camera, {profile = false})
 
     if hoveredUpgrade then
         if not self.upgradeDescription or self.upgradeDescription:getType() ~= hoveredUpgrade.type then
