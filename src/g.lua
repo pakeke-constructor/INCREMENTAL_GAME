@@ -894,7 +894,11 @@ end
 ---@param upgradeId string
 ---@return g.UpgradeInfo
 function g.getUpgradeInfo(upgradeId)
-    return assert(upgradeInfos[upgradeId])
+    local uinfo = upgradeInfos[upgradeId]
+    if not uinfo then
+        error("unknown upgrade id '"..upgradeId.."'")
+    end
+    return uinfo
 end
 
 
