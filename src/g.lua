@@ -341,7 +341,7 @@ end
 
 
 
--- metrics are "temporary" values that start at 0,
+-- metrics are "temporary" values that are set 0 when the game starts.
 -- and keep track of arbitrary runtime stuff
 -- (eg. number of logs destroyed, seconds-elapsed, mine-count, etc)
 local validMetrics = {--[[
