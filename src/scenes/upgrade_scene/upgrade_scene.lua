@@ -16,15 +16,16 @@ upgscene.upgradeDescription = nil
 
 
 
----@param uinfo g.UpgradeInfo
+---@param tx integer
+---@param ty integer
 ---@return number
 ---@return number
 ---@return number
-local function getUpgradeCoords(uinfo)
+local function getUpgradeCoords(tx, ty)
     local size = consts.UPGRADE_IMAGE_SIZE
     local spacing = consts.UPGRADE_GRID_SPACING + size
-    local x = uinfo.x * spacing
-    local y = uinfo.y * spacing
+    local x = tx * spacing
+    local y = ty * spacing
     -- x,y is center of box
     -- `size` is size of upgrade-box
     return x,y,size
@@ -60,7 +61,7 @@ local function getBestUpgradeType()
     local sumprice = math.huge
     local level = math.huge
 
-    for _, id in ipairs(g.UPGRADE_LIST) do
+    for _, id in g.iterateUpgradeTree(g.getPrestige()) do
         local uinfo = g.getUpgradeInfo(id)
         local price = g.getUpgradePrice(uinfo)
 
@@ -88,11 +89,11 @@ local function drawUpgradeBoxes()
     local hoveredUpgrade = nil
     local bestUpgrade = getBestUpgradeType()
 
-    for _, id in ipairs(g.UPGRADE_LIST) do
+    for pos, id in g.iterateUpgradeTree(g.getPrestige()) do
         local uinfo = g.getUpgradeInfo(id)
         if not g.isUpgradeHidden(uinfo) then
             local level = g.getUpgradeLevel(uinfo)
-            local cx,cy,size = getUpgradeCoords(uinfo)
+            local cx,cy,size = getUpgradeCoords(pos.x, pos.y)
             local x,y,w,h = cx-size/2, cy-size/2, size, size
 
             local isRecommended = not not (bestUpgrade and (bestUpgrade.type == uinfo.type))

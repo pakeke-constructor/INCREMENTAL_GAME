@@ -1,0 +1,15 @@
+[
+    {"x": 1, "y": 1, "type": "grass_blades"},
+    {"x": 1, "y": 2, "type": "small_grass"},
+    {"x": 1, "y": 3, "type": "thick_grass"},
+    {"x": 2, "y": 3, "type": "bamboo"},
+    {"x": 2, "y": 1, "type": "stick"},
+    {"x": 3, "y": 1, "type": "basic_log"},
+    {"x": 2, "y": 0, "type": "happy_kitten"},
+    {"x": 2, "y": -1, "type": "happy_cat"},
+    {"x": 2, "y": -2, "type": "business_cat"},
+    {"x": -3, "y": 0, "type": "more_damage"},
+    {"x": -3, "y": -1, "type": "hit_speed"},
+    {"x": -4, "y": 0, "type": "more_area"},
+    {"x": -3, "y": -2, "type": "lucky_hit"}
+]

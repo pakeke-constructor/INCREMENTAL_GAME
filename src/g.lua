@@ -449,11 +449,8 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---| "MISC"
 
 ---@class g.UpgradeDefinition
----@field prestige number|g.PrestigeRange
 ---@field kind g.UpgradeKind
 ---@field tokenType string? (only for kind == "TOKEN")
----@field x number
----@field y number
 ---@field price g.Bundle
 ---@field maxLevel integer?
 ---@field startingUpgrade boolean? starting-upgrades will be visible at the start, no matter what.
@@ -682,10 +679,6 @@ end
 
 
 
-
-
-
-
 --------------------------------------------------
 -- Upgrades.
 --- 
@@ -695,40 +688,6 @@ end
 -- g.isUpgradeHidden(uinfo)
 --------------------------------------------------
 do
-
----@type string[]
-g.UPGRADE_LIST = {}
-
-
----@type {[string]: g.UpgradeInfo?}
-local upgradeInfos = {--[[
-    [upgradeId] -> Table (contains all info)
-]]}
-
----@type {[number]: g.UpgradeInfo?}
-local upgradePositions = {--[[
-    hash(x,y,prestige) -> UpgradeInfo
-]]}
-
-
-
-
----@param id string
----@param name string
----@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil,kind:nil} }
-function g.defineTokenUpgrade(id, name, def)
-    def.upgrade.populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
-        tokens:add(id, level)
-    end
-
-    def.upgrade.kind = "TOKEN"
-    g.defineUpgrade(id, name, def.upgrade)
-    g.defineToken(id, name, def.token)
-end
-
-
-
-
 
 -- Dont ask me how this hash/unhash shit works, i vibecoded it.
 -- (And YES, i tested it thoroughly)
@@ -764,15 +723,87 @@ local function assertSmallEnough(x)
     assert(math.abs(x) < MAX_VAL, "Needs to be less than " .. MAX_VAL .. " for hashing to work correctly!")
 end
 
+---@type string[]
+g.UPGRADE_LIST = {}
+
+
+---@type {[string]: g.UpgradeInfo?}
+local upgradeInfos = {--[[
+    [upgradeId] -> Table (contains all info)
+]]}
+
+local upgradePositionsHash = {--[[
+    hash(x,y,prestige) -> upgrade type
+]]}
+---@cast upgradePositionsHash {[number]: string?}
+
+---The mapping is `positions: [number,number][] = t[prestige][upgradename]`
+---@type table<integer, table<string, [integer, integer][]>>
+local upgradePositionByPrestige = {}
+
+-- Load prestiges
+do
+    local i = 0
+    while true do
+        local p = "src/upgrades/prestige_"..i..".json"
+        if love.filesystem.getInfo(p, "file") then
+            log.trace("Loading upgrade prestige position:", p)
+            ---@type _dev.UpgradePosition[]
+            local ulist = json.decode((assert(love.filesystem.read(p))))
+            local upgradePoses = {}
+
+            for _, upos in ipairs(ulist) do
+                local positions = upgradePoses[upos.type]
+                if not positions then
+                    positions = {}
+                    upgradePoses[upos.type] = positions
+                end
+                positions[#positions+1] = {upos.x, upos.y}
+
+                upgradePositionsHash[hash(upos.x, upos.y, i)] = upos.type
+            end
+
+            upgradePositionByPrestige[i] = upgradePoses
+        else
+            break
+        end
+
+        i = i + 1
+    end
+end
+
+
+
+---@param id string
+---@param name string
+---@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil,kind:nil} }
+function g.defineTokenUpgrade(id, name, def)
+    def.upgrade.populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
+        tokens:add(id, level)
+    end
+
+    def.upgrade.kind = "TOKEN"
+    g.defineUpgrade(id, name, def.upgrade)
+    g.defineToken(id, name, def.token)
+end
+
+
+
+
+
 
 
 ---@param uinfo g.UpgradeInfo
 ---@param prestige number
----@return g.UpgradeInfo
 local function getNeighbor(uinfo, prestige, dx,dy)
-    local ux, uy = uinfo.x+dx, uinfo.y+dy
+    local upos = g.getUpgradePosition(uinfo, prestige)
+    local ux, uy = upos[1]+dx, upos[2]+dy
     local h = hash(ux,uy,prestige)
-    return upgradePositions[h]
+    local utype = upgradePositionsHash[h]
+    if utype then
+        return g.getUpgradeInfo(utype)
+    end
+    return nil
 end
 
 
@@ -836,15 +867,7 @@ function g.defineUpgrade(id, name, def)
     table.insert(g.UPGRADE_LIST, id)
 
     niceAssert(type(id) == "string")
-    niceAssert(type(def.prestige) == "number", "Invalid prestige: ", def.prestige)
     niceAssert(g.isImage(def.image), "Invalid image: ", def.image)
-    niceAssert(type(def.x) == "number" and type(def.y) == "number", "Upgrades needs x,y coords")
-
-    assertSmallEnough(def.x)
-    assertSmallEnough(def.y)
-    assertSmallEnough(def.prestige)
-
-    upgradePositions[hash(def.x,def.y,def.prestige)] = def
 
     def.type = id
 
@@ -891,12 +914,54 @@ function g.isUpgradeLocked(uinfo)
 end
 
 
+---@param uinfo g.UpgradeInfo
+---@param prestige integer
+function g.isUpgradeDefinedInPrestige(uinfo, prestige)
+    return not not upgradePositionByPrestige[prestige][uinfo.type]
+end
+
+
+
+---@param uinfo g.UpgradeInfo
+---@param prestige integer
+---@return [number, number][]
+function g.getUpgradePositions(uinfo, prestige)
+    if not g.isUpgradeDefinedInPrestige(uinfo, prestige) then
+        error("upgrade '"..uinfo.type.."' not defined in prestige "..prestige)
+    end
+
+    return upgradePositionByPrestige[prestige][uinfo.type]
+end
+
+---@param uinfo g.UpgradeInfo
+---@param prestige integer
+---@return [number, number]
+function g.getUpgradePosition(uinfo, prestige)
+    return g.getUpgradePositions(uinfo, prestige)[1]
+end
+
+
+
+
+---@param prestige integer
+---@return fun():({x:integer,y:integer},string)
+function g.iterateUpgradeTree(prestige)
+    return coroutine.wrap(function()
+        for k, v in pairs(upgradePositionByPrestige[prestige]) do
+            for _, pos in ipairs(v) do
+                coroutine.yield({x = pos[1], y = pos[2]}, k)
+            end
+        end
+    end)
+end
+
+
 
 
 ---@param uinfo g.UpgradeInfo
 ---@return boolean
 function g.isUpgradeHidden(uinfo)
-    if not g.inPrestigeRange(g.getPrestige(), uinfo.prestige) then
+    if not g.isUpgradeDefinedInPrestige(uinfo, g.getPrestige()) then
         -- not in prestige range... its obviously hidden
         return true
     end
