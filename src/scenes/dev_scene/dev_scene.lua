@@ -113,28 +113,101 @@ end
 ---@field public x integer
 ---@field public y integer
 
+---@class _dev.ConnectorObject
+---@field public vertical boolean
+
+---@class _dev.Connector: _dev.UpgradePosition, _dev.ConnectorObject
+---@field public length integer
+
+---@class g.UpgradePrestigeData
+---@field public upgrades table<string, _dev.UpgradePosition>
+---@field public connectors _dev.Connector[]
+
+---@type _dev.ConnectorObject
+local HORZ_CONNECTOR = setmetatable({vertical = false}, {__tostring = function() return "horizontal connector" end})
+---@type _dev.ConnectorObject
+local VERT_CONNECTOR = setmetatable({vertical = true}, {__tostring = function() return "vertical connector" end})
+
 ---@param prestige integer
----@return table<string, _dev.UpgradePosition>, boolean
+---@return g.UpgradePrestigeData, boolean
 local function loadUpgradeList(prestige)
     local path = "src/upgrades/prestige_"..prestige..".json"
     if love.filesystem.getInfo(path, "file") then
         return json.decode((assert(love.filesystem.read(path)))), true
     end
-    return {}, false
+    return {upgrades = {}, connectors = {}}, false
 end
 
----@return table<string, _dev.UpgradePosition>[], table<integer, string>
+---@return table<string, _dev.UpgradePosition>[] @List of upgrades by prestige
+---@return _dev.Connector[][] @only the left or the top endpoints
+---@return table<integer, string|_dev.ConnectorObject> @Hashmap of the whole upgrades
 local function loadAllUpgrades()
     local prestige = 0
     local output = {}
+    local connectors = {}
     local hashmap = {}
     while true do
         local r, continue = loadUpgradeList(prestige)
+        local con = {}
 
-        output[#output+1] = r
+        output[#output+1] = r.upgrades
+        connectors[#connectors+1] = con
 
-        for utype, upos in pairs(r) do
-            hashmap[g.hashPos(upos.x, upos.y, prestige)] = utype
+        -- Iterate upgrades
+        for utype, upos in pairs(r.upgrades) do
+            local h = g.hashPos(upos.x, upos.y, prestige)
+            if hashmap[h] then
+                error(string.format(
+                    "prestige %d position %dx%d trying to put '%s' occupied by '%s'",
+                    prestige,
+                    upos.x,
+                    upos.y,
+                    tostring(utype),
+                    tostring(hashmap[h])
+                ))
+            end
+            hashmap[h] = utype
+        end
+
+        -- Iterate connectors
+        for _, cpos in ipairs(r.connectors) do
+            --[[
+            Connector X and Y only either points to the top (vertical)
+            or the left endpoint. Consider this example:
+
+              01234
+            0 U===U
+            1 U
+            2 |
+            3 |
+            4 U
+
+            '=' is horizontal connector, and '|' is vertical connector. The connector
+            stored in JSON is:
+            * For horizontal: {"x": 0, "y": 0, "vertical": false, "length": 3}
+            * For vertical: {"x": 0, "y": 0, "vertical": true, "length": 2}
+
+            So the starting connector is either x+1 or y+1 depending whetever it's horizontal or vertical.
+            ]]
+            for i = 1, cpos.length do
+                local dx = cpos.vertical and 0 or i
+                local dy = cpos.vertical and i or 0
+                local ctype = cpos.vertical and VERT_CONNECTOR or HORZ_CONNECTOR
+                local h = g.hashPos(cpos.x + dx, cpos.y + dy, prestige)
+                if hashmap[h] then
+                    error(string.format(
+                        "prestige %d position %dx%d trying to put '%s' on '%s'",
+                        prestige,
+                        cpos.x + dx,
+                        cpos.y + dy,
+                        tostring(ctype),
+                        tostring(hashmap[h])
+                    ))
+                end
+                hashmap[h] = ctype
+            end
+
+            con[#con+1] = cpos
         end
 
         if not continue then
@@ -144,10 +217,10 @@ local function loadAllUpgrades()
         prestige = prestige + 1
     end
 
-    return output, hashmap
+    return output, connectors, hashmap
 end
 
-local upgradePosList, upgradeHashmap = loadAllUpgrades()
+local upgradePosList, upgradeConnectors, upgradeHashmap = loadAllUpgrades()
 local isUpgradeDataModified = false
 local currentPrestige = 0
 ---@type {pos:_dev.UpgradePosition,info:g.UpgradeInfo}|nil
@@ -178,7 +251,7 @@ local function saveUpgradePositions()
     -- Reload
     lastUpgradeHovered = nil
     lastUpgradeSelected = nil
-    upgradePosList, upgradeHashmap = loadAllUpgrades()
+    upgradePosList, upgradeConnectors, upgradeHashmap = loadAllUpgrades()
     isUpgradeDataModified = false
 end
 

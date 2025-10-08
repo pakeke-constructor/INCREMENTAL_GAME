@@ -750,7 +750,7 @@ do
         if love.filesystem.getInfo(p, "file") then
             log.trace("Loading upgrade prestige position:", p)
             ---@type table<string, _dev.UpgradePosition>
-            local upgradePoses = json.decode((assert(love.filesystem.read(p))))
+            local upgradePoses = json.decode((assert(love.filesystem.read(p)))).upgrades
 
             for utype, upos in pairs(upgradePoses) do
                 upgradePositionsHash[hash(upos.x, upos.y, i)] = utype
