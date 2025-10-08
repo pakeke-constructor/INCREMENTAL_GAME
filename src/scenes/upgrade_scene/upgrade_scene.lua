@@ -44,39 +44,49 @@ local function sumPriceBundle(bundle)
     return result
 end
 
-local function getBestUpgradeType()
-    --[[
-    TODO: in future, instead of only highlighting "the best"
-    upgrade,
-
-    we should highlight all upgrades that
-    the player should OBVIOUSLY buy.
-
-    EG if the player has $12,000
-    and there is an upgrade that costs $50,
-    then they should obviously buy it, and we should highlight that upgrade.
-    ]]
-    local target = nil
-    -- Prioritize sumprice then level
-    local sumprice = math.huge
-    local level = math.huge
+local function getBestUpgradeAffordThreshold()
+    ---@type g.Bundle
+    local result = {}
 
     for _, id in g.iterateUpgradeTree(g.getPrestige()) do
         local uinfo = g.getUpgradeInfo(id)
-        local price = g.getUpgradePrice(uinfo)
+        local level = g.getUpgradeLevel(uinfo)
 
-        if not g.isUpgradeHidden(uinfo) and g.canAfford(price) then
-            local sp = sumPriceBundle(price)
-            local lvl = g.getUpgradeLevel(uinfo)
-            if sp < sumprice or (sp == sumprice and lvl < level) then
-                target = uinfo
-                sumprice = sp
-                level = lvl
+        if level > 0 and not g.isUpgradeHidden(uinfo) then
+            local price = g.getUpgradePrice(uinfo, level)
+
+            for k, v in pairs(price) do
+                result[k] = math.max(result[k] or 0, v)
             end
         end
     end
 
-    return target
+    -- Apply 5% threshold
+    for k, v in pairs(result) do
+        result[k] = math.floor(v * 0.05 + 0.5)
+    end
+    return result
+end
+
+---Performs b1 >= b2 across all bundle elements
+---@param b1 g.Bundle
+---@param b2 g.Bundle
+local function bundleGreaterOrEqual(b1, b2)
+    local keys = {}
+    for k in pairs(b1) do
+        keys[k] = true
+    end
+    for k in pairs(b2) do
+        keys[k] = true
+    end
+
+    for k in pairs(keys) do
+        if (b1[k] or 0) < (b2[k] or 0) then
+            return false
+        end
+    end
+
+    return true
 end
 
 
@@ -87,7 +97,7 @@ local function drawUpgradeBoxes()
     upgrades are within the same "map".
     ]]
     local hoveredUpgrade = nil
-    local bestUpgrade = getBestUpgradeType()
+    local bestUpgradeThreshold = getBestUpgradeAffordThreshold()
 
     for pos, id in g.iterateUpgradeTree(g.getPrestige()) do
         local uinfo = g.getUpgradeInfo(id)
@@ -96,7 +106,7 @@ local function drawUpgradeBoxes()
             local cx,cy,size = getUpgradeCoords(pos.x, pos.y)
             local x,y,w,h = cx-size/2, cy-size/2, size, size
 
-            local isRecommended = not not (bestUpgrade and (bestUpgrade.type == uinfo.type))
+            local isRecommended = bundleGreaterOrEqual(bestUpgradeThreshold, g.getUpgradePrice(uinfo, level))
             local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h, isRecommended)
             if isHovered then
                 hoveredUpgrade = uinfo
@@ -164,13 +174,13 @@ function upgscene:keypressed(k)
     if consts.DEV_MODE then
         -- upgrades for dev
         if k == "u" then
-            local u = getBestUpgradeType()
+            local u = getBestUpgradeAffordThreshold()
             local _ = u and g.tryBuyUpgrade(u)
         end
 
         if k == "u" and love.keyboard.isDown("lshift")then
             for i=1,20 do
-                local u = getBestUpgradeType()
+                local u = getBestUpgradeAffordThreshold()
                 local _ = u and g.tryBuyUpgrade(u)
             end
         end
