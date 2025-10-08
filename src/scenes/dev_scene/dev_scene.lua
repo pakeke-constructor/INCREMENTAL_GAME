@@ -110,12 +110,11 @@ if consts.DEV_MODE and not love.filesystem.isFused() then
 end
 
 ---@class _dev.UpgradePosition
----@field public type string
 ---@field public x integer
 ---@field public y integer
 
 ---@param prestige integer
----@return _dev.UpgradePosition[], boolean
+---@return table<string, _dev.UpgradePosition>, boolean
 local function loadUpgradeList(prestige)
     local path = "src/upgrades/prestige_"..prestige..".json"
     if love.filesystem.getInfo(path, "file") then
@@ -124,7 +123,7 @@ local function loadUpgradeList(prestige)
     return {}, false
 end
 
----@return _dev.UpgradePosition[][], table<integer, string>
+---@return table<string, _dev.UpgradePosition>[], table<integer, string>
 local function loadAllUpgrades()
     local prestige = 0
     local output = {}
@@ -134,8 +133,8 @@ local function loadAllUpgrades()
 
         output[#output+1] = r
 
-        for _, upos in ipairs(r) do
-            hashmap[g.hashPos(upos.x, upos.y, prestige)] = upos.type
+        for utype, upos in pairs(r) do
+            hashmap[g.hashPos(upos.x, upos.y, prestige)] = utype
         end
 
         if not continue then
@@ -160,7 +159,7 @@ local function saveUpgradePositions()
     -- We gotta be careful with the saving as it may be [{stuff}, {}, {}, {stuff}, {}]
     local maxIndicesToSave = 0
     for i, ulist in ipairs(upgradePosList) do
-        if #ulist > 0 then
+        if next(ulist) then
             maxIndicesToSave = i
         end
     end
@@ -192,7 +191,7 @@ local function getUpgradeCoords(x, y)
 end
 
 local BELOW_PRESTIGE_COLOR = objects.Color("#".."FFE5DA01")
-local ABOVE_PRESTIGE_COLOR = objects.Color("#".."FFddb0eb")
+local ABOVE_PRESTIGE_COLOR = objects.Color("#".."FFDDB0EB")
 
 local function drawUpgradeScene()
     lastUpgradeHovered = nil
@@ -201,7 +200,7 @@ local function drawUpgradeScene()
     if currentPrestige > 0 then
         love.graphics.setColor(BELOW_PRESTIGE_COLOR)
 
-        for _, upos in ipairs(upgradePosList[currentPrestige]) do
+        for _, upos in pairs(upgradePosList[currentPrestige]) do
             local x, y, sz = getUpgradeCoords(upos.x, upos.y)
             love.graphics.rectangle("line", x, y, sz, sz)
         end
@@ -209,8 +208,8 @@ local function drawUpgradeScene()
 
     -- Draw upgrades on current prestige
     love.graphics.setColor(1, 1, 1)
-    for _, upos in ipairs(upgradePosList[currentPrestige + 1]) do
-        local uinfo = g.getUpgradeInfo(upos.type)
+    for utype, upos in pairs(upgradePosList[currentPrestige + 1]) do
+        local uinfo = g.getUpgradeInfo(utype)
         local x, y, sz = getUpgradeCoords(upos.x, upos.y)
         local highlight = not not (lastUpgradeSelected and lastUpgradeSelected.pos == upos)
         local isHovered, wasClicked = ui.upgradeBoxUI(uinfo, 1, x, y, sz, sz, highlight)
@@ -227,7 +226,7 @@ local function drawUpgradeScene()
     if upgradePosList[currentPrestige + 2] then
         love.graphics.setColor(ABOVE_PRESTIGE_COLOR)
 
-        for _, upos in ipairs(upgradePosList[currentPrestige + 2]) do
+        for _, upos in pairs(upgradePosList[currentPrestige + 2]) do
             local x, y, sz = getUpgradeCoords(upos.x, upos.y)
             love.graphics.rectangle("line", x, y, sz, sz)
         end
@@ -238,37 +237,42 @@ end
 ---@param x integer
 ---@param y integer
 local function spawnUpgrade(utype, x, y)
-    -- Search in + pattern
-    local r = 1
-    local tx, ty = x, y
-    if upgradeHashmap[g.hashPos(tx, ty, currentPrestige)] then
-        while true do
-            if not upgradeHashmap[g.hashPos(x + r, y, currentPrestige)] then
-                tx = x + r
-                break
+    local upos = upgradePosList[currentPrestige + 1][utype]
+    -- If there's none in the current prestige, spawn new one
+    if not upos then
+        -- Search in + pattern
+        local r = 1
+        local tx, ty = x, y
+        if upgradeHashmap[g.hashPos(tx, ty, currentPrestige)] then
+            while true do
+                if not upgradeHashmap[g.hashPos(x + r, y, currentPrestige)] then
+                    tx = x + r
+                    break
+                end
+                if not upgradeHashmap[g.hashPos(x - r, y, currentPrestige)] then
+                    tx = x - r
+                    break
+                end
+                if not upgradeHashmap[g.hashPos(x, y + r, currentPrestige)] then
+                    ty = y + r
+                    break
+                end
+                if not upgradeHashmap[g.hashPos(x, y - r, currentPrestige)] then
+                    ty = y - r
+                    break
+                end
+                r = r + 1
             end
-            if not upgradeHashmap[g.hashPos(x - r, y, currentPrestige)] then
-                tx = x - r
-                break
-            end
-            if not upgradeHashmap[g.hashPos(x, y + r, currentPrestige)] then
-                ty = y + r
-                break
-            end
-            if not upgradeHashmap[g.hashPos(x, y - r, currentPrestige)] then
-                ty = y - r
-                break
-            end
-            r = r + 1
         end
+
+        ---@type _dev.UpgradePosition
+        upos = {x = tx, y = ty}
+        upgradeHashmap[g.hashPos(tx, ty, currentPrestige)] = utype
+        upgradePosList[currentPrestige + 1][utype] = upos
+        isUpgradeDataModified = true
     end
 
-    ---@type _dev.UpgradePosition
-    local upos = {type = utype, x = tx, y = ty}
-    upgradeHashmap[g.hashPos(tx, ty, currentPrestige)] = utype
-    table.insert(upgradePosList[currentPrestige + 1], upos)
     lastUpgradeSelected = {pos = upos, info = g.getUpgradeInfo(utype)}
-    isUpgradeDataModified = true
 end
 
 ---@type string[]|nil
@@ -434,21 +438,16 @@ end
 local function moveUpgradeTo(upos, x, y, prestige)
     local hold = g.hashPos(upos.x, upos.y, currentPrestige)
     local hnew = g.hashPos(x, y, prestige)
+    local utype = assert(upgradeHashmap[hold])
     upgradeHashmap[hold] = nil
-    upgradeHashmap[hnew] = upos.type
+    upgradeHashmap[hnew] = utype
 
     -- Remove old upgrade from list
-    for i, upos2 in ipairs(upgradePosList[currentPrestige + 1]) do
-        if upos2 == upos then
-            table.remove(upgradePosList[currentPrestige + 1], i)
-            break
-        end
-    end
-
+    upgradePosList[currentPrestige + 1][utype] = nil
     -- Ensure prestige table sequentially generated
     reservePrestige(prestige)
     -- Insert
-    table.insert(upgradePosList[prestige + 1], upos)
+    upgradePosList[prestige + 1][utype] = upos
     -- Update
     upos.x = x
     upos.y = y
@@ -630,15 +629,11 @@ rawset(dev, "keyreleased", function(self, k)
             if k == "escape" or k == "return" then
                 lastUpgradeSelected = nil
             elseif k == "delete" then
-                for i, upos in ipairs(upgradePosList[currentPrestige + 1]) do
-                    if upos == lastUpgradeSelected.pos then
-                        local h = g.hashPos(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, currentPrestige)
-                        upgradeHashmap[h] = nil
-                        table.remove(upgradePosList[currentPrestige + 1], i)
-                        lastUpgradeSelected = nil
-                        lastUpgradeHovered = nil -- just in case
-                    end
-                end
+                local h = g.hashPos(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, currentPrestige)
+                upgradeHashmap[h] = nil
+                upgradePosList[currentPrestige + 1][lastUpgradeSelected.info.type] = nil
+                lastUpgradeHovered = nil
+                lastUpgradeSelected = nil
             elseif k == "left" then
                 if canMoveUpgradeTo(lastUpgradeSelected.pos.x - 1, lastUpgradeSelected.pos.y, currentPrestige) then
                     moveUpgradeTo(
