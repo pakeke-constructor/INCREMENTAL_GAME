@@ -943,6 +943,21 @@ end
 
 
 
+---@param prestige integer
+---@return fun():({x:integer,y:integer},string)
+function g.iterateUpgradeTree(prestige)
+    return coroutine.wrap(function()
+        for k, v in pairs(upgradePositionByPrestige[prestige]) do
+            for _, pos in ipairs(v) do
+                coroutine.yield({x = pos[1], y = pos[2]}, k)
+            end
+        end
+    end)
+end
+
+
+
+
 ---@param uinfo g.UpgradeInfo
 ---@return boolean
 function g.isUpgradeHidden(uinfo)
