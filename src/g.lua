@@ -999,8 +999,8 @@ local function floorSignificant(value, nsig)
 	return math.floor(math.floor(value / mulby) * mulby)
 end
 
-local function modifyUpgradePrice(uinfo, val)
-    local level = g.getUpgradeLevel(uinfo)
+local function modifyUpgradePrice(uinfo, val, level)
+    level = level or g.getUpgradeLevel(uinfo)
     local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
     val = floorSignificant(val*mult, 2)
     return val
@@ -1009,12 +1009,13 @@ end
 
 ---WARNING: This incurs a table allocation.
 ---@param uinfo g.UpgradeInfo
+---@param level number? Optional; defaults to the current upgrade's level.
 ---@return g.Bundle
-function g.getUpgradePrice(uinfo)
+function g.getUpgradePrice(uinfo, level)
     local truePrice = {}
     for _,res in ipairs(g.RESOURCE_LIST)do
         if uinfo.price[res] then
-            truePrice[res] = modifyUpgradePrice(uinfo, uinfo.price[res])
+            truePrice[res] = modifyUpgradePrice(uinfo, uinfo.price[res], level)
         end
     end
     return truePrice
@@ -1022,9 +1023,12 @@ end
 
 
 ---@param uinfo g.UpgradeInfo
-function g.canAffordUpgrade(uinfo)
+---@param level number? Optional; defaults to the current upgrade's level.
+---@return boolean
+function g.canAffordUpgrade(uinfo, level)
+    level = level or g.getUpgradeLevel(uinfo)
     for res,p in pairs(uinfo.price) do
-        local truePrice = modifyUpgradePrice(uinfo,p)
+        local truePrice = modifyUpgradePrice(uinfo, p, level)
         if truePrice > g.getResource(res) then
             return false -- cant afford
         end
