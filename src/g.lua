@@ -737,8 +737,8 @@ local upgradePositionsHash = {--[[
 ]]}
 ---@cast upgradePositionsHash {[number]: string?}
 
----The mapping is `positions: [number,number][] = t[prestige][upgradename]`
----@type table<integer, table<string, [integer, integer][]>>
+---The mapping is `positions: {x:integer,y:integer} = t[prestige][upgradename]`
+---@type table<integer, table<string, _dev.UpgradePosition>>
 local upgradePositionByPrestige = {}
 
 -- Load prestiges
@@ -748,19 +748,11 @@ do
         local p = "src/upgrades/prestige_"..i..".json"
         if love.filesystem.getInfo(p, "file") then
             log.trace("Loading upgrade prestige position:", p)
-            ---@type _dev.UpgradePosition[]
-            local ulist = json.decode((assert(love.filesystem.read(p))))
-            local upgradePoses = {}
+            ---@type table<string, _dev.UpgradePosition>
+            local upgradePoses = json.decode((assert(love.filesystem.read(p))))
 
-            for _, upos in ipairs(ulist) do
-                local positions = upgradePoses[upos.type]
-                if not positions then
-                    positions = {}
-                    upgradePoses[upos.type] = positions
-                end
-                positions[#positions+1] = {upos.x, upos.y}
-
-                upgradePositionsHash[hash(upos.x, upos.y, i)] = upos.type
+            for utype, upos in pairs(upgradePoses) do
+                upgradePositionsHash[hash(upos.x, upos.y, i)] = utype
             end
 
             upgradePositionByPrestige[i] = upgradePoses
@@ -797,7 +789,7 @@ end
 ---@param prestige number
 local function getNeighbor(uinfo, prestige, dx,dy)
     local upos = g.getUpgradePosition(uinfo, prestige)
-    local ux, uy = upos[1]+dx, upos[2]+dy
+    local ux, uy = upos.x+dx, upos.y+dy
     local h = hash(ux,uy,prestige)
     local utype = upgradePositionsHash[h]
     if utype then
@@ -928,20 +920,13 @@ end
 
 ---@param uinfo g.UpgradeInfo
 ---@param prestige integer
----@return [number, number][]
-function g.getUpgradePositions(uinfo, prestige)
+---@return {x:integer,y:integer}
+function g.getUpgradePosition(uinfo, prestige)
     if not g.isUpgradeDefinedInPrestige(uinfo, prestige) then
         error("upgrade '"..uinfo.type.."' not defined in prestige "..prestige)
     end
 
     return upgradePositionByPrestige[prestige][uinfo.type]
-end
-
----@param uinfo g.UpgradeInfo
----@param prestige integer
----@return [number, number]
-function g.getUpgradePosition(uinfo, prestige)
-    return g.getUpgradePositions(uinfo, prestige)[1]
 end
 
 
@@ -952,9 +937,7 @@ end
 function g.iterateUpgradeTree(prestige)
     return coroutine.wrap(function()
         for k, v in pairs(upgradePositionByPrestige[prestige]) do
-            for _, pos in ipairs(v) do
-                coroutine.yield({x = pos[1], y = pos[2]}, k)
-            end
+            coroutine.yield(v, k)
         end
     end)
 end
