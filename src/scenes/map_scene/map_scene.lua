@@ -20,7 +20,7 @@ local mapAnim = {
     lg.newImage("src/scenes/map_scene/maps/map2.png")
 }
 
-local mapClouds = lg.newImage("src/scenes/map_scene/maps/map_clouds.png")
+local cloudImg = lg.newImage("src/scenes/map_scene/maps/map_clouds.png")
 
 
 
@@ -136,7 +136,8 @@ function map:draw()
     local i = (math.floor(t) % 2) + 1
     lg.draw(mapAnim[i],0,0)
 
-    lg.draw(mapClouds,math.sin(t/4)*10,0)
+    local cloudW = cloudImg:getDimensions()
+    lg.draw(cloudImg, (mapW-cloudW)/2 + math.sin(t/4)*10,0)
 
     for _,p in ipairs(props) do
         g.drawImage(p.image,p.x,p.y)
