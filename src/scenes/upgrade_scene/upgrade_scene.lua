@@ -158,7 +158,6 @@ local function drawUpgradeBoxes()
             -- Draw connector first
             for _, con in ipairs(g.getUpgradeConnectors(uinfo, prestige)) do
                 local h = g.hashPos(con.x, con.y, prestige)
-                print(con)
                 if not drawnConnectors[h] then
                     drawConnector(con.x, con.y, con.length, con.vertical)
                     drawnConnectors[h] = true
