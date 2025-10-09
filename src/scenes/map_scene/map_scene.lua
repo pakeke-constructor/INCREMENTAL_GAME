@@ -116,7 +116,7 @@ function clampCameraToMap(camera, mapX, mapY, mapW, mapH)
 
     -- HACK: Scale with respect to dimensions
     local ww,hh = love.graphics.getDimensions()
-    camera:setZoom(math.floor(10*(ww+hh)/500)/10)
+    camera:setZoom(math.floor(10*(ww+hh)/600)/10)
 end
 
 end
