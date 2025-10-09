@@ -727,7 +727,6 @@ end
 ---@type string[]
 g.UPGRADE_LIST = {}
 
-
 ---@type {[string]: g.UpgradeInfo?}
 local upgradeInfos = {--[[
     [upgradeId] -> Table (contains all info)
@@ -736,11 +735,30 @@ local upgradeInfos = {--[[
 local upgradePositionsHash = {--[[
     hash(x,y,prestige) -> upgrade type
 ]]}
----@cast upgradePositionsHash {[number]: string?}
+---@cast upgradePositionsHash {[integer]: (string|_dev.Connector)?}
 
 ---The mapping is `positions: {x:integer,y:integer} = t[prestige][upgradename]`
 ---@type table<integer, table<string, _dev.UpgradePosition>>
 local upgradePositionByPrestige = {}
+
+---@param x integer
+---@param y integer
+---@param p integer
+---@param t any
+local function ensureEmpty(x, y, p, t)
+    local h = hash(x, y, p)
+    if upgradePositionsHash[h] then
+        error(string.format(
+            "prestige %d position %dx%d trying to put '%s' on '%s'",
+            p,
+            x,
+            y,
+            t,
+            tostring(upgradePositionsHash[h])
+        ))
+    end
+    return h
+end
 
 -- Load prestiges
 do
@@ -749,14 +767,24 @@ do
         local p = "src/upgrades/prestige_"..i..".json"
         if love.filesystem.getInfo(p, "file") then
             log.trace("Loading upgrade prestige position:", p)
-            ---@type table<string, _dev.UpgradePosition>
-            local upgradePoses = json.decode((assert(love.filesystem.read(p)))).upgrades
+            ---@type _g.UpgradePrestigeData
+            local r = json.decode((assert(love.filesystem.read(p))))
 
-            for utype, upos in pairs(upgradePoses) do
-                upgradePositionsHash[hash(upos.x, upos.y, i)] = utype
+            for utype, upos in pairs(r.upgrades) do
+                local h = ensureEmpty(upos.x, upos.y, i, utype)
+                upgradePositionsHash[h] = utype
             end
 
-            upgradePositionByPrestige[i] = upgradePoses
+            for _, cpos in ipairs(r.connectors) do
+                for j = 0, cpos.length - 1 do
+                    local dx = cpos.vertical and 0 or j
+                    local dy = cpos.vertical and j or 0
+                    local h = ensureEmpty(cpos.x + dx, cpos.y + dy, i, "connector")
+                    upgradePositionsHash[h] = cpos
+                end
+            end
+
+            upgradePositionByPrestige[i] = r.upgrades
         else
             break
         end
@@ -786,15 +814,60 @@ end
 
 
 
+---@param con _dev.Connector
+---@param prestige integer
+---@return [string, string]|nil
+local function getTargetConnector(con, prestige)
+    local h1, h2 = nil, nil
+    if con.vertical then
+        -- Check utype on top and bottom
+        h1 = hash(con.x, con.y - 1, prestige)
+        h2 = hash(con.x, con.y + con.length, prestige)
+    else
+        -- Check utype on left and right
+        h1 = hash(con.x - 1, con.y, prestige)
+        h2 = hash(con.x + con.length, con.y, prestige)
+    end
+
+    local utype1 = upgradePositionsHash[h1]
+    local utype2 = upgradePositionsHash[h2]
+
+    if type(utype1) == "string" and type(utype2) == "string" then
+        return {utype1, utype2}
+    end
+
+    return nil
+end
+
 ---@param uinfo g.UpgradeInfo
----@param prestige number
+---@param prestige integer
 local function getNeighbor(uinfo, prestige, dx,dy)
     local upos = g.getUpgradePosition(uinfo, prestige)
     local ux, uy = upos.x+dx, upos.y+dy
     local h = hash(ux,uy,prestige)
     local utype = upgradePositionsHash[h]
+    local vertical = nil -- if it's nil, inegligible for connector search
+    if dx ~= 0 and dy == 0 then
+        vertical = false
+    elseif dx == 0 and dy ~= 0 then
+        vertical = true
+    end
+
     if utype then
-        return g.getUpgradeInfo(utype)
+        if type(utype) == "string" then
+            return g.getUpgradeInfo(utype)
+        elseif vertical ~= nil and utype.vertical == vertical then
+            local target = getTargetConnector(utype, prestige)
+            -- The target connector returns 2 types across each endpoints.
+            -- One of it is equal to `uinfo.type`. We want the one not equal to `uinfo.type`.
+            if target then
+                if target[1] == uinfo.type then
+                    return g.getUpgradeInfo(target[2])
+                elseif target[2] == uinfo.type then
+                    return g.getUpgradeInfo(target[1])
+                end
+            end
+        end
     end
     return nil
 end
@@ -969,6 +1042,39 @@ function g.isUpgradeHidden(uinfo)
     local isHidden = not hasAnyPurchasedNeighbors(uinfo)
     return isHidden
 end
+
+
+
+---Retireves list of upgrade connectors adjacent to the upgrade.
+---
+---TODO: Not sure if this should be in g. but upgrade_scene needs it.
+---@param uinfo g.UpgradeInfo
+---@param prestige integer
+function g.getUpgradeConnectors(uinfo, prestige)
+    local pos = g.getUpgradePosition(uinfo, prestige)
+    ---@type _dev.Connector[]
+    local result = {}
+    for _, d in ipairs(NEIGHBORS) do
+        local h = hash(pos.x + d[1], pos.y + d[2], prestige)
+        local vertical = d[1] == 0 and d[2] ~= 0
+        local con = upgradePositionsHash[h]
+
+        if con and type(con) ~= "string" and con.vertical == vertical then
+            -- Also make sure none of the connector target is hidden
+            local target = getTargetConnector(con, prestige)
+            if target then
+                local hidden1 = g.isUpgradeHidden(g.getUpgradeInfo(target[1]))
+                local hidden2 = g.isUpgradeHidden(g.getUpgradeInfo(target[2]))
+                if not (hidden1 or hidden2) then
+                    result[#result+1] = con
+                end
+            end
+        end
+    end
+
+    return result
+end
+
 
 
 --- Floors a number, removing insignificant digits.
@@ -1538,6 +1644,7 @@ g.COLORS = {
     CANT_AFFORD = objects.Color("#".."FFC81515"),
     MONEY = objects.Color(g.getResourceInfo("money").color),
     RECOMMENDED = objects.Color("#".."FF9DEC4E"),
+    UPGRADE_CONNECTOR = objects.Color("#".."FF123A85")
 }
 
 

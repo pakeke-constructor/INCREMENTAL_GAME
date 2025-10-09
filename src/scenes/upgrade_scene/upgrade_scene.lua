@@ -16,20 +16,43 @@ upgscene.upgradeDescription = nil
 
 
 
----@param tx integer
----@param ty integer
----@return number
----@return number
----@return number
-local function getUpgradeCoords(tx, ty)
+---@param x integer
+---@param y integer
+local function getUpgradeCoords(x, y)
     local size = consts.UPGRADE_IMAGE_SIZE
     local spacing = consts.UPGRADE_GRID_SPACING + size
-    local x = tx * spacing
-    local y = ty * spacing
-    -- x,y is center of box
-    -- `size` is size of upgrade-box
-    return x,y,size
+    return x * spacing, y * spacing, size
 end
+
+
+
+---@param x integer
+---@param y integer
+---@param length integer
+---@param vertical boolean
+local function drawConnector(x, y, length, vertical)
+    local tx, ty, sz = getUpgradeCoords(x, y)
+    local rx, ry, rw, rh
+
+    if vertical then
+        rx = tx + consts.UPGRADE_GRID_SPACING
+        ry = ty - consts.UPGRADE_GRID_SPACING
+        rw = sz - 2 * consts.UPGRADE_GRID_SPACING
+        rh = (sz + consts.UPGRADE_GRID_SPACING) * length + consts.UPGRADE_GRID_SPACING
+    else
+        rx = tx - consts.UPGRADE_GRID_SPACING
+        ry = ty + consts.UPGRADE_GRID_SPACING
+        rw = (sz + consts.UPGRADE_GRID_SPACING) * length + consts.UPGRADE_GRID_SPACING
+        rh = sz - 2 * consts.UPGRADE_GRID_SPACING
+    end
+
+    love.graphics.setColor(g.COLORS.UPGRADE_CONNECTOR)
+    love.graphics.rectangle("fill", rx, ry, rw, rh)
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("line", rx, ry, rw, rh)
+end
+
+
 
 
 ---@param bundle g.Bundle
@@ -124,16 +147,28 @@ local function drawUpgradeBoxes()
     ]]
     local hoveredUpgrade = nil
     local bestUpgradeThreshold = getBestUpgradeAffordThreshold()
+    local drawnConnectors = {} -- hash
+    local prestige = g.getPrestige()
 
-    for pos, id in g.iterateUpgradeTree(g.getPrestige()) do
+    for pos, id in g.iterateUpgradeTree(prestige) do
         local uinfo = g.getUpgradeInfo(id)
         if not g.isUpgradeHidden(uinfo) then
             local level = g.getUpgradeLevel(uinfo)
-            local cx,cy,size = getUpgradeCoords(pos.x, pos.y)
-            local x,y,w,h = cx-size/2, cy-size/2, size, size
 
+            -- Draw connector first
+            for _, con in ipairs(g.getUpgradeConnectors(uinfo, prestige)) do
+                local h = g.hashPos(con.x, con.y, prestige)
+                print(con)
+                if not drawnConnectors[h] then
+                    drawConnector(con.x, con.y, con.length, con.vertical)
+                    drawnConnectors[h] = true
+                end
+            end
+
+            -- Then draw upgrade box
+            local x, y, sz = getUpgradeCoords(pos.x, pos.y)
             local isRecommended = bundleGreaterOrEqual(bestUpgradeThreshold, g.getUpgradePrice(uinfo, level))
-            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,w,h, isRecommended)
+            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,sz,sz, isRecommended)
             if isHovered then
                 hoveredUpgrade = uinfo
             end

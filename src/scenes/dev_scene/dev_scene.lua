@@ -119,7 +119,7 @@ end
 ---@class _dev.Connector: _dev.UpgradePosition, _dev.ConnectorObject
 ---@field public length integer
 
----@class g.UpgradePrestigeData
+---@class _g.UpgradePrestigeData
 ---@field public upgrades table<string, _dev.UpgradePosition>
 ---@field public connectors _dev.Connector[]
 
@@ -129,7 +129,7 @@ local HORZ_CONNECTOR = setmetatable({vertical = false}, {__tostring = function()
 local VERT_CONNECTOR = setmetatable({vertical = true}, {__tostring = function() return "vertical connector" end})
 
 ---@param prestige integer
----@return g.UpgradePrestigeData, boolean
+---@return _g.UpgradePrestigeData, boolean
 local function loadUpgradeList(prestige)
     local path = "src/upgrades/prestige_"..prestige..".json"
     if love.filesystem.getInfo(path, "file") then
@@ -292,6 +292,36 @@ local function drawPrestigeShadow(prestige)
     end
 end
 
+
+
+---@param x integer
+---@param y integer
+---@param length integer
+---@param vertical boolean
+local function drawConnector(x, y, length, vertical)
+    local tx, ty, sz = getUpgradeCoords(x, y)
+    local rx, ry, rw, rh
+
+    if vertical then
+        rx = tx + consts.UPGRADE_GRID_SPACING
+        ry = ty - consts.UPGRADE_GRID_SPACING
+        rw = sz - 2 * consts.UPGRADE_GRID_SPACING
+        rh = (sz + consts.UPGRADE_GRID_SPACING) * length + consts.UPGRADE_GRID_SPACING
+    else
+        rx = tx - consts.UPGRADE_GRID_SPACING
+        ry = ty + consts.UPGRADE_GRID_SPACING
+        rw = (sz + consts.UPGRADE_GRID_SPACING) * length + consts.UPGRADE_GRID_SPACING
+        rh = sz - 2 * consts.UPGRADE_GRID_SPACING
+    end
+
+    love.graphics.setColor(g.COLORS.UPGRADE_CONNECTOR)
+    love.graphics.rectangle("fill", rx, ry, rw, rh)
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("line", rx, ry, rw, rh)
+end
+
+
+
 local function drawUpgradeScene()
     lastUpgradeHovered = nil
 
@@ -301,8 +331,13 @@ local function drawUpgradeScene()
         drawPrestigeShadow(currentPrestige)
     end
 
-    -- Draw upgrades on current prestige
     love.graphics.setColor(1, 1, 1)
+    -- Draw connectors on current prestige
+    for _, con in ipairs(upgradeConnectors[currentPrestige + 1]) do
+        drawConnector(con.x, con.y, con.length, con.vertical)
+    end
+
+    -- Draw upgrades on current prestige
     for utype, upos in pairs(upgradePosList[currentPrestige + 1]) do
         local uinfo = g.getUpgradeInfo(utype)
         local x, y, sz = getUpgradeCoords(upos.x, upos.y)
