@@ -479,6 +479,7 @@ local g_TokenDefinition = {}
 ---@class g.UpgradeInfo : g.UpgradeDefinition
 ---@field type string
 ---@field name string
+---@field maxLevel integer
 
 
 ---@alias g.TokenInfo g.TokenDefinition|{type:string,name:string}
@@ -856,6 +857,7 @@ function g.defineUpgrade(id, name, def)
     def.name = loc(name) ---@diagnostic disable-line
     def.image = id
     def.valueFormatter = def.valueFormatter or {}
+    def.maxLevel = def.maxLevel or consts.DEFAULT_UPGRADE_MAX_LEVEL
     table.insert(g.UPGRADE_LIST, id)
 
     niceAssert(type(id) == "string")
@@ -1030,7 +1032,7 @@ end
 function g.tryBuyUpgrade(uinfo)
     local session = g.getSn()
     local typ = uinfo.type
-    if g.getUpgradeLevel(uinfo) >= (uinfo.maxLevel or consts.DEFAULT_UPGRADE_MAX_LEVEL) then
+    if g.getUpgradeLevel(uinfo) >= uinfo.maxLevel then
         return false -- already max level
     end
     if g.canAffordUpgrade(uinfo) then
@@ -1366,13 +1368,6 @@ function g.damageToken(tok, dmg)
     tok.health = tok.health - dmg
     g.call("tokenDamaged", tok, dmg)
 
-    -- todo: rework all this.
-    if love.math.random()<0.5 then
-        g.playSound("hit_billiard", 1, 0.18, 0.3)
-    else
-        g.playSound("hit_soft", 1, 0.18, 0.3)
-    end
-
     tok.timeSinceDamaged = 0
     if tok.health <= 0 then
         g.destroyToken(tok)
@@ -1395,6 +1390,33 @@ function g.tryHitToken(tok)
         g.call("tokenHitStart", tok)
     end
 end
+
+---@param tok g.Token
+function g.hitImmediately(tok)
+    -- hits a token immediately; no checks, no buildup.
+    local hitMult = g.ask("getTokenHitMultiplier", tok)
+    tok.timeSinceHit = 0
+    g.call("tokenHit", tok)
+    g.damageToken(tok, hitMult * g.stats.HitDamage)
+
+    g.spawnParticle("crosshair", tok.x, tok.y, 1)
+
+    -- todo: rework all this.
+    if tok.type:match("grass") then
+        if love.math.random()<0.3 then
+            g.playSound("hit_grass",1,0.15, 0.1)
+        else
+            g.playSound("hit_grass2",1,0.15, 0.1)
+        end
+    elseif love.math.random()<0.5 then
+        g.playSound("hit_billiard", 1, 0.18, 0.3)
+    else
+        g.playSound("hit_soft", 1, 0.18, 0.3)
+    end
+end
+
+
+
 
 
 local hud = HUD()

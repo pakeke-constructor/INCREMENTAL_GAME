@@ -109,12 +109,7 @@ local function updateToken(tok,dt)
     tok.timeSinceHit = tok.timeSinceHit + dt
 
     if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceHit then
-        -- Damage token
-        local hitMult = g.ask("getTokenHitMultiplier", tok)
-        tok.timeSinceHit = 0
-        g.call("tokenHit", tok)
-        g.damageToken(tok, hitMult * g.stats.HitDamage)
-        g.spawnParticle("crosshair", tok.x, tok.y, 1)
+        g.hitImmediately(tok)
     end
 end
 

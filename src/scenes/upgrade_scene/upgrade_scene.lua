@@ -44,6 +44,32 @@ local function sumPriceBundle(bundle)
     return result
 end
 
+
+
+
+---@return g.UpgradeInfo|nil
+local function getCheapestUpgrade()
+    local bestPrice = 0xfffffffffffff
+    local bestUpgrade = nil
+
+    for _, id in g.iterateUpgradeTree(g.getPrestige()) do
+        local uinfo = g.getUpgradeInfo(id)
+        local lv = g.getUpgradeLevel(uinfo)
+
+        if (not g.isUpgradeHidden(uinfo)) and (lv < uinfo.maxLevel) then
+            local price = g.getUpgradePrice(uinfo)
+            if price.money < bestPrice then
+                bestPrice = price.money
+                bestUpgrade = uinfo
+            end
+        end
+    end
+
+    return bestUpgrade
+end
+
+
+
 local function getBestUpgradeAffordThreshold()
     ---@type g.Bundle
     local result = {}
@@ -174,13 +200,13 @@ function upgscene:keypressed(k)
     if consts.DEV_MODE then
         -- upgrades for dev
         if k == "u" then
-            local u = getBestUpgradeAffordThreshold()
+            local u = getCheapestUpgrade()
             local _ = u and g.tryBuyUpgrade(u)
         end
 
         if k == "u" and love.keyboard.isDown("lshift")then
             for i=1,20 do
-                local u = getBestUpgradeAffordThreshold()
+                local u = getCheapestUpgrade()
                 local _ = u and g.tryBuyUpgrade(u)
             end
         end
