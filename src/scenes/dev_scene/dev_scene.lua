@@ -184,12 +184,10 @@ local function loadAllUpgrades()
 
             '=' is horizontal connector, and '|' is vertical connector. The connector
             stored in JSON is:
-            * For horizontal: {"x": 0, "y": 0, "vertical": false, "length": 3}
-            * For vertical: {"x": 0, "y": 0, "vertical": true, "length": 2}
-
-            So the starting connector is either x+1 or y+1 depending whetever it's horizontal or vertical.
+            * For horizontal: {"x": 1, "y": 0, "vertical": false, "length": 3}
+            * For vertical: {"x": 0, "y": 1, "vertical": true, "length": 2}
             ]]
-            for i = 1, cpos.length do
+            for i = 0, cpos.length - 1 do
                 local dx = cpos.vertical and 0 or i
                 local dy = cpos.vertical and i or 0
                 local ctype = cpos.vertical and VERT_CONNECTOR or HORZ_CONNECTOR
@@ -266,17 +264,41 @@ end
 local BELOW_PRESTIGE_COLOR = objects.Color("#".."FFE5DA01")
 local ABOVE_PRESTIGE_COLOR = objects.Color("#".."FFDDB0EB")
 
+local function drawPrestigeShadow(prestige)
+    for _, upos in pairs(upgradePosList[prestige]) do
+        local x, y, sz = getUpgradeCoords(upos.x, upos.y)
+        love.graphics.rectangle("line", x, y, sz, sz)
+    end
+
+    for _, con in ipairs(upgradeConnectors[prestige]) do
+        local x, y, sz = getUpgradeCoords(con.x, con.y)
+        if con.vertical then
+            love.graphics.rectangle(
+                "line",
+                x + consts.UPGRADE_GRID_SPACING,
+                y - consts.UPGRADE_GRID_SPACING,
+                sz - 2 * consts.UPGRADE_GRID_SPACING,
+                (sz + consts.UPGRADE_GRID_SPACING) * con.length + consts.UPGRADE_GRID_SPACING
+            )
+        else
+            love.graphics.rectangle(
+                "line",
+                x - consts.UPGRADE_GRID_SPACING,
+                y + consts.UPGRADE_GRID_SPACING,
+                (sz + consts.UPGRADE_GRID_SPACING) * con.length + consts.UPGRADE_GRID_SPACING,
+                sz - 2 * consts.UPGRADE_GRID_SPACING
+            )
+        end
+    end
+end
+
 local function drawUpgradeScene()
     lastUpgradeHovered = nil
 
     -- Draw upgrade positions below current prestige
     if currentPrestige > 0 then
         love.graphics.setColor(BELOW_PRESTIGE_COLOR)
-
-        for _, upos in pairs(upgradePosList[currentPrestige]) do
-            local x, y, sz = getUpgradeCoords(upos.x, upos.y)
-            love.graphics.rectangle("line", x, y, sz, sz)
-        end
+        drawPrestigeShadow(currentPrestige)
     end
 
     -- Draw upgrades on current prestige
@@ -298,11 +320,7 @@ local function drawUpgradeScene()
     -- Draw upgrade positions above current prestige
     if upgradePosList[currentPrestige + 2] then
         love.graphics.setColor(ABOVE_PRESTIGE_COLOR)
-
-        for _, upos in pairs(upgradePosList[currentPrestige + 2]) do
-            local x, y, sz = getUpgradeCoords(upos.x, upos.y)
-            love.graphics.rectangle("line", x, y, sz, sz)
-        end
+        drawPrestigeShadow(currentPrestige + 2)
     end
 end
 

@@ -15,6 +15,6 @@
         "lucky_hit": {"x": -3, "y": -2}
     },
     "connectors": [
-        {"x": -3, "y": 0, "vertical": false, "length": 4}
+        {"x": -2, "y": 0, "vertical": false, "length": 4}
     ]
 }
