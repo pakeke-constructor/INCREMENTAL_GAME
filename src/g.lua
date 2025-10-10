@@ -1101,7 +1101,7 @@ end
 local function modifyUpgradePrice(uinfo, val, level)
     level = level or g.getUpgradeLevel(uinfo)
     local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
-    local mult2 = g.ask("getUpgradePriceModifier")
+    local mult2 = g.ask("getUpgradePriceMultiplier")
     val = floorSignificant(val*mult*mult2, 2)
     return val
 end

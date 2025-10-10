@@ -39,7 +39,7 @@ g.defineUpgrade("capitalist", "Capitalist", {
         return 5 * level
     end,
     valueFormatter = {"%d%%"},
-    getUpgradePriceModifier = function(uinfo, level)
+    getUpgradePriceMultiplier = function(uinfo, level)
         local reduction = uinfo:getValues(level) / 100
         return math.max(1 - reduction, 0)
     end,
