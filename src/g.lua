@@ -926,13 +926,13 @@ local SPECIAL_FUNCTIONS = {
 
 
 ---@param id string
----@param def g.UpgradeDefinition
+---@param def g.UpgradeDefinition|{valueFormatter?:(string|(fun(x:number):string))[]}
 function g.defineUpgrade(id, name, def)
     if not (def.kind and UPGRADE_KINDS[def.kind]) then
         error("Invalid upgrade-kind: " .. tostring(def.kind),2)
     end
     def.name = loc(name) ---@diagnostic disable-line
-    def.image = id
+    def.image = def.image or id
     def.valueFormatter = def.valueFormatter or {}
     def.maxLevel = def.maxLevel or consts.DEFAULT_UPGRADE_MAX_LEVEL
     table.insert(g.UPGRADE_LIST, id)
