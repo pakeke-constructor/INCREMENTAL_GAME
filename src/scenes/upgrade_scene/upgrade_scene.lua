@@ -29,12 +29,12 @@ end
 ---@param x integer
 ---@param y integer
 ---@param length integer
----@param vertical boolean
-local function drawConnector(x, y, length, vertical)
+---@param isVertical boolean
+local function drawConnector(x, y, length, isVertical)
     local tx, ty, sz = getUpgradeCoords(x, y)
     local rx, ry, rw, rh
 
-    if vertical then
+    if isVertical then
         rx = tx + consts.UPGRADE_GRID_SPACING
         ry = ty - consts.UPGRADE_GRID_SPACING
         rw = sz - 2 * consts.UPGRADE_GRID_SPACING
@@ -159,7 +159,7 @@ local function drawUpgradeBoxes()
             for _, con in ipairs(g.getUpgradeConnectors(uinfo, prestige)) do
                 local h = g.hashPos(con.x, con.y, prestige)
                 if not drawnConnectors[h] then
-                    drawConnector(con.x, con.y, con.length, con.vertical)
+                    drawConnector(con.x, con.y, con.length, con.isVertical)
                     drawnConnectors[h] = true
                 end
             end

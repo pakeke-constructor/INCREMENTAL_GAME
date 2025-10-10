@@ -777,8 +777,8 @@ do
 
             for _, cpos in ipairs(r.connectors) do
                 for j = 0, cpos.length - 1 do
-                    local dx = cpos.vertical and 0 or j
-                    local dy = cpos.vertical and j or 0
+                    local dx = cpos.isVertical and 0 or j
+                    local dy = cpos.isVertical and j or 0
                     local h = ensureEmpty(cpos.x + dx, cpos.y + dy, i, "connector")
                     upgradePositionsHash[h] = cpos
                 end
@@ -819,7 +819,7 @@ end
 ---@return [string, string]|nil
 local function getTargetConnector(con, prestige)
     local h1, h2 = nil, nil
-    if con.vertical then
+    if con.isVertical then
         -- Check utype on top and bottom
         h1 = hash(con.x, con.y - 1, prestige)
         h2 = hash(con.x, con.y + con.length, prestige)
@@ -856,7 +856,7 @@ local function getNeighbor(uinfo, prestige, dx,dy)
     if utype then
         if type(utype) == "string" then
             return g.getUpgradeInfo(utype)
-        elseif vertical ~= nil and utype.vertical == vertical then
+        elseif vertical ~= nil and utype.isVertical == vertical then
             local target = getTargetConnector(utype, prestige)
             -- The target connector returns 2 types across each endpoints.
             -- One of it is equal to `uinfo.type`. We want the one not equal to `uinfo.type`.
@@ -1056,10 +1056,10 @@ function g.getUpgradeConnectors(uinfo, prestige)
     local result = {}
     for _, d in ipairs(NEIGHBORS) do
         local h = hash(pos.x + d[1], pos.y + d[2], prestige)
-        local vertical = d[1] == 0 and d[2] ~= 0
+        local isVertical = d[1] == 0 and d[2] ~= 0
         local con = upgradePositionsHash[h]
 
-        if con and type(con) ~= "string" and con.vertical == vertical then
+        if con and type(con) ~= "string" and con.isVertical == isVertical then
             -- Also make sure none of the connector target is hidden
             local target = getTargetConnector(con, prestige)
             if target then

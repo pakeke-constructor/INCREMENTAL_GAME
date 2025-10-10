@@ -115,9 +115,9 @@ end
 
 ---@class _dev.Connector: _dev.UpgradePosition
 ---@field public length integer
----@field public vertical boolean
+---@field public isVertical boolean
 local _dev_Connector = {__tostring = function(self)
-    return (self.vertical and "vert" or "horz").." connector"
+    return (self.isVertical and "vert" or "horz").." connector"
 end}
 
 ---@class _g.UpgradePrestigeData
@@ -180,12 +180,12 @@ local function loadAllUpgrades()
 
             '=' is horizontal connector, and '|' is vertical connector. The connector
             stored in JSON is:
-            * For horizontal: {"x": 1, "y": 0, "vertical": false, "length": 3}
-            * For vertical: {"x": 0, "y": 1, "vertical": true, "length": 2}
+            * For horizontal: {"x": 1, "y": 0, "isVertical": false, "length": 3}
+            * For vertical: {"x": 0, "y": 1, "isVertical": true, "length": 2}
             ]]
             for i = 0, cpos.length - 1 do
-                local dx = cpos.vertical and 0 or i
-                local dy = cpos.vertical and i or 0
+                local dx = cpos.isVertical and 0 or i
+                local dy = cpos.isVertical and i or 0
                 local ctype = setmetatable(cpos, _dev_Connector)
                 local h = g.hashPos(cpos.x + dx, cpos.y + dy, prestige)
                 if hashmap[h] then
@@ -272,7 +272,7 @@ local function drawPrestigeShadow(prestige)
 
     for _, con in ipairs(upgradeConnectors[prestige]) do
         local x, y, sz = getUpgradeCoords(con.x, con.y)
-        if con.vertical then
+        if con.isVertical then
             love.graphics.rectangle(
                 "line",
                 x + consts.UPGRADE_GRID_SPACING,
@@ -297,12 +297,12 @@ end
 ---@param x integer
 ---@param y integer
 ---@param length integer
----@param vertical boolean
-local function drawConnector(x, y, length, vertical)
+---@param isVertical boolean
+local function drawConnector(x, y, length, isVertical)
     local tx, ty, sz = getUpgradeCoords(x, y)
     local rx, ry, rw, rh
 
-    if vertical then
+    if isVertical then
         rx = tx + consts.UPGRADE_GRID_SPACING
         ry = ty - consts.UPGRADE_GRID_SPACING
         rw = sz - 2 * consts.UPGRADE_GRID_SPACING
@@ -338,7 +338,7 @@ local function canAttachConnector(pos1, pos2, prestige)
         return false
     end
     local length = math.max(dx, dy)
-    local vertical = dy > 0
+    local isVertical = dy > 0
 
     -- Delta difference must be larger than 1
     if length < 2 then
@@ -350,7 +350,7 @@ local function canAttachConnector(pos1, pos2, prestige)
     -- No other connectors or upgrades on the way
     for i = 1, math.max(dx, dy) - 1 do
         local inmap
-        if vertical then
+        if isVertical then
             inmap = upgradeHashmap[g.hashPos(startX, startY + i, prestige)]
         else
             inmap = upgradeHashmap[g.hashPos(startX + i, startY, prestige)]
@@ -360,7 +360,7 @@ local function canAttachConnector(pos1, pos2, prestige)
             if type(inmap) == "string" then
                 -- Another upgrade is on the way
                 return false
-            elseif inmap.vertical ~= vertical then
+            elseif inmap.isVertical ~= isVertical then
                 -- Different kind of connector
                 return false
             elseif targetCon ~= nil and targetCon ~= inmap then
@@ -380,19 +380,19 @@ end
 ---@param x integer
 ---@param y integer
 ---@param length integer
----@param vertical boolean
-local function addUpgradeConnector(x, y, length, vertical)
+---@param isVertical boolean
+local function addUpgradeConnector(x, y, length, isVertical)
     ---@type _dev.Connector
     local result = {
         x = x,
         y = y,
         length = length,
-        vertical = vertical
+        isVertical = isVertical
     }
     -- Spread the connector hashmaps
     for i = 0, length do
-        local dx = vertical and 0 or i
-        local dy = vertical and i or 0
+        local dx = isVertical and 0 or i
+        local dy = isVertical and i or 0
         upgradeHashmap[g.hashPos(x + dx, y + dy, currentPrestige)] = result
     end
     table.insert(upgradeConnectors[currentPrestige + 1], result)
@@ -416,8 +416,8 @@ local function removeUpgradeConnector(con)
 
     -- Nil out the connector hashmaps
     for i = 0, con.length - 1 do
-        local dx = con.vertical and 0 or i
-        local dy = con.vertical and i or 0
+        local dx = con.isVertical and 0 or i
+        local dy = con.isVertical and i or 0
         upgradeHashmap[g.hashPos(con.x + dx, con.y + dy, currentPrestige)] = nil
     end
 
@@ -435,7 +435,7 @@ local function getConnectorAround(x, y)
         local h = g.hashPos(x + d[1], y + d[2], currentPrestige)
         local inmap = upgradeHashmap[h]
 
-        if inmap and type(inmap) ~= "string" and inmap.vertical == vert then
+        if inmap and type(inmap) ~= "string" and inmap.isVertical == vert then
             result[#result+1] = inmap
         end
     end
@@ -457,7 +457,7 @@ local function drawUpgradeScene()
     love.graphics.setColor(1, 1, 1)
     -- Draw connectors on current prestige
     for _, con in ipairs(upgradeConnectors[currentPrestige + 1]) do
-        drawConnector(con.x, con.y, con.length, con.vertical)
+        drawConnector(con.x, con.y, con.length, con.isVertical)
     end
 
     -- Draw upgrades on current prestige
