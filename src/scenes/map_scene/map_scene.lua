@@ -16,11 +16,13 @@ local map = FreeCameraScene()
 
 
 local mapAnim = {
-    lg.newImage("src/scenes/map_scene/maps/map1.png"),
-    lg.newImage("src/scenes/map_scene/maps/map2.png")
+    lg.newImage("src/scenes/map_scene/maps/new_map1.png"),
+    lg.newImage("src/scenes/map_scene/maps/new_map2.png"),
+    -- lg.newImage("src/scenes/map_scene/maps/map1.png"),
+    -- lg.newImage("src/scenes/map_scene/maps/map2.png")
 }
 
-local cloudImg = lg.newImage("src/scenes/map_scene/maps/map_clouds.png")
+local cloudImg = lg.newImage("src/scenes/map_scene/maps/new_map_clouds.png")
 
 
 
