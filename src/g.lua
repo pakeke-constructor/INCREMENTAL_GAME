@@ -459,6 +459,8 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field description string?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field valueFormatter (string|(fun(x:number):string))[]
+---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
+---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
 local g_UpgradeDefinition = {}
 ---@param self g.UpgradeInfo
 ---@param level integer
@@ -917,7 +919,9 @@ local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
 -- a list of "special" functions that upgrades use,
 -- that ARENT q-bus or ev-bus. (eg ignore them)
 local SPECIAL_FUNCTIONS = {
-    getValues = true
+    getValues = true,
+    getEntityCount = true,
+    spawnEntity = true
 }
 
 
@@ -1313,8 +1317,8 @@ do
 ---@field y number
 ---@field image string?
 ---@field lifetime number?
----@field update fun(ent: g.Entity, dt:number)
----@field draw fun(ent: g.Entity)
+---@field update (fun(ent: g.Entity, dt:number))?
+---@field draw (fun(ent: g.Entity))?
 local Entity = {}
 
 
@@ -1324,29 +1328,29 @@ local ENTITY_DEFS = {}
 ---@param etype g.Entity|{x:nil,y:nil,type:nil}
 function g.defineEntity(type, etype)
     -- TODO, assertions maybe?
+    assert(etype.x == nil, "x is reserved field")
+    assert(etype.y == nil, "y is reserved field")
+    assert(etype.type == nil, "type is reserved field")
+    etype.type = type
     ENTITY_DEFS[type] = {__index=etype}
 end
 
 
----@param type string
+---@param ename string
 ---@param x number
 ---@param y number
----@param uinfo g.UpgradeInfo?
-function g.spawnEntity(type, x,y, uinfo)
+function g.spawnEntity(ename, x,y)
     local w = g.getMainWorld()
-    local mt = ENTITY_DEFS[type]
-    assert()
+    local mt = ENTITY_DEFS[ename]
+    ---@type g.Entity
     local ent = setmetatable({
-        x=x,y=y, type=type
+        x=x,y=y, type=ename
     }, mt)
-
-    error("todo, get uinfo binding working")
 
     assert(type(ent) == "table")
     assert(ent.type)
-    assert(ent.update)
-    assert(ent.draw)
     w.entities:addBuffered(ent)
+    return ent
 end
 
 
