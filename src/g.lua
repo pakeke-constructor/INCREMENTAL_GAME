@@ -1313,8 +1313,8 @@ do
 ---@field y number
 ---@field image string?
 ---@field lifetime number?
----@field update fun(ent: g.Entity, dt:number)
----@field draw fun(ent: g.Entity)
+---@field update (fun(ent: g.Entity, dt:number))?
+---@field draw (fun(ent: g.Entity))?
 local Entity = {}
 
 
@@ -1324,28 +1324,27 @@ local ENTITY_DEFS = {}
 ---@param etype g.Entity|{x:nil,y:nil,type:nil}
 function g.defineEntity(type, etype)
     -- TODO, assertions maybe?
+    assert(etype.x == nil, "x is reserved field")
+    assert(etype.y == nil, "y is reserved field")
+    assert(etype.type == nil, "type is reserved field")
+    etype.type = type
     ENTITY_DEFS[type] = {__index=etype}
 end
 
 
----@param type string
+---@param ename string
 ---@param x number
 ---@param y number
----@param uinfo g.UpgradeInfo?
-function g.spawnEntity(type, x,y, uinfo)
+function g.spawnEntity(ename, x,y)
     local w = g.getMainWorld()
-    local mt = ENTITY_DEFS[type]
+    local mt = ENTITY_DEFS[ename]
     assert()
     local ent = setmetatable({
-        x=x,y=y, type=type
+        x=x,y=y, type=ename
     }, mt)
-
-    error("todo, get uinfo binding working")
 
     assert(type(ent) == "table")
     assert(ent.type)
-    assert(ent.update)
-    assert(ent.draw)
     w.entities:addBuffered(ent)
 end
 

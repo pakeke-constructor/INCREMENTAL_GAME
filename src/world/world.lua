@@ -245,6 +245,18 @@ function World:_draw()
         end
     end
 
+    -- draw entities
+    for _, e in ipairs(self.entities) do
+        ---@cast e g.Entity
+        if e.image then
+            g.drawImage(e.image, e.x, e.y)
+        end
+
+        if e.draw then
+            e:draw()
+        end
+    end
+
     love.graphics.setColor(1, 1, 1)
     self.particles:draw()
 
@@ -289,7 +301,18 @@ function World:_update(dt)
     end
 
     for _, e in ipairs(self.entities) do
-        e:update(dt)
+        ---@cast e g.Entity
+        if e.update then
+            e:update(dt)
+        end
+
+        if e.lifetime then
+            e.lifetime = e.lifetime - dt
+
+            if e.lifetime <= 0 then
+                self.entities:removeBuffered(e)
+            end
+        end
     end
 
     if self.mouseX then
