@@ -330,8 +330,12 @@ function World:_update(dt)
         local uinfo = g.getUpgradeInfo(upgradeId)
         local ulevel = g.getUpgradeLevel(uinfo)
 
-        if ulevel > 0 and uinfo.getEntityCount and uinfo.spawnEntity then
-            local diff = self:_countEntityUpgrades(upgradeId) - uinfo:getEntityCount(ulevel)
+        if ulevel > 0 and uinfo.spawnEntity then
+            local ecount = 1
+            if uinfo.getEntityCount then
+                ecount = math.max(uinfo:getEntityCount(ulevel), 0)
+            end
+            local diff = self:_countEntityUpgrades(upgradeId) - ecount
 
             if diff ~= 0 then
                 -- Ensure set exist
@@ -339,22 +343,23 @@ function World:_update(dt)
                     self.upgradeEntities[upgradeId] = objects.BufferedSet()
                 end
 
-                -- Spawn more entities
-                while diff < 0 do
-                    local ent = uinfo:spawnEntity()
-                    self.upgradeEntities[upgradeId]:addBuffered(ent)
-                    diff = diff + 1 -- if it's 0, then this loop stops
-                end
-
-                -- Remove excess entities
-                for _, e in ipairs(self.upgradeEntities[upgradeId]) do
-                    if diff == 0 then
-                        break
+                if diff < 0 then
+                    -- Spawn more entities
+                    for _ = 1, -diff do
+                        local ent = uinfo:spawnEntity()
+                        self.upgradeEntities[upgradeId]:addBuffered(ent)
                     end
+                else
+                    -- Remove excess entities
+                    for _, e in ipairs(self.upgradeEntities[upgradeId]) do
+                        if diff == 0 then
+                            break
+                        end
 
-                    self.upgradeEntities[upgradeId]:removeBuffered(e) -- do not disappoint ipairs
-                    self.entities:removeBuffered(e)
-                    diff = diff - 1 -- if it's 0, then this loop stops
+                        self.upgradeEntities[upgradeId]:removeBuffered(e) -- do not disappoint ipairs
+                        self.entities:removeBuffered(e)
+                        diff = diff - 1 -- if it's 0, then this loop stops
+                    end
                 end
 
                 self.upgradeEntities[upgradeId]:flush()
