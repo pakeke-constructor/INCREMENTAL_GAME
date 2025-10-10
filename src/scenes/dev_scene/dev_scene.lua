@@ -113,28 +113,95 @@ end
 ---@field public x integer
 ---@field public y integer
 
+---@class _dev.Connector: _dev.UpgradePosition
+---@field public length integer
+---@field public isVertical boolean
+local _dev_Connector = {__tostring = function(self)
+    return (self.isVertical and "vert" or "horz").." connector"
+end}
+
+---@class _g.UpgradePrestigeData
+---@field public upgrades table<string, _dev.UpgradePosition>
+---@field public connectors _dev.Connector[]
+
 ---@param prestige integer
----@return table<string, _dev.UpgradePosition>, boolean
+---@return _g.UpgradePrestigeData, boolean
 local function loadUpgradeList(prestige)
     local path = "src/upgrades/prestige_"..prestige..".json"
     if love.filesystem.getInfo(path, "file") then
         return json.decode((assert(love.filesystem.read(path)))), true
     end
-    return {}, false
+    return {upgrades = {}, connectors = {}}, false
 end
 
----@return table<string, _dev.UpgradePosition>[], table<integer, string>
+---@return table<string, _dev.UpgradePosition>[] @List of upgrades by prestige
+---@return _dev.Connector[][] @only the left or the top endpoints
+---@return table<integer, string|_dev.Connector> @Hashmap of the whole upgrades
 local function loadAllUpgrades()
     local prestige = 0
     local output = {}
+    local connectors = {}
     local hashmap = {}
     while true do
         local r, continue = loadUpgradeList(prestige)
+        local con = {}
 
-        output[#output+1] = r
+        output[#output+1] = r.upgrades
+        connectors[#connectors+1] = con
 
-        for utype, upos in pairs(r) do
-            hashmap[g.hashPos(upos.x, upos.y, prestige)] = utype
+        -- Iterate upgrades
+        for utype, upos in pairs(r.upgrades) do
+            local h = g.hashPos(upos.x, upos.y, prestige)
+            if hashmap[h] then
+                error(string.format(
+                    "prestige %d position %dx%d trying to put '%s' occupied by '%s'",
+                    prestige,
+                    upos.x,
+                    upos.y,
+                    tostring(utype),
+                    tostring(hashmap[h])
+                ))
+            end
+            hashmap[h] = utype
+        end
+
+        -- Iterate connectors
+        for _, cpos in ipairs(r.connectors) do
+            --[[
+            Connector X and Y only either points to the top (vertical)
+            or the left endpoint. Consider this example:
+
+              01234
+            0 U===U
+            1 U
+            2 |
+            3 |
+            4 U
+
+            '=' is horizontal connector, and '|' is vertical connector. The connector
+            stored in JSON is:
+            * For horizontal: {"x": 1, "y": 0, "isVertical": false, "length": 3}
+            * For vertical: {"x": 0, "y": 1, "isVertical": true, "length": 2}
+            ]]
+            for i = 0, cpos.length - 1 do
+                local dx = cpos.isVertical and 0 or i
+                local dy = cpos.isVertical and i or 0
+                local ctype = setmetatable(cpos, _dev_Connector)
+                local h = g.hashPos(cpos.x + dx, cpos.y + dy, prestige)
+                if hashmap[h] then
+                    error(string.format(
+                        "prestige %d position %dx%d trying to put '%s' on '%s'",
+                        prestige,
+                        cpos.x + dx,
+                        cpos.y + dy,
+                        tostring(ctype),
+                        tostring(hashmap[h])
+                    ))
+                end
+                hashmap[h] = ctype
+            end
+
+            con[#con+1] = cpos
         end
 
         if not continue then
@@ -144,10 +211,10 @@ local function loadAllUpgrades()
         prestige = prestige + 1
     end
 
-    return output, hashmap
+    return output, connectors, hashmap
 end
 
-local upgradePosList, upgradeHashmap = loadAllUpgrades()
+local upgradePosList, upgradeConnectors, upgradeHashmap = loadAllUpgrades()
 local isUpgradeDataModified = false
 local currentPrestige = 0
 ---@type {pos:_dev.UpgradePosition,info:g.UpgradeInfo}|nil
@@ -155,7 +222,7 @@ local lastUpgradeHovered = nil
 ---@type {pos:_dev.UpgradePosition,info:g.UpgradeInfo}|nil
 local lastUpgradeSelected = nil
 
-local function saveUpgradePositions()
+local function saveAllUpgrades()
     -- We gotta be careful with the saving as it may be [{stuff}, {}, {}, {stuff}, {}]
     local maxIndicesToSave = 0
     for i, ulist in ipairs(upgradePosList) do
@@ -167,7 +234,11 @@ local function saveUpgradePositions()
     for i = 1, maxIndicesToSave do
         -- "root" is our game source directory but RW.
         -- i - 1 because prestige starts at 0
-        love.filesystem.write("root/src/upgrades/prestige_"..(i - 1)..".json", json.encode(upgradePosList[i]))
+        local data = json.encode({
+            upgrades = upgradePosList[i],
+            connectors = upgradeConnectors[i]
+        })
+        love.filesystem.write("root/src/upgrades/prestige_"..(i - 1)..".json", data)
     end
 
     for i = maxIndicesToSave + 1, #upgradePosList do
@@ -178,7 +249,7 @@ local function saveUpgradePositions()
     -- Reload
     lastUpgradeHovered = nil
     lastUpgradeSelected = nil
-    upgradePosList, upgradeHashmap = loadAllUpgrades()
+    upgradePosList, upgradeConnectors, upgradeHashmap = loadAllUpgrades()
     isUpgradeDataModified = false
 end
 
@@ -193,21 +264,203 @@ end
 local BELOW_PRESTIGE_COLOR = objects.Color("#".."FFE5DA01")
 local ABOVE_PRESTIGE_COLOR = objects.Color("#".."FFDDB0EB")
 
+local function drawPrestigeShadow(prestige)
+    for _, upos in pairs(upgradePosList[prestige]) do
+        local x, y, sz = getUpgradeCoords(upos.x, upos.y)
+        love.graphics.rectangle("line", x, y, sz, sz)
+    end
+
+    for _, con in ipairs(upgradeConnectors[prestige]) do
+        local x, y, sz = getUpgradeCoords(con.x, con.y)
+        if con.isVertical then
+            love.graphics.rectangle(
+                "line",
+                x + consts.UPGRADE_GRID_SPACING,
+                y - consts.UPGRADE_GRID_SPACING,
+                sz - 2 * consts.UPGRADE_GRID_SPACING,
+                (sz + consts.UPGRADE_GRID_SPACING) * con.length + consts.UPGRADE_GRID_SPACING
+            )
+        else
+            love.graphics.rectangle(
+                "line",
+                x - consts.UPGRADE_GRID_SPACING,
+                y + consts.UPGRADE_GRID_SPACING,
+                (sz + consts.UPGRADE_GRID_SPACING) * con.length + consts.UPGRADE_GRID_SPACING,
+                sz - 2 * consts.UPGRADE_GRID_SPACING
+            )
+        end
+    end
+end
+
+
+
+---@param x integer
+---@param y integer
+---@param length integer
+---@param isVertical boolean
+local function drawConnector(x, y, length, isVertical)
+    local tx, ty, sz = getUpgradeCoords(x, y)
+    local rx, ry, rw, rh
+
+    if isVertical then
+        rx = tx + consts.UPGRADE_GRID_SPACING
+        ry = ty - consts.UPGRADE_GRID_SPACING
+        rw = sz - 2 * consts.UPGRADE_GRID_SPACING
+        rh = (sz + consts.UPGRADE_GRID_SPACING) * length + consts.UPGRADE_GRID_SPACING
+    else
+        rx = tx - consts.UPGRADE_GRID_SPACING
+        ry = ty + consts.UPGRADE_GRID_SPACING
+        rw = (sz + consts.UPGRADE_GRID_SPACING) * length + consts.UPGRADE_GRID_SPACING
+        rh = sz - 2 * consts.UPGRADE_GRID_SPACING
+    end
+
+    love.graphics.setColor(g.COLORS.UPGRADE_CONNECTOR)
+    love.graphics.rectangle("fill", rx, ry, rw, rh)
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("line", rx, ry, rw, rh)
+end
+
+---@param pos1 _dev.UpgradePosition
+---@param pos2 _dev.UpgradePosition
+---@param prestige integer
+local function canAttachConnector(pos1, pos2, prestige)
+    --[[
+    Connector attachment criteria:
+    * Either only the X or Y is different (horizontal or vertical)
+    * No other connectors or upgrades on the way
+    * The delta difference of each position must be larger than 1
+    ]]
+
+    local dx = math.abs(pos1.x - pos2.x)
+    local dy = math.abs(pos1.y - pos2.y)
+    -- Either only the X or Y different (horz or vert)
+    if dx > 0 and dy > 0 then
+        return false
+    end
+    local length = math.max(dx, dy)
+    local isVertical = dy > 0
+
+    -- Delta difference must be larger than 1
+    if length < 2 then
+        return false
+    end
+
+    local startX, startY = math.min(pos1.x, pos2.x), math.min(pos1.y, pos2.y)
+    local targetCon = nil
+    -- No other connectors or upgrades on the way
+    for i = 1, math.max(dx, dy) - 1 do
+        local inmap
+        if isVertical then
+            inmap = upgradeHashmap[g.hashPos(startX, startY + i, prestige)]
+        else
+            inmap = upgradeHashmap[g.hashPos(startX + i, startY, prestige)]
+        end
+
+        if inmap then
+            if type(inmap) == "string" then
+                -- Another upgrade is on the way
+                return false
+            elseif inmap.isVertical ~= isVertical then
+                -- Different kind of connector
+                return false
+            elseif targetCon ~= nil and targetCon ~= inmap then
+                -- Different kind of connector
+                return false
+            else
+                targetCon = inmap
+            end
+        end
+    end
+
+    -- Checks passed
+    return true, targetCon
+end
+
+---Note: Checks are not performed!
+---@param x integer
+---@param y integer
+---@param length integer
+---@param isVertical boolean
+local function addUpgradeConnector(x, y, length, isVertical)
+    ---@type _dev.Connector
+    local result = {
+        x = x,
+        y = y,
+        length = length,
+        isVertical = isVertical
+    }
+    -- Spread the connector hashmaps
+    for i = 0, length do
+        local dx = isVertical and 0 or i
+        local dy = isVertical and i or 0
+        upgradeHashmap[g.hashPos(x + dx, y + dy, currentPrestige)] = result
+    end
+    table.insert(upgradeConnectors[currentPrestige + 1], result)
+    isUpgradeDataModified = true
+    return result
+end
+
+---@param con _dev.Connector
+local function removeUpgradeConnector(con)
+    -- Sanity check: Ensure it's in current prestige
+    local ok = false
+    for i, c in ipairs(upgradeConnectors[currentPrestige + 1]) do
+        if c == con then
+            ok = true
+            table.remove(upgradeConnectors[currentPrestige + 1], i)
+            break
+        end
+    end
+
+    assert(ok, "attempt to remove connector across different prestige")
+
+    -- Nil out the connector hashmaps
+    for i = 0, con.length - 1 do
+        local dx = con.isVertical and 0 or i
+        local dy = con.isVertical and i or 0
+        upgradeHashmap[g.hashPos(con.x + dx, con.y + dy, currentPrestige)] = nil
+    end
+
+    isUpgradeDataModified = true
+end
+
+local NEIGHBORS = {{1,0},{-1,0},{0,1},{0,-1}}
+---@param x integer
+---@param y integer
+local function getConnectorAround(x, y)
+    ---@type _dev.Connector[]
+    local result = {}
+    for _, d in ipairs(NEIGHBORS) do
+        local vert = d[2] ~= 0
+        local h = g.hashPos(x + d[1], y + d[2], currentPrestige)
+        local inmap = upgradeHashmap[h]
+
+        if inmap and type(inmap) ~= "string" and inmap.isVertical == vert then
+            result[#result+1] = inmap
+        end
+    end
+
+    return result
+end
+
+
+
 local function drawUpgradeScene()
     lastUpgradeHovered = nil
 
     -- Draw upgrade positions below current prestige
     if currentPrestige > 0 then
         love.graphics.setColor(BELOW_PRESTIGE_COLOR)
+        drawPrestigeShadow(currentPrestige)
+    end
 
-        for _, upos in pairs(upgradePosList[currentPrestige]) do
-            local x, y, sz = getUpgradeCoords(upos.x, upos.y)
-            love.graphics.rectangle("line", x, y, sz, sz)
-        end
+    love.graphics.setColor(1, 1, 1)
+    -- Draw connectors on current prestige
+    for _, con in ipairs(upgradeConnectors[currentPrestige + 1]) do
+        drawConnector(con.x, con.y, con.length, con.isVertical)
     end
 
     -- Draw upgrades on current prestige
-    love.graphics.setColor(1, 1, 1)
     for utype, upos in pairs(upgradePosList[currentPrestige + 1]) do
         local uinfo = g.getUpgradeInfo(utype)
         local x, y, sz = getUpgradeCoords(upos.x, upos.y)
@@ -218,18 +471,37 @@ local function drawUpgradeScene()
             lastUpgradeHovered = {pos = upos, info = uinfo}
         end
         if wasClicked then
-            lastUpgradeSelected = {pos = upos, info = uinfo}
+            if love.keyboard.isDown("lshift", "rshift") then
+                if lastUpgradeSelected then
+                    local canAttach, con = canAttachConnector(upos, lastUpgradeSelected.pos, currentPrestige)
+
+                    if canAttach then
+                        if con then
+                            -- Remove connector
+                            removeUpgradeConnector(con)
+                        else
+                            -- Add connector
+                            local conX = math.min(lastUpgradeSelected.pos.x, upos.x)
+                            local conY = math.min(lastUpgradeSelected.pos.y, upos.y)
+                            local vert = lastUpgradeSelected.pos.x == upos.x
+                            local length = math.max(
+                                math.abs(lastUpgradeSelected.pos.x - upos.x),
+                                math.abs(lastUpgradeSelected.pos.y - upos.y)
+                            ) - 1
+                            addUpgradeConnector(conX + (vert and 0 or 1), conY + (vert and 1 or 0), length, vert)
+                        end
+                    end
+                end
+            else
+                lastUpgradeSelected = {pos = upos, info = uinfo}
+            end
         end
     end
 
     -- Draw upgrade positions above current prestige
     if upgradePosList[currentPrestige + 2] then
         love.graphics.setColor(ABOVE_PRESTIGE_COLOR)
-
-        for _, upos in pairs(upgradePosList[currentPrestige + 2]) do
-            local x, y, sz = getUpgradeCoords(upos.x, upos.y)
-            love.graphics.rectangle("line", x, y, sz, sz)
-        end
+        drawPrestigeShadow(currentPrestige + 2)
     end
 end
 
@@ -307,8 +579,6 @@ local selectedUpgradeText = "{o}"..table.concat({
     "[Esc|Enter] = Deselect",
     "[Arrow Keys] = Move",
     "[Delete] = Delete",
-    "[T] = Increase Prestige",
-    "[G] = Decrease Prestige"
 }, "\n").."{/o}"
 
 ---@param r layout.Region
@@ -318,28 +588,35 @@ local function drawUpgradeSceneUI(r, cam)
     love.graphics.setColor(1, 1, 1)
 
     if lastUpgradeSelected then
-        local w = g.getMainWorld()
-        -- Just simple text will do
-        local text = string.format(
-            selectedUpgradeText,
-            lastUpgradeSelected.info.name,
-            lastUpgradeSelected.info.type,
-            lastUpgradeSelected.pos.x,
-            lastUpgradeSelected.pos.y
-        )
+        local textTab = {
+            string.format("%s (%s)", lastUpgradeSelected.info.name, lastUpgradeSelected.info.type),
+            string.format("X: %d | Y: %d", lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y),
+            "[Esc|Enter] = Deselect",
+        }
+        if #getConnectorAround(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y) > 0 then
+            textTab[#textTab+1] = "{c r=1 g=0.1 b=0.1}Detach Connector To Move{/c}"
+        else
+            textTab[#textTab+1] = "[Arrow Keys] = Move"
+            textTab[#textTab+1] = "[T|G] = Move Prestige"
+        end
+        local text = "{o}"..table.concat(textTab, "\n").."{/o}"
         local x, y = getUpgradeCoords(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y)
         local mx, my = ui.getUIScalingTransform():inverseTransformPoint(cam:toScreen(x + 14, y + 14))
         richtext.printRich(text, font, mx, my, 20000, "left")
     end
 
     if lastUpgradeHovered then
-        -- Just simple text will do
-        local text = "{o}"..table.concat({
+        local textTab = {
             string.format("%s (%s)", lastUpgradeHovered.info.name, lastUpgradeHovered.info.type),
             string.format("X: %d | Y: %d", lastUpgradeHovered.pos.x, lastUpgradeHovered.pos.y),
-        }, "\n").."{/o}"
-        local mx, my = ui.getMouse()
+        }
 
+        if lastUpgradeSelected and canAttachConnector(lastUpgradeSelected.pos, lastUpgradeHovered.pos, currentPrestige) then
+            textTab[#textTab+1] = "[Shift+LMB] = Attach/Detach Connector"
+        end
+
+        local text = "{o}"..table.concat(textTab, "\n").."{/o}"
+        local mx, my = ui.getMouse()
         richtext.printRich(text, font, mx + 14, my - 10, 20000, "left")
     end
 
@@ -427,6 +704,7 @@ end
 local function reservePrestige(maxnum)
     for i = 0, maxnum do
         upgradePosList[i + 1] = upgradePosList[i + 1] or {}
+        upgradeConnectors[i + 1] = upgradeConnectors[i + 1] or {}
     end
 end
 
@@ -533,6 +811,12 @@ local function trySpawnTokenAtMouse(scene)
     end
 end
 
+local DELTAS = {
+    left = {-1, 0},
+    up = {0, -1},
+    right = {1, 0},
+    down = {0, 1}
+}
 ---@param self DevScene
 rawset(dev, "keyreleased", function(self, k)
     if typedUpgradeId then
@@ -586,31 +870,16 @@ rawset(dev, "keyreleased", function(self, k)
         end
     elseif currentSceneNumber == 3 then
         if k == "s" and love.keyboard.isDown("lctrl", "rctrl") then
-            saveUpgradePositions()
-        elseif k == "t" then
-            local targetPrestige = math.min(currentPrestige + 1, 499)
+            saveAllUpgrades()
+        elseif k == "t" or k == "g" then
+            local targetPrestige = math.min(math.max(currentPrestige + (k == "t" and 1 or -1), 0), 499)
             reservePrestige(targetPrestige)
 
             if lastUpgradeSelected then
-                if canMoveUpgradeTo(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, targetPrestige) then
-                    moveUpgradeTo(
-                        lastUpgradeSelected.pos,
-                        lastUpgradeSelected.pos.x,
-                        lastUpgradeSelected.pos.y,
-                        targetPrestige
-                    )
-                    currentPrestige = targetPrestige
-                end
-            else
-                currentPrestige = targetPrestige
-            end
-        elseif k == "g" then
-            -- TODO: Deduplicate? Maybe not.
-            local targetPrestige = math.max(currentPrestige - 1, 0)
-            reservePrestige(targetPrestige)
-
-            if lastUpgradeSelected then
-                if canMoveUpgradeTo(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, targetPrestige) then
+                if
+                    #getConnectorAround(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y) == 0 and
+                    canMoveUpgradeTo(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, targetPrestige)
+                then
                     moveUpgradeTo(
                         lastUpgradeSelected.pos,
                         lastUpgradeSelected.pos.x,
@@ -630,45 +899,25 @@ rawset(dev, "keyreleased", function(self, k)
                 lastUpgradeSelected = nil
             elseif k == "delete" then
                 local h = g.hashPos(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, currentPrestige)
+                -- Remove connectors
+                for _, con in ipairs(getConnectorAround(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y)) do
+                    removeUpgradeConnector(con)
+                end
+
+                -- Remove upgrade
                 upgradeHashmap[h] = nil
                 upgradePosList[currentPrestige + 1][lastUpgradeSelected.info.type] = nil
                 lastUpgradeHovered = nil
                 lastUpgradeSelected = nil
-            elseif k == "left" then
-                if canMoveUpgradeTo(lastUpgradeSelected.pos.x - 1, lastUpgradeSelected.pos.y, currentPrestige) then
-                    moveUpgradeTo(
-                        lastUpgradeSelected.pos,
-                        lastUpgradeSelected.pos.x - 1,
-                        lastUpgradeSelected.pos.y,
-                        currentPrestige
-                    )
-                end
-            elseif k == "up" then
-                if canMoveUpgradeTo(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y - 1, currentPrestige) then
-                    moveUpgradeTo(
-                        lastUpgradeSelected.pos,
-                        lastUpgradeSelected.pos.x,
-                        lastUpgradeSelected.pos.y - 1,
-                        currentPrestige
-                    )
-                end
-            elseif k == "right" then
-                if canMoveUpgradeTo(lastUpgradeSelected.pos.x + 1, lastUpgradeSelected.pos.y, currentPrestige) then
-                    moveUpgradeTo(
-                        lastUpgradeSelected.pos,
-                        lastUpgradeSelected.pos.x + 1,
-                        lastUpgradeSelected.pos.y,
-                        currentPrestige
-                    )
-                end
-            elseif k == "down" then
-                if canMoveUpgradeTo(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y + 1, currentPrestige) then
-                    moveUpgradeTo(
-                        lastUpgradeSelected.pos,
-                        lastUpgradeSelected.pos.x,
-                        lastUpgradeSelected.pos.y + 1,
-                        currentPrestige
-                    )
+            elseif DELTAS[k] then
+                local d = DELTAS[k]
+                local tx = lastUpgradeSelected.pos.x + d[1]
+                local ty = lastUpgradeSelected.pos.y + d[2]
+                if
+                    #getConnectorAround(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y) == 0 and
+                    canMoveUpgradeTo(tx, ty, currentPrestige)
+                then
+                    moveUpgradeTo(lastUpgradeSelected.pos, tx, ty, currentPrestige)
                 end
             end
         end
