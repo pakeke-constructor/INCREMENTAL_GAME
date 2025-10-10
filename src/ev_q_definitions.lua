@@ -37,5 +37,4 @@ g.defineQuestion("getTokenDamageMultiplier", reducers.MULTIPLY, 1)
 
 g.defineQuestion("getTokenResourceMultiplier", reducers.MULTIPLY, 1)
 
-
-
+g.defineQuestion("getUpgradePriceMultiplier", reducers.MULTIPLY, 1)
