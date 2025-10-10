@@ -5,6 +5,7 @@
 ---@param expIncrease number
 local function defineResLimitUpgrade(id, name, resId, price, expIncrease)
     local resInfo = g.getResourceInfo(resId)
+    local stat = g.VALID_STATS[resInfo.limitStat]
     return g.defineUpgrade(id, name, {
         description = loc("Increase "..resId.." limit by additional %{1}."),
         kind = "MISC",
@@ -15,8 +16,7 @@ local function defineResLimitUpgrade(id, name, resId, price, expIncrease)
             return expIncrease ^ level
         end,
         valueFormatter = {g.formatNumber},
-        -- yea
-        ["get"..resInfo.limitStat.."Modifier"] = function(uinfo, level)
+        [stat.addQuestion] = function(uinfo, level)
             return uinfo:getValues(level)
         end,
     })
