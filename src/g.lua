@@ -458,7 +458,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field priceScaling number?
 ---@field description string?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
----@field valueFormatter (string|(fun(x:number):string))[]
+---@field valueFormatter ((string|(fun(x:number):string))[])?
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
 local g_UpgradeDefinition = {}
@@ -482,6 +482,7 @@ local g_TokenDefinition = {}
 ---@field type string
 ---@field name string
 ---@field maxLevel integer
+---@field valueFormatter (string|(fun(x:number):string))[]
 
 
 ---@alias g.TokenInfo g.TokenDefinition|{type:string,name:string}
@@ -926,7 +927,7 @@ local SPECIAL_FUNCTIONS = {
 
 
 ---@param id string
----@param def g.UpgradeDefinition|{valueFormatter?:(string|(fun(x:number):string))[]}
+---@param def g.UpgradeDefinition
 function g.defineUpgrade(id, name, def)
     if not (def.kind and UPGRADE_KINDS[def.kind]) then
         error("Invalid upgrade-kind: " .. tostring(def.kind),2)
