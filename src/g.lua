@@ -1342,7 +1342,6 @@ end
 function g.spawnEntity(ename, x,y)
     local w = g.getMainWorld()
     local mt = ENTITY_DEFS[ename]
-    assert()
     ---@type g.Entity
     local ent = setmetatable({
         x=x,y=y, type=ename

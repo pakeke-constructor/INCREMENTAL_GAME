@@ -249,6 +249,8 @@ function World:_draw()
 
     -- draw entities
     for _, e in ipairs(self.entities) do
+        love.graphics.setColor(1, 1, 1)
+
         ---@cast e g.Entity
         if e.image then
             g.drawImage(e.image, e.x, e.y)
