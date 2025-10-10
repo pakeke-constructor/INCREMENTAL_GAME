@@ -1318,13 +1318,13 @@ do
 local Entity = {}
 
 
-local entityDefs = {}
+local ENTITY_DEFS = {}
 
 ---@param type string
 ---@param etype g.Entity|{x:nil,y:nil,type:nil}
 function g.defineEntity(type, etype)
     -- TODO, assertions maybe?
-    entityDefs[type] = etype
+    ENTITY_DEFS[type] = {__index=etype}
 end
 
 
@@ -1334,7 +1334,14 @@ end
 ---@param uinfo g.UpgradeInfo?
 function g.spawnEntity(type, x,y, uinfo)
     local w = g.getMainWorld()
-    local ent = setmetatable({})
+    local mt = ENTITY_DEFS[type]
+    assert()
+    local ent = setmetatable({
+        x=x,y=y, type=type
+    }, mt)
+
+    error("todo, get uinfo binding working")
+
     assert(type(ent) == "table")
     assert(ent.type)
     assert(ent.update)
