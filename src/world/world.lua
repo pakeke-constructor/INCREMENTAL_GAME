@@ -29,6 +29,8 @@ local MIN_HOVER_TIME = 0.07
 function World:init()
     self.tokens = objects.BufferedSet()
     self.entities = objects.BufferedSet()
+    ---@type table<string, objects.BufferedSet<g.Entity>>
+    self.upgradeEntities = {}
 
     self.tokenPartition = objects.Partition(20)
 
@@ -278,9 +280,30 @@ end
 
 
 
+---@param upgradeId string
+---@private
+function World:_countEntityUpgrades(upgradeId)
+    if self.upgradeEntities[upgradeId] then
+        return self.upgradeEntities[upgradeId]:length()
+    end
+    return 0
+end
+
+
 function World:_update(dt)
     self.entities:flush()
     self.tokens:flush()
+
+    -- update upgrade-entity association set
+    for _, elist in pairs(self.upgradeEntities) do
+        for _, e in ipairs(elist) do
+            if not self.entities:has(e) then
+                elist:removeBuffered(e) -- Needs to be buffered otherwise it disappoints ipairs.
+            end
+        end
+
+        elist:flush()
+    end
 
     -- update TokenPool
     local tp = TokenPool()
@@ -299,6 +322,45 @@ function World:_update(dt)
     for _, tok in ipairs(self.tokens) do
         updateToken(tok,dt)
     end
+
+    -- Spawn or delete upgrade entity if necessary
+    for _, upgradeId in ipairs(g.UPGRADE_LIST) do
+        local uinfo = g.getUpgradeInfo(upgradeId)
+        local ulevel = g.getUpgradeLevel(uinfo)
+
+        if ulevel > 0 and uinfo.getEntityCount and uinfo.spawnEntity then
+            local diff = self:_countEntityUpgrades(upgradeId) - uinfo:getEntityCount(ulevel)
+
+            if diff ~= 0 then
+                -- Ensure set exist
+                if not self.upgradeEntities[upgradeId] then
+                    self.upgradeEntities[upgradeId] = objects.BufferedSet()
+                end
+
+                -- Spawn more entities
+                while diff < 0 do
+                    local ent = uinfo:spawnEntity()
+                    self.upgradeEntities[upgradeId]:addBuffered(ent)
+                    diff = diff + 1 -- if it's 0, then this loop stops
+                end
+
+                -- Remove excess entities
+                for _, e in ipairs(self.upgradeEntities[upgradeId]) do
+                    if diff == 0 then
+                        break
+                    end
+
+                    self.upgradeEntities[upgradeId]:removeBuffered(e) -- do not disappoint ipairs
+                    self.entities:removeBuffered(e)
+                    diff = diff - 1 -- if it's 0, then this loop stops
+                end
+
+                self.upgradeEntities[upgradeId]:flush()
+            end
+        end
+    end
+
+    self.entities:flush() -- flush one more time in case entities are removed
 
     for _, e in ipairs(self.entities) do
         ---@cast e g.Entity

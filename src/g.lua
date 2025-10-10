@@ -459,6 +459,8 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field description string?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field valueFormatter (string|(fun(x:number):string))[]
+---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
+---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
 local g_UpgradeDefinition = {}
 ---@param self g.UpgradeInfo
 ---@param level integer
@@ -917,7 +919,9 @@ local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
 -- a list of "special" functions that upgrades use,
 -- that ARENT q-bus or ev-bus. (eg ignore them)
 local SPECIAL_FUNCTIONS = {
-    getValues = true
+    getValues = true,
+    getEntityCount = true,
+    spawnEntity = true
 }
 
 
@@ -1339,6 +1343,7 @@ function g.spawnEntity(ename, x,y)
     local w = g.getMainWorld()
     local mt = ENTITY_DEFS[ename]
     assert()
+    ---@type g.Entity
     local ent = setmetatable({
         x=x,y=y, type=ename
     }, mt)
@@ -1346,6 +1351,7 @@ function g.spawnEntity(ename, x,y)
     assert(type(ent) == "table")
     assert(ent.type)
     w.entities:addBuffered(ent)
+    return ent
 end
 
 
