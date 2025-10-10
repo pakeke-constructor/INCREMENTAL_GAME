@@ -1304,20 +1304,37 @@ we will want to make this more generic.
 
 
 
+-- ENTITY FUNCTIONS
+do
+
 ---@class g.Entity
 ---@field type string
 ---@field x number
 ---@field y number
 ---@field image string?
+---@field lifetime number?
 ---@field update fun(ent: g.Entity, dt:number)
 ---@field draw fun(ent: g.Entity)
 local Entity = {}
 
 
+local entityDefs = {}
+
+---@param type string
+---@param etype g.Entity|{x:nil,y:nil,type:nil}
+function g.defineEntity(type, etype)
+    -- TODO, assertions maybe?
+    entityDefs[type] = etype
+end
 
 
-function g.addEntity(ent)
+---@param type string
+---@param x number
+---@param y number
+---@param uinfo g.UpgradeInfo?
+function g.spawnEntity(type, x,y, uinfo)
     local w = g.getMainWorld()
+    local ent = setmetatable({})
     assert(type(ent) == "table")
     assert(ent.type)
     assert(ent.update)
@@ -1332,6 +1349,7 @@ function g.removeEntity(ent)
 end
 
 
+end
 
 
 

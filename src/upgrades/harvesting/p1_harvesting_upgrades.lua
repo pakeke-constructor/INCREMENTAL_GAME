@@ -13,8 +13,6 @@ end
 
 
 
-local X=-3
-local Y=0
 
 defUpgrade("more_damage", "More Damage", {
     startingUpgrade=true,
