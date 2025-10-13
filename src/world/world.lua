@@ -56,7 +56,7 @@ local function updateHarvestCircle(self, dt)
 
     local hoveredTokens = {}
 
-    g.iterateTokensInArea(x, y, g.stats.HarvestArea, function(tok)
+    g.iterateTokensInArea(x, y, g.stats.HarvestArea + consts.HARVEST_AREA_LEEWAY, function(tok)
         hoveredTokens[tok] = true
         self.tokensToHoverTime[tok] = (self.tokensToHoverTime[tok] or 0) + dt
 

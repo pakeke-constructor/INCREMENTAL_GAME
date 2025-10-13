@@ -78,7 +78,7 @@ function FarmerCatEntity:update(dt)
     worldutil.updateLikeDVD(world, self, dt)
 
     -- Try harvest
-    g.iterateTokensInArea(self.x, self.y, self.radius, g.tryHitToken)
+    g.iterateTokensInArea(self.x, self.y, self.radius + consts.HARVEST_AREA_LEEWAY, g.tryHitToken)
 end
 
 
