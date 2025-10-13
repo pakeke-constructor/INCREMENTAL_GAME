@@ -23,6 +23,13 @@ function g.newSession()
     currentSession = Session()
 end
 
+---@param path string
+function g.loadSession(path)
+    local contents = assert(love.filesystem.read(path))
+    local jsondata = json.decode(contents)
+    currentSession = Session.deserailize(jsondata)
+end
+
 
 ---@return g.Session
 function g.getSn()
