@@ -1315,6 +1315,9 @@ do
 ---@field x number
 ---@field y number
 ---@field id integer
+---@field ox number?
+---@field oy number?
+---@field rot number?
 ---@field image string?
 ---@field lifetime number?
 ---@field update (fun(ent: g.Entity, dt:number))?

@@ -244,7 +244,7 @@ function World:_draw()
 
         if e.image then
             love.graphics.setColor(1, 1, 1)
-            g.drawImage(e.image, e.x, e.y)
+            g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0)
         end
 
         if e.draw then
