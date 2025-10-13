@@ -49,28 +49,41 @@ local HARVEST_CIRCLE_INSIDE = {0.2,0.2,0.2,0.17}
 local HARVEST_CIRCLE_BORDER = {.9,.9,.9}
 
 
+---@param self g.World
+---@param dt number
 local function updateHarvestCircle(self, dt)
     local x,y = assert(self.mouseX), assert(self.mouseY)
 
     local hoveredTokens = {}
 
-    self.tokenPartition:query(x,y, function (tok)
-        if math.distance(x-tok.x, y-tok.y) <= (g.stats.HarvestArea + consts.HARVEST_AREA_LEEWAY) then
-            hoveredTokens[tok] = true
-
-            self.tokensToHoverTime[tok] = (self.tokensToHoverTime[tok] or 0) + dt
-
-            if self.tokensToHoverTime[tok] >= MIN_HOVER_TIME then
-                g.tryHitToken(tok)
-            end
-        end
-    end, g.stats.HarvestArea)
+    self:_tryHitTokenAt(x, y, g.stats.HarvestArea, function(tok)
+        hoveredTokens[tok] = true
+        self.tokensToHoverTime[tok] = (self.tokensToHoverTime[tok] or 0) + dt
+        return self.tokensToHoverTime[tok] >= MIN_HOVER_TIME
+    end)
 
     for token, hoverTime in pairs(self.tokensToHoverTime) do
         if not hoveredTokens[token] then
             self.tokensToHoverTime[token] = nil
         end
     end
+end
+
+
+local function alwaystrue() return true end
+
+---@param x number
+---@param y number
+---@param area number
+---@param extracond (fun(tok:g.Token):boolean)?
+function World:_tryHitTokenAt(x, y, area, extracond)
+    extracond = extracond or alwaystrue
+
+    self.tokenPartition:query(x, y, function (tok)
+        if math.distance(x-tok.x, y-tok.y) <= (area + consts.HARVEST_AREA_LEEWAY) and extracond(tok) then
+            g.tryHitToken(tok)
+        end
+    end, area)
 end
 
 

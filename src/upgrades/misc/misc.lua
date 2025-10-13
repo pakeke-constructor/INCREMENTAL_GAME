@@ -95,11 +95,7 @@ function FarmerCatEntity:update(dt)
     end
 
     -- Try harvest
-    world.tokenPartition:query(self.x,self.y, function (tok)
-        if math.distance(self.x-tok.x, self.y-tok.y) <= (self.radius + consts.HARVEST_AREA_LEEWAY) then
-            g.tryHitToken(tok)
-        end
-    end, self.radius)
+    world:_tryHitTokenAt(self.x, self.y, self.radius)
 end
 
 
