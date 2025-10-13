@@ -167,9 +167,12 @@ local function drawUpgradeBoxes()
             -- Then draw upgrade box
             local x, y, sz = getUpgradeCoords(pos.x, pos.y)
             local isRecommended = bundleGreaterOrEqual(bestUpgradeThreshold, g.getUpgradePrice(uinfo, level))
-            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, x,y,sz,sz, isRecommended)
+            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(uinfo, level, x,y,sz,sz, isRecommended)
             if isHovered then
                 hoveredUpgrade = uinfo
+            end
+            if wasJustHovered then
+                g.playSound("ui_mouse_hover",1.2,1)
             end
             if wasJustClicked then
                 g.tryBuyUpgrade(uinfo)

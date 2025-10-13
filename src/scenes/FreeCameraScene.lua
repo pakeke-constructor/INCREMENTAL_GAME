@@ -76,6 +76,7 @@ local function navTab(text, sceneName, x,y,w,h)
     richtext.printRichContainedNoWrap(text, love.graphics.getFont(), txtR:get())
 
     if iml.wasJustClicked(x,y,w,h) then
+        g.playSound("ui_mouse_click", 1, 0.6, 0.1)
         g.gotoScene(sceneName)
     end
 end

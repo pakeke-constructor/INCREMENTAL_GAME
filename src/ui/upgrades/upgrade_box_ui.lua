@@ -66,6 +66,7 @@ end
 ---@param isRecommended boolean
 ---@return boolean isHovered
 ---@return boolean wasJustClicked
+---@return boolean wasJustHovered
 local function upgradeBoxUI(uinfo, level, x,y,w,h, isRecommended)
     local cpy = objects.Color
     local UPCOLS = g.COLORS.UPGRADE_KINDS
@@ -137,7 +138,7 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h, isRecommended)
     end
 
     lg.setLineWidth(lw)
-    return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h)
+    return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h), iml.wasJustHovered(x,y,w,h)
 end
 
 
