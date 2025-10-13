@@ -48,36 +48,22 @@ end
 local HARVEST_CIRCLE_INSIDE = {0.2,0.2,0.2,0.17}
 local HARVEST_CIRCLE_BORDER = {.9,.9,.9}
 
+
 ---@param self g.World
-local function drawHarvestCircle(self)
-    local x,y = assert(self.mouseX), assert(self.mouseY)
-    local rad = g.stats.HarvestArea
-    love.graphics.setColor(HARVEST_CIRCLE_INSIDE)
-    love.graphics.circle("fill", x,y, rad)
-    local lw = love.graphics.getLineWidth()
-    love.graphics.setLineWidth(math.floor(rad / 15))
-    love.graphics.setColor(HARVEST_CIRCLE_BORDER)
-    love.graphics.circle("line", x,y, rad)
-    love.graphics.setLineWidth(lw)
-end
-
-
+---@param dt number
 local function updateHarvestCircle(self, dt)
     local x,y = assert(self.mouseX), assert(self.mouseY)
 
     local hoveredTokens = {}
 
-    self.tokenPartition:query(x,y, function (tok)
-        if math.distance(x-tok.x, y-tok.y) <= (g.stats.HarvestArea + consts.HARVEST_AREA_LEEWAY) then
-            hoveredTokens[tok] = true
+    g.iterateTokensInArea(x, y, g.stats.HarvestArea + consts.HARVEST_AREA_LEEWAY, function(tok)
+        hoveredTokens[tok] = true
+        self.tokensToHoverTime[tok] = (self.tokensToHoverTime[tok] or 0) + dt
 
-            self.tokensToHoverTime[tok] = (self.tokensToHoverTime[tok] or 0) + dt
-
-            if self.tokensToHoverTime[tok] >= MIN_HOVER_TIME then
-                g.tryHitToken(tok)
-            end
+        if self.tokensToHoverTime[tok] >= MIN_HOVER_TIME then
+            g.tryHitToken(tok)
         end
-    end, g.stats.HarvestArea)
+    end)
 
     for token, hoverTime in pairs(self.tokensToHoverTime) do
         if not hoveredTokens[token] then
@@ -271,7 +257,13 @@ function World:_draw()
     self.particles:draw()
 
     if self.mouseX then
-        drawHarvestCircle(self)
+        worldutil.drawHarvestCircle(
+            self.mouseX,
+            self.mouseY,
+            g.stats.HarvestArea,
+            HARVEST_CIRCLE_INSIDE,
+            HARVEST_CIRCLE_BORDER
+        )
     end
 end
 

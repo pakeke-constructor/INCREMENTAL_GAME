@@ -91,6 +91,8 @@ _G.iml = require("lib.iml.iml")
 _G.ui = require("src.ui.ui")
 
 _G.g = require("src.g")
+
+_G.worldutil = require("src.world.util")
 --[[
 =========
 GLOBALS END
