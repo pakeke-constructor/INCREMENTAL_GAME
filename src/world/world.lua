@@ -199,7 +199,7 @@ local function drawToken(tok)
 
     -- shadow:
     love.graphics.setColor(0,0,0,0.4)
-    love.graphics.ellipse("fill",tok.x,tok.y+6,5,3)
+    love.graphics.ellipse("fill",tok.x,tok.y+6,6,3)
 
     love.graphics.setColor(1,1,1)
     g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
