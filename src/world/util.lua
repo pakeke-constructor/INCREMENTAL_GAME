@@ -52,4 +52,47 @@ function worldutil.updateLikeDVD(world, obj, dt)
 end
 
 
+
+-- worldutil.lifetimeAnimationUpdater
+-- for animation of entities with lifetime comp
+do
+
+local function makeFrames(framePrefix, numFrames)
+    local t = {}
+    for i=1, numFrames do
+        table.insert(t, framePrefix .. tostring(i))
+    end
+    return t
+end
+
+---@param framePrefix string
+function worldutil.lifetimeAnimationUpdater(framePrefix, numFrames)
+    local frames = nil
+
+    local function update(ent, dt)
+        -- SLIGHT HACK: tapping into __index
+        local parentLifetime = getmetatable(ent).__index.lifetime
+
+        assert(ent.lifetime)
+        assert(parentLifetime)
+
+        frames = frames or makeFrames(framePrefix, numFrames)
+        local i = math.floor((ent.lifetime/parentLifetime) * #frames) + 1
+        local frame = frames[i]
+        ent.image = frame
+    end
+
+    return update
+end
+
+end
+
+
+
+
+function worldutil.spawnLightning(x,y,strength)
+    g.spawnEntity("lightning_animation", x,y)
+end
+
+
 return worldutil

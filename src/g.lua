@@ -336,6 +336,7 @@ end
 
 g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
+g.walkDirectory("src/entities", loadImage)
 
 end
 
@@ -1313,6 +1314,7 @@ do
 ---@field type string
 ---@field x number
 ---@field y number
+---@field id integer
 ---@field image string?
 ---@field lifetime number?
 ---@field update (fun(ent: g.Entity, dt:number))?
@@ -1335,17 +1337,26 @@ function g.defineEntity(type, etype)
 end
 
 
+local currentId = 0
+
 ---@param ename string
 ---@param x number
 ---@param y number
+---@return g.Entity
 function g.spawnEntity(ename, x,y)
     local w = g.getMainWorld()
     local mt = ENTITY_DEFS[ename]
+    if not mt then
+        error("Invalid entity type: " .. tostring(ename))
+    end
+
     ---@type g.Entity
     local ent = setmetatable({
+        id = currentId,
         x=x,y=y, type=ename
     }, mt)
 
+    currentId = currentId + 1
     assert(type(ent) == "table")
     assert(ent.type)
     w.entities:addBuffered(ent)

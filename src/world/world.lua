@@ -375,7 +375,6 @@ function World:_update(dt)
 
         if e.lifetime then
             e.lifetime = e.lifetime - dt
-
             if e.lifetime <= 0 then
                 self.entities:removeBuffered(e)
             end
