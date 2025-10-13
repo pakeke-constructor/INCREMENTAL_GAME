@@ -92,7 +92,7 @@ _G.ui = require("src.ui.ui")
 
 _G.g = require("src.g")
 
-_G.worldutil = require("src.world.util")
+_G.worldutil = require("src.world.worldutil")
 --[[
 =========
 GLOBALS END
