@@ -249,14 +249,20 @@ function World:_draw()
 
     -- draw entities
     for _, e in ipairs(self.entities) do
-        love.graphics.setColor(1, 1, 1)
-
         ---@cast e g.Entity
+
+        if e.drawBelow then
+            love.graphics.setColor(1, 1, 1)
+            e:drawBelow()
+        end
+
         if e.image then
+            love.graphics.setColor(1, 1, 1)
             g.drawImage(e.image, e.x, e.y)
         end
 
         if e.draw then
+            love.graphics.setColor(1, 1, 1)
             e:draw()
         end
     end
