@@ -23,7 +23,7 @@ end
 ---@param maxvalue number
 ---@return number @New value
 ---@return boolean @Should direction be flipped?
-function worldutil.computeValueBouncing(dt, value, velocity, maxvalue)
+local function computeValueBouncing(dt, value, velocity, maxvalue)
     value = value + velocity * dt
     if value < 0 then
         return -value, true
@@ -40,12 +40,12 @@ end
 function worldutil.updateLikeDVD(world, obj, dt)
     local flip
 
-    obj.x, flip = worldutil.computeValueBouncing(dt, obj.x, obj.speed * obj.dirX, world.WIDTH)
+    obj.x, flip = computeValueBouncing(dt, obj.x, obj.speed * obj.dirX, world.WIDTH)
     if flip then
         obj.dirX = -obj.dirX
     end
 
-    obj.y, flip = worldutil.computeValueBouncing(dt, obj.y, obj.speed * obj.dirY, world.HEIGHT)
+    obj.y, flip = computeValueBouncing(dt, obj.y, obj.speed * obj.dirY, world.HEIGHT)
     if flip then
         obj.dirY = -obj.dirY
     end
