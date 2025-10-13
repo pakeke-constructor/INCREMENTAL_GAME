@@ -1320,6 +1320,7 @@ do
 ---@field image string?
 ---@field lifetime number?
 ---@field update (fun(ent: g.Entity, dt:number))?
+---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?
 local Entity = {}
 
