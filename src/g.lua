@@ -458,7 +458,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field priceScaling number?
 ---@field description string?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
----@field valueFormatter (string|(fun(x:number):string))[]
+---@field valueFormatter ((string|(fun(x:number):string))[])?
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
 local g_UpgradeDefinition = {}
@@ -482,6 +482,7 @@ local g_TokenDefinition = {}
 ---@field type string
 ---@field name string
 ---@field maxLevel integer
+---@field valueFormatter (string|(fun(x:number):string))[]
 
 
 ---@alias g.TokenInfo g.TokenDefinition|{type:string,name:string}
@@ -932,7 +933,7 @@ function g.defineUpgrade(id, name, def)
         error("Invalid upgrade-kind: " .. tostring(def.kind),2)
     end
     def.name = loc(name) ---@diagnostic disable-line
-    def.image = id
+    def.image = def.image or id
     def.valueFormatter = def.valueFormatter or {}
     def.maxLevel = def.maxLevel or consts.DEFAULT_UPGRADE_MAX_LEVEL
     table.insert(g.UPGRADE_LIST, id)
@@ -1101,7 +1102,8 @@ end
 local function modifyUpgradePrice(uinfo, val, level)
     level = level or g.getUpgradeLevel(uinfo)
     local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
-    val = floorSignificant(val*mult, 2)
+    local mult2 = g.ask("getUpgradePriceMultiplier")
+    val = floorSignificant(val*mult*mult2, 2)
     return val
 end
 
