@@ -948,7 +948,7 @@ local DELTAS = {
     down = {0, 1}
 }
 ---@param self DevScene
-rawset(dev, "keyreleased", function(self, k)
+function dev:keyreleased(k)
     if typedUpgradeId then
         if k == "return" then
             -- Pick first candidate
@@ -1050,12 +1050,13 @@ rawset(dev, "keyreleased", function(self, k)
             end
         end
     end
-end)
+end
 
-rawset(dev, "mousereleased", function(self, _, _, m)
+
+function dev:mousereleased(_, _, m)
     if currentSceneNumber == 2 and m == 4 then
         trySpawnTokenAtMouse(self)
     end
-end)
+end
 
 return dev

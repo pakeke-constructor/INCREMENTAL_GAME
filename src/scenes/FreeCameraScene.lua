@@ -134,22 +134,19 @@ function FreeCameraScene:zoomFromScale(x)
     return math.log(x)
 end
 
-
-function FreeCameraScene:wheelmoved(dx,dy)
-    return self:setZoom(self._zoomIndex + dy/5)
-end
-
 ---@param z number
 function FreeCameraScene:setZoom(z)
     self._zoomIndex = z
     self.camera:setZoom(self:scaleFromZoom(self._zoomIndex))
 end
 
+
+
 ---@param x number
 ---@param y number
 ---@param dx number
 ---@param dy number
-function FreeCameraScene:mousemoved(x, y, dx, dy)
+function FreeCameraScene:defaultMousemoved(x, y, dx, dy)
     if self.allowMousePan and love.mouse.isDown(2, 3) then
         local cx, cy = self.camera:getPos() --[[@as number]]
         local z = self:scaleFromZoom(self._zoomIndex)
@@ -159,7 +156,14 @@ function FreeCameraScene:mousemoved(x, y, dx, dy)
 end
 
 
-function FreeCameraScene:keyreleased(k)
+
+function FreeCameraScene:defaultWheelmoved(dx,dy)
+    return self:setZoom(self._zoomIndex + dy/5)
+end
+
+
+
+function FreeCameraScene:defaultKeyreleased(k)
     if k == "f1" and consts.DEV_MODE then
         g.gotoScene("dev_scene")
     end

@@ -164,16 +164,10 @@ end
 
 
 
-function map:keypressed(k)
-end
+map.wheelmoved = map.defaultWheelmoved
+map.mousemoved = map.defaultMousemoved
+map.keyreleased = map.defaultKeyreleased
 
-
-
-function map:mousepressed(x,y, button)
-end
-
-function map:mousereleased(x,y, button)
-end
 
 
 

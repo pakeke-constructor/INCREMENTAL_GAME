@@ -77,6 +77,17 @@ function harvest:update(dt)
 end
 
 
+harvest.wheelmoved = harvest.defaultWheelmoved
+harvest.mousemoved = harvest.defaultMousemoved
+
+function harvest:keyreleased(k)
+    self:defaultKeyreleased(k)
+    if k=="1" then
+        worldutil.spawnLightning(100,100,10)
+    end
+end
+
+
 
 return harvest
 
