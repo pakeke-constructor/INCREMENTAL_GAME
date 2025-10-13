@@ -386,7 +386,17 @@ end
 
 
 function iml.endFrame()
-    hoverChangedLastFrame = not not (frameState.hoveredPanel and (lastHoveredPanel ~= frameState.hoveredPanel))
+    hoverChangedLastFrame = false
+    if frameState.hoveredPanel then
+        if lastHoveredPanel then
+            if lastHoveredPanel.key ~= frameState.hoveredPanel.key then
+                hoverChangedLastFrame = true
+            end
+        else
+            hoverChangedLastFrame = true
+        end
+    end
+
     lastHoveredPanel = frameState.hoveredPanel or nil
     frameCount = frameCount + 1
     clickReleases = {}
