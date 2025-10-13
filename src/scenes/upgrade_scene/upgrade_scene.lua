@@ -175,6 +175,7 @@ local function drawUpgradeBoxes()
                 g.playSound("ui_mouse_hover",1.2,1)
             end
             if wasJustClicked then
+                g.playSound("ui_basic_click", 1,0.7,0,0)
                 g.tryBuyUpgrade(uinfo)
                 hoveredUpgrade=nil
             end
