@@ -109,11 +109,10 @@ g.defineUpgrade("lightning", "Lightning Bolt", {
         local chance = uinfo:getValues(level) / 100
         if love.math.random() < chance then
             -- Damage token around
-            -- TODO: Tweak damage
             local world = g.getMainWorld()
             local x = love.math.random(world.WIDTH) - 1
             local y = love.math.random(world.HEIGHT) - 1
-            worldutil.spawnLightning(x, y, 5)
+            worldutil.spawnLightning(x, y, 50)
         end
     end
 })
