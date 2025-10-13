@@ -90,8 +90,14 @@ end
 
 
 
-function worldutil.spawnLightning(x,y,strength)
+---@param x any
+---@param y any
+---@param damage any
+function worldutil.spawnLightning(x,y,damage)
     g.spawnEntity("lightning_animation", x,y)
+    g.iterateTokensInArea(x,y, 32, function(tok)
+        g.damageToken(tok,damage)
+    end)
 end
 
 
