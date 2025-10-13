@@ -233,9 +233,13 @@ function UpgradeDescription:addTokenInfo(tinfo)
             minWidth = math.max(minWidth, textWidth + healthWidth + 8)
         end
     end
+    -- Ensure there's at least 1 split
+    if #splits == 0 then
+        splits[#splits+1] = 1
+    end
 
     local fontHeight = self.font:getHeight() * 2
-    local height = #resources * fontHeight
+    local height = math.max(#resources, 1) * fontHeight
     -- Update the box width
     self.boxWidth = math.max(self.boxWidth, minWidth)
     -- But respect the boxWidth dimension in case it's larger (so width is nil)

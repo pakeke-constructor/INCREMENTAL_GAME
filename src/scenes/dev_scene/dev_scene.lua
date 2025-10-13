@@ -805,6 +805,8 @@ local function drawAllUpgrades()
         if x > 0 then
             y = y + 2 -- Leave empty space for next upgrade kind
             x = 0
+        else
+            y = y + 1
         end
     end
 
