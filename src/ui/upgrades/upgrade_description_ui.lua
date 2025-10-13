@@ -107,7 +107,7 @@ function UpgradeDescription:autoBuild(uinfo)
         end
     elseif uinfo.description then
         local level = g.getUpgradeLevel(uinfo)
-        local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0)
+        local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
         self:addText(realDesc)
         self:addDivider()
     end
