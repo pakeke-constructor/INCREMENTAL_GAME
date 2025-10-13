@@ -41,6 +41,7 @@ function World:init()
     ]]})
 
     self.particles = ParticleService()
+    self.timer = 0 -- For per second update
 end
 
 
@@ -416,6 +417,13 @@ function World:_update(dt)
     self.tokens:flush()
 
     self.particles:update(dt)
+
+    -- Run per second update event bus on upgrades
+    self.timer = self.timer + dt
+    while self.timer >= 1 do
+        g.call("perSecondUpdate")
+        self.timer = self.timer - 1
+    end
 end
 
 

@@ -5,6 +5,7 @@ local reducers = require("src.modules.reducers")
 g.defineEvent("draw")
 g.defineEvent("update")
 
+g.defineEvent("perSecondUpdate")
 
 
 g.defineEvent("populateTokenPool")

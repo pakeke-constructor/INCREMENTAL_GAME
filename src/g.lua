@@ -466,10 +466,11 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field priceScaling number?
 ---@field description string?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
----@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
+---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number)?
 ---@field valueFormatter ((string|(fun(x:number):string))[])?
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
+---@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer))?
 local g_UpgradeDefinition = {}
 
 
