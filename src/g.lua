@@ -1536,6 +1536,10 @@ function g.hitImmediately(tok)
 
     g.spawnParticle("crosshair", tok.x, tok.y, 1)
 
+    local i = love.math.random(1,3)
+    local s = "hit_generic_"..i
+    g.playSound(s, 1,0.1,0.2,0.2)
+
     -- todo: rework all this.
     if tok.type:match("grass") then
         if love.math.random()<0.3 then
