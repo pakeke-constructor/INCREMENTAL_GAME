@@ -1645,7 +1645,6 @@ local function loadSound(path)
         if #basename > 0 then
             local name = basename:sub(1, -#ext - 2)
             local mainSource = love.audio.newSource(path, "static")
-            print("n:",name)
             sourcePool[name] = {mainSource}
         end
     end
