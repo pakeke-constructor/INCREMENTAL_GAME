@@ -253,25 +253,17 @@ local function saveAllUpgrades()
     isUpgradeDataModified = false
 end
 
----@param x integer
----@param y integer
-local function getUpgradeCoords(x, y)
-    local size = consts.UPGRADE_IMAGE_SIZE
-    local spacing = consts.UPGRADE_GRID_SPACING + size
-    return x * spacing, y * spacing, size
-end
-
 local BELOW_PRESTIGE_COLOR = objects.Color("#".."FFE5DA01")
 local ABOVE_PRESTIGE_COLOR = objects.Color("#".."FFDDB0EB")
 
 local function drawPrestigeShadow(prestige)
     for _, upos in pairs(upgradePosList[prestige]) do
-        local x, y, sz = getUpgradeCoords(upos.x, upos.y)
+        local x, y, sz = worldutil.getUpgradeCoords(upos.x, upos.y)
         love.graphics.rectangle("line", x, y, sz, sz)
     end
 
     for _, con in ipairs(upgradeConnectors[prestige]) do
-        local x, y, sz = getUpgradeCoords(con.x, con.y)
+        local x, y, sz = worldutil.getUpgradeCoords(con.x, con.y)
         if con.isVertical then
             love.graphics.rectangle(
                 "line",
@@ -299,7 +291,7 @@ end
 ---@param length integer
 ---@param isVertical boolean
 local function drawConnector(x, y, length, isVertical)
-    local tx, ty, sz = getUpgradeCoords(x, y)
+    local tx, ty, sz = worldutil.getUpgradeCoords(x, y)
     local rx, ry, rw, rh
 
     if isVertical then
@@ -463,7 +455,7 @@ local function drawUpgradeScene()
     -- Draw upgrades on current prestige
     for utype, upos in pairs(upgradePosList[currentPrestige + 1]) do
         local uinfo = g.getUpgradeInfo(utype)
-        local x, y, sz = getUpgradeCoords(upos.x, upos.y)
+        local x, y, sz = worldutil.getUpgradeCoords(upos.x, upos.y)
         local highlight = not not (lastUpgradeSelected and lastUpgradeSelected.pos == upos)
         local isHovered, wasClicked = ui.upgradeBoxUI(uinfo, 1, x, y, sz, sz, highlight)
 
@@ -600,7 +592,7 @@ local function drawUpgradeSceneUI(r, cam)
             textTab[#textTab+1] = "[T|G] = Move Prestige"
         end
         local text = "{o}"..table.concat(textTab, "\n").."{/o}"
-        local x, y = getUpgradeCoords(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y)
+        local x, y = worldutil.getUpgradeCoords(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y)
         local mx, my = ui.getUIScalingTransform():inverseTransformPoint(cam:toScreen(x + 14, y + 14))
         richtext.printRich(text, font, mx, my, 20000, "left")
     end
@@ -782,7 +774,7 @@ local function drawAllUpgrades()
         for _, utype in ipairs(listByCategory[kind]) do
             local uinfo = g.getUpgradeInfo(utype)
             local level = g.getUpgradeLevel(uinfo)
-            local tx, ty, sz = getUpgradeCoords(x, y)
+            local tx, ty, sz = worldutil.getUpgradeCoords(x, y)
 
             local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, tx,ty,sz,sz, false)
             if isHovered then

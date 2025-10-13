@@ -15,23 +15,12 @@ upgscene.upgradeDescription = nil
 
 
 
-
----@param x integer
----@param y integer
-local function getUpgradeCoords(x, y)
-    local size = consts.UPGRADE_IMAGE_SIZE
-    local spacing = consts.UPGRADE_GRID_SPACING + size
-    return x * spacing, y * spacing, size
-end
-
-
-
 ---@param x integer
 ---@param y integer
 ---@param length integer
 ---@param isVertical boolean
 local function drawConnector(x, y, length, isVertical)
-    local tx, ty, sz = getUpgradeCoords(x, y)
+    local tx, ty, sz = worldutil.getUpgradeCoords(x, y)
     local rx, ry, rw, rh
 
     if isVertical then
@@ -50,21 +39,6 @@ local function drawConnector(x, y, length, isVertical)
     love.graphics.rectangle("fill", rx, ry, rw, rh)
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("line", rx, ry, rw, rh)
-end
-
-
-
-
----@param bundle g.Bundle
----@return number
-local function sumPriceBundle(bundle)
-    local result = 0
-
-    for _, v in pairs(bundle) do
-        result = result + v
-    end
-
-    return result
 end
 
 
@@ -165,7 +139,7 @@ local function drawUpgradeBoxes()
             end
 
             -- Then draw upgrade box
-            local x, y, sz = getUpgradeCoords(pos.x, pos.y)
+            local x, y, sz = worldutil.getUpgradeCoords(pos.x, pos.y)
             local isRecommended = bundleGreaterOrEqual(bestUpgradeThreshold, g.getUpgradePrice(uinfo, level))
             local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(uinfo, level, x,y,sz,sz, isRecommended)
             if isHovered then
