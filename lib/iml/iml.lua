@@ -14,6 +14,8 @@ local iml = {}
 
 ---@type iml._Panel?
 local lastHoveredPanel = nil
+---@type boolean
+local hoverChangedLastFrame = false
 
 ---@type iml._Panel?
 local selectedPanel = nil
@@ -273,6 +275,20 @@ end
 
 
 
+--- returns true IFF the element's hover was started the last frame exactly.
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param key any
+---@return boolean
+function iml.wasJustHovered(x,y,w,h, key)
+    return hoverChangedLastFrame and iml.isHovered(x,y,w,h,key)
+end
+
+
+
+
 ---@param x number
 ---@param y number
 ---@param w number
@@ -370,6 +386,7 @@ end
 
 
 function iml.endFrame()
+    hoverChangedLastFrame = not not (frameState.hoveredPanel and (lastHoveredPanel ~= frameState.hoveredPanel))
     lastHoveredPanel = frameState.hoveredPanel or nil
     frameCount = frameCount + 1
     clickReleases = {}
