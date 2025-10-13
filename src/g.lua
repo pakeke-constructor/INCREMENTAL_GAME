@@ -1554,6 +1554,19 @@ function g.hitImmediately(tok)
 end
 
 
+---@param x number
+---@param y number
+---@param radius number
+---@param func fun(tok:g.Token)
+function g.iterateTokensInArea(x, y, radius, func)
+    g.getMainWorld().tokenPartition:query(x, y, function(tok)
+        if math.distance(x-tok.x, y-tok.y) <= (radius + consts.HARVEST_AREA_LEEWAY) then
+            func(tok)
+        end
+    end, radius)
+end
+
+
 
 
 

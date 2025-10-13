@@ -78,7 +78,7 @@ function FarmerCatEntity:update(dt)
     worldutil.updateLikeDVD(world, self, dt)
 
     -- Try harvest
-    world:_tryHitTokenAt(self.x, self.y, self.radius)
+    g.iterateTokensInArea(self.x, self.y, self.radius, g.tryHitToken)
 end
 
 
