@@ -734,6 +734,104 @@ local function moveUpgradeTo(upos, x, y, prestige)
 end
 
 
+--------------------
+-- All Upgrade Scene
+--------------------
+
+local UpgradeDescription = require("src.ui.upgrades.upgrade_description_ui")
+
+---@type ui.UpgradeDescription|nil
+local selectedUpgradeDescription = nil
+
+---@type g.UpgradeKind[]
+local UPGRADE_KINDS = {"TOKEN", "HARVESTING", "TOKEN_MODIFIER", "MISC"}
+
+local function drawAllUpgrades()
+    ---@type table<g.UpgradeKind, string[]>
+    local listByCategory = {}
+    ---@type string[]
+    local unknownUpgradeKind = {}
+
+    for _, kind in ipairs(UPGRADE_KINDS) do
+        listByCategory[kind] = {}
+    end
+
+    for _, utype in ipairs(g.UPGRADE_LIST) do
+        local uinfo = g.getUpgradeInfo(utype)
+
+        if not listByCategory[uinfo.kind] then
+            unknownUpgradeKind[#unknownUpgradeKind+1] = uinfo.kind
+            listByCategory[uinfo.kind] = {}
+        end
+
+        table.insert(listByCategory[uinfo.kind], utype)
+    end
+
+    -- Merge
+    ---@type string[]
+    local allKinds = {}
+    table.move(UPGRADE_KINDS, 1, #UPGRADE_KINDS, 1, allKinds)
+    table.move(unknownUpgradeKind, 1, #unknownUpgradeKind, #allKinds, allKinds)
+
+    local MAX_X = 9 -- inclusive
+    local y = 0
+    local x = 0
+    local hovered = nil
+
+    for _, kind in ipairs(allKinds) do
+        for _, utype in ipairs(listByCategory[kind]) do
+            local uinfo = g.getUpgradeInfo(utype)
+            local level = g.getUpgradeLevel(uinfo)
+            local tx, ty, sz = getUpgradeCoords(x, y)
+
+            local isHovered, wasJustClicked = ui.upgradeBoxUI(uinfo, level, tx,ty,sz,sz, false)
+            if isHovered then
+                hovered = uinfo
+            end
+            if wasJustClicked then
+                -- Uh...
+                local session = g.getSn()
+                session.upgradeLevels[utype] = (session.upgradeLevels[utype] or 0) + 1
+                hovered = nil
+            end
+
+            x = x + 1
+            if x > MAX_X then
+                y = y + 1
+                x = 0
+            end
+        end
+
+        if x > 0 then
+            y = y + 2 -- Leave empty space for next upgrade kind
+            x = 0
+        end
+    end
+
+    -- Create description UI
+    if hovered then
+        if not selectedUpgradeDescription or selectedUpgradeDescription:getType() ~= hovered.type then
+            selectedUpgradeDescription = UpgradeDescription(hovered)
+        end
+    else
+        selectedUpgradeDescription = nil
+    end
+end
+
+---@param r layout.Region
+local function drawAllUpgradesUI(r)
+    if selectedUpgradeDescription then
+        local mx, my = ui.getMouse()
+        local descriptionBoxR = Kirigami(0, 0, selectedUpgradeDescription:getDimensions())
+            :set(mx + 14, my - 3)
+            :clampInside(r:padUnit(4))
+
+        -- Upgrade description
+        selectedUpgradeDescription:draw(descriptionBoxR.x, descriptionBoxR.y)
+    end
+end
+
+
 
 ---------------
 -- Main handler
@@ -742,9 +840,30 @@ end
 local function dummy() end
 local SCENES = {
     -- Update, draw, drawUI
-    {dummy, dummy, drawResourceSceneUI},
-    {updateHarvestScene, drawHarvestScene, drawHarvestSceneUI},
-    {dummy, drawUpgradeScene, drawUpgradeSceneUI}
+    {
+        name = "Show Resource Hack",
+        update = dummy,
+        draw = dummy,
+        drawUI = drawResourceSceneUI
+    },
+    {
+        name = "Show Upgade Pos Editor",
+        update = dummy,
+        draw = drawUpgradeScene,
+        drawUI = drawUpgradeSceneUI
+    },
+    {
+        name = "Show All Upgrades",
+        update = dummy,
+        draw = drawAllUpgrades,
+        drawUI = drawAllUpgradesUI,
+    },
+    {
+        name = "Show Harvest Area",
+        update = updateHarvestScene,
+        draw = drawHarvestScene,
+        drawUI = drawHarvestSceneUI
+    },
 }
 local currentSceneNumber = 1
 
@@ -760,10 +879,21 @@ local helpText = table.concat({
 
 ---@param scene FreeCameraScene
 local function drawDevUI(scene)
-    SCENES[currentSceneNumber][3](g.getHUD():getSafeArea(), scene.camera)
+    SCENES[currentSceneNumber].drawUI(g.getHUD():getSafeArea(), scene.camera)
 
     local font = g.getSmallFont(16)
-    local finalText = "{o}"..helpText.."{/o}"
+    local textTab = {"[C] = Reset Camera", "", "Scenes:"}
+    for i, v in ipairs(SCENES) do
+        local t = "["..i.."] = "..v.name
+
+        if currentSceneNumber == i then
+            textTab[#textTab+1] = "> {c r=0 g=1 b=0}{wavy}"..t.."{/wavy}{/c} <"
+        else
+            textTab[#textTab+1] = t
+        end
+    end
+
+    local finalText = "{o}"..table.concat(textTab, "\n").."{/o}"
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
     local textR = regionFromText(font, 500, finalText)
         :attachToBottomOf(r)
@@ -781,7 +911,7 @@ function dev:draw()
 
     self:setCamera()
 
-    SCENES[currentSceneNumber][2]()
+    SCENES[currentSceneNumber].draw()
 
     self:resetCamera()
 
@@ -797,7 +927,7 @@ end
 function dev:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
-    SCENES[currentSceneNumber][1](dt)
+    SCENES[currentSceneNumber].update(dt)
 end
 
 ---@param scene FreeCameraScene
@@ -851,12 +981,10 @@ rawset(dev, "keyreleased", function(self, k)
         return
     end
 
-    if k == "h" then
-        currentSceneNumber = 2
-    elseif k == "r" then
-        currentSceneNumber = 1
-    elseif k == "u" then
-        currentSceneNumber = 3
+    local num = tonumber(k)
+
+    if num and SCENES[num] then
+        currentSceneNumber = num
     elseif k == "c" then
         self.camera:setPos(0, 0)
         self:setZoom(0)
