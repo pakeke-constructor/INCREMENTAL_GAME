@@ -74,25 +74,8 @@ local FarmerCatEntity = {
 function FarmerCatEntity:update(dt)
     local world = g.getMainWorld()
 
-    -- Update X position
-    self.x = self.x + self.speed * self.dirX * dt
-    if self.x < 0 then
-        self.x = -self.x -- make it positive
-        self.dirX = -self.dirX
-    elseif self.x >= world.WIDTH then
-        self.x = 2 * world.WIDTH - self.x
-        self.dirX = -self.dirX
-    end
-
-    -- Update Y position
-    self.y = self.y + self.speed * self.dirY * dt
-    if self.y < 0 then
-        self.y = -self.y -- make it positive
-        self.dirY = -self.dirY
-    elseif self.y >= world.HEIGHT then
-        self.y = 2 * world.HEIGHT - self.y
-        self.dirY = -self.dirY
-    end
+    -- Update positions
+    worldutil.updateLikeDVD(world, self, dt)
 
     -- Try harvest
     world:_tryHitTokenAt(self.x, self.y, self.radius)
