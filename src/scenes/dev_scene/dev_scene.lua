@@ -788,7 +788,7 @@ local function drawAllUpgrades()
             if isHovered then
                 hovered = uinfo
             end
-            if wasJustClicked then
+            if wasJustClicked and level < uinfo.maxLevel then
                 -- Uh...
                 local session = g.getSn()
                 session.upgradeLevels[utype] = (session.upgradeLevels[utype] or 0) + 1
