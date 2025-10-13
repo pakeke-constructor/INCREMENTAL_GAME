@@ -85,3 +85,35 @@ g.defineUpgrade("farmer_cat", "Farmer Cat", {
         return e
     end
 })
+
+
+
+--------------------
+-- Lightning upgrade
+--------------------
+
+-- TODO: Balancing
+g.defineUpgrade("lightning", "Lightning Bolt", {
+    image = "stick", -- TODO: Change placeholder
+    description = "There's %{1} chance for Lightning Bolt spawning every second damaging token by 5.",
+    kind = "MISC",
+    price = {money = 1000, logs = 100},
+
+    getValues = function(uinfo, level)
+        return 5 * level
+    end,
+    valueFormatter = {"%d%%"},
+    maxLevel = 20,
+
+    perSecondUpdate = function(uinfo, level)
+        local chance = uinfo:getValues(level) / 100
+        if love.math.random() < chance then
+            -- Damage token around
+            -- TODO: Tweak damage
+            local world = g.getMainWorld()
+            local x = love.math.random(world.WIDTH) - 1
+            local y = love.math.random(world.HEIGHT) - 1
+            worldutil.spawnLightning(x, y, 5)
+        end
+    end
+})
