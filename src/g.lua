@@ -1327,6 +1327,8 @@ do
 ---@field rot number?
 ---@field image string?
 ---@field lifetime number?
+---@field blendmode love.BlendMode?
+---@field blendalphamode love.BlendAlphaMode?
 ---@field update (fun(ent: g.Entity, dt:number))?
 ---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?

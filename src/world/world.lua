@@ -250,7 +250,9 @@ function World:_draw()
 
         if e.image then
             love.graphics.setColor(1, 1, 1)
+            love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
             g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0)
+            love.graphics.setBlendMode("alpha", "alphamultiply")
         end
 
         if e.draw then
