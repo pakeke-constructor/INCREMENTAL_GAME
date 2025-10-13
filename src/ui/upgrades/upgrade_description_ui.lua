@@ -53,30 +53,34 @@ local function getUpgradeDescription(uinfo, level, nextLevel)
         return ""
     end
 
-    local currentValues = {uinfo:getValues(level)}
-    local nextValues = nil
-    if nextLevel then
-        nextValues = {uinfo:getValues(level + 1)}
-        assert(#currentValues == #nextValues)
-    end
     local displayValue = {}
-    for i = 1, #currentValues do
-        local formatter = uinfo.valueFormatter[i] or "%.14g"
-        local value
 
-        if type(formatter) == "string" then
-            value = string.format(formatter, currentValues[i])
-            if nextValues then
-                value = value..string.format(wrapColor(STAT_UP_COLOR, " -> "..formatter), nextValues[i])
-            end
-        else
-            value = formatter(currentValues[i])
-            if nextValues then
-                value = value..wrapColor(STAT_UP_COLOR, " -> "..formatter(nextValues[i]))
-            end
+    if uinfo.getValues then
+        local currentValues = {uinfo:getValues(level)}
+        local nextValues = nil
+        if nextLevel then
+            nextValues = {uinfo:getValues(level + 1)}
+            assert(#currentValues == #nextValues)
         end
 
-        displayValue[tostring(i)] = value
+        for i = 1, #currentValues do
+            local formatter = uinfo.valueFormatter[i] or "%.14g"
+            local value
+
+            if type(formatter) == "string" then
+                value = string.format(formatter, currentValues[i])
+                if nextValues then
+                    value = value..string.format(wrapColor(STAT_UP_COLOR, " -> "..formatter), nextValues[i])
+                end
+            else
+                value = formatter(currentValues[i])
+                if nextValues then
+                    value = value..wrapColor(STAT_UP_COLOR, " -> "..formatter(nextValues[i]))
+                end
+            end
+
+            displayValue[tostring(i)] = value
+        end
     end
 
     -- TODO: Clarify if the description should be passed to interpolator or it's already in localization.Interpolator
