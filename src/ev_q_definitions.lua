@@ -14,7 +14,7 @@ g.defineEvent("populateTokenPool")
 
 
 g.defineEvent("tokenDraw")
-
+g.defineEvent("tokenSpawned")
 g.defineEvent("tokenHitStart")
 g.defineEvent("tokenHit")
 g.defineEvent("tokenDamaged")

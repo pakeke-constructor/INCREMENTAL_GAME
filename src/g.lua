@@ -1499,6 +1499,7 @@ function g.spawnToken(tokType, x,y)
     }, tokenMts[tokType])
 
     w.tokens:addBuffered(tok)
+    g.call("tokenSpawned", tok)
     return tok
 end
 
