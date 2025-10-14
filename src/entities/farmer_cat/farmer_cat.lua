@@ -5,7 +5,8 @@
 local FarmerCatEntity = {
     image = "farmer_cat",
     radius = 20,
-    speed = 50
+    speed = 50,
+    shadowRadius = 7,
 }
 
 function FarmerCatEntity:update(dt)

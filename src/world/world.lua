@@ -199,7 +199,7 @@ local function drawToken(tok)
     local kx,ky = getTokShear(tok)
 
     -- shadow:
-    love.graphics.setColor(0,0,0,0.4)
+    love.graphics.setColor(g.COLORS.SHADOW)
     love.graphics.ellipse("fill",tok.x,tok.y+6,6,3)
 
     love.graphics.setColor(1,1,1)
@@ -247,6 +247,11 @@ function World:_draw()
         if e.drawBelow then
             love.graphics.setColor(1, 1, 1)
             e:drawBelow()
+        end
+
+        if e.shadowRadius then
+            love.graphics.setColor(g.COLORS.SHADOW)
+            love.graphics.ellipse("fill",e.x,e.y+e.shadowRadius,e.shadowRadius,e.shadowRadius/2)
         end
 
         if e.image then

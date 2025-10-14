@@ -1353,6 +1353,7 @@ do
 ---@field x number
 ---@field y number
 ---@field id integer
+---@field shadowRadius number?
 ---@field sx number?
 ---@field sy number?
 ---@field ox number?
@@ -1744,6 +1745,8 @@ g.COLORS = {
         TOKEN_MODIFIER = objects.Color("#" .. "FF15C39A"),
         MISC = objects.Color("#" .. "FFFFFFFF"),
     },
+
+    SHADOW = objects.Color(0,0,0,0.4),
 
     CANT_AFFORD = objects.Color("#".."FFC81515"),
     MONEY = objects.Color(g.getResourceInfo("money").color),
