@@ -89,15 +89,14 @@ g.defineUpgrade("farmer_cat", "Farmer Cat", {
 -- Lightning upgrade
 --------------------
 
--- TODO: Balancing
-g.defineUpgrade("lightning", "Lightning Bolt", {
+g.defineUpgrade("lightning_upgrade", "Lightning Bolt", {
     image = "stick",
     description = "Every second, %{1} chance for Lightning to spawn!",
     kind = "MISC",
-    price = {money = 1000, logs = 100},
+    price = {money = 1000},
 
     getValues = function(uinfo, level)
-        return 5 * level
+        return 4 + level
     end,
     valueFormatter = {"%d%%"},
     maxLevel = 20,
