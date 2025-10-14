@@ -1497,8 +1497,11 @@ function g.spawnToken(tokType, x,y)
         timeSinceHit = 0xffffffffff,
         timeSinceDamaged = 0xfffffffff,
     }, tokenMts[tokType])
+    tok.maxHealth = tabl.maxHealth * g.ask("getTokenMaxHealthMultiplier", tok)
+    tok.health = tok.maxHealth
 
     w.tokens:addBuffered(tok)
+    g.call("tokenSpawned", tok)
     return tok
 end
 
@@ -1551,7 +1554,8 @@ end
 ---@param dmg number
 function g.damageToken(tok, dmg)
     local dmgMult = g.ask("getTokenDamageMultiplier", tok)
-    dmg = dmg * dmgMult
+    local dmgMod = g.ask("getTokenDamageModifier", tok)
+    dmg = (dmg + dmgMod) * dmgMult
     tok.health = tok.health - dmg
     g.call("tokenDamaged", tok, dmg)
 
