@@ -31,6 +31,7 @@ g.defineEvent("bonesChanged")
 g.defineEvent("rocksChanged")
 
 
+g.defineQuestion("getTokenMaxHealthMultiplier", reducers.MULTIPLY, 1)
 
 g.defineQuestion("getTokenHitMultiplier", reducers.MULTIPLY, 1)
 
