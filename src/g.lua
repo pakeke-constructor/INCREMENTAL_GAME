@@ -488,6 +488,7 @@ local g_TokenDefinition = {}
 ---@field type string
 ---@field name string
 ---@field maxLevel integer
+---@field description localization.Interpolator
 ---@field valueFormatter (string|(fun(x:number):string))[]
 
 
@@ -957,7 +958,12 @@ function g.defineUpgrade(id, name, def)
     if not (def.kind and UPGRADE_KINDS[def.kind]) then
         error("Invalid upgrade-kind: " .. tostring(def.kind),2)
     end
+
     def.name = loc(name) ---@diagnostic disable-line
+    if def.description then
+        def.description = localization.newInterpolator(def.description) ---@diagnostic disable-line
+    end
+
     def.image = def.image or id
     def.valueFormatter = def.valueFormatter or {}
     def.maxLevel = def.maxLevel or consts.DEFAULT_UPGRADE_MAX_LEVEL

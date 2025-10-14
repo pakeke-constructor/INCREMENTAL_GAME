@@ -11,7 +11,7 @@ local function defineResLimitUpgrade(id, name, resId, price, expIncrease)
     local resInfo = g.getResourceInfo(resId)
     local stat = g.VALID_STATS[resInfo.limitStat]
     return g.defineUpgrade(id, name, {
-        description = loc("Increase "..resId.." limit by additional %{1}."),
+        description = ("Increase "..resId.." limit by additional %{1}."),
         kind = "MISC",
         price = price,
         image = resInfo.image,
@@ -41,7 +41,7 @@ defineResLimitUpgrade("bones_limit", "Bones Limit", "bones", {bones = 10}, 5)
 g.defineUpgrade("capitalist", "Capitalist", {
     kind = "MISC",
     image = "money_icon",
-    description = loc("All upgrades become %{1} cheaper."),
+    description = ("All upgrades become %{1} cheaper."),
     getValues = function(uinfo, level)
         return 5 * level
     end,
@@ -92,7 +92,7 @@ g.defineUpgrade("farmer_cat", "Farmer Cat", {
 -- TODO: Balancing
 g.defineUpgrade("lightning", "Lightning Bolt", {
     image = "stick",
-    description = "Every second, %{1}%% chance for Lightning to spawn!",
+    description = "Every second, %{1} chance for Lightning to spawn!",
     kind = "MISC",
     price = {money = 1000, logs = 100},
 

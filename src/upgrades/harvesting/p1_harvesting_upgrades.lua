@@ -22,7 +22,7 @@ defUpgrade("more_damage", "More Damage", {
     getValues = function(self,level)
         return level*10
     end,
-    description = loc("Deal +%{1}% extra damage to ALL tokens"),
+    description = "Deal +%{1}% extra damage to ALL tokens",
 
     getTokenHitMultiplier = function(self,level)
         local a=self:getValues(level)
@@ -38,7 +38,7 @@ defUpgrade("hit_speed", "Hit Speed", {
     getValues = function(self,level)
         return level*10
     end,
-    description = loc("+%{1}% hit speed"),
+    description = "+%{1}% hit speed",
 
     getHitDurationMultiplier = function(self,level)
         local a=self:getValues(level)
@@ -54,7 +54,7 @@ defUpgrade("more_area", "More Area", {
     getValues = function(self,level)
         return level*4
     end,
-    description = loc("+%{1}% hit area"),
+    description = "+%{1}% hit area",
 
     getHarvestAreaMultiplier = function(self,level)
         local a=self:getValues(level)
@@ -71,7 +71,7 @@ defUpgrade("lucky_hit", "Lucky Hit", {
     getValues = function(self,level)
         return level*3
     end,
-    description = loc("When a token is hit, +%{1}% chance to hit another token"),
+    description = "When a token is hit, +%{1}% chance to hit another token",
 
     tokenHit = function(self,level)
         local r = love.math.random()

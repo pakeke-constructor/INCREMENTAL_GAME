@@ -91,7 +91,7 @@ upgrades.defineUpgrade("carpet_bomber", {
 
 
 upgrades.defineUpgrade("lucky_diamond", {
-    description = loc("{level}% chance to spawn a lucky diamond every second!"),
+    description = ("{level}% chance to spawn a lucky diamond every second!"),
 
     prestige = 0,
 
@@ -108,7 +108,7 @@ upgrades.defineUpgrade("lucky_diamond", {
 
 
 upgrades.defineUpgrade("Logbait", {
-    description = loc("Logs earn +$2"),
+    description = ("Logs earn +$2"),
 
     prestige = 1,
 
@@ -122,7 +122,7 @@ upgrades.defineUpgrade("Logbait", {
 
 
 upgrades.defineUpgrade("Forager cat", {
-    description = loc("Every 5 logs you harvest, spawn a mushroom"),
+    description = ("Every 5 logs you harvest, spawn a mushroom"),
     ...
     tokenDestroyed = function(token)
         if isType(token, "log") then
