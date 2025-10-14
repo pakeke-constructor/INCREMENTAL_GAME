@@ -128,6 +128,25 @@ end
 
 
 
+local function drawWASDVisual()
+    local x=10
+    local y=10
+    lg.scale(1.5)
+    love.graphics.setColor(0.3,0.3,0.4)
+    lg.draw(WASD, x+2, y)
+    lg.draw(WASD, x+2, y+2)
+    lg.draw(WASD, x, y+2)
+    lg.setColor(0,0,0)
+    for dx=-1,1,2 do
+        for dy=-1,1,2 do
+            lg.draw(WASD, x+dx, y+dy)
+        end
+    end
+    lg.setColor(1,1,1)
+    lg.draw(WASD,x,y)
+end
+
+
 function map:draw()
     local COL = objects.Color("#FF2080D8")
     lg.clear(COL)
@@ -154,20 +173,7 @@ function map:draw()
 
     ui.startUI()
     self:renderNavbar()
-
-    local x=10
-    local y=10
-    lg.scale(1.5)
-    lg.setColor(0,0,0)
-    for dx=-1,1,2 do
-        for dy=-1,1,2 do
-            lg.draw(WASD, x+dx, y+dy)
-        end
-    end
-
-    lg.setColor(1,1,1)
-    lg.draw(WASD,x,y)
-
+    drawWASDVisual()
     ui.endUI()
 end
 
