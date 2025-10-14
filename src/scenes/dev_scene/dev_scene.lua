@@ -1055,4 +1055,7 @@ function dev:mousereleased(_, _, m)
     end
 end
 
+dev.mousemoved = dev.defaultMousemoved
+
+
 return dev
