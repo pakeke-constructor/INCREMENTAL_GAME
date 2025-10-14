@@ -1521,6 +1521,7 @@ function g.destroyToken(tok)
         -- already been destroyed.
         return false
     end
+    tok.___destroyed = true
 
     local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
@@ -1530,7 +1531,6 @@ function g.destroyToken(tok)
         g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))
     end
 
-    tok.___destroyed = true
     w.tokens:removeBuffered(tok)
 
     -- todo: rework/rethink this.

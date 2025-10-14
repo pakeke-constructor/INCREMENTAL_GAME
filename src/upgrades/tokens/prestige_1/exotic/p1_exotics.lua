@@ -19,13 +19,10 @@ Evil cat: Deal 10 damage to the nearest token every 0.4 seconds
 -- TODO: Balancing
 g.defineTokenUpgrade("mushroom_blue", "Blue Mushroom", {
     token = {
-        maxHealth = 11,
+        maxHealth = 7,
         resources = {},
-        tokenDestroyed = function()
-            local world = g.getMainWorld()
-            local x = love.math.random(world.WIDTH) - 1
-            local y = love.math.random(world.HEIGHT) - 1
-            worldutil.spawnLightning(x, y, 10)
+        tokenDestroyed = function(tok)
+            worldutil.spawnLightning(tok.x, tok.y, 10)
         end
     },
     upgrade = {
@@ -37,15 +34,12 @@ g.defineTokenUpgrade("mushroom_blue", "Blue Mushroom", {
 
 
 
-g.defineTokenUpgrade("mushroom_blue", "Blue Mushroom", {
+g.defineTokenUpgrade("mushroom_red", "Red Mushroom", {
     token = {
-        maxHealth = 11,
+        maxHealth = 7,
         resources = {},
-        tokenDestroyed = function()
-            local world = g.getMainWorld()
-            local x = love.math.random(world.WIDTH) - 1
-            local y = love.math.random(world.HEIGHT) - 1
-            worldutil.spawnLightning(x, y, 10)
+        tokenDestroyed = function(tok)
+            worldutil.explosion(tok.x, tok.y, 10)
         end
     },
     upgrade = {

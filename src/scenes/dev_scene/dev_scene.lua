@@ -871,12 +871,6 @@ local currentSceneNumber = 1
 
 
 
-local helpText = table.concat({
-    "[H] = Show Harvest Area",
-    "[U] = Show Upgrade Editor",
-    "[R] = Show Resource Hack",
-    "[C] = Reset Camera"
-}, "\n")
 
 
 ---@param scene FreeCameraScene
