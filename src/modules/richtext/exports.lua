@@ -71,7 +71,6 @@ text.escapeRichTextSyntax = parser.escape
 ---@param txt text.ParsedText|string
 ---@return string
 function text.stripEffects(txt)
-    strTc(txt)
     local parsed = assert(parser.ensure(txt))
     local result = {}
 
@@ -128,15 +127,14 @@ end
 function text.printRichContained(txt, font, x,y,w,h)
     strTc(txt)
     local parsed = assert(parser.ensure(txt))
-    local strippedTxt = text.stripEffects(txt)
+    local strippedTxt = text.stripEffects(parsed)
 
-    local tw, th = getTextSize(font, assert(strippedTxt), w)
+    local tw, th = getTextSize(font, assert(strippedTxt))
 
-    local limit = w
-    local scale = math.min(limit/tw, h/th)
+    local scale = math.min(w/tw, h/th)
     local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
 
-    drawRichText(parsed, font, drawX, drawY, limit / scale, "left", 0, scale, scale, tw / 2, th / 2)
+    drawRichText(parsed, font, drawX, drawY, tw, "left", 0, scale, scale, tw / 2, th / 2)
 end
 
 
