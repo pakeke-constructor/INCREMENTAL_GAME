@@ -133,7 +133,6 @@ function UpgradeDescription:addTitle(text, image)
             richtext.printRichContained(text, self.titleFont, x, y, w - h - 4, h)
             -- It's just simpler to specify 0,0 offset
             g.drawImageOffset(image, x + w - h, y, 0, 2, 2, 0, 0)
-            ui.debugRegion(Kirigami(x, y, w - h - 4, h))
         end)
     else
         -- Text only
