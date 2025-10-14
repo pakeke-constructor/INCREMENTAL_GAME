@@ -14,7 +14,7 @@ g.defineEvent("populateTokenPool")
 
 
 g.defineEvent("tokenDraw")
-
+g.defineEvent("tokenSpawned")
 g.defineEvent("tokenHitStart")
 g.defineEvent("tokenHit")
 g.defineEvent("tokenDamaged")
@@ -31,9 +31,11 @@ g.defineEvent("bonesChanged")
 g.defineEvent("rocksChanged")
 
 
+g.defineQuestion("getTokenMaxHealthMultiplier", reducers.MULTIPLY, 1)
 
 g.defineQuestion("getTokenHitMultiplier", reducers.MULTIPLY, 1)
 
+g.defineQuestion("getTokenDamageModifier", reducers.ADD, 0)
 g.defineQuestion("getTokenDamageMultiplier", reducers.MULTIPLY, 1)
 
 g.defineQuestion("getTokenResourceMultiplier", reducers.MULTIPLY, 1)

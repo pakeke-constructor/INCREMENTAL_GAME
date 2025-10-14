@@ -57,17 +57,17 @@ g.defineTokenUpgrade("mushroom_green", "Green Mushroom", {
         resources = {},
         tokenDestroyed = function()
             for _=1, 6 do
-                local r = love.math.random()
                 local x,y = g.getRandomPositionForToken()
-                local t = nil
-                if r < 0.4 then
-                    t = "small_grass"
-                elseif r < 0.7 then
-                    t = "grass_blades"
-                else
-                    t = "thick_grass"
-                end
                 if x and y then
+                    local t = nil
+                    local r = love.math.random()
+                    if r < 0.4 then
+                        t = "small_grass"
+                    elseif r < 0.7 then
+                        t = "grass_blades"
+                    else
+                        t = "thick_grass"
+                    end
                     g.spawnToken(t, x,y)
                 end
             end
