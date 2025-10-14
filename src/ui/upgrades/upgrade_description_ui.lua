@@ -298,7 +298,7 @@ function UpgradeDescription:getDimensions()
 
     for _, elem in ipairs(self.elements) do
         if elem.width then
-            width = math.max(width, elem.width)
+            width = math.min(math.max(width, elem.width), UPGRADE_DESC_MAX_WIDTH)
         end
         height = height + elem.height
     end
