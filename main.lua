@@ -149,8 +149,8 @@ function love.load()
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
 
-    local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and love.filesystem.getInfo("saves/save1.json", "file") then
+    local shouldLoad = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
+    if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") then
         g.loadSession("saves/save1.json")
     else
         g.newSession()
