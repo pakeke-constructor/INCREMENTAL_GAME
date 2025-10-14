@@ -68,9 +68,15 @@ local function makeFrames(framePrefix, numFrames)
     return t
 end
 
----@param framePrefix string
-function worldutil.lifetimeAnimationUpdater(framePrefix, numFrames)
-    local frames = makeFrames(framePrefix, numFrames)
+
+---@param opt {framePrefix?: string, numFrames?: integer, frames?:string[]}
+function worldutil.lifetimeAnimationUpdater(opt)
+    local frames
+    if opt.framePrefix then
+        frames = makeFrames(opt.framePrefix, assert(opt.numFrames))
+    else
+        frames = assert(opt.frames)
+    end
 
     ---@param ent g.Entity
     ---@param dt number
