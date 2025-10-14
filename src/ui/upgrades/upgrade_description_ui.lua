@@ -219,7 +219,7 @@ function UpgradeDescription:addTokenInfo(tinfo)
     local splits = {} -- For Kirigami only
     local healthText = tostring(tinfo.maxHealth)
     local healthWidth = (self.font:getWidth(healthText) + 16 + 2) * 2 -- +2 padding, x2 scaling
-    local minWidth = healthWidth * 2 + 8 -- +8 distance between text
+    local minCellWidth = healthWidth
 
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if tinfo.resources[resId] then
@@ -229,7 +229,7 @@ function UpgradeDescription:addTokenInfo(tinfo)
             local textWidth = (self.font:getWidth(value) + 16 + 2) * 2
             resources[#resources+1] = value.."{"..resInfo.image.."}"
             splits[#splits+1] = 1
-            minWidth = math.max(minWidth, textWidth + healthWidth + 8)
+            minCellWidth = math.max(minCellWidth, textWidth)
         end
     end
     -- Ensure there's at least 1 split
@@ -240,7 +240,7 @@ function UpgradeDescription:addTokenInfo(tinfo)
     local fontHeight = self.font:getHeight() * 2
     local height = math.max(#resources, 1) * fontHeight
     -- Update the box width
-    self.boxWidth = math.max(self.boxWidth, minWidth)
+    self.boxWidth = math.max(self.boxWidth, minCellWidth * 2 + 8)
     -- But respect the boxWidth dimension in case it's larger (so width is nil)
     return self:addBox(nil, height, function (x, y, w, h)
         local r = Kirigami(x, y, w, h)
