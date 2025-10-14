@@ -35,6 +35,7 @@ g.defineQuestion("getTokenMaxHealthMultiplier", reducers.MULTIPLY, 1)
 
 g.defineQuestion("getTokenHitMultiplier", reducers.MULTIPLY, 1)
 
+g.defineQuestion("getTokenDamageModifier", reducers.ADD, 0)
 g.defineQuestion("getTokenDamageMultiplier", reducers.MULTIPLY, 1)
 
 g.defineQuestion("getTokenResourceMultiplier", reducers.MULTIPLY, 1)

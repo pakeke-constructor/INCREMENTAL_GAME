@@ -1554,7 +1554,8 @@ end
 ---@param dmg number
 function g.damageToken(tok, dmg)
     local dmgMult = g.ask("getTokenDamageMultiplier", tok)
-    dmg = dmg * dmgMult
+    local dmgMod = g.ask("getTokenDamageModifier", tok)
+    dmg = (dmg + dmgMod) * dmgMult
     tok.health = tok.health - dmg
     g.call("tokenDamaged", tok, dmg)
 
