@@ -36,15 +36,47 @@ g.defineTokenUpgrade("mushroom_blue", "Blue Mushroom", {
 
 g.defineTokenUpgrade("mushroom_red", "Red Mushroom", {
     token = {
-        maxHealth = 7,
+        maxHealth = 4,
         resources = {},
         tokenDestroyed = function(tok)
             worldutil.explosion(tok.x, tok.y, 10)
         end
     },
     upgrade = {
-        description = "Spawns lightning when destroyed!",
-        price = {money = 500}
+        description = "Explodes when destroyed!",
+        price = {money = 100}
     }
 })
+
+
+
+
+g.defineTokenUpgrade("mushroom_green", "Green Mushroom", {
+    token = {
+        maxHealth = 7,
+        resources = {},
+        tokenDestroyed = function()
+            for _=1, 6 do
+                local r = love.math.random()
+                local x,y = g.getRandomPositionForToken()
+                local t = nil
+                if r < 0.4 then
+                    t = "small_grass"
+                elseif r < 0.7 then
+                    t = "grass_blades"
+                else
+                    t = "thick_grass"
+                end
+                if x and y then
+                    g.spawnToken(t, x,y)
+                end
+            end
+        end
+    },
+    upgrade = {
+        description = "When destroyed, spawns 6 grass tokens",
+        price = {money = 250}
+    }
+})
+
 
