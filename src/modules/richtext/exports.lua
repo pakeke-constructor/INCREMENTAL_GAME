@@ -124,8 +124,7 @@ end
 ---@param y number
 ---@param w number
 ---@param h number
----@param align love.AlignMode?
-function text.printRichContained(txt, font, x,y,w,h, align)
+function text.printRichContained(txt, font, x,y,w,h)
     strTc(txt)
     local parsed = assert(parser.ensure(txt))
     local strippedTxt = text.stripEffects(parsed)
@@ -135,7 +134,7 @@ function text.printRichContained(txt, font, x,y,w,h, align)
     local scale = math.min(w/tw, h/th)
     local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
 
-    drawRichText(parsed, font, drawX, drawY, tw, align or "left", 0, scale, scale, tw / 2, th / 2)
+    drawRichText(parsed, font, drawX, drawY, tw, "left", 0, scale, scale, tw / 2, th / 2)
 end
 
 
