@@ -120,6 +120,7 @@ end
 ---@param damage any
 function worldutil.explosion(x,y,damage)
     g.spawnEntity("small_explosion_animation", x,y)
+    g.playSound("small_explosion", 1,0.3,0.35)
     g.iterateTokensInArea(x,y, 40, function(tok)
         g.damageToken(tok,damage)
     end)
