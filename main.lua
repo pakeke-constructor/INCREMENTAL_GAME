@@ -144,12 +144,25 @@ TESTS END
 local sceneManager = require("src.scenes.sceneManager")
 
 function love.load()
+    assert(love.filesystem.createDirectory("saves"))
     love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
 
-    g.newSession()
+    if love.filesystem.getInfo("saves/save1.json", "file") and not love.keyboard.isDown("lshift", "rshift") then
+        g.loadSession("saves/save1.json")
+    else
+        g.newSession()
+    end
     sceneManager.gotoScene("map_scene")
+end
+
+function love.quit()
+    if g.getSn() and not love.keyboard.isDown("lshift", "rshift") then
+        local data = g.getSn():serialize()
+        local contents = json.encode(data)
+        assert(love.filesystem.write("saves/save1.json", contents))
+    end
 end
 
 

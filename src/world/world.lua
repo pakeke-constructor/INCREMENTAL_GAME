@@ -41,6 +41,7 @@ function World:init()
     ]]})
 
     self.particles = ParticleService()
+    self.timer = 0 -- For per second update
 end
 
 
@@ -250,7 +251,9 @@ function World:_draw()
 
         if e.image then
             love.graphics.setColor(1, 1, 1)
+            love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
             g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0)
+            love.graphics.setBlendMode("alpha", "alphamultiply")
         end
 
         if e.draw then
@@ -414,6 +417,13 @@ function World:_update(dt)
     self.tokens:flush()
 
     self.particles:update(dt)
+
+    -- Run per second update event bus on upgrades
+    self.timer = self.timer + dt
+    while self.timer >= 1 do
+        g.call("perSecondUpdate")
+        self.timer = self.timer - 1
+    end
 end
 
 

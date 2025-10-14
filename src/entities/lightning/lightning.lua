@@ -6,7 +6,8 @@ g.defineEntity("lightning_animation", {
     lifetime = 0.25,
     oy=-116,
     ox=-2,
-    update = worldutil.lifetimeAnimationUpdater("lightning_skill4_frame",5)
+    update = worldutil.lifetimeAnimationUpdater("lightning_skill4_frame",5),
+    blendmode = "add",
 })
 
 

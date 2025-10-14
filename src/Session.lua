@@ -5,7 +5,7 @@ local World = require("src.world.world")
 
 
 
----@class g.Session
+---@class g.Session: objects.Class
 ---@field prestige number
 ---@field upgrades table<string, boolean>
 ---@field resources g.Resources
@@ -45,7 +45,7 @@ function Session:init()
 
     self.prestigeLevels = {--[[
         [prestigeId] -> prestigeLevel
-    ]]}
+    ]]} --[[@as table<integer,integer>]]
 
     self.mainWorld = World()
 
@@ -59,6 +59,12 @@ function Session:init()
     for k,sta in pairs(g.VALID_STATS) do
         g.stats[k] = sta.startingValue
     end
+end
+
+if false then
+    ---@return g.Session
+    ---@diagnostic disable-next-line: cast-local-type, missing-return
+    function Session() end
 end
 
 
@@ -80,6 +86,68 @@ end
 ---@param dt number
 function Session:_updateMainWorld(dt)
     self.mainWorld:_update(dt)
+end
+
+
+---@param data table
+function Session.deserailize(data)
+    local sess = Session()
+
+    -- Load current prestige
+    sess.prestige = assert(data.prestige)
+
+    -- Load resources
+    for _,resId in ipairs(g.RESOURCE_LIST) do
+        sess.resources[resId] = tonumber(data.resources[resId]) or 0
+    end
+
+    -- Load upgrade levels
+    for utype, v in pairs(data.upgradeLevels) do
+        if pcall(g.getUpgradeInfo, utype) then
+            sess.upgradeLevels[utype] = assert(tonumber(v))
+        end
+    end
+
+    -- Load prestige levels
+    -- Stored prestige ID is 1-based but we want 0-based
+    for pid, v in ipairs(data.prestigeLevels) do
+        sess.prestigeLevels[pid - 1] = assert(tonumber(v))
+    end
+
+    -- Metrics
+    for metric, v in pairs(data.metrics) do
+        sess.metrics[metric] = assert(tonumber(v))
+    end
+
+    -- Stats
+    for k,sta in pairs(g.VALID_STATS) do
+        g.stats[k] = assert(tonumber(data.stats[k]))
+    end
+
+    return sess
+end
+
+function Session:serialize()
+    -- Convert prestige level indices to 1-based
+    local plevels = {}
+    for i = 0, #self.prestigeLevels do
+        plevels[i + 1] = self.prestigeLevels[i]
+    end
+
+    -- Save stats
+    local stats = {}
+    for k in pairs(g.VALID_STATS) do
+        stats[k] = g.stats[k]
+    end
+
+    return {
+        prestige = self.prestige,
+        resources = self.resources,
+        upgradeLevels = self.upgradeLevels,
+        prestigeLevels = plevels,
+        metrics = self.metrics,
+        stats = stats
+    }
 end
 
 

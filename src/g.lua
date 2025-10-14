@@ -23,6 +23,13 @@ function g.newSession()
     currentSession = Session()
 end
 
+---@param path string
+function g.loadSession(path)
+    local contents = assert(love.filesystem.read(path))
+    local jsondata = json.decode(contents)
+    currentSession = Session.deserailize(jsondata)
+end
+
 
 ---@return g.Session
 function g.getSn()
@@ -459,10 +466,11 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field priceScaling number?
 ---@field description string?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
----@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
+---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number)?
 ---@field valueFormatter ((string|(fun(x:number):string))[])?
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
+---@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer))?
 local g_UpgradeDefinition = {}
 
 
@@ -1320,6 +1328,8 @@ do
 ---@field rot number?
 ---@field image string?
 ---@field lifetime number?
+---@field blendmode love.BlendMode?
+---@field blendalphamode love.BlendAlphaMode?
 ---@field update (fun(ent: g.Entity, dt:number))?
 ---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?

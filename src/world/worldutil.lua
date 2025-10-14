@@ -57,6 +57,9 @@ end
 -- for animation of entities with lifetime comp
 do
 
+---@param framePrefix string
+---@param numFrames integer
+---@return string[]
 local function makeFrames(framePrefix, numFrames)
     local t = {}
     for i=1, numFrames do
@@ -67,8 +70,10 @@ end
 
 ---@param framePrefix string
 function worldutil.lifetimeAnimationUpdater(framePrefix, numFrames)
-    local frames = nil
+    local frames = makeFrames(framePrefix, numFrames)
 
+    ---@param ent g.Entity
+    ---@param dt number
     local function update(ent, dt)
         -- SLIGHT HACK: tapping into __index
         local parentLifetime = getmetatable(ent).__index.lifetime
@@ -76,7 +81,6 @@ function worldutil.lifetimeAnimationUpdater(framePrefix, numFrames)
         assert(ent.lifetime)
         assert(parentLifetime)
 
-        frames = frames or makeFrames(framePrefix, numFrames)
         local i = math.floor((ent.lifetime/parentLifetime) * #frames) + 1
         local frame = frames[i]
         ent.image = frame

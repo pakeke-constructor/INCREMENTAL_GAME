@@ -61,36 +61,6 @@ g.defineUpgrade("capitalist", "Capitalist", {
 -- Farmer Cat upgrade
 ---------------------
 
----@class FarmerCatEntity: g.Entity
----@field public dirX -1|1
----@field public dirY -1|1
----@field public speed number
-local FarmerCatEntity = {
-    image = "happy_cat",
-    radius = 20,
-    speed = 50
-}
-
-function FarmerCatEntity:update(dt)
-    local world = g.getMainWorld()
-
-    -- Update positions
-    worldutil.updateLikeDVD(world, self, dt)
-
-    -- Try harvest
-    g.iterateTokensInArea(self.x, self.y, self.radius + consts.HARVEST_AREA_LEEWAY, g.tryHitToken)
-end
-
-
-local HARVEST_CIRCLE_INSIDE = {0.2,0.2,0.2,0.09}
-local HARVEST_CIRCLE_BORDER = {.9,.9,.9,0.8}
-
-function FarmerCatEntity:drawBelow()
-    return worldutil.drawHarvestCircle(self.x, self.y, self.radius, HARVEST_CIRCLE_INSIDE, HARVEST_CIRCLE_BORDER)
-end
-
-g.defineEntity("farmer_cat", FarmerCatEntity)
-
 -- TODO: Balancing
 g.defineUpgrade("farmer_cat", "Farmer Cat", {
     kind = "MISC",
@@ -113,5 +83,36 @@ g.defineUpgrade("farmer_cat", "Farmer Cat", {
         e.dirX = love.math.random(0, 1) * 2 - 1
         e.dirY = love.math.random(0, 1) * 2 - 1
         return e
+    end
+})
+
+
+
+--------------------
+-- Lightning upgrade
+--------------------
+
+-- TODO: Balancing
+g.defineUpgrade("lightning", "Lightning Bolt", {
+    image = "stick", -- TODO: Change placeholder
+    description = "There's %{1} chance for Lightning Bolt spawning every second damaging token by 5.",
+    kind = "MISC",
+    price = {money = 1000, logs = 100},
+
+    getValues = function(uinfo, level)
+        return 5 * level
+    end,
+    valueFormatter = {"%d%%"},
+    maxLevel = 20,
+
+    perSecondUpdate = function(uinfo, level)
+        local chance = uinfo:getValues(level) / 100
+        if love.math.random() < chance then
+            -- Damage token around
+            local world = g.getMainWorld()
+            local x = love.math.random(world.WIDTH) - 1
+            local y = love.math.random(world.HEIGHT) - 1
+            worldutil.spawnLightning(x, y, 50)
+        end
     end
 })
