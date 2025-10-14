@@ -3,7 +3,7 @@
 ---@field public dirY -1|1
 ---@field public speed number
 local FarmerCatEntity = {
-    image = "happy_cat",
+    image = "farmer_cat",
     radius = 20,
     speed = 50
 }
@@ -13,6 +13,7 @@ function FarmerCatEntity:update(dt)
 
     -- Update positions
     worldutil.updateLikeDVD(world, self, dt)
+    worldutil.updateWaddleAnimation(self, self.dirX,self.dirY)
 
     -- Try harvest
     g.iterateTokensInArea(self.x, self.y, self.radius + consts.HARVEST_AREA_LEEWAY, g.tryHitToken)

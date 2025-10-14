@@ -129,4 +129,40 @@ end
 
 
 
+do
+
+local WADDLE_SPEED=6
+
+---@param ent g.Entity
+---@param vx number
+---@param vy number
+function worldutil.updateWaddleAnimation(ent,vx,vy)
+    -- HACK: __index trick
+    local origOy = ((getmetatable(ent).__index).oy or 0)
+
+    if vx > 0 then
+        ent.sx = 1
+    elseif vx < 0 then
+        ent.sx = -1
+    end
+
+    local t = love.timer.getTime() * WADDLE_SPEED
+    if (vx*vx + vy*vy) > 0.01 then
+        -- then we are moving! do waddle
+        local height = math.abs(math.sin(t))*7
+        local rot = 0 + math.cos(t)/6
+        ent.oy = origOy - height
+        ent.rot = rot
+    else
+        ent.oy = origOy
+    end
+end
+
+
+end
+
+
+
+
+
 return worldutil

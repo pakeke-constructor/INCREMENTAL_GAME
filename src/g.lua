@@ -1352,6 +1352,8 @@ do
 ---@field x number
 ---@field y number
 ---@field id integer
+---@field sx number?
+---@field sy number?
 ---@field ox number?
 ---@field oy number?
 ---@field rot number?
