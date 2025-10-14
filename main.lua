@@ -149,7 +149,8 @@ function love.load()
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
 
-    if love.filesystem.getInfo("saves/save1.json", "file") and not love.keyboard.isDown("lshift", "rshift") then
+    local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
+    if shouldSave and love.filesystem.getInfo("saves/save1.json", "file") then
         g.loadSession("saves/save1.json")
     else
         g.newSession()
@@ -158,7 +159,8 @@ function love.load()
 end
 
 function love.quit()
-    if g.getSn() and not love.keyboard.isDown("lshift", "rshift") then
+    local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
+    if shouldSave and g.getSn() then
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
