@@ -83,7 +83,6 @@ local function getUpgradeDescription(uinfo, level, nextLevel)
         end
     end
 
-    -- TODO: Clarify if the description should be passed to interpolator or it's already in localization.Interpolator
     return uinfo.description(displayValue)
 end
 
