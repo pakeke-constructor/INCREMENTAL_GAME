@@ -100,7 +100,7 @@ end
 function worldutil.spawnLightning(x,y,damage)
     g.spawnEntity("lightning_animation", x,y)
     g.playSound("lightning_foreground",0.9,0.7,0.3,0)
-    g.iterateTokensInArea(x,y, 64, function(tok)
+    g.iterateTokensInArea(x,y, 40, function(tok)
         g.damageToken(tok,damage)
     end)
 end
