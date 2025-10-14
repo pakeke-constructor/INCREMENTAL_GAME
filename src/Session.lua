@@ -90,7 +90,7 @@ end
 
 
 ---@param data table
-function Session.deserailize(data)
+function Session.deserialize(data)
     local sess = Session()
 
     -- Load current prestige

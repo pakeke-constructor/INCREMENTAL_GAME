@@ -27,7 +27,7 @@ end
 function g.loadSession(path)
     local contents = assert(love.filesystem.read(path))
     local jsondata = json.decode(contents)
-    currentSession = Session.deserailize(jsondata)
+    currentSession = Session.deserialize(jsondata)
 end
 
 
