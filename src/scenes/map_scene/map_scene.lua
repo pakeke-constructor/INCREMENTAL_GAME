@@ -22,7 +22,10 @@ local mapAnim = {
     -- lg.newImage("src/scenes/map_scene/maps/map2.png")
 }
 
+
 local cloudImg = lg.newImage("src/scenes/map_scene/maps/new_map_clouds.png")
+
+local WASD = lg.newImage("src/scenes/map_scene/maps/wasd_image.png")
 
 
 
@@ -117,7 +120,7 @@ function clampCameraToMap(camera, mapX, mapY, mapW, mapH)
     camera:setPos(x, y)
 
     -- HACK: Scale with respect to dimensions
-    local ww,hh = love.graphics.getDimensions()
+    local ww,hh = lg.getDimensions()
     camera:setZoom(math.floor(10*(ww+hh)/600)/10)
 end
 
@@ -151,7 +154,20 @@ function map:draw()
 
     ui.startUI()
     self:renderNavbar()
-    -- self:renderMap()
+
+    local x=10
+    local y=10
+    lg.scale(1.5)
+    lg.setColor(0,0,0)
+    for dx=-1,1,2 do
+        for dy=-1,1,2 do
+            lg.draw(WASD, x+dx, y+dy)
+        end
+    end
+
+    lg.setColor(1,1,1)
+    lg.draw(WASD,x,y)
+
     ui.endUI()
 end
 
