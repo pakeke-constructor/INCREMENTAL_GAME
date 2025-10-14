@@ -19,7 +19,7 @@ Evil cat: Deal 10 damage to the nearest token every 0.4 seconds
 -- TODO: Balancing
 g.defineTokenUpgrade("lightning_cat", "Lightning Cat", {
     token = {
-        maxHealth = 70,
+        maxHealth = 5,
         resources = {},
         tokenDestroyed = function()
             local world = g.getMainWorld()

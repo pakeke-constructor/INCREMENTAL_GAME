@@ -1605,7 +1605,7 @@ end
 -- g.playSound defined here
 do
 
-local MAX_SOURCE_POOL = 15
+local MAX_SOURCE_POOL = 4
 ---@type table<string, love.Source[]>
 local sourcePool = {} -- first source always the one to clone
 
