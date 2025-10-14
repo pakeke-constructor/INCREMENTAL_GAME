@@ -3,6 +3,7 @@
 g.defineTokenUpgrade("grass_blades", "Grass Blades", {
     token = {
         particles = "grass",
+        category = "grass",
         resources = {money = 1},
         maxHealth = 3
     },
@@ -16,6 +17,7 @@ g.defineTokenUpgrade("grass_blades", "Grass Blades", {
 g.defineTokenUpgrade("small_grass", "Small Grass", {
     token = {
         particles = "grass",
+        category = "grass",
         resources = {money = 3},
         maxHealth = 6
     },
@@ -28,6 +30,7 @@ g.defineTokenUpgrade("small_grass", "Small Grass", {
 g.defineTokenUpgrade("thick_grass", "Thick Grass", {
     token = {
         particles = "grass",
+        category = "grass",
         resources = {money = 6},
         maxHealth = 8
     },
@@ -40,6 +43,7 @@ g.defineTokenUpgrade("thick_grass", "Thick Grass", {
 
 g.defineTokenUpgrade("bamboo", "Bamboo", {
     token = {
+        category = "wood",
         resources = {money = 15},
         maxHealth = 12
     },
@@ -54,6 +58,7 @@ g.defineTokenUpgrade("bamboo", "Bamboo", {
 
 g.defineTokenUpgrade("stick", "Stick", {
     token = {
+        category = "wood",
         resources = {
             logs = 1,
         },
@@ -69,6 +74,7 @@ g.defineTokenUpgrade("stick", "Stick", {
 
 g.defineTokenUpgrade("basic_log", "Basic Log", {
     token = {
+        category = "wood",
         resources = {
             money = 10,
             logs = 3,
@@ -88,6 +94,7 @@ do
 
 g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
     token = {
+        category = "cat",
         resources = {
             money = 15,
         },
@@ -102,6 +109,7 @@ g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
 
 g.defineTokenUpgrade("happy_cat", "Happy Cat", {
     token = {
+        category = "cat",
         resources = {
             money = 30,
         },
@@ -115,6 +123,7 @@ g.defineTokenUpgrade("happy_cat", "Happy Cat", {
 
 g.defineTokenUpgrade("business_cat", "Business Cat", {
     token = {
+        category = "cat",
         resources = {
             money = 300,
         },

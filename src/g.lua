@@ -1587,7 +1587,7 @@ function g.hitImmediately(tok)
     g.playSound(s, 1,0.1,0.2,0.2)
 
     -- todo: rework all this.
-    if tok.type:match("grass") then
+    if tok.category == "grass" then
         if love.math.random()<0.3 then
             g.playSound("hit_grass",1,0.15, 0.1)
         else
