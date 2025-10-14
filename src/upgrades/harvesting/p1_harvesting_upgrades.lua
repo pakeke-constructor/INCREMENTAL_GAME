@@ -5,7 +5,7 @@
 
 ---@param id string
 ---@param name string
----@param tabl g.UpgradeInfo|{kind:nil}
+---@param tabl g.UpgradeDefinition|{kind:nil}
 local function defUpgrade(id,name,tabl)
     tabl.kind = "HARVESTING"
     g.defineUpgrade(id,name,tabl)
