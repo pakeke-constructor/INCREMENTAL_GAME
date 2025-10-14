@@ -480,6 +480,7 @@ local g_UpgradeDefinition = {}
 ---@field image string?
 ---@field description string?
 ---@field particles string?
+---@field category g.Category?
 local g_TokenDefinition = {}
 
 
@@ -685,6 +686,25 @@ function g.addResourceFrom(tok, resId, amount)
     -- TODO: MAKE g.call here!  "tokenEarnedResource"
     g.addResource(resId, amount * mult)
 end
+
+
+
+--------------------------------------------------
+-- Categories
+--------------------------------------------------
+
+---@alias g.Category
+---| "grass"
+---| "wood"
+---| "cat"
+
+---@type table<g.Category, true|nil>
+g.CATEGORIES = {
+    grass = true,
+    wood = true,
+    cat = true
+}
+
 
 
 
@@ -1256,6 +1276,9 @@ function g.defineToken(tokType, name, tabl)
     assert(not tabl.type, ".type is a reserved field!")
     assert(tabl.maxHealth, "Tokens need .maxHealth")
     assert(tabl.resources, "Tokens need .resources")
+    if tabl.category and not g.CATEGORIES[tabl.category] then
+        error("invalid category '"..tabl.category.."'")
+    end
     tabl.type = tokType ---@diagnostic disable-line
     tabl.image = tabl.image or tokType ---@diagnostic disable-line
     tabl.name = loc(name) ---@diagnostic disable-line
