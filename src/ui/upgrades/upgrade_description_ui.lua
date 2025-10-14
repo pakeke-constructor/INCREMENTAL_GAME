@@ -128,15 +128,18 @@ function UpgradeDescription:addTitle(text, image)
     if image then
         -- Text and image side-by-side
         -- 4 is spacing between text and image
-        return self:addBox(tw + th + 4, th, function(x, y, w, h)
-            richtext.printRich(text, self.titleFont, x, y, w, "left")
+        local fullw = math.min(tw + th + 4, UPGRADE_DESC_MAX_WIDTH)
+        return self:addBox(fullw, th, function(x, y, w, h)
+            richtext.printRichContained(text, self.titleFont, x, y, w - h - 4, h)
             -- It's just simpler to specify 0,0 offset
             g.drawImageOffset(image, x + w - h, y, 0, 2, 2, 0, 0)
+            ui.debugRegion(Kirigami(x, y, w - h - 4, h))
         end)
     else
         -- Text only
-        return self:addBox(tw, th, function(x, y, w, h)
-            richtext.printRich(text, self.titleFont, x, y, w, "left")
+        local fullw = math.min(tw, UPGRADE_DESC_MAX_WIDTH)
+        return self:addBox(fullw, th, function(x, y, w, h)
+            richtext.printRichContained(text, self.titleFont, x, y, w, h)
         end)
     end
 end
