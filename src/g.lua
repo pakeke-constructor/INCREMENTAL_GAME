@@ -1363,6 +1363,7 @@ do
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
 ---@field blendalphamode love.BlendAlphaMode?
+---@field init (fun(ent:g.Entity))?
 ---@field update (fun(ent: g.Entity, dt:number))?
 ---@field perSecondUpdate (fun(e:g.Entity))?
 ---@field drawBelow (fun(ent: g.Entity))?
@@ -1402,6 +1403,10 @@ function g.spawnEntity(ename, x,y)
         id = currentId,
         x=x,y=y, type=ename
     }, mt)
+
+    if ent.init then
+        ent:init()
+    end
 
     currentId = currentId + 1
     assert(type(ent) == "table")
