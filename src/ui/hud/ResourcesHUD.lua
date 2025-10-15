@@ -196,7 +196,7 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
         love.graphics.setColor(1, 1, 1)
         local r = textR:padUnit(8, 0, 0, 0):moveUnit(0, math.sin(love.timer.getTime()*3)-2)
         printTextAt(
-            g.formatNumber(self.displayValue[kind]),
+            g.formatNumber(math.max(0,self.displayValue[kind])),
             self._resourceFont,
             r,
             "left",
