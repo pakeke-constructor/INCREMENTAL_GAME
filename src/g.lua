@@ -1538,7 +1538,14 @@ function g.destroyToken(tok)
 
     local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
-    g.addResources(tok.resources)
+
+    local bundle = g.ask("getTokenResourceModifier", tok)
+
+    for _,resId in ipairs(g.RESOURCE_LIST) do
+        local amount = tok.resources[resId] or 0
+        g.addResourceFrom(tok, resId, amount)
+    end
+
     spawnTokenResource(tok)
     if tok.particles then
         g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))

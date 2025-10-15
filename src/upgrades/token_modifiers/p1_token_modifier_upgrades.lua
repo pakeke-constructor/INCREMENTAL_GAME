@@ -37,3 +37,53 @@ defUpgrade("grassy_shovel", "Grassy Shovel", {
         return tok.category == "grass" and uinfo:getValues(level) or 0
     end
 })
+
+
+
+defUpgrade("horticulture_book", "Horticulture Book", {
+    price = {money = 20},
+    description = "Grasses earn %{1}",
+    maxLevel = 10,
+    getValues = function(uinfo, level)
+        return math.floor(level ^ 1.5)
+    end,
+    valueFormatter = {"+$%d"},
+
+    ---@param uinfo g.UpgradeInfo
+    ---@param level integer
+    ---@param tok g.Token
+    getTokenResourceModifier = function(uinfo, level, tok)
+        if tok.category == "grass" then
+            return {
+                money = uinfo:getValues(level) or 0
+            }
+        end
+        return nil
+    end
+})
+
+
+
+defUpgrade("moldy_block", "Moldy Block", {
+    price = {money = 20},
+    description = "Mushrooms earn %{1}",
+    maxLevel = 10,
+    getValues = function(uinfo, level)
+        return math.floor(level ^ 1.5)
+    end,
+    valueFormatter = {"+%d wood"},
+
+    ---@param uinfo g.UpgradeInfo
+    ---@param level integer
+    ---@param tok g.Token
+    getTokenResourceModifier = function(uinfo, level, tok)
+        if (tok.category == "mushroom") then
+            return {
+                wood = uinfo:getValues(level)
+            }
+        end
+        return nil
+    end
+})
+
+
