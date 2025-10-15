@@ -117,3 +117,26 @@ defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
 
 
 
+defUpgrade("more_loot", "More Loot", {
+    image = "money_icon", -- TODO: change
+    price = {money = 100},
+    description = "All tokens have %{1} more health, and earn %{2} more resources.",
+
+    getValues = function(uinfo, level)
+        ---@diagnostic disable-next-line: redundant-return-value
+        return 6 + level * 4, 10 * level
+    end,
+    valueFormatter = {"%d%%", "%d%%"},
+
+    getTokenMaxHealthMultiplier = function(uinfo, level)
+        local healthMult = uinfo:getValues(level) / 100
+        return 1 + healthMult
+    end,
+    getTokenResourceMultiplier = function(uinfo, level)
+        local resMult = select(2, uinfo:getValues(level)) / 100
+        return 1 + resMult
+    end
+})
+
+
+
