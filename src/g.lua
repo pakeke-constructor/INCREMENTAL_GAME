@@ -1364,6 +1364,7 @@ do
 ---@field blendmode love.BlendMode?
 ---@field blendalphamode love.BlendAlphaMode?
 ---@field update (fun(ent: g.Entity, dt:number))?
+---@field perSecondUpdate (fun(e:g.Entity))?
 ---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?
 local Entity = {}

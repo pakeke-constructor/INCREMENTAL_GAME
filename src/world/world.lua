@@ -419,16 +419,22 @@ function World:_update(dt)
         end
     end
 
-    self.tokens:flush()
-
-    self.particles:update(dt)
-
     -- Run per second update event bus on upgrades
     self.timer = self.timer + dt
     while self.timer >= 1 do
+        for _, ent in ipairs(self.entities) do
+            if ent.perSecondUpdate then
+                ent:perSecondUpdate()
+            end
+        end
+
         g.call("perSecondUpdate")
         self.timer = self.timer - 1
     end
+
+    self.tokens:flush()
+
+    self.particles:update(dt)
 end
 
 
