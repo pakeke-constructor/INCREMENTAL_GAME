@@ -597,6 +597,30 @@ function g.addBundles(a,b)
 end
 
 
+---@param a g.Bundle
+---@param b g.Bundle|number
+---@return g.Resources
+function g.multBundles(a,b)
+    --[[
+    NOTE: this operation is NOT commutative.
+
+    this is to compensate for how qbuses work.
+    ]]
+    local result = {}
+    if type(b) == "number" then
+        for _, resId in ipairs(g.RESOURCE_LIST) do
+            result[resId] = (a[resId] or 0) * b
+        end
+    else
+        for _, resId in ipairs(g.RESOURCE_LIST) do
+            result[resId] = (a[resId] or 0) * (b[resId] or 1)
+        end
+    end
+    return result
+end
+
+
+
 
 ---@return g.Resources
 function g.getResources()
@@ -682,10 +706,22 @@ function g.trySubtractResources(price)
 end
 
 
-function g.addResourceFrom(tok, resId, amount)
-    local mult = g.ask("getTokenResourceMultiplier", tok, resId)
-    -- TODO: MAKE g.call here!  "tokenEarnedResource"
-    g.addResource(resId, amount * mult)
+
+---@param tok g.Token
+---@param bundle g.Bundle
+---@return g.Bundle
+function g.addResourceFrom(tok, bundle)
+    local mod = g.ask("getTokenResourceModifier", tok)
+    local mult = g.ask("getTokenResourceMultiplier", tok)
+
+    bundle = g.addBundles(bundle, mod)
+    bundle = g.multBundles(bundle, mult)
+
+    -- TODO: MAKE g.call here?  "tokenEarnedResource"
+
+    g.addResources(bundle)
+    print(g.getResource("logs"))
+    return bundle
 end
 
 
@@ -1545,12 +1581,7 @@ function g.destroyToken(tok)
     local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
 
-    local bundle = g.ask("getTokenResourceModifier", tok)
-
-    for _,resId in ipairs(g.RESOURCE_LIST) do
-        local amount = tok.resources[resId] or 0
-        g.addResourceFrom(tok, resId, amount)
-    end
+    g.addResourceFrom(tok, tok.resources)
 
     spawnTokenResource(tok)
     if tok.particles then

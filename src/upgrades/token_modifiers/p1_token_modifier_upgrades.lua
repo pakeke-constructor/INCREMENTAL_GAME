@@ -55,7 +55,7 @@ defUpgrade("horticulture_book", "Horticulture Book", {
     getTokenResourceModifier = function(uinfo, level, tok)
         if tok.category == "grass" then
             return {
-                money = uinfo:getValues(level) or 0
+                money = uinfo:getValues(level)
             }
         end
         return nil
@@ -79,7 +79,7 @@ defUpgrade("moldy_block", "Moldy Block", {
     getTokenResourceModifier = function(uinfo, level, tok)
         if (tok.category == "mushroom") then
             return {
-                wood = uinfo:getValues(level)
+                logs = uinfo:getValues(level)
             }
         end
         return nil

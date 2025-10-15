@@ -39,7 +39,17 @@ g.defineQuestion("getTokenDamageModifier", reducers.ADD, 0)
 g.defineQuestion("getTokenDamageMultiplier", reducers.MULTIPLY, 1)
 
 
-g.defineQuestion("getTokenResourceMultiplier", reducers.MULTIPLY, 1)
+
+-- Slight hack: using __index to set all keys to 1.
+-- (we dont know what resoruces are defined yet)
+local MULTIPLICATIVE_IDENTITY = setmetatable({},{__index = function() return 1 end})
+g.defineQuestion("getTokenResourceMultiplier", function(a, b)
+    if not b then
+        return a
+    end
+    return g.multBundles(a,b)
+end, MULTIPLICATIVE_IDENTITY)
+
 g.defineQuestion("getTokenResourceModifier", function(a, b)
     if not b then
         return a
@@ -47,6 +57,7 @@ g.defineQuestion("getTokenResourceModifier", function(a, b)
     if not a then return b end
     return g.addBundles(a,b)
 end, {})
+
 
 
 g.defineQuestion("getUpgradePriceMultiplier", reducers.MULTIPLY, 1)
