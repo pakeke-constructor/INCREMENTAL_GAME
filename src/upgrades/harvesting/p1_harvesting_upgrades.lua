@@ -90,3 +90,30 @@ defUpgrade("lucky_hit", "Lucky Hit", {
 
 
 
+
+
+defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
+    price = {money=800},
+
+    maxLevel = 3,
+
+    getValues = function(self,level)
+        return level*10
+    end,
+    description = "Every second, +%{1}% chance to spawn a spinning axe",
+
+    perSecondUpdate = function(self,level)
+        local r = love.math.random()
+        local a=self:getValues(level)
+        local chance = (a/100)
+        if r < chance then
+            local x,y = g.getRandomPositionForToken()
+            if x and y then
+                g.spawnEntity("spinning_axe", x,y)
+            end
+        end
+    end
+})
+
+
+
