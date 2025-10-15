@@ -788,10 +788,17 @@ local function drawAllUpgrades()
             if isHovered then
                 hovered = uinfo
             end
-            if wasJustClicked and level < uinfo.maxLevel then
-                -- Uh...
+            if wasJustClicked then
                 local session = g.getSn()
-                session.upgradeLevels[utype] = (session.upgradeLevels[utype] or 0) + 1
+
+                -- Uh...
+                if love.keyboard.isDown("lshift", "rshift") then
+                    session.upgradeLevels[utype] = uinfo.maxLevel
+                elseif love.keyboard.isDown("lctrl", "rctrl") then
+                    session.upgradeLevels[utype] = nil
+                elseif level < uinfo.maxLevel then
+                    session.upgradeLevels[utype] = (session.upgradeLevels[utype] or 0) + 1
+                end
                 hovered = nil
             end
 
