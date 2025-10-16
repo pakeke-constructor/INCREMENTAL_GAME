@@ -597,7 +597,7 @@ function g.addBundles(a,b)
 end
 
 
----@param a g.Bundle
+---@param a g.Bundle|number
 ---@param b g.Bundle|number
 ---@return g.Resources
 function g.multBundles(a,b)
@@ -607,6 +607,16 @@ function g.multBundles(a,b)
     this is to compensate for how qbuses work.
     ]]
     local result = {}
+
+    if type(a) == "number" then
+        ---@type g.Bundle
+        local temp = {}
+        for _, resId in ipairs(g.RESOURCE_LIST) do
+            temp[resId] = a
+        end
+        a = temp
+    end
+
     if type(b) == "number" then
         for _, resId in ipairs(g.RESOURCE_LIST) do
             result[resId] = (a[resId] or 0) * b
@@ -720,7 +730,6 @@ function g.addResourceFrom(tok, bundle)
     -- TODO: MAKE g.call here?  "tokenEarnedResource"
 
     g.addResources(bundle)
-    print(g.getResource("logs"))
     return bundle
 end
 
