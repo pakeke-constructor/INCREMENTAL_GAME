@@ -719,6 +719,26 @@ end
 
 ---@param tok g.Token
 ---@param bundle g.Bundle
+local function spawnTokenResource(tok, bundle)
+    local hud = g.getHUD()
+    if bundle.money then
+        hud:spawnResourceParticle("money", tok.x, tok.y, bundle.money)
+    end
+    if bundle.logs then
+        hud:spawnResourceParticle("logs", tok.x, tok.y, bundle.logs)
+    end
+    if bundle.rocks then
+        hud:spawnResourceParticle("rocks", tok.x, tok.y, bundle.rocks)
+    end
+    if bundle.bones then
+        hud:spawnResourceParticle("bones", tok.x, tok.y, bundle.bones)
+    end
+end
+
+
+
+---@param tok g.Token
+---@param bundle g.Bundle
 ---@return g.Bundle
 function g.addResourceFrom(tok, bundle)
     local mod = g.ask("getTokenResourceModifier", tok)
@@ -730,6 +750,7 @@ function g.addResourceFrom(tok, bundle)
     -- TODO: MAKE g.call here?  "tokenEarnedResource"
 
     g.addResources(bundle)
+    spawnTokenResource(tok, bundle)
     return bundle
 end
 
@@ -1584,23 +1605,6 @@ end
 
 
 ---@param tok g.Token
-local function spawnTokenResource(tok)
-    local hud = g.getHUD()
-    if tok.resources.money then
-        hud:spawnResourceParticle("money", tok.x, tok.y, tok.resources.money)
-    end
-    if tok.resources.logs then
-        hud:spawnResourceParticle("logs", tok.x, tok.y, tok.resources.logs)
-    end
-    if tok.resources.rocks then
-        hud:spawnResourceParticle("rocks", tok.x, tok.y, tok.resources.rocks)
-    end
-    if tok.resources.bones then
-        hud:spawnResourceParticle("bones", tok.x, tok.y, tok.resources.bones)
-    end
-end
-
----@param tok g.Token
 ---@return boolean
 function g.destroyToken(tok)
     if tok.___destroyed then
@@ -1614,7 +1618,6 @@ function g.destroyToken(tok)
 
     g.addResourceFrom(tok, tok.resources)
 
-    spawnTokenResource(tok)
     if tok.particles then
         g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))
     end
