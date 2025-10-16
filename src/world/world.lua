@@ -195,6 +195,13 @@ local function getTokShear(tok)
 end
 
 
+---@param tok g.Token
+local function drawAxe(tok)
+    love.graphics.setColor(1,1,1)
+    local t = math.min(tok.timeSinceHitStart / getAxeSwingTime(), 1)
+    local scale = 2 * math.floor(tok.id % 2) - 1
+    g.drawImageOffset("iron_axe", tok.x - 14 * scale, tok.y + 4, scale * (t * t - 0.9), scale, 1, 0.1, 0.9)
+end
 
 local function drawToken(tok)
     love.graphics.setColor(1,1,1,1)
@@ -210,19 +217,46 @@ local function drawToken(tok)
     love.graphics.setColor(1,1,1)
     g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
 
+    if tok.timeSinceHitStart < getSwingTime() then
+        drawAxe(tok)
+    end
+
     drawTokenHealthBar(tok)
 end
 
 
 
 
+---@param e g.Entity
+local function drawEntity(e)
+    if e.drawBelow then
+        love.graphics.setColor(1, 1, 1)
+        e:drawBelow()
+    end
 
----@param tok g.Token
-local function drawAxe(tok)
-    love.graphics.setColor(1,1,1)
-    local t = math.min(tok.timeSinceHitStart / getAxeSwingTime(), 1)
-    local scale = 2 * math.floor(tok.id % 2) - 1
-    g.drawImageOffset("iron_axe", tok.x - 14 * scale, tok.y + 4, scale * (t * t - 0.9), scale, 1, 0.1, 0.9)
+    if e.shadowRadius then
+        love.graphics.setColor(g.COLORS.SHADOW)
+        love.graphics.ellipse("fill",e.x,e.y+e.shadowRadius,e.shadowRadius,e.shadowRadius/2)
+    end
+
+    if e.image then
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
+        g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, e.sx or 1, e.sy or 1)
+        love.graphics.setBlendMode("alpha", "alphamultiply")
+    end
+
+    if e.draw then
+        love.graphics.setColor(1, 1, 1)
+        e:draw()
+    end
+end
+
+
+---@param a g.Token|g.Entity
+---@param b g.Token|g.Entity
+local function sortOrder(a, b)
+    return a.y < b.y
 end
 
 
@@ -231,44 +265,32 @@ function World:_draw()
     love.graphics.setColor(0,0,0)
     love.graphics.rectangle("line", 0,0, w,h)
 
+    ---@type (g.Token|g.Entity)[]
+    local objlist = {}
+
     -- drawGround()
 
+    -- Add token to be drawn
     for _, tok in ipairs(self.tokens) do
-        drawToken(tok)
+        objlist[#objlist+1] = tok
     end
 
-    -- draw pickaxes/axes:
-    for _,tok in ipairs(self.tokens) do
-        ---@cast tok g.Token
-        if tok.timeSinceHitStart < getSwingTime() then
-            drawAxe(tok)
-        end
-    end
-
-    -- draw entities
+    -- Add entitiy to be drawn
     for _, e in ipairs(self.entities) do
-        ---@cast e g.Entity
+        objlist[#objlist+1] = e
+    end
 
-        if e.drawBelow then
-            love.graphics.setColor(1, 1, 1)
-            e:drawBelow()
-        end
+    -- Sort by Y bottom first
+    table.sort(objlist, sortOrder)
 
-        if e.shadowRadius then
-            love.graphics.setColor(g.COLORS.SHADOW)
-            love.graphics.ellipse("fill",e.x,e.y+e.shadowRadius,e.shadowRadius,e.shadowRadius/2)
-        end
-
-        if e.image then
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
-            g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, e.sx or 1, e.sy or 1)
-            love.graphics.setBlendMode("alpha", "alphamultiply")
-        end
-
-        if e.draw then
-            love.graphics.setColor(1, 1, 1)
-            e:draw()
+    -- Draw everything.
+    for _, t_or_e in ipairs(objlist) do
+        if g.isToken(t_or_e) then
+            ---@cast t_or_e g.Token
+            drawToken(t_or_e)
+        elseif g.isEntity(t_or_e) then
+            ---@cast t_or_e g.Entity
+            drawEntity(t_or_e)
         end
     end
 
@@ -314,6 +336,8 @@ end
 ---@param self g.World
 local function updateResourceDataCollection(self)
     if not self.dataCollectors then
+        self.dataCollectors = {}
+
         for _, resId in ipairs(g.RESOURCE_LIST) do
             local startValue = g.getResource(resId)
             self.dataCollectors[resId] = DataCollection(60, startValue)

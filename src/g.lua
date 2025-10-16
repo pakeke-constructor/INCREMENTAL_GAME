@@ -1318,6 +1318,8 @@ local tokenDefinitions = {--[[
 local tokenMts = {--[[
     [tokenType] -> tokenMt
 ]]}
+---@type table<g.TokenInfo, true|nil>
+local reverseTokMt = {}
 
 g.TOKEN_LIST = {}
 
@@ -1335,8 +1337,16 @@ function g.defineToken(tokType, name, tabl)
     tabl.image = tabl.image or tokType ---@diagnostic disable-line
     tabl.name = loc(name) ---@diagnostic disable-line
     tokenDefinitions[tokType] = tabl
-    tokenMts[tokType] = {__index = tabl}
+    local mt = {__index = tabl}
+    tokenMts[tokType] = mt
+    reverseTokMt[mt] = true
     g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
+end
+
+---@param obj any
+function g.isToken(obj)
+    local mt = getmetatable(obj)
+    return not not reverseTokMt[mt]
 end
 
 ---@param tokType string
@@ -1416,7 +1426,10 @@ do
 local Entity = {}
 
 
+---@type table<string, table>
 local ENTITY_DEFS = {}
+---@type table<table, true|nil>
+local REVERSE_ENTITY_MT = {}
 
 ---@param type string
 ---@param etype g.Entity|{x:nil,y:nil,type:nil}
@@ -1426,7 +1439,9 @@ function g.defineEntity(type, etype)
     assert(etype.y == nil, "y is reserved field")
     assert(etype.type == nil, "type is reserved field")
     etype.type = type
-    ENTITY_DEFS[type] = {__index=etype}
+    local mt = {__index=etype}
+    ENTITY_DEFS[type] = mt
+    REVERSE_ENTITY_MT[mt] = true
 end
 
 
@@ -1458,6 +1473,11 @@ function g.spawnEntity(ename, x,y)
     assert(ent.type)
     w.entities:addBuffered(ent)
     return ent
+end
+
+function g.isEntity(obj)
+    local mt = getmetatable(obj)
+    return not not REVERSE_ENTITY_MT[mt]
 end
 
 
