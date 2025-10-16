@@ -34,8 +34,15 @@ function HUD:draw(camera, show)
         -- Draw dummy profile picture
         love.graphics.setColor(1, 1, 1)
         love.graphics.rectangle("fill", profileR:get())
+        local x,y,w,h = profileR:get()
+        love.graphics.setColor(1,1,1)
+        local SCALE=4
+        g.drawImage("happy_cat",x+w/2,y+h/2, 0, -SCALE,SCALE)
         love.graphics.setColor(1, 0, 0)
+        local lw = love.graphics.getLineWidth()
+        love.graphics.setLineWidth(3)
         love.graphics.rectangle("line", profileR:get())
+        love.graphics.setLineWidth(lw)
     end
 
     self.resourceHUD:draw(camera, hideResource)
