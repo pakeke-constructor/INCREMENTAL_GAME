@@ -74,7 +74,7 @@ local harvestTokenSpawnText = table.concat({
     "> {wavy}%d. %s{/wavy} <",
     "%d. %s",
     "[Down Arrow] = Select Below",
-    "[T | MB4] = Spawn @ Mouse Pos"
+    "[LMB] = Spawn @ Mouse Pos"
 }, "\n")
 
 local selectedTokenIndex = 1
@@ -991,7 +991,7 @@ function dev:keyreleased(k)
     elseif k == "c" then
         self.camera:setPos(0, 0)
         self:setZoom(0)
-    elseif currentSceneNumber == 2 then
+    elseif currentSceneNumber == 4 then
         if k == "up" then
             selectedTokenIndex = (selectedTokenIndex - 2) % #g.TOKEN_LIST + 1
         elseif k == "down" then
@@ -999,7 +999,7 @@ function dev:keyreleased(k)
         elseif k == "t" then
             trySpawnTokenAtMouse(self)
         end
-    elseif currentSceneNumber == 3 then
+    elseif currentSceneNumber == 2 then
         if k == "s" and love.keyboard.isDown("lctrl", "rctrl") then
             saveAllUpgrades()
         elseif k == "t" or k == "g" then
@@ -1057,7 +1057,7 @@ end
 
 
 function dev:mousereleased(_, _, m)
-    if currentSceneNumber == 2 and m == 4 then
+    if currentSceneNumber == 4 and m == 1 then
         trySpawnTokenAtMouse(self)
     end
 end
