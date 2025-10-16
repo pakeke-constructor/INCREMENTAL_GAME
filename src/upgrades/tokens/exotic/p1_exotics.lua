@@ -19,6 +19,7 @@ Evil cat: Deal 10 damage to the nearest token every 0.4 seconds
 -- TODO: Balancing
 g.defineTokenUpgrade("mushroom_blue", "Blue Mushroom", {
     token = {
+        category = "mushroom",
         maxHealth = 7,
         resources = {},
         tokenDestroyed = function(tok)
@@ -36,6 +37,7 @@ g.defineTokenUpgrade("mushroom_blue", "Blue Mushroom", {
 
 g.defineTokenUpgrade("mushroom_red", "Red Mushroom", {
     token = {
+        category = "mushroom",
         maxHealth = 4,
         resources = {},
         tokenDestroyed = function(tok)
@@ -53,6 +55,7 @@ g.defineTokenUpgrade("mushroom_red", "Red Mushroom", {
 
 g.defineTokenUpgrade("mushroom_green", "Green Mushroom", {
     token = {
+        category = "mushroom",
         maxHealth = 7,
         resources = {},
         tokenDestroyed = function()
