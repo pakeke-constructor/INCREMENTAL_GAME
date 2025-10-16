@@ -619,11 +619,11 @@ function g.multBundles(a,b)
 
     if type(b) == "number" then
         for _, resId in ipairs(g.RESOURCE_LIST) do
-            result[resId] = (a[resId] or 0) * b
+            result[resId] = (a[resId] or 1) * b
         end
     else
         for _, resId in ipairs(g.RESOURCE_LIST) do
-            result[resId] = (a[resId] or 0) * (b[resId] or 1)
+            result[resId] = (a[resId] or 1) * (b[resId] or 1)
         end
     end
     return result
