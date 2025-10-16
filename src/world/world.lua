@@ -45,13 +45,8 @@ function World:init()
     self.timer = 0 -- For per second update
 
     ---@type table<g.ResourceType, g.DataCollection>
-    self.dataCollectors = {}
-    -- We can't prefill the data in here because session
-    -- is not loaded yet.
-    self.dataCollectorsInit = false
-    for _, resId in ipairs(g.RESOURCE_LIST) do
-        self.dataCollectors[resId] = DataCollection(60)
-    end
+    self.dataCollectors = nil
+    -- We can't create the collectors yet because session isnt loaded.
 end
 
 
@@ -315,9 +310,17 @@ end
 
 
 
----@param collections table<g.ResourceType, g.DataCollection>
-local function updateResourceDataCollection(collections)
-    for resId, collector in pairs(collections) do
+
+---@param self g.World
+local function updateResourceDataCollection(self)
+    if not self.dataCollectors then
+        for _, resId in ipairs(g.RESOURCE_LIST) do
+            local startValue = g.getResource(resId)
+            self.dataCollectors[resId] = DataCollection(60, startValue)
+        end
+    end
+
+    for resId, collector in pairs(self.dataCollectors) do
         local value = g.getResource(resId)
         if value < g.getResourceLimit(resId) or value ~= collector:getPrevious() then
             collector:setAndIncrementPointer(value)
@@ -328,20 +331,6 @@ end
 
 
 function World:_update(dt)
-    if not self.dataCollectorsInit then
-        -- Setup data collector by prefilling buffer with specific value
-        -- We can't do this at World:init because world is created first
-        -- then the whole session. So defer it to first update.
-        for resId, collector in pairs(self.dataCollectors) do
-            local cur = g.getResource(resId)
-            for _ = 1, 60 do
-                collector:setAndIncrementPointer(cur)
-            end
-        end
-
-        self.dataCollectorsInit = true
-    end
-
     self.entities:flush()
     self.tokens:flush()
 
@@ -466,7 +455,7 @@ function World:_update(dt)
         end
 
         g.call("perSecondUpdate")
-        updateResourceDataCollection(self.dataCollectors)
+        updateResourceDataCollection(self)
         self.timer = self.timer - 1
     end
 

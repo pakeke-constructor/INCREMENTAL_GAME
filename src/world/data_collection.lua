@@ -1,24 +1,26 @@
+
 ---@class g.DataCollection: objects.Class
 local DataCollection = objects.Class("g:DataCollection")
 
 local table_new = require("table.new")
 
 ---@param count integer
-function DataCollection:init(count)
+function DataCollection:init(count, startValue)
     assert(count > 1)
     self.pointer = 0
     ---@type number[]
     self.buffer = table_new(count, 0)
     for i = 1, count do
-        self.buffer[i] = 0
+        self.buffer[i] = startValue
     end
 end
 
 if false then
     ---@param count integer
+    ---@param startValue number
     ---@return g.DataCollection
     ---@diagnostic disable-next-line: cast-local-type, missing-return
-    function DataCollection(count) end
+    function DataCollection(count, startValue) end
 end
 
 ---@param value number
