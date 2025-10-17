@@ -15,15 +15,8 @@ local CATCH_TIMING_WINDOW = 1
 
 -- We should have this in like a helper function
 
----@param a number
----@param b number
----@param t number
-local function lerp(a, b, t)
-    return (1 - t) * a + t * b
-end
-
 local function rerollTimer()
-    return lerp(GOOD_REEL_IN_TIME_RANGE[1], GOOD_REEL_IN_TIME_RANGE[2], love.math.random())
+    return helper.lerp(GOOD_REEL_IN_TIME_RANGE[1], GOOD_REEL_IN_TIME_RANGE[2], love.math.random())
 end
 
 ---@param x number value between [0, 1]. At 0.5, return value is 1.
@@ -108,85 +101,91 @@ local ALLOWED_STATE = {
     reeling = true
 }
 
+
+
+---@param self FishingScene
+local function drawCatchMeter(self)
+    local catchMeterR = startButtonR:set(nil, nil, nil, 30)
+        :moveRatio(0, -1)
+        :moveUnit(0, -4)
+    local x, y, w, h = catchMeterR:get()
+    local xsize = w / 2
+
+    -- Draw outline of the catch meter
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("line", x, y, w, h)
+
+    -- Draw catch ranges
+    -- Note: The defined spacing is from lowest to highest. We want to render from highest to lowest.
+    for i = #SPACING, 1, -1 do
+        local index = (#SPACING - i) / (#SPACING - 1)
+        local rc, gc, bc = objects.Color.HSLtoRGB(lerp(22, 90, index), 1, 0.6)
+
+        love.graphics.setColor(rc, gc, bc)
+        love.graphics.rectangle(
+            "fill",
+            x + xsize * (1 - SPACING[i].window),
+            y,
+            2 * xsize * SPACING[i].window,
+            h
+        )
+    end
+
+    -- Draw reel catch position
+    local linepos = pingpong(self.reelInMeterPosition) * w
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.line(x + linepos, y, x + linepos, y + h)
+end
+
+
+
 function fishing:drawUI()
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
-    if ALLOWED_STATE[self.mainCat.animationState] then
-        local startButtonR = Kirigami(0, 0, 120, 74)
-            :attachToBottomOf(r)
-            :attachToRightOf(r)
-            :moveRatio(-1, -1)
-            :moveUnit(-8, -8)
+    local startButtonR = Kirigami(0, 0, 120, 74)
+        :attachToBottomOf(r)
+        :attachToRightOf(r)
+        :moveRatio(-1, -1)
+        :moveUnit(-8, -8)
 
-        local text = "Cast Fishing Rod"
-        if self.mainCat.animationState == "fishing" then
-            text = "Pull Fishing Rod"
-        elseif self.mainCat.animationState == "reeling" then
-            text = "Catch!"
+    local text = "Cast Fishing Rod"
+    if self.mainCat.animationState == "fishing" then
+        text = "Cancel"
+    elseif self.mainCat.animationState == "reeling" then
+        text = "Catch!"
+        drawCatchMeter(self)
+    end
 
-            local catchMeterR = startButtonR:set(nil, nil, nil, 30)
-                :moveRatio(0, -1)
-                :moveUnit(0, -4)
-            local x, y, w, h = catchMeterR:get()
-            local xsize = w / 2
-
-            -- Draw outline of the catch meter
-            love.graphics.setColor(0, 0, 0)
-            love.graphics.rectangle("line", x, y, w, h)
-
-            -- Draw catch ranges
-            -- Note: The defined spacing is from lowest to highest. We want to render from highest to lowest.
-            for i = #SPACING, 1, -1 do
-                local index = (#SPACING - i) / (#SPACING - 1)
-                local rc, gc, bc = objects.Color.HSLtoRGB(lerp(22, 90, index), 1, 0.6)
-
-                love.graphics.setColor(rc, gc, bc)
-                love.graphics.rectangle(
-                    "fill",
-                    x + xsize * (1 - SPACING[i].window),
-                    y,
-                    2 * xsize * SPACING[i].window,
-                    h
-                )
-            end
-
-            -- Draw reel catch position
-            local linepos = pingpong(self.reelInMeterPosition) * w
-            love.graphics.setColor(0, 0, 0)
-            love.graphics.line(x + linepos, y, x + linepos, y + h)
-        end
-
-        if ui.Button(text, startButtonR:get()) then
-            if self.mainCat.animationState == "idle" then
-                self.mainCat:startFishing()
-            elseif self.mainCat.animationState == "fishing" then
-                if self:_isCatchHit() then
-                    -- TODO: Minigame
-                    print("Hit it")
-                    self.mainCat:reelIn()
-                else
-                    self.mainCat:pullRod()
-                end
-
-                self.catchTime = -1
-            elseif self.mainCat.animationState == "reeling" then
-                local accuracy = 2 * math.abs(pingpong(self.reelInMeterPosition) - 0.5)
-                local rarity = nil
-                for _, spc in ipairs(SPACING) do
-                    if accuracy <= spc.window then
-                        rarity = spc.rarity()
-                        break
-                    end
-                end
-
-                print("Rarity", rarity)
-                if rarity then
-                    self.world:giveLootRewardFor(rarity)
-                else
-                    print("No fish :pensivebear:")
-                end
+    if ui.Button(text, startButtonR:get()) then
+        if self.mainCat.animationState == "idle" then
+            self.mainCat:startFishing()
+        elseif self.mainCat.animationState == "fishing" then
+            if self:_isCatchHit() then
+                -- TODO: Minigame
+                print("Hit it")
+                self.mainCat:reelIn()
+            else
                 self.mainCat:pullRod()
             end
+
+            self.catchTime = -1
+        elseif self.mainCat.animationState == "reeling" then
+            local accuracy = 2 * math.abs(pingpong(self.reelInMeterPosition) - 0.5)
+            local rarity = nil
+            for _, spc in ipairs(SPACING) do
+                if accuracy <= spc.window then
+                    rarity = spc.rarity()
+                    break
+                end
+            end
+
+            print("Rarity", rarity)
+            if rarity then
+                self.world:giveLootRewardFor(rarity)
+            else
+                print("No fish :pensivebear:")
+            end
+            self.mainCat:pullRod()
         end
     end
 

@@ -56,16 +56,6 @@ function FishingWorld:draw()
 end
 
 
-
----@return number[]
-function FishingWorld:querySpacing()
-    local result = {}
-    for _, v in ipairs(SPACING) do
-        result[#result+1] = v.window
-    end
-    return result
-end
-
 ---@param rarity g.FishingRarity
 function FishingWorld:giveLootRewardFor(rarity)
     print("Got a(n) "..rarity.." fish")

@@ -273,13 +273,8 @@ end
 
 
 
----@param a number
----@param b number
----@param t number
----@return number
-local function lerp(a, b, t)
-    return (1.0 - t) * a + t * b
-end
+local lerp = helper.lerp
+
 
 function Resources:drawParticles()
     love.graphics.setColor(1,1,1)

@@ -78,6 +78,8 @@ _G.typecheck = require("src.modules.typecheck.typecheck")
 
 _G.objects = require("src.modules.objects.objects")
 
+_G.helper = require("src.modules.helper.helper")
+
 _G.richtext = require("src.modules.richtext.exports")
 
 _G.localization = require("src.modules.localization")

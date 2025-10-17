@@ -33,21 +33,13 @@ function FisherCat:draw()
     g.drawImage(self.image, self.x, self.y)
 end
 
-function FisherCat:startFishing()
-    assert(self.animationState == "idle", "invalid animation state expected 'idle'")
-    -- TODO: Transition from 'idle' to 'throwing' to 'fishing'
-    self.animationState = "fishing"
+
+function FisherCat:cast()
 end
 
-function FisherCat:reelIn()
-    assert(self.animationState == "fishing", "invalid animation state expected 'fishing'")
-    self.animationState = "reeling"
+
+function FisherCat:reset()
 end
 
-function FisherCat:pullRod()
-    assert(self.animationState == "fishing" or self.animationState == "reeling", "invalid animation state expected 'fishing' or 'reeling'")
-    -- TODO: Transition from 'fishing'/'reeling' to 'pull' to 'idle'
-    self.animationState = "idle"
-end
 
 return FisherCat
