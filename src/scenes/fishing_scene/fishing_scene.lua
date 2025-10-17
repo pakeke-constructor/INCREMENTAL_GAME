@@ -9,15 +9,26 @@ local FisherCat = require("src.world.fishing.fisher_cat")
 local fishing = FreeCameraScene()
 
 -- Random time to choose from
-local GOOD_REEL_IN_TIME_RANGE = {5, 60}
+local GOOD_REEL_IN_TIME_RANGE = {3, 5}
 -- Reel in timing window in seconds to get a catch
 local CATCH_TIMING_WINDOW = 1
 
 -- We should have this in like a helper function
+
+---@param a number
+---@param b number
+---@param t number
+local function lerp(a, b, t)
+    return (1 - t) * a + t * b
+end
+
 local function rerollTimer()
-    local r = love.math.random()
-    local diff = GOOD_REEL_IN_TIME_RANGE[2] - GOOD_REEL_IN_TIME_RANGE[1]
-    return GOOD_REEL_IN_TIME_RANGE[1] + diff * r
+    return lerp(GOOD_REEL_IN_TIME_RANGE[1], GOOD_REEL_IN_TIME_RANGE[2], love.math.random())
+end
+
+---@param x number value between [0, 1]. At 0.5, return value is 1.
+local function pingpong(x)
+    return 2 * math.min(x, 1 - x)
 end
 
 function fishing:init()
@@ -27,6 +38,7 @@ function fishing:init()
     self.mainCat = FisherCat(0, 0)
     self.world.mainFishercat = self.mainCat
     self.catchTime = -CATCH_TIMING_WINDOW
+    self.reelInMeterPosition = 0 -- between 0 and 1 but will be translated to 0..1 in ping pong manner.
 end
 
 ---@param dt number
@@ -40,6 +52,8 @@ function fishing:update(dt)
             self.catchTime = rerollTimer()
         end
     end
+
+    self.reelInMeterPosition = (self.reelInMeterPosition + dt * 0.5) % 1
 end
 
 function fishing:_isCatchHit()
@@ -50,10 +64,16 @@ function fishing:_isCatchHit()
     return false
 end
 
+local ALLOWED_STATE = {
+    idle = true,
+    fishing = true,
+    reeling = true
+}
+
 function fishing:drawUI()
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
-    if self.mainCat.animationState == "idle" or self.mainCat.animationState == "fishing" then
+    if ALLOWED_STATE[self.mainCat.animationState] then
         local startButtonR = Kirigami(0, 0, 120, 74)
             :attachToBottomOf(r)
             :attachToRightOf(r)
@@ -63,6 +83,40 @@ function fishing:drawUI()
         local text = "Cast Fishing Rod"
         if self.mainCat.animationState == "fishing" then
             text = "Pull Fishing Rod"
+        elseif self.mainCat.animationState == "reeling" then
+            text = "Catch!"
+
+            local catchMeterR = startButtonR:set(nil, nil, nil, 30)
+                :moveRatio(0, -1)
+                :moveUnit(0, -4)
+            local x, y, w, h = catchMeterR:get()
+            local xsize = w / 2
+
+            -- Draw outline of the catch meter
+            love.graphics.setColor(0, 0, 0)
+            love.graphics.rectangle("line", x, y, w, h)
+
+            -- Draw catch ranges
+            local spacing = self.world:querySpacing()
+            -- Note: The defined spacing is from lowest to highest. We want to render from highest to lowest.
+            for i = #spacing, 1, -1 do
+                local index = (#spacing - i) / (#spacing - 1)
+                local rc, gc, bc = objects.Color.HSLtoRGB(lerp(22, 90, index), 1, 0.6)
+
+                love.graphics.setColor(rc, gc, bc)
+                love.graphics.rectangle(
+                    "fill",
+                    x + xsize * (1 - spacing[i]),
+                    y,
+                    2 * xsize * spacing[i],
+                    h
+                )
+            end
+
+            -- Draw reel catch position
+            local linepos = pingpong(self.reelInMeterPosition) * w
+            love.graphics.setColor(0, 0, 0)
+            love.graphics.line(x + linepos, y, x + linepos, y + h)
         end
 
         if ui.Button(text, startButtonR:get()) then
@@ -72,19 +126,25 @@ function fishing:drawUI()
                 if self:_isCatchHit() then
                     -- TODO: Minigame
                     print("Hit it")
+                    self.mainCat:reelIn()
+                else
+                    self.mainCat:pullRod()
                 end
-                self.mainCat:pullRod()
+
                 self.catchTime = -1
+            elseif self.mainCat.animationState == "reeling" then
+                local centerness = 2 * math.abs(pingpong(self.reelInMeterPosition) - 0.5)
+                print("Centerness", centerness)
+                self.world:giveLootRewardFor(centerness)
+                self.mainCat:pullRod()
             end
         end
     end
 
     -- Debug
+    local w, h = ui.getScaledUIDimensions()
     local f = g.getSmallFont(16)
-    local debugR = r:set(nil, nil, nil, f:getHeight())
-        :attachToBottomOf(r)
-        :moveRatio(0, -1)
-    richtext.printRich(tostring(self.catchTime), f, debugR.x, debugR.y, debugR.w, "left")
+    richtext.printRich("catchtime\n"..tostring(self.catchTime), f, 4, h / 2, w, "left")
 end
 
 function fishing:draw()
@@ -97,6 +157,7 @@ function fishing:draw()
 
     self:setCamera()
     self.camera:setPos(0, 0)
+    self:setZoom(1)
     self.world:draw()
 
     self:resetCamera()
@@ -108,7 +169,7 @@ function fishing:draw()
     self:drawUI()
     self:renderNavbar()
 
-    g.getHUD():draw(self.camera, {profile = false})
+    g.getHUD():draw(self.camera)
     ui.endUI()
 end
 
