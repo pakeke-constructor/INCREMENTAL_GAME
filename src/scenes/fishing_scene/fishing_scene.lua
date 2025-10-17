@@ -31,6 +31,44 @@ local function pingpong(x)
     return 2 * math.min(x, 1 - x)
 end
 
+-- Note: this table MUSt be sorted by lowest window to highest.
+---@type {window:number,name:string,rarity:(fun():g.FishingRarity?)}[]
+local SPACING = {
+    {
+        window = 0.1,
+        rarity = function()
+            return "epic"
+        end
+    },
+    {
+        window = 0.3,
+        rarity = function()
+            return "rare"
+        end
+    },
+    {
+        window = 0.55,
+        rarity = function()
+            return "common"
+        end
+    },
+    {
+        window = 0.7,
+        rarity = function()
+            if love.math.random() <= 0.5 then
+                return "common"
+            end
+            return nil
+        end
+    },
+    {
+        window = 1.0,
+        rarity = function()
+            return nil
+        end
+    }
+}
+
 function fishing:init()
     self.allowMousePan = false
     -- Not sure if this should be session or here but let's put it here for now.
@@ -97,18 +135,17 @@ function fishing:drawUI()
             love.graphics.rectangle("line", x, y, w, h)
 
             -- Draw catch ranges
-            local spacing = self.world:querySpacing()
             -- Note: The defined spacing is from lowest to highest. We want to render from highest to lowest.
-            for i = #spacing, 1, -1 do
-                local index = (#spacing - i) / (#spacing - 1)
+            for i = #SPACING, 1, -1 do
+                local index = (#SPACING - i) / (#SPACING - 1)
                 local rc, gc, bc = objects.Color.HSLtoRGB(lerp(22, 90, index), 1, 0.6)
 
                 love.graphics.setColor(rc, gc, bc)
                 love.graphics.rectangle(
                     "fill",
-                    x + xsize * (1 - spacing[i]),
+                    x + xsize * (1 - SPACING[i].window),
                     y,
-                    2 * xsize * spacing[i],
+                    2 * xsize * SPACING[i].window,
                     h
                 )
             end
@@ -133,9 +170,21 @@ function fishing:drawUI()
 
                 self.catchTime = -1
             elseif self.mainCat.animationState == "reeling" then
-                local centerness = 2 * math.abs(pingpong(self.reelInMeterPosition) - 0.5)
-                print("Centerness", centerness)
-                self.world:giveLootRewardFor(centerness)
+                local accuracy = 2 * math.abs(pingpong(self.reelInMeterPosition) - 0.5)
+                local rarity = nil
+                for _, spc in ipairs(SPACING) do
+                    if accuracy <= spc.window then
+                        rarity = spc.rarity()
+                        break
+                    end
+                end
+
+                print("Rarity", rarity)
+                if rarity then
+                    self.world:giveLootRewardFor(rarity)
+                else
+                    print("No fish :pensivebear:")
+                end
                 self.mainCat:pullRod()
             end
         end

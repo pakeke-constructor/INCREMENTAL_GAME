@@ -1,6 +1,11 @@
 ---@class g.FishingWorld: objects.Class
 local FishingWorld = objects.Class("g:FishingWorld")
 
+---@alias g.FishingRarity
+---| "common"
+---| "rare"
+---| "epic"
+
 function FishingWorld:init()
     ---@type g.FisherCat[]
     self.managedFishercat = {}
@@ -51,29 +56,6 @@ function FishingWorld:draw()
 end
 
 
--- Note: this table MUSt be sorted by lowest window to highest.
-local SPACING = {
-    {
-        window = 0.1,
-        name = "Perfect",
-    },
-    {
-        window = 0.3,
-        name = "Nice",
-    },
-    {
-        window = 0.55,
-        name = "Great",
-    },
-    {
-        window = 0.7,
-        name = "Good",
-    },
-    {
-        window = 1.0,
-        name = "Okay",
-    }
-}
 
 ---@return number[]
 function FishingWorld:querySpacing()
@@ -84,16 +66,9 @@ function FishingWorld:querySpacing()
     return result
 end
 
----@param meter number Value between 0 and max(querySpacing()). 0 is perfect hit.
-function FishingWorld:giveLootRewardFor(meter)
-    local abs = math.abs(meter)
-
-    for _, v in ipairs(SPACING) do
-        if abs <= v.window then
-            print("Got a(n) "..v.name.." catch")
-            break
-        end
-    end
+---@param rarity g.FishingRarity
+function FishingWorld:giveLootRewardFor(rarity)
+    print("Got a(n) "..rarity.." fish")
 end
 
 return FishingWorld
