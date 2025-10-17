@@ -13,16 +13,11 @@ local GOOD_REEL_IN_TIME_RANGE = {3, 5}
 -- Reel in timing window in seconds to get a catch
 local CATCH_TIMING_WINDOW = 1
 
--- We should have this in like a helper function
 
 local function rerollTimer()
     return helper.lerp(GOOD_REEL_IN_TIME_RANGE[1], GOOD_REEL_IN_TIME_RANGE[2], love.math.random())
 end
 
----@param x number value between [0, 1]. At 0.5, return value is 1.
-local function pingpong(x)
-    return 2 * math.min(x, 1 - x)
-end
 
 -- Note: this table MUSt be sorted by lowest window to highest.
 ---@type {window:number,name:string,rarity:(fun():g.FishingRarity?)}[]
@@ -68,47 +63,35 @@ function fishing:init()
     self.world = FishingWorld()
     self.mainCat = FisherCat(0, 0)
     self.world.mainFishercat = self.mainCat
-    self.catchTime = -CATCH_TIMING_WINDOW
-    self.reelInMeterPosition = 0 -- between 0 and 1 but will be translated to 0..1 in ping pong manner.
+
+    self.reelPos = 0 -- between 0 and 1
 end
+
+
+local CATCH_SPEED = 0.5
+
+local function triangleWave(t, freq)
+  local phase = (t * freq) % 1
+  return (1 - 4 * math.abs(phase - 0.5)) / 2 + 0.5
+end
+
 
 ---@param dt number
 function fishing:update(dt)
     self.world:update(dt)
 
-    if self.mainCat.animationState == "fishing" then
-        self.catchTime = self.catchTime - dt
-        if self.catchTime < -CATCH_TIMING_WINDOW then
-            -- Reroll
-            self.catchTime = rerollTimer()
-        end
-    end
-
-    self.reelInMeterPosition = (self.reelInMeterPosition + dt * 0.5) % 1
+    self.reelPos = triangleWave(love.timer.getTime(), CATCH_SPEED)
 end
-
-function fishing:_isCatchHit()
-    if self.mainCat.animationState == "fishing" then
-        return self.catchTime < 0 and self.catchTime > -CATCH_TIMING_WINDOW
-    end
-
-    return false
-end
-
-local ALLOWED_STATE = {
-    idle = true,
-    fishing = true,
-    reeling = true
-}
-
 
 
 ---@param self FishingScene
-local function drawCatchMeter(self)
-    local catchMeterR = startButtonR:set(nil, nil, nil, 30)
-        :moveRatio(0, -1)
-        :moveUnit(0, -4)
-    local x, y, w, h = catchMeterR:get()
+local function drawReelMeter(self)
+    local r,_ = Kirigami(0,0,ui.getScaledUIDimensions())
+    _,r = r:splitVertical(3,2)
+    _,r = r:splitHorizontal(1,2)
+    r = r:padRatio(0.3,0.4,0.4,0.4)
+
+    local x, y, w, h = r:get()
     local xsize = w / 2
 
     -- Draw outline of the catch meter
@@ -119,7 +102,7 @@ local function drawCatchMeter(self)
     -- Note: The defined spacing is from lowest to highest. We want to render from highest to lowest.
     for i = #SPACING, 1, -1 do
         local index = (#SPACING - i) / (#SPACING - 1)
-        local rc, gc, bc = objects.Color.HSLtoRGB(lerp(22, 90, index), 1, 0.6)
+        local rc, gc, bc = objects.Color.HSLtoRGB(helper.lerp(22, 90, index), 1, 0.6)
 
         love.graphics.setColor(rc, gc, bc)
         love.graphics.rectangle(
@@ -132,14 +115,22 @@ local function drawCatchMeter(self)
     end
 
     -- Draw reel catch position
-    local linepos = pingpong(self.reelInMeterPosition) * w
+    local linepos = self.reelPos * w
     love.graphics.setColor(0, 0, 0)
+    local lw = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(4)
     love.graphics.line(x + linepos, y, x + linepos, y + h)
+    love.graphics.setLineWidth(lw)
 end
 
 
 
+local CAST_ROD = loc("Cast fishing rod!")
+local WAITING_FOR_FISH = loc("Waiting for fishy...")
+
+
 function fishing:drawUI()
+    love.graphics.clear(0.4,0.5,0.9)
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
     local startButtonR = Kirigami(0, 0, 120, 74)
@@ -148,59 +139,49 @@ function fishing:drawUI()
         :moveRatio(-1, -1)
         :moveUnit(-8, -8)
 
-    local text = "Cast Fishing Rod"
-    if self.mainCat.animationState == "fishing" then
-        text = "Cancel"
-    elseif self.mainCat.animationState == "reeling" then
-        text = "Catch!"
-        drawCatchMeter(self)
+    if self.mainCat.state == "idle" then
+        if ui.Button(CAST_ROD, startButtonR:get()) then
+            self.mainCat:cast()
+        end
+
+    elseif self.mainCat.state == "fishing" then
+        love.graphics.setColor(0,0,0)
+        richtext.printRich(WAITING_FOR_FISH, g.getSmallFont(32), r.x+r.w/2, r.y+r.h/2, 200, "center")
+        if love.math.random()*5 < love.timer.getAverageDelta() then
+            self.mainCat.state = "reeling"
+        end
+
+    elseif self.mainCat.state == "reeling" then
+        drawReelMeter(self)
     end
 
-    if ui.Button(text, startButtonR:get()) then
-        if self.mainCat.animationState == "idle" then
-            self.mainCat:startFishing()
-        elseif self.mainCat.animationState == "fishing" then
-            if self:_isCatchHit() then
-                -- TODO: Minigame
-                print("Hit it")
-                self.mainCat:reelIn()
-            else
-                self.mainCat:pullRod()
-            end
 
-            self.catchTime = -1
-        elseif self.mainCat.animationState == "reeling" then
-            local accuracy = 2 * math.abs(pingpong(self.reelInMeterPosition) - 0.5)
-            local rarity = nil
-            for _, spc in ipairs(SPACING) do
-                if accuracy <= spc.window then
-                    rarity = spc.rarity()
-                    break
-                end
-            end
+    local function catch()
+        local accuracy, rarity = error("todo calculate")
 
-            print("Rarity", rarity)
-            if rarity then
-                self.world:giveLootRewardFor(rarity)
-            else
-                print("No fish :pensivebear:")
+        for _, spc in ipairs(SPACING) do
+            if accuracy <= spc.window then
+                rarity = spc.rarity()
+                break
             end
-            self.mainCat:pullRod()
+        end
+
+        print("Rarity", rarity)
+        if rarity then
+            self.world:giveLootRewardFor(rarity)
+        else
+            print("No fish :pensivebear:")
         end
     end
 
     -- Debug
     local w, h = ui.getScaledUIDimensions()
     local f = g.getSmallFont(16)
-    richtext.printRich("catchtime\n"..tostring(self.catchTime), f, 4, h / 2, w, "left")
 end
 
+
+
 function fishing:draw()
-    if fishing:_isCatchHit() then
-        love.graphics.clear(0.92, 0.35, 0.2, 1)
-    else
-        love.graphics.clear(0, 0.64, 0.91, 1)
-    end
     love.graphics.setColor(1,1,1)
 
     self:setCamera()
@@ -219,6 +200,13 @@ function fishing:draw()
 
     g.getHUD():draw(self.camera)
     ui.endUI()
+end
+
+function fishing:mousepressed(mx,my,button)
+    if self.mainCat.state == "reeling" and button == 1 then
+        print("catch fish!!!")
+        self.mainCat:reset()
+    end
 end
 
 fishing.keyreleased = fishing.defaultKeyreleased
