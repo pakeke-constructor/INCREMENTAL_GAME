@@ -135,4 +135,8 @@ function Profile:spawnParticle(tok, x, y)
     }
 end
 
+function Profile:getStackTokenPos()
+    return self.tokenQueuePos.x, self.tokenQueuePos.y
+end
+
 return Profile
