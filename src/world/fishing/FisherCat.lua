@@ -63,7 +63,8 @@ end
 function FisherCat:cast()
     self.timeOfLastCast = love.timer.getTime()
     self.state = "fishing"
-
+    self.bobberX = 100
+    self.bobberY = 100
 end
 
 

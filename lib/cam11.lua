@@ -192,6 +192,29 @@ function Camera:getVPFocusPoint()
          vp[2] + (vp[4] or getHeight()) * vp[6]
 end
 
+
+---@param focusArea {x:number,y:number,w:number,h:number}
+---@param safeScreenArea {x:number,y:number,w:number,h:number}
+function Camera:focusOnArea(focusArea, safeScreenArea)
+  -- Move the camera such that harvest area is not obstructed by the HUD
+  local safeArea = safeScreenArea or {x=0,y=0,w=love.graphics.getWidth(),h=love.graphics.getHeight()}
+
+  local focusW,focusH = focusArea.w, focusArea.h
+
+  -- These are in "true" screen-space now (non-scaled)
+  local uis = ui.getUIScaling()
+  local sx, sy = safeArea.x * uis, safeArea.y * uis
+  local sw, sh = safeArea.w * uis, safeArea.h * uis
+  local scale = math.min(sw/focusW, sh/focusH)
+  self:setZoom(scale)
+
+  -- Now move the position
+  local w, h = love.graphics.getDimensions()
+  self:setViewport(0, 0, w, h, (sx + sw / 2) / w, (sy + sh / 2) / h)
+  self:setPos(focusArea.x + focusW / 2, focusArea.y + focusH / 2)
+end
+
+
 function Camera.new(x, y, zoom, angle, vpx, vpy, vpw, vph, cx, cy)
   vpx, vpy = vpx or 0, vpy or 0
   vpw, vph = vpw or false, vph or false

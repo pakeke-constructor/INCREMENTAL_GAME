@@ -11,7 +11,15 @@ function FishingWorld:init()
     self.managedFishercat = {}
     ---@type g.FisherCat|nil
     self.mainFishercat = nil -- This is player's fishercat
+
+    local wharfY = 100
+    local wharfW = 100
+    self.wharfArea = Kirigami(0-3000,wharfY,wharfW+3000,50)
+
+    self.worldArea = Kirigami(0,0,300,200)
+    self.castArea = Kirigami(wharfW + 20, wharfY-25, 100,100)
 end
+
 
 if false then
     ---@return g.FishingWorld
@@ -50,6 +58,14 @@ function FishingWorld:draw()
 
     table.sort(objlist, sortOrder)
 
+    love.graphics.setColor(objects.Color("#".."FF8E5F31"))
+    love.graphics.rectangle("fill", self.wharfArea:get())
+
+    love.graphics.setColor(0,0,0.8)
+    love.graphics.rectangle("line", self.worldArea:get())
+    love.graphics.rectangle("line", self.castArea:get())
+
+    love.graphics.setColor(1,1,1)
     for _, v in ipairs(objlist) do
         v:draw()
     end

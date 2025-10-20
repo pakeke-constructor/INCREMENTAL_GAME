@@ -61,7 +61,7 @@ function fishing:init()
     self.allowMousePan = false
     -- Not sure if this should be session or here but let's put it here for now.
     self.world = FishingWorld()
-    self.mainCat = FisherCat(0, 0)
+    self.mainCat = FisherCat(50, 50)
     self.world.mainFishercat = self.mainCat
 
     self.reelPos = 0 -- between 0 and 1
@@ -130,7 +130,6 @@ local WAITING_FOR_FISH = loc("Waiting for fishy...")
 
 
 function fishing:drawUI()
-    love.graphics.clear(0.4,0.5,0.9)
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
     local startButtonR = Kirigami(0, 0, 120, 74)
@@ -182,11 +181,12 @@ end
 
 
 function fishing:draw()
+    love.graphics.clear(0.4,0.5,0.9)
     love.graphics.setColor(1,1,1)
 
+    self.camera:focusOnArea(self.world.worldArea, g.getHUD():getSafeArea())
     self:setCamera()
-    self.camera:setPos(0, 0)
-    self:setZoom(1)
+
     self.world:draw()
 
     self:resetCamera()
