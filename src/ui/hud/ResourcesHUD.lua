@@ -1,5 +1,3 @@
-local objects = require("src.modules.objects.objects")
-
 ---@class g.hud.Resources: objects.Class
 local Resources = objects.Class("g.hud:Resources")
 Resources._moneyFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 32, "mono")
@@ -47,16 +45,7 @@ local PARTICLE_SPAWN_CATEGORY = {
 }
 local AROUND_TOKEN_RADIUS = 10
 
--- All these are sine
----@type (fun(x:number):number)[]
-local EASINGS = {
-    -- in
-    function(x) return 1 - math.cos((x * math.pi) / 2) end,
-    -- out
-    function(x) return math.sin((x * math.pi) / 2) end,
-    -- inout
-    function(x) return -(math.cos(math.pi * x) - 1) / 2 end
-}
+local EASINGS = {"sineIn", "sineOut", "sineInOut"}
 
 function Resources:init()
     ---@type g.hud._ResourceParticle[]
@@ -299,8 +288,8 @@ function Resources:drawParticles()
             else
                 -- Moving to HUD
                 local t = (particle.time - BEFOREHUD_TIME) / particle.tohudTime
-                local easeX = math.min(math.max(particle.xEasing(t), 0), 1)
-                local easeY = math.min(math.max(particle.yEasing(t), 0), 1)
+                local easeX = helper.clamp(particle.xEasing(t), 0, 1)
+                local easeY = helper.clamp(particle.yEasing(t), 0, 1)
 
                 x = lerp(particle.x, self.poses[particle.kind][1], easeX)
                 y = lerp(particle.y, self.poses[particle.kind][2], easeY)
@@ -323,14 +312,6 @@ function Resources:draw(camera, noDraw)
     self:drawHUD(camera, noDraw)
 end
 
----@generic T
----@param tab T[] Table to pick elements of.
----@param rng (fun(max:integer):integer)? Function that returns random number from 1 to `max` both inclusive.
----@return T
-local function choice(tab, rng)
-    rng = rng or love.math.random
-    return tab[rng(#tab)]
-end
 
 ---@param kind g.ResourceType
 ---@param tier integer
@@ -360,13 +341,13 @@ function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
         tokenAngle = angle,
         rot = love.math.random() * (2*math.pi),
         tokenRadius = radius,
-        spawnEasing = choice(EASINGS),
+        spawnEasing = helper.EASINGS[helper.choice(EASINGS)],
         x = px,
         y = py,
-        xEasing = choice(EASINGS),
-        yEasing = choice(EASINGS),
+        xEasing = helper.EASINGS[helper.choice(EASINGS)],
+        yEasing = helper.EASINGS[helper.choice(EASINGS)],
         time = -RANDOM_DELAY * love.math.random(),
-        tohudTime = lerp(TOHUD_ANIMATION_DURATION[1], TOHUD_ANIMATION_DURATION[2], love.math.random())
+        tohudTime = helper.randrange(TOHUD_ANIMATION_DURATION)
     }
 
     if smallAmount > 0 then
