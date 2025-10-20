@@ -16,6 +16,18 @@ end
 
 
 
+---@generic n:number
+---@param val n
+---@param min n
+---@param max n
+---@return n
+function helper.clamp(val, min, max)
+    min, max = math.min(min, max), math.max(min, max)
+    return math.min(math.max(val, min), max)
+end
+
+
+
 
 ---@param x table
 ---@return table
@@ -41,7 +53,7 @@ end
 
 
 ---Randomly picks an item from the list.
----If you don't need weighted pick, consider using `table.random` instead.
+---If you don't need weighted pick, consider using `helper.choice` instead.
 ---@generic T
 ---@param itemsAndWeights {[1]:T,[2]:number}[] List of items and its weights.
 ---@param rng love.RandomGenerator? Random number generator to use.
@@ -72,9 +84,34 @@ function helper.pickWeighted(itemsAndWeights, rng)
     error("internal error")
 end
 
+---@generic T
+---@param tab T[] Table to pick elements of.
+---@param rng (fun(max:integer):integer)? Function that returns random integer from 1 to `max` both inclusive.
+---@return T
+function helper.choice(tab, rng)
+    rng = rng or love.math.random
+    return tab[rng(#tab)]
+end
+
+
+---@param vals [number, number]
+---@param rng (fun():number)? Function that returns random number from 0 to 1.
+function helper.randrange(vals, rng)
+    rng = rng or love.math.random
+    return helper.lerp(vals[1], vals[2], rng())
+end
 
 
 
+-- List of easing functions.
+helper.EASINGS = {
+    -- in
+    sineIn = function(x) return 1 - math.cos((x * math.pi) / 2) end,
+    -- out
+    sineOut = function(x) return math.sin((x * math.pi) / 2) end,
+    -- inout
+    sineInOut = function(x) return -(math.cos(math.pi * x) - 1) / 2 end
+}
 
 
 
