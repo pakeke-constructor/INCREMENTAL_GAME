@@ -65,6 +65,8 @@ function Profile:draw(camera, noDraw)
         love.graphics.rectangle("line", profileR:get())
         love.graphics.setLineWidth(lw)
 
+        love.graphics.setColor(1, 1, 1)
+
         -- Draw inflight token
         ---@type table<string, integer>
         local inflight = {}
@@ -72,8 +74,11 @@ function Profile:draw(camera, noDraw)
             local t = p.time / TOHUD_ANIMATION_DURATION
             local easeX = helper.clamp(p.xEasing(t), 0, 1)
             local easeY = helper.clamp(p.yEasing(t), 0, 1)
-            local px = helper.lerp(p.x, self.tokenQueuePos.x, easeX)
-            local py = helper.lerp(p.y, self.tokenQueuePos.y, easeY)
+            -- p.x and p.y is in world-space
+            local spx, spy = camera:toScreen(p.x, p.y) -- in screen-space
+            local sspx, sspy = ui.getUIScalingTransform():inverseTransformPoint(spx, spy) -- in "scaled screen" space
+            local px = helper.lerp(sspx, self.tokenQueuePos.x, easeX)
+            local py = helper.lerp(sspy, self.tokenQueuePos.y, easeY)
             inflight[p.token] = (inflight[p.token] or 0) + 1
             g.drawImage(p.token, px, py)
         end
@@ -92,7 +97,6 @@ function Profile:draw(camera, noDraw)
             end
         end
 
-        love.graphics.setColor(1, 1, 1)
         local curtime = love.timer.getTime()
         for i, tok in ipairs(tokens) do
             local s = math.min(stackTokenR.w / 16, stackTokenR.h / 16)
