@@ -89,14 +89,10 @@ local function drawReelMeter(self)
     local r,_ = Kirigami(0,0,ui.getScaledUIDimensions())
     _,r = r:splitVertical(3,2)
     _,r = r:splitHorizontal(1,2)
-    r = r:padRatio(0.3,0.4,0.4,0.4)
+    r = r:padRatio(0.3,0.7,0.4,0.7)
 
     local x, y, w, h = r:get()
     local xsize = w / 2
-
-    -- Draw outline of the catch meter
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("line", x, y, w, h)
 
     -- Draw catch ranges
     -- Note: The defined spacing is from lowest to highest. We want to render from highest to lowest.
@@ -120,6 +116,10 @@ local function drawReelMeter(self)
     local lw = love.graphics.getLineWidth()
     love.graphics.setLineWidth(4)
     love.graphics.line(x + linepos, y, x + linepos, y + h)
+
+    -- Draw outline
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("line", x, y, w, h)
     love.graphics.setLineWidth(lw)
 end
 
