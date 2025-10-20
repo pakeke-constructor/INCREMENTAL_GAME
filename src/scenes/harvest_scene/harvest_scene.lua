@@ -154,8 +154,15 @@ harvest.mousemoved = harvest.defaultMousemoved
 
 function harvest:keyreleased(k)
     self:defaultKeyreleased(k)
-    if k=="1" then
-        worldutil.spawnLightning(100,100,10)
+    if consts.DEV_MODE then
+        if k=="1" then
+            worldutil.spawnLightning(100,100,10)
+        elseif k=="2" then
+            local tok = helper.choice(g.TOKEN_LIST)
+            for _ = 1, love.math.random(1, 15) do
+                g.stackToken(tok, 100, 100)
+            end
+        end
     end
 end
 
