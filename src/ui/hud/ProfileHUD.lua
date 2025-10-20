@@ -5,12 +5,9 @@ local Profile = objects.Class("h.hud:Profile")
 ---@field package token string (also the image)
 ---@field package x number
 ---@field package y number
----@field package xEasing fun(x:number):number
----@field package yEasing fun(x:number):number
 ---@field package time number
 
 local TOHUD_ANIMATION_DURATION = 0.4
-local EASINGS = {"sineIn", "sineOut", "sineInOut"}
 
 function Profile:init()
     ---@type g.hud._TokenParticle[]
@@ -72,13 +69,12 @@ function Profile:draw(camera, noDraw)
         local inflight = {}
         for _, p in ipairs(self.particles) do
             local t = p.time / TOHUD_ANIMATION_DURATION
-            local easeX = helper.clamp(p.xEasing(t), 0, 1)
-            local easeY = helper.clamp(p.yEasing(t), 0, 1)
+            local et = helper.clamp(helper.EASINGS.sineInOut(t), 0, 1)
             -- p.x and p.y is in world-space
             local spx, spy = camera:toScreen(p.x, p.y) -- in screen-space
             local sspx, sspy = ui.getUIScalingTransform():inverseTransformPoint(spx, spy) -- in "scaled screen" space
-            local px = helper.lerp(sspx, self.tokenQueuePos.x, easeX)
-            local py = helper.lerp(sspy, self.tokenQueuePos.y, easeY)
+            local px = helper.lerp(sspx, self.tokenQueuePos.x, et)
+            local py = helper.lerp(sspy, self.tokenQueuePos.y, et)
             inflight[p.token] = (inflight[p.token] or 0) + 1
             g.drawImage(p.token, px, py)
         end
@@ -91,7 +87,7 @@ function Profile:draw(camera, noDraw)
         for _, tok in ipairs(g.getSn().tokenQueue) do
             if countByToken[tok] then
                 countByToken[tok] = countByToken[tok] + 1
-            elseif #tokens <= 6 then -- TODO: Tweak. 6 means max 6 token type shown
+            elseif #tokens <= 5 then -- If you change the size of the stack token, change this too
                 countByToken[tok] = 1
                 tokens[#tokens+1] = tok
             end
@@ -133,8 +129,6 @@ function Profile:spawnParticle(tok, x, y)
         token = tok,
         x = x,
         y = y,
-        xEasing = helper.EASINGS[helper.choice(EASINGS)],
-        yEasing = helper.EASINGS[helper.choice(EASINGS)],
         time = 0
     }
 end
