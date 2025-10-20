@@ -9,11 +9,10 @@ local FisherCat = objects.Class("g:FisherCat")
 
 ---@param x number
 ---@param y number
----@param image string?
-function FisherCat:init(x, y, image)
+function FisherCat:init(x, y)
     self.x = x
     self.y = y
-    self.image = image or "happy_cat"
+    self.image = "fishing_cat"
 
     self.bobberX, self.bobberY = x,y
     self.targX, self.targY = x,y -- where we are casting the bobber towards
@@ -41,9 +40,10 @@ function FisherCat:update(dt)
     local delta = time - self.timeOfLastCast
     if delta < CAST_TIME then
         -- its still casting! Move bobber.
-        local h = math.sin(delta * (math.pi/CAST_TIME)) * BOBBER_CAST_HEIGHT
+        local h = -math.sin(delta * (math.pi/CAST_TIME)) * BOBBER_CAST_HEIGHT
         local lerp = helper.lerp
-        local xx, yy = lerp(self.x, self.targX, delta), lerp(self.y, self.targY, delta)
+        local t = delta/CAST_TIME
+        local xx, yy = lerp(self.x, self.targX, t), lerp(self.y, self.targY, t)
         self.bobberX = xx
         self.bobberY = yy + h
     end
@@ -56,7 +56,13 @@ function FisherCat:draw()
     g.drawImage(self.image, self.x, self.y)
 
     love.graphics.setColor(0,0,0)
-    love.graphics.line(self.x,self.y, self.bobberX,self.bobberY)
+    if self.state ~= "idle" then
+        local bobY = self.bobberY + 3*math.sin(love.timer.getTime()*5)
+
+        love.graphics.line(self.x+11,self.y-11, self.bobberX,bobY)
+        love.graphics.setColor(1,1,1)
+        g.drawImage("fishing_cat_bobber", self.bobberX, bobY)
+    end
 end
 
 

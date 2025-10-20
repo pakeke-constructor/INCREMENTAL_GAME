@@ -14,7 +14,7 @@ function FishingWorld:init()
 
     local wharfY = 100
     local wharfW = 100
-    self.wharfArea = Kirigami(0-3000,wharfY,wharfW+3000,50)
+    self.wharfArea = Kirigami(20,wharfY,wharfW,50)
 
     self.worldArea = Kirigami(0,0,300,200)
     self.castArea = Kirigami(wharfW + 20, wharfY-25, 100,100)
