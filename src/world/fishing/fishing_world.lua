@@ -72,6 +72,14 @@ function FishingWorld:draw()
 end
 
 
+function FishingWorld:getRandomCastPosition()
+    local x,y,w,h = self.castArea:get()
+    local xx = helper.lerp(x,x+w, love.math.random())
+    local yy = helper.lerp(y,y+h, love.math.random())
+    return xx, yy
+end
+
+
 ---@param rarity g.FishingRarity
 function FishingWorld:giveLootRewardFor(rarity)
     print("Got a(n) "..rarity.." fish")

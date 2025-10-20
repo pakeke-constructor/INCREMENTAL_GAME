@@ -61,7 +61,8 @@ function fishing:init()
     self.allowMousePan = false
     -- Not sure if this should be session or here but let's put it here for now.
     self.world = FishingWorld()
-    self.mainCat = FisherCat(50, 50)
+    local x,y = helper.randomInRegion(self.world.wharfArea:get())
+    self.mainCat = FisherCat(x,y)
     self.world.mainFishercat = self.mainCat
 
     self.reelPos = 0 -- between 0 and 1
@@ -140,7 +141,8 @@ function fishing:drawUI()
 
     if self.mainCat.state == "idle" then
         if ui.Button(CAST_ROD, startButtonR:get()) then
-            self.mainCat:cast()
+            local cx,cy = helper.randomInRegion(self.world.castArea:get())
+            self.mainCat:cast(cx,cy)
         end
 
     elseif self.mainCat.state == "fishing" then

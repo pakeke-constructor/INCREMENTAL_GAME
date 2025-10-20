@@ -60,11 +60,14 @@ function FisherCat:draw()
 end
 
 
-function FisherCat:cast()
+---@param x number
+---@param y number
+function FisherCat:cast(x, y)
+    assert(type(y)=="number","?")
     self.timeOfLastCast = love.timer.getTime()
     self.state = "fishing"
-    self.bobberX = 100
-    self.bobberY = 100
+    self.targX = x
+    self.targY = y
 end
 
 
