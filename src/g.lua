@@ -1707,7 +1707,7 @@ end
 
 
 
-g.MAX_QUEUED_TOKENS = 100
+local MAX_QUEUED_TOKENS = 100
 
 ---@param tok string
 ---@param x number?
@@ -1715,12 +1715,12 @@ g.MAX_QUEUED_TOKENS = 100
 function g.stackToken(tok, x, y)
     currentSession.tokenQueue[#currentSession.tokenQueue+1] = tok
 
-    while #currentSession.tokenQueue > g.MAX_QUEUED_TOKENS do
+    while #currentSession.tokenQueue > MAX_QUEUED_TOKENS do
         g.popStackedToken()
     end
 
     if x and y then
-        -- TODO: Send to profile HUD
+        g.getHUD().profileHUD:spawnParticle(tok, x, y)
     end
 end
 

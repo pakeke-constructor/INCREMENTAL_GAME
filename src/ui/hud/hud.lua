@@ -1,11 +1,13 @@
 local objects = require("src.modules.objects.objects")
-local Resources = require("src.ui.hud.ResourcesHUD")
+local Resources = require(".ResourcesHUD")
+local Profile = require(".ProfileHUD")
 
 ---@class g.HUD: objects.Class
 local HUD = objects.Class("g:HUD")
 
 function HUD:init()
     self.resourceHUD = Resources()
+    self.profileHUD = Profile()
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
 end
 
@@ -17,36 +19,16 @@ end
 
 ---@param dt number
 function HUD:update(dt)
-    return self.resourceHUD:update(dt)
+    self.resourceHUD:update(dt)
+    self.profileHUD:update(dt)
 end
 
 ---@param camera Camera
 ---@param show {resource:boolean?,profile:boolean?}?
 function HUD:draw(camera, show)
     show = show or {}
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
-    local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
-    local profileR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(r):moveRatio(0, -1):padRatio(0.05)
-    local hideResource = show.resource == false
-    local hideProfile = show.profile == false
-
-    if not hideProfile then
-        -- Draw dummy profile picture
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.rectangle("fill", profileR:get())
-        local x,y,w,h = profileR:get()
-        love.graphics.setColor(1,1,1)
-        local SCALE=4
-        g.drawImage("happy_cat",x+w/2,y+h/2, 0, -SCALE,SCALE)
-        love.graphics.setColor(1, 0, 0)
-        local lw = love.graphics.getLineWidth()
-        love.graphics.setLineWidth(3)
-        love.graphics.rectangle("line", profileR:get())
-        love.graphics.setLineWidth(lw)
-    end
-
-    self.resourceHUD:draw(camera, hideResource)
-    self.freeArea = r:padUnit(profileR.x + profileR.w, 0, 0, 0)
+    self.resourceHUD:draw(camera, show.resource == false)
+    self.profileHUD:draw(camera, show.profile == false)
 end
 
 ---@param kind g.ResourceType
@@ -58,7 +40,9 @@ function HUD:spawnResourceParticle(kind, x, y, amount)
 end
 
 function HUD:getSafeArea()
-    return self.freeArea:intersection(self.resourceHUD:getSafeArea())
+    return Kirigami(0, 0, ui.getScaledUIDimensions())
+        :intersection(self.resourceHUD:getSafeArea())
+        :intersection(self.profileHUD:getSafeArea())
 end
 
 return HUD
