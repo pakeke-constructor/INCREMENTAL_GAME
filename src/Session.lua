@@ -55,6 +55,10 @@ function Session:init()
         [metricName] -> number
     ]]}
 
+    -- Tokens that are queued for spawning in harvest area
+    ---@type string[]
+    self.tokenQueue = {}
+
     -- reset stats:
     for k,sta in pairs(g.VALID_STATS) do
         g.stats[k] = sta.startingValue

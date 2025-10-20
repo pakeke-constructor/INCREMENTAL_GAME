@@ -1707,6 +1707,35 @@ end
 
 
 
+g.MAX_QUEUED_TOKENS = 100
+
+---@param tok string
+---@param x number?
+---@param y number?
+function g.stackToken(tok, x, y)
+    currentSession.tokenQueue[#currentSession.tokenQueue+1] = tok
+
+    while #currentSession.tokenQueue > g.MAX_QUEUED_TOKENS do
+        g.popStackedToken()
+    end
+
+    if x and y then
+        -- TODO: Send to profile HUD
+    end
+end
+
+---@return string?
+function g.peekStackedToken()
+    return currentSession.tokenQueue[1]
+end
+
+---@return string
+function g.popStackedToken()
+    assert(#currentSession.tokenQueue > 0, "token queue is empty")
+    return table.remove(currentSession.tokenQueue, 1)
+end
+
+
 
 
 local hud = HUD()
