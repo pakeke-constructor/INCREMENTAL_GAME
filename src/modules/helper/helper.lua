@@ -103,6 +103,18 @@ end
 
 
 
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function helper.randomInRegion(x,y,w,h)
+    local xx = helper.lerp(x,x+w, love.math.random())
+    local yy = helper.lerp(y,y+h, love.math.random())
+    return xx, yy
+end
+
+
+
 -- List of easing functions.
 helper.EASINGS = {
     -- in
