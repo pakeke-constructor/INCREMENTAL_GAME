@@ -3,7 +3,7 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
 local FishingWorld = require("src.world.fishing.fishing_world")
-local FisherCat = require("src.world.fishing.fisher_cat")
+local FisherCat = require("src.world.fishing.FisherCat")
 
 ---@class FishingScene: FreeCameraScene
 local fishing = FreeCameraScene()
