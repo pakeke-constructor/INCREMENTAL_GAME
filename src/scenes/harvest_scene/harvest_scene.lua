@@ -96,7 +96,6 @@ function harvest:update(dt)
     g.getHUD():update(dt)
 
     local sn = g.getSn()
-    sn:_updateMainWorld(dt)
 
     -- Move the camera such that harvest area is not obstructed by the HUD
     local safeArea = g.getHUD():getSafeArea()
