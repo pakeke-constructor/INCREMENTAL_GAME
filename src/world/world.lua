@@ -48,9 +48,12 @@ function World:init()
     self.dataCollectors = nil
     -- We can't create the collectors yet because session isnt loaded.
 
-    -- Holds all active effect duration
-    ---@type table<string, number>
+    -- Holds all active effects
+    ---@type string[]
     self.effects = {}
+    -- Holds all effect durations
+    ---@type table<string, number>
+    self.effectDurations = {}
 end
 
 
@@ -357,6 +360,19 @@ local function updateResourceDataCollection(self)
 end
 
 
+
+---@param id string
+---@param dur number
+function World:_grantEffect(id, dur)
+    if self.effectDurations[id] then
+        self.effectDurations[id] = self.effectDurations[id] + dur
+    else
+        self.effectDurations[id] = dur
+        self.effects[#self.effects+1] = id
+    end
+end
+
+
 ---@param dt number
 function World:_update(dt)
     self.entities:flush()
@@ -387,13 +403,14 @@ function World:_update(dt)
         self.tokenPartition:add(t, t.x,t.y)
     end
 
-    -- Update effect durations
-    for k, v in pairs(self.effects) do
-        v = v - dt
-        if v <= 0 then
-            self.effects[k] = nil
-        else
-            self.effects[k] = v
+    -- Update effect durations (iterate backward)
+    for i = #self.effects, 1, -1 do
+        local eff = self.effects[i]
+        self.effectDurations[eff] = self.effectDurations[eff] - dt
+
+        if self.effectDurations[eff] <= 0 then
+            table.remove(self.effects, i)
+            self.effectDurations[eff] = nil
         end
     end
 

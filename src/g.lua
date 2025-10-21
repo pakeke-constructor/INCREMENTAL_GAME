@@ -5,7 +5,6 @@
 
 local reducers = require("src.modules.reducers")
 
-local World = require("src.world.world")
 local Session = require("src.Session")
 local HUD = require("src.ui.hud.hud")
 
@@ -500,10 +499,13 @@ local g_TokenDefinition = {}
 
 ---@class g.EffectDefinition
 ---@field public duration number
+---@field public description string?
+---@field public image string?
 
 ---@class g.EffectInfo: g.EffectDefinition
 ---@field public type string
 ---@field public name string
+---@field public image string
 
 
 
@@ -821,9 +823,15 @@ function g.defineEffect(id, name, def)
         end
     end
 
+    local img = def.image or id
+    if not g.isImage(img) then
+        error("image '"..img.."' does not exist")
+    end
+
     ---@cast def g.EffectInfo
     def.name = name
     def.type = id
+    def.image = img
     g.EFFECT_LIST[#g.EFFECT_LIST+1] = id
     EFFECT_INFOS[id] = def
 end
@@ -835,16 +843,14 @@ function g.grantEffect(id)
         error("effect '"..id.."' is not defined")
     end
 
-    local efftab = currentSession.mainWorld.effects
-    -- If effect is already active, extend its duration
-    efftab[id] = (efftab[id] or 0) + effInfo.duration
+    return currentSession.mainWorld:_grantEffect(id, effInfo.duration)
 end
 
 
 ---@param ev string
 ---@param ... any
 function callEffects(ev, ...)
-    for eff, dur in pairs(currentSession.mainWorld.effects) do
+    for eff, dur in pairs(currentSession.mainWorld.effectDurations) do
         if dur > 0 then
             local einfo = EFFECT_INFOS[eff]
             if einfo[ev] then
@@ -865,7 +871,7 @@ function askEffects(q, ...)
 
     if effIds then
         for _, effId in ipairs(effIds) do
-            local dur = currentSession.mainWorld.effects[effId] or 0
+            local dur = currentSession.mainWorld.effectDurations[effId] or 0
             if dur > 0 then
                 local answer = EFFECT_INFOS[effId][q](dur, ...) or defaultValue
                 result = reducer(answer, result)
