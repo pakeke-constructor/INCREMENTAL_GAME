@@ -64,6 +64,102 @@ end
 
 
 
+function harvest:_drawActiveEffects()
+    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local effectIconR = Kirigami(0, 70, 24, 24)
+        :attachToRightOf(r)
+        :moveRatio(-1, 0)
+        :moveUnit(-8, 0)
+    ui.debugRegion(effectIconR)
+
+    local icons = {"money_particle_4", "thick_grass", "happy_cat"}
+    local font = g.getSmallFont(16)
+    for eff, duration in g.getMainWorld():_iterateActiveEffects() do
+        local effInfo = g.getEffectInfo(eff)
+
+        -- Draw icon
+        local x, y = effectIconR:getCenter()
+        local radius = (effectIconR.w + effectIconR.h) / 4
+        love.graphics.setColor(0.11, 0.29, 0.11)
+        love.graphics.circle("fill", x, y, radius)
+        love.graphics.setColor(0.46, 0.85, 0.39)
+        love.graphics.circle("line", x, y, radius)
+        love.graphics.setColor(1, 1, 1)
+        local s = math.min(effectIconR.w / 16, effectIconR.h / 16) / 1.5
+        g.drawImage(effInfo.image, x, y, 0, s)
+
+        -- Draw remaining time
+        local time = math.floor(duration)
+        local seconds = time % 60
+        local minutes = math.floor(time / 60)
+        richtext.printRich(
+            string.format("{w amp=0.3}{o}%02d:%02d{/o}{/w}", minutes, seconds),
+            font,
+            effectIconR.x - 200,
+            effectIconR.y + effectIconR.h - 16,
+            200,
+            "right"
+        )
+
+        if iml.isHovered(effectIconR:get()) then
+            -- Calculate description info data for drawing
+            local bigFont = g.getBigFont(16)
+            local titleWidth = bigFont:getWidth(richtext.stripEffects(effInfo.name))
+            local description = effInfo.description or ""
+            local width, lines = font:getWrap(
+                richtext.stripEffects(effInfo.description or ""),
+                math.max(titleWidth, 200)
+            )
+            local height = bigFont:getHeight() + 8 + #lines * font:getHeight()
+
+            -- Draw description
+            local PADDING = 4
+            local descWidth = 2 * PADDING + width
+            local descHeight = 2 * PADDING + height
+            local descX = effectIconR.x - descWidth - 4
+            local descY = effectIconR.y + effectIconR.h
+            love.graphics.setColor(0.11, 0.29, 0.11, 0.7)
+            love.graphics.rectangle("fill", descX, descY, descWidth, descHeight)
+            love.graphics.setColor(0.46, 0.85, 0.39)
+            love.graphics.rectangle("line", descX, descY, descWidth, descHeight)
+
+            local yoff = 0
+            love.graphics.setColor(1, 1, 1)
+            richtext.printRich(
+                "{o}"..effInfo.name.."{/o}",
+                bigFont,
+                descX + PADDING,
+                descY + PADDING,
+                width,
+                "right"
+            )
+            yoff = yoff + bigFont:getHeight()
+            love.graphics.setColor(1, 1, 1, 0.7)
+            love.graphics.line(
+                descX + PADDING + 4,
+                descY + PADDING + yoff + 4,
+                descX + descWidth - PADDING - 4,
+                descY + PADDING + yoff + 4
+            )
+            yoff = yoff + 8
+            love.graphics.setColor(1, 1, 1)
+            richtext.printRich(
+                "{o}"..description.."{/o}",
+                font,
+                descX + PADDING,
+                descY + PADDING + yoff,
+                width,
+                "right"
+            )
+        end
+
+        -- Next
+        effectIconR = effectIconR:moveRatio(0, 1):moveUnit(0, 4)
+    end
+end
+
+
+
 function harvest:draw()
     centerCamera(self)
 
@@ -87,6 +183,7 @@ function harvest:draw()
     self:renderNavbar()
 
     g.getHUD():draw(self.camera)
+    self:_drawActiveEffects()
     ui.endUI()
 end
 
@@ -152,6 +249,9 @@ function harvest:keyreleased(k)
             for _ = 1, love.math.random(1, 15) do
                 g.stackToken(tok, 100, 100)
             end
+        elseif k=="3" then
+            local eff = helper.choice(g.EFFECT_LIST)
+            g.grantEffect(eff)
         end
     end
 end

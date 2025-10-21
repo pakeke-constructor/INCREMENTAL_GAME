@@ -536,6 +536,20 @@ end
 
 
 
+---@return fun():(string,number)
+function World:_iterateActiveEffects()
+    return coroutine.wrap(function()
+        for _, eff in ipairs(self.effects) do
+            local dur = self.effectDurations[eff] or 0
+            if dur > 0 then
+                coroutine.yield(eff, dur)
+            end
+        end
+    end)
+end
+
+
+
 
 
 return World
