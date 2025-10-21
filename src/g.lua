@@ -760,7 +760,6 @@ function g.addResourceFrom(tok, bundle)
     bundle = g.multBundles(bundle, mult)
 
     -- TODO: MAKE g.call here?  "tokenEarnedResource"
-    table.foreach(bundle, print)
     g.addResources(bundle)
     spawnTokenResource(tok, bundle)
     return bundle
