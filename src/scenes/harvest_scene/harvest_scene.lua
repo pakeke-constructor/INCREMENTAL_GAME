@@ -67,13 +67,13 @@ local EFFECT_COLORS = {
     -- boolean is for isDebuff
     [true] = {
         BG = objects.Color("#".."FF592404"),
-        FG = objects.Color("#".."FFcF280E")
+        FG = objects.Color("#".."FFcF280E"),
+        DESC = objects.Color("#".."FFF4AEAB")
     },
     [false] = {
-        --love.graphics.setColor(0.11, 0.29, 0.11)
         BG = objects.Color("#".."FF1C4A1C"),
-        --love.graphics.setColor(0.46, 0.85, 0.39)
-        FG = objects.Color("#".."FF75D963")
+        FG = objects.Color("#".."FF75D963"),
+        DESC = objects.Color("#".."FF79BBDF")
     },
 }
 
@@ -90,6 +90,7 @@ function harvest:_drawActiveEffects()
         local effInfo = g.getEffectInfo(eff)
         local bgcolor = EFFECT_COLORS[effInfo.isDebuff].BG
         local fgcolor = EFFECT_COLORS[effInfo.isDebuff].FG
+        local desccolor = EFFECT_COLORS[effInfo.isDebuff].DESC
 
         -- Draw icon
         local x, y = effectIconR:getCenter()
@@ -156,9 +157,9 @@ function harvest:_drawActiveEffects()
                 descY + PADDING + yoff + 4
             )
             yoff = yoff + 8
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(desccolor)
             richtext.printRich(
-                "{o}{c r=0.75 g=0.96 b=0.97}"..description.."{/c}{/o}",
+                "{o}"..description.."{/o}",
                 font,
                 descX + PADDING,
                 descY + PADDING + yoff,
