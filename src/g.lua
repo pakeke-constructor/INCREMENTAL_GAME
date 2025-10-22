@@ -501,11 +501,13 @@ local g_TokenDefinition = {}
 ---@field public duration number
 ---@field public description string?
 ---@field public image string?
+---@field public isDebuff boolean?
 
 ---@class g.EffectInfo: g.EffectDefinition
 ---@field public type string
 ---@field public name string
 ---@field public image string
+---@field public isDebuff boolean
 
 
 
@@ -839,6 +841,7 @@ function g.defineEffect(id, name, def)
     def.name = name
     def.type = id
     def.image = img
+    def.isDebuff = not not def.isDebuff
     g.EFFECT_LIST[#g.EFFECT_LIST+1] = id
     EFFECT_INFOS[id] = def
 end

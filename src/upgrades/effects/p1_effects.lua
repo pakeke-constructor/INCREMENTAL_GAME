@@ -10,12 +10,13 @@ g.defineEffect("thick_grass", "Thick Grass", {
 })
 
 g.defineEffect("happy_cat", "Happy Cat", {
-    description = loc"Cats yield 2x more damage",
+    description = loc"Cats yield 2x less damage",
     duration = 10,
+    isDebuff = true,
 
     ---@param dur number
     ---@param tok g.Token
     getTokenDamageMultiplier = function(dur, tok)
-        return tok.category == "cat" and 2 or 1
+        return tok.category == "cat" and 0.5 or 1
     end
 })

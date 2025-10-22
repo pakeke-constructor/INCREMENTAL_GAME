@@ -63,6 +63,19 @@ function harvest:_drawTokenStackAnim()
 end
 
 
+local EFFECT_COLORS = {
+    -- boolean is for isDebuff
+    [true] = {
+        BG = objects.Color("#".."FF592404"),
+        FG = objects.Color("#".."FFcF280E")
+    },
+    [false] = {
+        --love.graphics.setColor(0.11, 0.29, 0.11)
+        BG = objects.Color("#".."FF1C4A1C"),
+        --love.graphics.setColor(0.46, 0.85, 0.39)
+        FG = objects.Color("#".."FF75D963")
+    },
+}
 
 function harvest:_drawActiveEffects()
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
@@ -70,19 +83,20 @@ function harvest:_drawActiveEffects()
         :attachToRightOf(r)
         :moveRatio(-1, 0)
         :moveUnit(-8, 0)
-    ui.debugRegion(effectIconR)
 
     local icons = {"money_particle_4", "thick_grass", "happy_cat"}
     local font = g.getSmallFont(16)
     for eff, duration in g.getMainWorld():_iterateActiveEffects() do
         local effInfo = g.getEffectInfo(eff)
+        local bgcolor = EFFECT_COLORS[effInfo.isDebuff].BG
+        local fgcolor = EFFECT_COLORS[effInfo.isDebuff].FG
 
         -- Draw icon
         local x, y = effectIconR:getCenter()
         local radius = (effectIconR.w + effectIconR.h) / 4
-        love.graphics.setColor(0.11, 0.29, 0.11)
+        love.graphics.setColor(bgcolor)
         love.graphics.circle("fill", x, y, radius)
-        love.graphics.setColor(0.46, 0.85, 0.39)
+        love.graphics.setColor(fgcolor)
         love.graphics.circle("line", x, y, radius)
         love.graphics.setColor(1, 1, 1)
         local s = math.min(effectIconR.w / 16, effectIconR.h / 16) / 1.5
@@ -118,9 +132,9 @@ function harvest:_drawActiveEffects()
             local descHeight = 2 * PADDING + height
             local descX = effectIconR.x - descWidth - 4
             local descY = effectIconR.y + effectIconR.h
-            love.graphics.setColor(0.11, 0.29, 0.11, 0.7)
+            love.graphics.setColor(helper.multiplyAlpha(bgcolor, 0.7))
             love.graphics.rectangle("fill", descX, descY, descWidth, descHeight)
-            love.graphics.setColor(0.46, 0.85, 0.39)
+            love.graphics.setColor(fgcolor)
             love.graphics.rectangle("line", descX, descY, descWidth, descHeight)
 
             local yoff = 0
