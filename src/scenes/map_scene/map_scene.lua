@@ -11,7 +11,22 @@ local map = FreeCameraScene()
 
 
 
+local POI = {}
+local unlockedPOIs = objects.Set()
+local POI_CLICK_RADIUS = 8
+local function definePOI(id, name, def)
+    def.type = id
+    def.name = name
+    POI[id] = def
+end
 
+definePOI("fishing", "Fishing", {
+    x = 593, y = 91,
+    price = {money = 5000, logs = 100},
+    action = function()
+        g.gotoScene("fishing_scene")
+    end
+})
 
 
 
@@ -51,24 +66,6 @@ end
 
 local clampCameraToMap
 do
-local GLOBAL_SCALE_INCREMENT = 0.25
-local globalScaleTransform = love.math.newTransform()
-local globalScale = 1
-local gw, gh = 800, 600
-
-local function getZoom()
-	local w, h = lg.getDimensions()
-	if w ~= gw or h ~= gh then
-		local wscale = w / 600
-		local hscale = h / 400
-		local scale = math.min(wscale, hscale)
-		local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
-		globalScale = math.max(gscale, 1)
-		globalScaleTransform:reset():scale(globalScale)
-		gw = w
-		gh = h
-	end
-end
 
 
 -- Clamps camera position and zoom to stay within map bounds
@@ -131,6 +128,7 @@ end
 local function drawWASDVisual()
     local x=10
     local y=10
+    lg.push()
     lg.scale(1.5)
     love.graphics.setColor(0.3,0.3,0.4)
     lg.draw(WASD, x+2, y)
@@ -144,6 +142,82 @@ local function drawWASDVisual()
     end
     lg.setColor(1,1,1)
     lg.draw(WASD,x,y)
+    lg.pop()
+end
+
+
+
+---@param r layout.Region
+---@param cam Camera
+local function drawPOITooltip(r, cam, poi)
+    local TOOLTIP_PADDING = 4
+    local SCREEN_PADDING = 4
+
+    local titleFont = g.getBigFont(32)
+    local font = g.getSmallFont(16)
+    local hasBought = unlockedPOIs:has(poi.type)
+    local canAfford = hasBought or g.canAfford(poi.price)
+
+    -- Calculate box width and height
+    local height = titleFont:getHeight()
+    local width = titleFont:getWidth(richtext.stripEffects(poi.name))
+    local buyText = ""
+    if not hasBought then
+        local buyTextWidth = 0
+
+        if canAfford then
+            buyText = "Buy"
+        end
+
+        for _, resId in ipairs(g.RESOURCE_LIST) do
+            if poi.price[resId] then
+                local resInfo = g.getResourceInfo(resId)
+                buyText = buyText.." {"..resInfo.image.."}"..poi.price[resId]
+                buyTextWidth = buyTextWidth + 16
+            end
+        end
+
+        buyTextWidth = buyTextWidth + font:getWidth(richtext.stripEffects(buyText))
+        width = math.max(width, buyTextWidth)
+        height = height + font:getHeight()
+    end
+
+    -- Compute regions
+    local tx, ty = ui.getUIScalingTransform():inverseTransformPoint(cam:toScreen(poi.x, poi.y))
+    local tooltipR = Kirigami(tx - width / 2, ty + 16, width, height)
+        -- Apply padding
+        :padUnit(-TOOLTIP_PADDING)
+        -- Clamp
+        :clampInside(r:padUnit(SCREEN_PADDING))
+    local tooltipContentR = tooltipR:padUnit(TOOLTIP_PADDING)
+
+    -- Draw it
+    if canAfford then
+        love.graphics.setColor(0.2, 0.2, 0.4, 0.8)
+    else
+        love.graphics.setColor(0.4, 0.2, 0.2, 0.8)
+    end
+    love.graphics.rectangle("fill", tooltipR:get())
+
+    love.graphics.setColor(0.,0.,0.08)
+    love.graphics.rectangle("line", tooltipR:get())
+
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRich(poi.name, titleFont, tooltipContentR.x, tooltipContentR.y, tooltipContentR.w, "center")
+    if not hasBought then
+        richtext.printRich(buyText, font, tooltipContentR.x, tooltipContentR.y + titleFont:getHeight(), tooltipContentR.w, "center")
+    end
+
+    -- Action area
+    local poid = POI_CLICK_RADIUS * 2
+    if iml.wasJustClicked(tx - POI_CLICK_RADIUS, ty - POI_CLICK_RADIUS, poid, poid) then
+        if hasBought then
+            poi.action()
+        elseif canAfford then
+            g.subtractResources(poi.price)
+            unlockedPOIs:add(poi.type)
+        end
+    end
 end
 
 
@@ -167,6 +241,17 @@ function map:draw()
         g.drawImage(p.image,p.x,p.y)
     end
 
+    local mwx, mwy = self.camera:toWorld(ui.getUIScalingTransform():transformPoint(ui.getMouse()))
+    local hoveredPOI = nil
+    for _, poi in pairs(POI) do
+        -- TODO: Use better icon?
+        love.graphics.circle("fill", poi.x, poi.y, POI_CLICK_RADIUS)
+
+        if math.distance(mwx - poi.x, mwy - poi.y) <= POI_CLICK_RADIUS then
+            hoveredPOI = poi
+        end
+    end
+
     self:resetCamera()
 
     vignette.draw()
@@ -174,6 +259,10 @@ function map:draw()
     ui.startUI()
     self:renderNavbar()
     drawWASDVisual()
+    if hoveredPOI then
+        local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+        drawPOITooltip(r, self.camera, hoveredPOI)
+    end
     ui.endUI()
 end
 
