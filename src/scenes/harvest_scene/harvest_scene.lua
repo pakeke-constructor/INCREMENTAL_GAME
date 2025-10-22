@@ -158,7 +158,7 @@ function harvest:_drawActiveEffects()
             yoff = yoff + 8
             love.graphics.setColor(1, 1, 1)
             richtext.printRich(
-                "{o}"..description.."{/o}",
+                "{o}{c r=0.75 g=0.96 b=0.97}"..description.."{/c}{/o}",
                 font,
                 descX + PADDING,
                 descY + PADDING + yoff,
