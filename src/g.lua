@@ -5,7 +5,6 @@
 
 local reducers = require("src.modules.reducers")
 
-local World = require("src.world.world")
 local Session = require("src.Session")
 local HUD = require("src.ui.hud.hud")
 
@@ -79,6 +78,7 @@ end
 
 
 local callUpgrades, askUpgrades
+local callEffects, askEffects
 local definedEvents = objects.Set()
 
 function g.defineEvent(ev)
@@ -110,6 +110,7 @@ function g.call(ev, arg1, ...)
     end
 
     callUpgrades(ev, arg1, ...)
+    callEffects(ev, arg1, ...)
 end
 
 
@@ -148,7 +149,8 @@ function g.ask(q, arg1, ...)
         val = reducer(arg1[q](arg1, ...), val)
     end
 
-    return reducer(val, askUpgrades(q, arg1, ...))
+    val = reducer(val, askUpgrades(q, arg1, ...))
+    return reducer(val, askEffects(q, arg1, ...))
 end
 
 
@@ -495,6 +497,18 @@ local g_TokenDefinition = {}
 ---@alias g.TokenInfo g.TokenDefinition|{type:string,name:string}
 
 
+---@class g.EffectDefinition
+---@field public duration number
+---@field public description string?
+---@field public image string?
+---@field public isDebuff boolean?
+
+---@class g.EffectInfo: g.EffectDefinition
+---@field public type string
+---@field public name string
+---@field public image string
+---@field public isDebuff boolean
+
 
 
 ---@param prestige integer
@@ -748,7 +762,6 @@ function g.addResourceFrom(tok, bundle)
     bundle = g.multBundles(bundle, mult)
 
     -- TODO: MAKE g.call here?  "tokenEarnedResource"
-
     g.addResources(bundle)
     spawnTokenResource(tok, bundle)
     return bundle
@@ -774,6 +787,121 @@ g.CATEGORIES = {
     mushroom = true
 }
 
+
+
+--------------------------------------------------
+-- Temporary Effects
+--------------------------------------------------
+
+---@type string[]
+g.EFFECT_LIST = {}
+---@type table<string, g.EffectInfo>
+local EFFECT_INFOS = {}
+---@type table<string, string[]>
+local EFFECT_QUESTION_CACHE = {}
+---@type table<string, string[]>
+local EFFECT_EVENT_CACHE = {}
+
+---@param id string
+---@param name string
+---@param def g.EffectDefinition
+function g.defineEffect(id, name, def)
+    if EFFECT_INFOS[id] then
+        error("effect '"..id.."' is already defined")
+    end
+
+    assert(def.duration, "missing duration")
+    for k, v in pairs(def) do
+        if type(v) == "function" then
+            g.assertIsQuestionOrEvent(k)
+
+            -- Add to cache
+            if g.getQuestionInfo(k) then
+                if EFFECT_QUESTION_CACHE[k] then
+                    table.insert(EFFECT_QUESTION_CACHE[k], id)
+                else
+                    EFFECT_QUESTION_CACHE[k] = {id}
+                end
+            elseif g.isEvent(k) then
+                if EFFECT_EVENT_CACHE[k] then
+                    table.insert(EFFECT_EVENT_CACHE[k], id)
+                else
+                    EFFECT_EVENT_CACHE[k] = {id}
+                end
+            end
+        end
+    end
+
+    local img = def.image or id
+    if not g.isImage(img) then
+        error("image '"..img.."' does not exist")
+    end
+
+    ---@cast def g.EffectInfo
+    def.name = name
+    def.type = id
+    def.image = img
+    def.isDebuff = not not def.isDebuff
+    g.EFFECT_LIST[#g.EFFECT_LIST+1] = id
+    EFFECT_INFOS[id] = def
+end
+
+---@param id string
+function g.grantEffect(id)
+    local effInfo = EFFECT_INFOS[id]
+    if not effInfo then
+        error("effect '"..id.."' is not defined")
+    end
+
+    return currentSession.mainWorld:_grantEffect(id, effInfo.duration)
+end
+
+---@param id string
+function g.getEffectInfo(id)
+    local effInfo = EFFECT_INFOS[id]
+    if not effInfo then
+        error("effect '"..id.."' is not defined")
+    end
+
+    return effInfo
+end
+
+
+---@param ev string
+---@param ... any
+function callEffects(ev, ...)
+    local effIds = EFFECT_EVENT_CACHE[ev]
+    if effIds then
+        for _, effId in ipairs(effIds) do
+            local dur = currentSession.mainWorld.effectDurations[effId] or 0
+            if dur > 0 then
+                EFFECT_INFOS[effId][ev](dur, ...)
+            end
+        end
+    end
+end
+
+
+function askEffects(q, ...)
+    local questionInfo = g.getQuestionInfo(q)
+    local reducer = questionInfo.reducer
+    local defaultValue = questionInfo.defaultValue
+    local effIds = EFFECT_QUESTION_CACHE[q]
+
+    local result = defaultValue
+
+    if effIds then
+        for _, effId in ipairs(effIds) do
+            local dur = currentSession.mainWorld.effectDurations[effId] or 0
+            if dur > 0 then
+                local answer = EFFECT_INFOS[effId][q](dur, ...) or defaultValue
+                result = reducer(answer, result)
+            end
+        end
+    end
+
+    return result
+end
 
 
 

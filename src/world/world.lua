@@ -47,6 +47,13 @@ function World:init()
     ---@type table<g.ResourceType, g.DataCollection>
     self.dataCollectors = nil
     -- We can't create the collectors yet because session isnt loaded.
+
+    -- Holds all active effects
+    ---@type string[]
+    self.effects = {}
+    -- Holds all effect durations
+    ---@type table<string, number>
+    self.effectDurations = {}
 end
 
 
@@ -354,6 +361,19 @@ end
 
 
 
+---@param id string
+---@param dur number
+function World:_grantEffect(id, dur)
+    if self.effectDurations[id] then
+        self.effectDurations[id] = self.effectDurations[id] + dur
+    else
+        self.effectDurations[id] = dur
+        self.effects[#self.effects+1] = id
+    end
+end
+
+
+---@param dt number
 function World:_update(dt)
     self.entities:flush()
     self.tokens:flush()
@@ -383,6 +403,18 @@ function World:_update(dt)
         self.tokenPartition:add(t, t.x,t.y)
     end
 
+    -- Update effect durations (iterate backward)
+    for i = #self.effects, 1, -1 do
+        local eff = self.effects[i]
+        self.effectDurations[eff] = self.effectDurations[eff] - dt
+
+        if self.effectDurations[eff] <= 0 then
+            table.remove(self.effects, i)
+            self.effectDurations[eff] = nil
+        end
+    end
+
+    -- Update token
     for _, tok in ipairs(self.tokens) do
         updateToken(tok,dt)
     end
@@ -500,6 +532,20 @@ function World:_getResourcesPerSecond()
     end
 
     return result
+end
+
+
+
+---@return fun():(string,number)
+function World:_iterateActiveEffects()
+    return coroutine.wrap(function()
+        for _, eff in ipairs(self.effects) do
+            local dur = self.effectDurations[eff] or 0
+            if dur > 0 then
+                coroutine.yield(eff, dur)
+            end
+        end
+    end)
 end
 
 

@@ -75,7 +75,7 @@ end
 
 
 
---- updates session. should only be called once, (hence _)
+--- updates session and main world. should only be called once, (hence _)
 ---@param dt any
 function Session:_update(dt)
     for stat, t in pairs(g.VALID_STATS) do
@@ -83,12 +83,6 @@ function Session:_update(dt)
         local mult = g.ask(t.multQuestion)
         g.stats[stat] = mod*mult
     end
-end
-
-
---- updates main world. should only be called once, (hence _)
----@param dt number
-function Session:_updateMainWorld(dt)
     self.mainWorld:_update(dt)
 end
 
