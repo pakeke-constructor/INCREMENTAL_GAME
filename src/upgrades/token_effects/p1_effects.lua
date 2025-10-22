@@ -27,7 +27,8 @@ defTokenEffect("thick_grass", "Thick Grass", {
     }
 })
 
-g.defineEffect("happy_cat", "Happy Cat", {
+
+defTokenEffect("happy_cat", "Happy Cat", {
     effect = {
         description = loc"Cats yield 2x less damage",
         isDebuff = true,
