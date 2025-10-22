@@ -797,6 +797,8 @@ g.EFFECT_LIST = {}
 local EFFECT_INFOS = {}
 ---@type table<string, string[]>
 local EFFECT_QUESTION_CACHE = {}
+---@type table<string, string[]>
+local EFFECT_EVENT_CACHE = {}
 
 ---@param id string
 ---@param name string
@@ -817,6 +819,12 @@ function g.defineEffect(id, name, def)
                     table.insert(EFFECT_QUESTION_CACHE[k], id)
                 else
                     EFFECT_QUESTION_CACHE[k] = {id}
+                end
+            elseif g.isEvent(k) then
+                if EFFECT_EVENT_CACHE[k] then
+                    table.insert(EFFECT_EVENT_CACHE[k], id)
+                else
+                    EFFECT_EVENT_CACHE[k] = {id}
                 end
             end
         end
@@ -859,11 +867,12 @@ end
 ---@param ev string
 ---@param ... any
 function callEffects(ev, ...)
-    for eff, dur in pairs(currentSession.mainWorld.effectDurations) do
-        if dur > 0 then
-            local einfo = EFFECT_INFOS[eff]
-            if einfo[ev] then
-                einfo[ev](dur, ...)
+    local effIds = EFFECT_EVENT_CACHE[ev]
+    if effIds then
+        for _, effId in ipairs(effIds) do
+            local dur = currentSession.mainWorld.effectDurations[effId] or 0
+            if dur > 0 then
+                EFFECT_INFOS[effId][ev](dur, ...)
             end
         end
     end
