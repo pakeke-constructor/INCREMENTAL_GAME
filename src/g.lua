@@ -498,7 +498,6 @@ local g_TokenDefinition = {}
 
 
 ---@class g.EffectDefinition
----@field public duration number
 ---@field public description string?
 ---@field public image string?
 ---@field public isDebuff boolean?
@@ -810,7 +809,6 @@ function g.defineEffect(id, name, def)
         error("effect '"..id.."' is already defined")
     end
 
-    assert(def.duration, "missing duration")
     for k, v in pairs(def) do
         if type(v) == "function" then
             g.assertIsQuestionOrEvent(k)
@@ -847,13 +845,13 @@ function g.defineEffect(id, name, def)
 end
 
 ---@param id string
-function g.grantEffect(id)
+---@param duration number
+function g.grantEffect(id, duration)
     local effInfo = EFFECT_INFOS[id]
     if not effInfo then
         error("effect '"..id.."' is not defined")
     end
-
-    return currentSession.mainWorld:_grantEffect(id, effInfo.duration)
+    return currentSession.mainWorld:_grantEffect(id, duration)
 end
 
 ---@param id string

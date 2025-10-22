@@ -265,7 +265,7 @@ function harvest:keyreleased(k)
             end
         elseif k=="3" then
             local eff = helper.choice(g.EFFECT_LIST)
-            g.grantEffect(eff)
+            g.grantEffect(eff, 10)
         end
     end
 end
