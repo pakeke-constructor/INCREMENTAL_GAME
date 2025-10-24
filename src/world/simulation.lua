@@ -27,9 +27,10 @@ function simulation.getBestMousePositionInWorld()
     -- We don't use g.iterateTokensInArea because we just want to iterate everything
     for _, tok in ipairs(world.tokens) do
         ---@cast tok g.Token
-        local gx = math.floor((tok.x + offX) / gridW)
-        local gy = math.floor((tok.y + offY) / gridH)
-        table.insert(grid[gy * gridW + gx + 1], tok)
+        local gx = math.floor((tok.x + offX) / cellSize)
+        local gy = math.floor((tok.y + offY) / cellSize)
+        local i = gy * gridW + gx + 1
+        table.insert(grid[i], tok)
     end
 
     -- Get best grid position
@@ -75,21 +76,25 @@ function simulation.buyAffordableUpgrades(excludeuid)
 
         for _, uid in ipairs(g.UPGRADE_LIST) do
             if not excludeuid:has(uid) then
-                local nextlevel = (session.upgradeLevels[uid] or 0) + 1
                 local uinfo = g.getUpgradeInfo(uid)
-                local price = g.getUpgradePrice(uinfo, nextlevel)
 
-                -- Increase price by 1 to simulate larger than
-                for k, v in pairs(price) do
-                    if v > 0 then
-                        price[k] = v + 1
+                if not g.isUpgradeHidden(uinfo) then
+                    local nextlevel = (session.upgradeLevels[uid] or 0) + 1
+                    local price = g.getUpgradePrice(uinfo, nextlevel)
+
+                    -- Increase price by 1 to simulate larger than
+                    for k, v in pairs(price) do
+                        if v > 0 then
+                            price[k] = v + 1
+                        end
                     end
-                end
 
-                if g.canAfford(price) then
-                    session.upgradeLevels[uid] = nextlevel
-                    noneBought = false
-                    break -- this can be slow but correctness first
+                    if g.canAfford(price) then
+                        print("Bought upgrade:", uid, nextlevel)
+                        session.upgradeLevels[uid] = nextlevel
+                        noneBought = false
+                        break -- this can be slow but correctness first
+                    end
                 end
             end
         end
@@ -116,6 +121,9 @@ function simulation.setup(targetUpgrade, duration)
     for _, resId in ipairs(g.RESOURCE_LIST) do
         session.resources[resId] = 0
     end
+
+    -- Set duration
+    simulation.duration = duration
 end
 
 return simulation
