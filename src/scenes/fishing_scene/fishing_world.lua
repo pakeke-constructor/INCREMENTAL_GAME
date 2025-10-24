@@ -44,6 +44,8 @@ local function sortOrder(a, b)
     return a.y < b.y
 end
 
+local img = love.graphics.newImage("src/fishing_wharf")
+
 function FishingWorld:draw()
     ---@type g.FisherCat[]
     local objlist = {}
