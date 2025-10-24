@@ -6,19 +6,46 @@ local FishingWorld = objects.Class("g:FishingWorld")
 ---| "rare"
 ---| "epic"
 
+
+local img = love.graphics.newImage("src/scenes/fishing_scene/fishing_wharf.png")
+
+local WHARF_IMAGE_REGION = Kirigami(169,148, 124,56)
+
+
+
+---@param self g.FishingWorld
+---@return number,number
+local function getImagePos(self)
+    local ix = -self.worldArea.w/2 - 20
+    local iy = -self.worldArea.h/2
+    return ix,iy
+end
+
+
 function FishingWorld:init()
     ---@type g.FisherCat[]
     self.managedFishercat = {}
     ---@type g.FisherCat|nil
     self.mainFishercat = nil -- This is player's fishercat
 
-    local wharfY = 100
-    local wharfW = 100
-    self.wharfArea = Kirigami(20,wharfY,wharfW,50)
-
     self.worldArea = Kirigami(0,0,300,200)
-    self.castArea = Kirigami(wharfW + 20, wharfY-25, 100,100)
+
+    do
+    local ix,iy = getImagePos(self)
+    local castX = img:getWidth()+ix
+    self.castArea = Kirigami(castX, 0, self.worldArea.w-castX, self.worldArea.h)
+        :padRatio(0.3)
+    end
 end
+
+
+function FishingWorld:getWharfArea()
+    local x,y = getImagePos(self)
+    return WHARF_IMAGE_REGION
+        :moveUnit(x,y)
+        :padRatio(0.3)
+end
+
 
 
 if false then
@@ -44,7 +71,7 @@ local function sortOrder(a, b)
     return a.y < b.y
 end
 
-local img = love.graphics.newImage("src/fishing_wharf")
+
 
 function FishingWorld:draw()
     ---@type g.FisherCat[]
@@ -60,12 +87,7 @@ function FishingWorld:draw()
 
     table.sort(objlist, sortOrder)
 
-    love.graphics.setColor(objects.Color("#".."FF8E5F31"))
-    love.graphics.rectangle("fill", self.wharfArea:get())
-
-    love.graphics.setColor(0,0,0.8)
-    love.graphics.rectangle("line", self.worldArea:get())
-    love.graphics.rectangle("line", self.castArea:get())
+    love.graphics.draw(img,getImagePos(self))
 
     love.graphics.setColor(1,1,1)
     for _, v in ipairs(objlist) do

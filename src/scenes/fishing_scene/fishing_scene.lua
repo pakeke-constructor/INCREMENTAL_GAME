@@ -2,8 +2,8 @@
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
-local FishingWorld = require("src.world.fishing.fishing_world")
-local FisherCat = require("src.world.fishing.FisherCat")
+local FishingWorld = require(".fishing_world")
+local FisherCat = require(".FisherCat")
 
 ---@class FishingScene: FreeCameraScene
 local fishing = FreeCameraScene()
@@ -61,7 +61,7 @@ function fishing:init()
     self.allowMousePan = false
     -- Not sure if this should be session or here but let's put it here for now.
     self.world = FishingWorld()
-    local x,y = helper.randomInRegion(self.world.wharfArea:get())
+    local x,y = helper.randomInRegion(self.world:getWharfArea():get())
     self.mainCat = FisherCat(x,y)
     self.world.mainFishercat = self.mainCat
 
@@ -206,7 +206,6 @@ end
 
 function fishing:mousepressed(mx,my,button)
     if self.mainCat.state == "reeling" and button == 1 then
-        print("catch fish!!!")
         self.mainCat:reset()
     end
 end
