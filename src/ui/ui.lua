@@ -9,21 +9,49 @@ ui.upgradeBoxUI = require(".upgrades.upgrade_box_ui")
 ui.upgradeDescriptionUI = require(".upgrades.upgrade_description_ui")
 
 
+
+do
+local CLICK_BUTTON = 1
+
 ---@param richText string
+---@param color? objects.Color
 ---@param x number
 ---@param y number
 ---@param w number
 ---@param h number
-function ui.Button(richText, x,y,w,h)
+function ui.Button(richText, color, x,y,w,h)
 	ui.assertUIStarted()
     love.graphics.setColor(1,1,1)
+
+	color = color or objects.Color.WHITE
     if iml.isHovered(x,y,w,h) then
-        love.graphics.setColor(0.8,0.8,0.8)
+        color:setHSL(color.h,color.s,color.v*0.9)
     end
-    love.graphics.rectangle("fill", x,y,w,h)
+
+	local dh = math.floor(h/10)
+
+	-- draw button base:
+	local baseCol = objects.Color(color)
+	local hue,s,l = baseCol:getHSL()
+	baseCol = baseCol:setHSV(hue,s,l*0.7)
+	love.graphics.setColor(baseCol)
+    ui.jaggedRectangle("fill", 8, x,y+dh,w,h-dh)
+
+	-- draw main button part:
+	local dy = 0
+	if iml.isClicked(x,y,w,h, CLICK_BUTTON) then
+		dy = dh
+	end
+	love.graphics.setColor(color)
+    ui.jaggedRectangle("fill", 4, x,y+dy,w,h-dh)
+
     love.graphics.setColor(0,0,0)
-    richtext.printRichContained(richText, love.graphics.getFont(), x,y,w,h)
-    return iml.wasJustClicked(x,y,w,h)
+    richtext.printRichContained(richText, love.graphics.getFont(), x,y+dy,w,h-dh-dy)
+
+    return iml.wasJustClicked(x,y,w,h, CLICK_BUTTON)
+end
+
+
 end
 
 

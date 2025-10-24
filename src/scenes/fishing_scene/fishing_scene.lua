@@ -140,7 +140,7 @@ function fishing:drawUI()
         :moveUnit(-8, -8)
 
     if self.mainCat.state == "idle" then
-        if ui.Button(CAST_ROD, startButtonR:get()) then
+        if ui.Button(CAST_ROD, nil, startButtonR:get()) then
             local cx,cy = helper.randomInRegion(self.world.castArea:get())
             self.mainCat:cast(cx,cy)
         end
