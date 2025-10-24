@@ -93,7 +93,6 @@ function simulation.buyAffordableUpgrades(excludeuid)
                         print("Bought upgrade:", uid, nextlevel)
                         session.upgradeLevels[uid] = nextlevel
                         noneBought = false
-                        break -- this can be slow but correctness first
                     end
                 end
             end

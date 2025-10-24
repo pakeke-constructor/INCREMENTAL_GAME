@@ -2,10 +2,16 @@
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
+local simulation = require("src.world.simulation")
 
 ---@class HarvestScene: FreeCameraScene
 local harvest = FreeCameraScene()
 
+
+local simulatedMouse = {
+    next = 0,
+    x = 0, y = 0
+}
 
 
 function harvest:init()
@@ -183,8 +189,10 @@ function harvest:draw()
 
     local world = g.getMainWorld()
 
-    local cx,cy = self.camera:toWorld(love.mouse.getPosition())
-    world:_enableMouseHarvester(cx,cy)
+    if not simulation.targetUpgrade then
+        local cx,cy = self.camera:toWorld(love.mouse.getPosition())
+        world:_enableMouseHarvester(cx,cy)
+    end
 
     world:_draw()
 
@@ -247,6 +255,29 @@ function harvest:update(dt)
         -- Just in case when the stack token was in progress
         -- then it's gone.
         self.stackedTokenLerpTime = -1
+    end
+
+    -- Update simulation
+    if simulation.targetUpgrade then
+        local world = g.getMainWorld()
+        simulation.duration = simulation.duration - dt
+
+        if simulation.duration <= 0 then
+            local rps = world:_getResourcesPerSecond()
+            print("Request per seconds over last 60 seconds")
+            for k, v in pairs(rps) do
+                print(v.." "..k.."/s")
+            end
+            love.event.quit()
+        end
+
+        simulatedMouse.next = simulatedMouse.next - dt
+        if simulatedMouse.next <= 0 then
+            simulatedMouse.next = 0.3
+            simulatedMouse.x, simulatedMouse.y = simulation.getBestMousePositionInWorld()
+        end
+
+        world:_enableMouseHarvester(simulatedMouse.x, simulatedMouse.y)
     end
 end
 
