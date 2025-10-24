@@ -165,7 +165,7 @@ function love.load(arg)
         simulation.setup(upg, dur)
     end
 
-    if simulation.targetUpgrade then
+    if simulation.isSimulating() then
         sceneManager.gotoScene("harvest_scene")
     else
         sceneManager.gotoScene("map_scene")

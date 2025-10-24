@@ -8,7 +8,18 @@ local table_new = require("table.new")
 simulation.targetUpgrade = nil
 simulation.duration = 0
 
-function simulation.getBestMousePositionInWorld()
+simulation.lastMouseHitTime = 0
+simulation.mouseX = 0
+simulation.mouseY = 0
+
+
+function simulation.isSimulating()
+    return not not simulation.targetUpgrade
+end
+
+
+
+local function getBestMousePositionInWorld()
     local world = g.getMainWorld()
     -- HarvestArea is circular, divide by sqrt(2) so it covers rectangle diagonals.
     local cellSize = math.floor(2 * g.stats.HarvestArea / math.sqrt(2))
@@ -100,6 +111,8 @@ function simulation.buyAffordableUpgrades(excludeuid)
     until noneBought
 end
 
+
+
 ---@param targetUpgrade string
 ---@param duration number
 function simulation.setup(targetUpgrade, duration)
@@ -124,5 +137,31 @@ function simulation.setup(targetUpgrade, duration)
     -- Set duration
     simulation.duration = duration
 end
+
+
+
+function simulation.update(dt)
+    local world = g.getMainWorld()
+    simulation.duration = simulation.duration - dt
+
+    if simulation.duration <= 0 then
+        local rps = world:_getResourcesPerSecond()
+        print("Request per seconds over last 60 seconds")
+        for k, v in pairs(rps) do
+            print(v.." "..k.."/s")
+        end
+        love.event.quit()
+    end
+
+    local time = love.timer.getTime()
+    if time-simulation.lastMouseHitTime > 0.3 then
+        simulation.lastMouseHitTime = time
+        simulation.mouseX, simulation.mouseY = getBestMousePositionInWorld()
+    end
+
+    world:_enableMouseHarvester(simulation.mouseX, simulation.mouseY)
+end
+
+
 
 return simulation

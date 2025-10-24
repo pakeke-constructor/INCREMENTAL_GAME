@@ -8,11 +8,6 @@ local simulation = require("src.world.simulation")
 local harvest = FreeCameraScene()
 
 
-local simulatedMouse = {
-    next = 0,
-    x = 0, y = 0
-}
-
 
 function harvest:init()
     self.allowMousePan = false
@@ -257,27 +252,8 @@ function harvest:update(dt)
         self.stackedTokenLerpTime = -1
     end
 
-    -- Update simulation
-    if simulation.targetUpgrade then
-        local world = g.getMainWorld()
-        simulation.duration = simulation.duration - dt
-
-        if simulation.duration <= 0 then
-            local rps = world:_getResourcesPerSecond()
-            print("Request per seconds over last 60 seconds")
-            for k, v in pairs(rps) do
-                print(v.." "..k.."/s")
-            end
-            love.event.quit()
-        end
-
-        simulatedMouse.next = simulatedMouse.next - dt
-        if simulatedMouse.next <= 0 then
-            simulatedMouse.next = 0.3
-            simulatedMouse.x, simulatedMouse.y = simulation.getBestMousePositionInWorld()
-        end
-
-        world:_enableMouseHarvester(simulatedMouse.x, simulatedMouse.y)
+    if simulation.isSimulating() then
+        simulation.update(dt)
     end
 end
 
