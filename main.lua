@@ -174,7 +174,7 @@ end
 
 function love.quit()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and g.getSn() and not simulation.targetUpgrade then
+    if shouldSave and g.getSn() and not simulation.isSimulating() then
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))

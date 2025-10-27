@@ -184,7 +184,7 @@ function harvest:draw()
 
     local world = g.getMainWorld()
 
-    if not simulation.targetUpgrade then
+    if not simulation.isSimulating() then
         local cx,cy = self.camera:toWorld(love.mouse.getPosition())
         world:_enableMouseHarvester(cx,cy)
     end
