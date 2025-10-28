@@ -46,30 +46,8 @@ local function getBestMousePositionInWorld()
     end
 
     return bestX, bestY
-
-    -- for i, toks in ipairs(grid) do
-    --     local hp = 0
-
-    --     for _, tok in ipairs(toks) do
-    --         hp = hp + tok.health / tok.maxHealth
-    --     end
-
-    --     local avgHealth = 0
-    --     if #toks > 0 then
-    --         avgHealth = hp / #toks
-    --     end
-
-    --     local ranking = (2 - (avgHealth / #toks)) * #toks
-    --     if ranking > best then
-    --         best = ranking
-    --         targetGI = i
-    --     end
-    -- end
-
-    -- if targetGI == 0 then
-    --     return 0, 0
-    -- end
 end
+
 
 
 ---Buys all upgrades BELOW the target upgrade.
