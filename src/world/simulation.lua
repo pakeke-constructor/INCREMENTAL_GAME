@@ -21,59 +21,54 @@ end
 
 local function getBestMousePositionInWorld()
     local world = g.getMainWorld()
-    -- HarvestArea is circular, divide by sqrt(2) so it covers rectangle diagonals.
-    local cellSize = math.floor(2 * g.stats.HarvestArea / math.sqrt(2))
-    local gridW = math.ceil(world.WIDTH / cellSize)
-    local gridH = math.ceil(world.HEIGHT / cellSize)
-    -- These are used to make sure the grid is on the center.
-    local offX = (gridW * cellSize - world.WIDTH) / 2
-    local offY = (gridH * cellSize - world.HEIGHT) / 2
-    ---@type g.Token[][]
-    local grid = table_new(gridW * gridH, 0)
-    for _ = 1, gridW * gridH do
-        grid[#grid+1] = {}
-    end
 
-    -- Iterate tokens
-    -- We don't use g.iterateTokensInArea because we just want to iterate everything
-    for _, tok in ipairs(world.tokens) do
-        ---@cast tok g.Token
-        local gx = math.floor((tok.x + offX) / cellSize)
-        local gy = math.floor((tok.y + offY) / cellSize)
-        local i = gy * gridW + gx + 1
-        table.insert(grid[i], tok)
-    end
+    local RESOLUTION_X = 30
+    local RESOLUTION_Y = 20
 
-    -- Get best grid position
-    local targetGI = 0
-    local best = 0
-    for i, toks in ipairs(grid) do
-        local hp = 0
+    local bestX, bestY = 0,0
+    local bestRank = 0
 
-        for _, tok in ipairs(toks) do
-            hp = hp + tok.health / tok.maxHealth
-        end
+    for x=0, world.WIDTH, (world.WIDTH/RESOLUTION_X) do
+        for y=0, world.HEIGHT, (world.HEIGHT/RESOLUTION_Y) do
+            local rank = 0
+            g.iterateTokensInArea(x,y, g.stats.HarvestArea, function (tok)
+                local hp = (tok.health / tok.maxHealth)
+                rank = rank + (1.5 - hp)
+            end)
 
-        local avgHealth = 0
-        if #toks > 0 then
-            avgHealth = hp / #toks
-        end
+            love.graphics.setColor(1,0,0)
+            love.graphics.circle("line", x,y,g.stats.HarvestArea)
 
-        local ranking = (2 - (avgHealth / #toks)) * #toks
-        if ranking > best then
-            best = ranking
-            targetGI = i
+            if rank > bestRank then
+                bestX, bestY, bestRank = x,y,rank
+            end
         end
     end
 
-    if targetGI == 0 then
-        return 0, 0
-    end
+    return bestX, bestY
 
-    -- Calculate best mouse pos in world
-    local targetGX = (targetGI - 1) % gridW
-    local targetGY = math.floor((targetGI - 1) / gridW)
-    return (targetGX + 0.5) * cellSize - offX, (targetGY + 0.5) * cellSize - offY
+    -- for i, toks in ipairs(grid) do
+    --     local hp = 0
+
+    --     for _, tok in ipairs(toks) do
+    --         hp = hp + tok.health / tok.maxHealth
+    --     end
+
+    --     local avgHealth = 0
+    --     if #toks > 0 then
+    --         avgHealth = hp / #toks
+    --     end
+
+    --     local ranking = (2 - (avgHealth / #toks)) * #toks
+    --     if ranking > best then
+    --         best = ranking
+    --         targetGI = i
+    --     end
+    -- end
+
+    -- if targetGI == 0 then
+    --     return 0, 0
+    -- end
 end
 
 
