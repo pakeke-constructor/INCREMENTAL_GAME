@@ -101,7 +101,6 @@ defineFarmerCat("lumberjack_cat", "Lumberjack Cat", "wood", "lumberjack_cat", {
     description = "Lumberjack Cat farm woods automatically!",
     price = {money = 100, logs = 10},
     maxLevel = 10,
-    image = "happy_cat"
 })
 
 

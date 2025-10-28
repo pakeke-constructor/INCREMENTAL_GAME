@@ -45,7 +45,7 @@ g.defineEntity("farmer_cat", FarmerCatEntity)
 
 ---@class LumberjackCatEntity: FarmerCatEntity
 local LumberjackCatEntity = {
-    image = "happy_cat",
+    image = "lumberjack_cat",
     radius = 20,
     speed = 50,
     shadowRadius = 7,
