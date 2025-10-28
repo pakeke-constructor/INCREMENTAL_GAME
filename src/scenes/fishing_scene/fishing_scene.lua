@@ -152,28 +152,56 @@ end
 
 
 
-local CAST_ROD = loc("Cast fishing rod!")
-local WAITING_FOR_FISH = loc("Waiting for fishy...")
+local CAST_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Fish!")
+local WAITING_FOR_FISH = loc("{o}{c r=0.7 g=0.8 b=1}Waiting for fishy...")
+
+local HIRE_FISHERCAT = interp("{o}Hire fishercat!\n$%{price}")
+local UPGRADE_ROD = interp("{o}Upgrade Rod!\n$%{price}")
 
 
 function fishing:drawUI()
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
-    local startButtonR = Kirigami(0, 0, 120, 74)
+    local buttonR, castR, upgradeRodR, hireFishercatR
+    do
+    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r2,_
+    _,r2 = r:splitVertical(1,2)
+    _,r2 = r2:splitHorizontal(1,1)
+
+    buttonR = r2
         :attachToBottomOf(r)
         :attachToRightOf(r)
-        :moveRatio(-1, -1)
-        :moveUnit(-8, -8)
+        :moveRatio(-1,-1)
+        :padRatio(0.1)
+
+    local top, bot = buttonR:splitVertical(1,1)
+    local left,right = bot:splitHorizontal(1,1)
+
+    castR = top:padRatio(0.5,0,0.5,0):padRatio(0.15)
+    upgradeRodR = left:padRatio(0.4)
+    hireFishercatR = right:padRatio(0.4)
+    end
+
+    local W1,W2 = objects.Color.WHITE, objects.Color.GRAY
 
     if self.mainCat.state == "idle" then
-        if ui.Button(CAST_ROD, nil, startButtonR:get()) then
+        if ui.Button(CAST_ROD, W1,W2, castR:get()) then
             local cx,cy = helper.randomInRegion(self.world.castArea:get())
             self.mainCat:cast(cx,cy)
         end
 
+        local C = objects.Color("#".."FFFFE8BE")
+        if ui.Button(HIRE_FISHERCAT({price = 1000}), W1,W2, hireFishercatR:get()) then
+            print("Son, ur hired!")
+        end
+
+        if ui.Button(UPGRADE_ROD({price = 1000}), W1,W2, upgradeRodR:get()) then
+            print("upg!")
+        end
+
     elseif self.mainCat.state == "fishing" then
-        lg.setColor(0,0,0)
-        richtext.printRich(WAITING_FOR_FISH, g.getSmallFont(32), r.x+r.w/2, r.y+r.h/2, 200, "center")
+        lg.setColor(1,1,1)
+        richtext.printRichContained(WAITING_FOR_FISH, g.getSmallFont(16), buttonR:moveUnit(0,4*math.sin(love.timer.getTime()*10)):get())
         if love.math.random()*5 < love.timer.getAverageDelta() then
             self.mainCat.state = "reeling"
         end

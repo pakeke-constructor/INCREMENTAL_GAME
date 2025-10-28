@@ -3,6 +3,7 @@
 ---@class ui
 local ui = {}
 
+local lg = love.graphics
 
 
 ui.upgradeBoxUI = require(".upgrades.upgrade_box_ui")
@@ -14,42 +15,68 @@ do
 local CLICK_BUTTON = 1
 
 ---@param richText string
----@param color? objects.Color
+---@param mainCol objects.Color
+---@param baseCol objects.Color
 ---@param x number
 ---@param y number
 ---@param w number
 ---@param h number
-function ui.Button(richText, color, x,y,w,h)
-	ui.assertUIStarted()
-    love.graphics.setColor(1,1,1)
+function ui.Button(richText, mainCol, baseCol, x,y,w,h)
+	return ui.CustomButton(function (xx,yy,ww,hh)
+		local font = g.getSmallFont(16)
+    	richtext.printRichContained(richText, font, xx,yy,ww,hh)
+	end, mainCol,baseCol, x,y,w,h)
+end
 
-	color = color or objects.Color.WHITE
-    if iml.isHovered(x,y,w,h) then
-        color:setHSL(color.h,color.s,color.v*0.9)
-    end
+
+
+---@param drawLabel fun(x:number,y:number,w:number,h:number)
+---@param mainCol objects.Color
+---@param baseCol objects.Color
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function ui.CustomButton(drawLabel, mainCol,baseCol, x,y,w,h)
+	ui.assertUIStarted()
 
 	local dh = math.floor(h/10)
+	local rounding = 8
 
 	-- draw button base:
-	local baseCol = objects.Color(color)
-	local hue,s,l = baseCol:getHSL()
-	baseCol = baseCol:setHSV(hue,s,l*0.7)
-	love.graphics.setColor(baseCol)
-    ui.jaggedRectangle("fill", 8, x,y+dh,w,h-dh)
+    lg.setColor(1,1,1)
+	local multCol = objects.Color.WHITE
+    if iml.isHovered(x,y,w,h) then
+        multCol = objects.Color(0.8,0.8,0.8)
+    end
+	lg.setColor(baseCol * multCol)
+    ui.jaggedRectangle("fill", rounding, x,y+dh,w,h-dh)
 
 	-- draw main button part:
 	local dy = 0
 	if iml.isClicked(x,y,w,h, CLICK_BUTTON) then
 		dy = dh
 	end
-	love.graphics.setColor(color)
-    ui.jaggedRectangle("fill", 4, x,y+dy,w,h-dh)
+	lg.setColor(mainCol * multCol)
+    ui.jaggedRectangle("fill", rounding, x,y+dy,w,h-dh)
 
-    love.graphics.setColor(0,0,0)
-    richtext.printRichContained(richText, love.graphics.getFont(), x,y+dy,w,h-dh-dy)
+	-- draw "main label"
+    lg.setColor(multCol)
+	local r = Kirigami(x,y+dy,w,h-dh):padRatio(0.3)
+    drawLabel(r:get())
+
+	-- draw outline/border
+	lg.setColor(0,0,0)
+	local lw = lg.getLineWidth()
+	lg.setLineWidth(2)
+	ui.jaggedRectangle("line", rounding, x,y+dy,w,h-dy)
+	lg.setLineWidth(lw)
 
     return iml.wasJustClicked(x,y,w,h, CLICK_BUTTON)
 end
+
+
+
 
 
 end
@@ -155,7 +182,7 @@ end
 function ui.jaggedRectangle(mode, radius, x,y,w,h)
 	-- local quantize = 4
 	local verts = jaggedRectangleVerts(x,y,w,h,radius, 2)
-	love.graphics.polygon(mode, verts)
+	lg.polygon(mode, verts)
 end
 
 
@@ -163,7 +190,7 @@ end
 ---@param region layout.Region
 ---@param mode love.DrawMode?
 function ui.debugRegion(region, mode)
-	love.graphics.rectangle(mode or "line", region:get())
+	lg.rectangle(mode or "line", region:get())
 end
 
 
@@ -177,7 +204,7 @@ local globalScale = 1
 local gw, gh = 800, 600
 
 local function updateGlobalScaleAutomatic()
-	local w, h = love.graphics.getDimensions()
+	local w, h = lg.getDimensions()
 	if w ~= gw or h ~= gh then
 		local wscale = w / 600
 		local hscale = h / 400
@@ -196,7 +223,7 @@ function ui.getUIScaling()
 end
 
 function ui.getScaledUIDimensions()
-	local w, h = love.graphics.getDimensions()
+	local w, h = lg.getDimensions()
 	local s = ui.getUIScaling()
 	return w / s, h / s
 end
@@ -220,9 +247,9 @@ local uiPushed = false
 function ui.startUI()
 	assert(not uiPushed, "attempt to call startUI twice")
 	uiPushed = true
-	love.graphics.push()
+	lg.push()
 	local t = ui.getUIScalingTransform()
-	love.graphics.replaceTransform(t)
+	lg.replaceTransform(t)
 	iml.pushTransform(t)
 end
 
@@ -230,7 +257,7 @@ function ui.endUI()
 	assert(uiPushed, "attempt to call endUI before startUI")
 	uiPushed = false
 	iml.popTransform()
-	love.graphics.pop()
+	lg.pop()
 end
 
 function ui.assertUIStarted()

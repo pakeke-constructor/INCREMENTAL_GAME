@@ -28,16 +28,18 @@ local function drawResourceType(r, resId)
     local b1, b2, b3, b4 = r:splitVertical(1, 1, 1, 1)
     local limit = g.getResourceLimit(resId)
 
-    if ui.Button("MAX "..resId, nil, b1:padUnit(4):get()) then
+    local W1,W2 = objects.Color.WHITE, objects.Color.GRAY
+
+    if ui.Button("{o}MAX "..resId, W1,W2, b1:padUnit(4):get()) then
         g.addResource(resId, limit)
     end
-    if ui.Button("+10% "..resId, nil, b2:padUnit(4):get()) then
+    if ui.Button("{o}+10% "..resId, W1,W2, b2:padUnit(4):get()) then
         g.addResource(resId, math.floor(limit/10+0.5))
     end
-    if ui.Button("-10% ".. resId, nil, b3:padUnit(4):get()) then
+    if ui.Button("{o}-10% ".. resId, W1,W2, b3:padUnit(4):get()) then
         g.addResource(resId, -math.floor(limit/10+0.5))
     end
-    if ui.Button("ZERO "..resId, nil, b4:padUnit(4):get()) then
+    if ui.Button("{o}ZERO "..resId, W1,W2, b4:padUnit(4):get()) then
         g.addResource(resId, -limit)
     end
 end
