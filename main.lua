@@ -122,7 +122,8 @@ local simulation = require("src.world.simulation")
 
 
 
-
+local CONSIDERED_IDLE_TIME = 10 -- 10 seconds
+local idleTime = 0 -- if this reaches at least `CONSIDERED_IDLE_TIME`, increase `idletime` in session.
 
 
 --[[
@@ -184,7 +185,12 @@ end
 
 function love.update(dt)
     iml.setPointer(love.mouse.getPosition())
-    g.getSn():_update(dt)
+    local session = g.getSn()
+    session:_update(dt)
+    if idleTime >= CONSIDERED_IDLE_TIME then
+        session.idletime = session.idletime + dt
+    end
+    idleTime = idleTime + dt
     local sc = sceneManager.getCurrentScene()
     if sc and sc.update then
         sc:update(dt)
@@ -202,6 +208,7 @@ end
 
 
 function love.mousepressed(mx, my, button, istouch, presses)
+    idleTime = 0
     iml.mousepressed(mx, my, button, istouch, presses)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.mousepressed then
@@ -210,6 +217,7 @@ function love.mousepressed(mx, my, button, istouch, presses)
 end
 
 function love.mousereleased(mx, my, button, istouch)
+    idleTime = 0
     iml.mousereleased(mx, my, button, istouch)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.mousereleased then
@@ -218,6 +226,7 @@ function love.mousereleased(mx, my, button, istouch)
 end
 
 function love.mousemoved(mx, my, dx, dy, istouch)
+    idleTime = 0
     local sc = sceneManager.getCurrentScene()
     if sc and sc.mousemoved then
         sc:mousemoved(mx, my, dx, dy, istouch)
@@ -225,6 +234,7 @@ function love.mousemoved(mx, my, dx, dy, istouch)
 end
 
 function love.keypressed(key, scancode, isrep)
+    idleTime = 0
     iml.keyreleased(key, scancode, isrep)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.keypressed then
@@ -233,6 +243,7 @@ function love.keypressed(key, scancode, isrep)
 end
 
 function love.keyreleased(key, scancode)
+    idleTime = 0
     iml.keyreleased(key, scancode)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.keyreleased then
@@ -249,6 +260,7 @@ function love.textinput(text)
 end
 
 function love.wheelmoved(dx, dy)
+    idleTime = 0
     iml.wheelmoved(dx,dy)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.wheelmoved then
@@ -261,5 +273,13 @@ function love.resize(w, h)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.resize then
         sc:resize(w, h)
+    end
+end
+
+function love.focus(focus)
+    if focus then
+        idleTime = 0
+    else
+        idleTime = CONSIDERED_IDLE_TIME
     end
 end
