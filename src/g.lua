@@ -699,9 +699,10 @@ end
 
 
 ---@param price g.Bundle
+---@param resourcePool g.Bundle?
 ---@return boolean
-function g.canAfford(price)
-    local r = currentSession.resources
+function g.canAfford(price, resourcePool)
+    local r = resourcePool or currentSession.resources
     for resId, amount in pairs(price) do
         assertValidResource(resId)
         if amount > (r[resId] or 0) then

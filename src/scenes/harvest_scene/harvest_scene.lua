@@ -2,6 +2,7 @@
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
+local simulation = require("src.world.simulation")
 
 ---@class HarvestScene: FreeCameraScene
 local harvest = FreeCameraScene()
@@ -183,8 +184,10 @@ function harvest:draw()
 
     local world = g.getMainWorld()
 
-    local cx,cy = self.camera:toWorld(love.mouse.getPosition())
-    world:_enableMouseHarvester(cx,cy)
+    if not simulation.isSimulating() then
+        local cx,cy = self.camera:toWorld(love.mouse.getPosition())
+        world:_enableMouseHarvester(cx,cy)
+    end
 
     world:_draw()
 
@@ -247,6 +250,10 @@ function harvest:update(dt)
         -- Just in case when the stack token was in progress
         -- then it's gone.
         self.stackedTokenLerpTime = -1
+    end
+
+    if simulation.isSimulating() then
+        simulation.update(dt)
     end
 end
 
