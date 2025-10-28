@@ -8,6 +8,9 @@ local FisherCat = require(".FisherCat")
 ---@class FishingScene: FreeCameraScene
 local fishing = FreeCameraScene()
 
+local lg = love.graphics
+
+
 -- Random time to choose from
 local GOOD_REEL_IN_TIME_RANGE = {3, 5}
 -- Reel in timing window in seconds to get a catch
@@ -85,6 +88,10 @@ function fishing:update(dt)
 end
 
 
+
+
+local SPINNING_FISH = lg.newImage("src/scenes/fishing_scene/spinning_orange_fish.png")
+
 ---@param self FishingScene
 local function drawReelMeter(self)
     local r,_ = Kirigami(0,0,ui.getScaledUIDimensions())
@@ -101,27 +108,46 @@ local function drawReelMeter(self)
         local index = (#SPACING - i) / (#SPACING - 1)
         local rc, gc, bc = objects.Color.HSLtoRGB(helper.lerp(22, 90, index), 1, 0.6)
 
-        love.graphics.setColor(rc, gc, bc)
-        love.graphics.rectangle(
-            "fill",
-            x + xsize * (1 - SPACING[i].window),
-            y,
-            2 * xsize * SPACING[i].window,
-            h
-        )
+        lg.setColor(rc, gc, bc)
+        local x1 = x + xsize * (1 - SPACING[i].window)
+        local w1 = 2 * xsize * SPACING[i].window
+        lg.rectangle("fill", x1,y, w1,h)
+
+        if i ~= #SPACING then
+            local GAP = 4
+            local lw = lg.getLineWidth()
+            lg.setLineWidth(2)
+            lg.line(x1-GAP,y, x1-GAP,y+h)
+            lg.line(x1-GAP*2,y, x1-GAP*2,y+h)
+            lg.line(x1+w1+GAP,y, x1+w1+GAP,y+h)
+            lg.line(x1+w1+GAP*2,y, x1+w1+GAP*2,y+h)
+            lg.setLineWidth(lw)
+        end
     end
 
     -- Draw reel catch position
     local linepos = self.reelPos * w
-    love.graphics.setColor(0, 0, 0)
-    local lw = love.graphics.getLineWidth()
-    love.graphics.setLineWidth(4)
-    love.graphics.line(x + linepos, y, x + linepos, y + h)
+    lg.setColor(0, 0, 0)
+    local lw = lg.getLineWidth()
+    lg.setLineWidth(4)
+    lg.line(x + linepos, y, x + linepos, y + h)
 
     -- Draw outline
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("line", x, y, w, h)
-    love.graphics.setLineWidth(lw)
+    lg.setColor(0, 0, 0)
+    lg.rectangle("line", x, y, w, h)
+    lg.setLineWidth(lw)
+
+    -- draw a pair of funny fishies
+    do
+    lg.push()
+    lg.setColor(1,1,1)
+    local SC=2
+    local t = love.timer.getTime() * 8
+    local ww,hh = SPINNING_FISH:getDimensions()
+    lg.draw(SPINNING_FISH, x+linepos,y, t, SC,SC, ww/2,hh/2)
+    lg.draw(SPINNING_FISH, x+linepos,y+h, -t, SC,SC, ww/2,hh/2)
+    lg.pop()
+    end
 end
 
 
@@ -146,7 +172,7 @@ function fishing:drawUI()
         end
 
     elseif self.mainCat.state == "fishing" then
-        love.graphics.setColor(0,0,0)
+        lg.setColor(0,0,0)
         richtext.printRich(WAITING_FOR_FISH, g.getSmallFont(32), r.x+r.w/2, r.y+r.h/2, 200, "center")
         if love.math.random()*5 < love.timer.getAverageDelta() then
             self.mainCat.state = "reeling"
@@ -183,8 +209,8 @@ end
 
 
 function fishing:draw()
-    love.graphics.clear(0.4,0.5,0.9)
-    love.graphics.setColor(1,1,1)
+    lg.clear(0.4,0.5,0.9)
+    lg.setColor(1,1,1)
 
     self.camera:focusOnArea(self.world.worldArea, g.getHUD():getSafeArea())
     self:setCamera()
