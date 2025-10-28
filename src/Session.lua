@@ -30,6 +30,8 @@ just provide the raw data, keep it simple.
 
 function Session:init()
     self.prestige = 0
+    self.playtime = 0
+    self.idletime = 0
 
     self.resources = {}
     for _,resId in ipairs(g.RESOURCE_LIST) do
@@ -83,6 +85,7 @@ function Session:_update(dt)
         local mult = g.ask(t.multQuestion)
         g.stats[stat] = mod*mult
     end
+    self.playtime = self.playtime + dt
     self.mainWorld:_update(dt)
 end
 
@@ -92,7 +95,9 @@ function Session.deserialize(data)
     local sess = Session()
 
     -- Load current prestige
-    sess.prestige = assert(data.prestige)
+    sess.prestige = assert(data.prestige) + 0
+    sess.playtime = (data.playtime or 0) + 0
+    sess.idletime = (data.idletime or 0) + 0
 
     -- Load resources
     for _,resId in ipairs(g.RESOURCE_LIST) do
@@ -140,6 +145,8 @@ function Session:serialize()
 
     return {
         prestige = self.prestige,
+        playtime = self.playtime,
+        idletime = self.idletime,
         resources = self.resources,
         upgradeLevels = self.upgradeLevels,
         prestigeLevels = plevels,
