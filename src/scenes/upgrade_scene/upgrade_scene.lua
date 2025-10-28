@@ -186,14 +186,37 @@ end
 
 
 
+local drawBackground
+do
+local image = love.graphics.newImage("src/scenes/upgrade_scene/upgrade_background_tile.png")
+function drawBackground()
+    -- draw background:
+    love.graphics.clear(0.4,0.6,0.8)
+    local GAP = image:getWidth()*2
+    local rot = math.sin(love.timer.getTime() / 1.5) / 4
+    local w,h = image:getDimensions()
+    love.graphics.scale(ui.getUIScaling())
+    local delta = (love.timer.getTime() * 2) % GAP
+    for x=-300, 3000, GAP do
+        for y=-300, 2000, GAP do
+            love.graphics.setColor(1,1,1,0.07)
+            love.graphics.draw(image, x,y-delta, rot, 1,1,w/2,h/2)
+        end
+    end
+end
+
+end
+
+
 function upgscene:draw()
-    self:setCamera()
     local header, body = Kirigami(0,0,ui.getScaledUIDimensions()):splitVertical(1,5)
     header = header:padRatio(0.2)
 
-    love.graphics.clear(0.2,0.4,0.8)
+    drawBackground()
+
     love.graphics.setColor(1,1,1)
 
+    self:setCamera()
     local hoveredUpgrade = drawUpgradeBoxes()
 
     self:resetCamera()
