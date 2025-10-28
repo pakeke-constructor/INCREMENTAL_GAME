@@ -118,6 +118,7 @@ vignette.setStrength(0.35)
 require("src.ev_q_definitions")
 
 
+local simulation = require("src.world.simulation")
 
 
 
@@ -145,24 +146,35 @@ TESTS END
 
 local sceneManager = require("src.scenes.sceneManager")
 
-function love.load()
+function love.load(arg)
     assert(love.filesystem.createDirectory("saves"))
     love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
 
     local shouldLoad = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") then
+    if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") and arg[1] ~= "--simulate" then
         g.loadSession("saves/save1.json")
     else
         g.newSession()
     end
-    sceneManager.gotoScene("map_scene")
+
+    if arg[1] == "--simulate" then
+        local upg = assert(arg[2], "missing upgrade")
+        local dur = assert(tonumber(arg[3]), "invalid simulation duration")
+        simulation.setup(upg, dur)
+    end
+
+    if simulation.isSimulating() then
+        sceneManager.gotoScene("harvest_scene")
+    else
+        sceneManager.gotoScene("map_scene")
+    end
 end
 
 function love.quit()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and g.getSn() then
+    if shouldSave and g.getSn() and not simulation.isSimulating() then
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
