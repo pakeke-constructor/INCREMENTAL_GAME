@@ -59,7 +59,7 @@ local function getBestMousePositionInWorld()
             avgHealth = hp / #toks
         end
 
-        local ranking = (1 - (avgHealth / #toks)) * #toks
+        local ranking = (2 - (avgHealth / #toks)) * #toks
         if ranking > best then
             best = ranking
             targetGI = i
@@ -77,48 +77,47 @@ local function getBestMousePositionInWorld()
 end
 
 
----Buy all affordable upgrade using current currency as the threshold.
----@param excludeuid objects.Set<string>
-function simulation.buyAffordableUpgrades(excludeuid)
+---Buys all upgrades BELOW the target upgrade.
+--- Emulates how the players will typically play 
+---@param upgId string
+---@param prestige integer
+local function buyAffordableUpgrades(upgId, prestige)
     local session = g.getSn()
 
-    repeat
-        local noneBought = true
+    local targLevel = 1
+    local targPrice = g.getUpgradePrice(g.getUpgradeInfo(upgId), targLevel)
 
-        for _, uid in ipairs(g.UPGRADE_LIST) do
-            if not excludeuid:has(uid) then
-                local uinfo = g.getUpgradeInfo(uid)
+    -- we use a while-loop because there are some upgrades 
+    -- that reduce the price of other upgrades.
+    local hasPurchase = true
+    while hasPurchase do
+        hasPurchase = false
 
-                if not g.isUpgradeHidden(uinfo) then
-                    local nextlevel = (session.upgradeLevels[uid] or 0) + 1
-                    local price = g.getUpgradePrice(uinfo, nextlevel)
+        for _, uid in g.iterateUpgradeTree(prestige) do
+            local uinfo = g.getUpgradeInfo(uid)
+            if upgId ~= uid then
+                local level = g.getUpgradeLevel(uinfo) + 1
+                local price = g.getUpgradePrice(uinfo, level)
 
-                    -- Increase price by 1 to simulate larger than
-                    for k, v in pairs(price) do
-                        if v > 0 then
-                            price[k] = v + 1
-                        end
-                    end
-
-                    if g.canAfford(price) then
-                        print("Bought upgrade:", uid, nextlevel)
-                        session.upgradeLevels[uid] = nextlevel
-                        noneBought = false
-                    end
+                -- if price <= targPrice:
+                if g.canAfford(price, targPrice) then
+                    hasPurchase = true
+                    print("BUY: ", uid, level)
+                    session.upgradeLevels[uid] = level
                 end
             end
         end
-    until noneBought
+    end
 end
 
 
 
----@param targetUpgrade string
+---@param upgId string
 ---@param duration number
-function simulation.setup(targetUpgrade, duration)
+function simulation.setup(upgId, duration)
     local session = g.getSn()
-    local uinfo = g.getUpgradeInfo(targetUpgrade)
-    simulation.targetUpgrade = targetUpgrade
+    local uinfo = g.getUpgradeInfo(upgId)
+    simulation.targetUpgrade = upgId
 
     -- Set player currency and set max limit
     for _, resId in ipairs(g.RESOURCE_LIST) do
@@ -127,7 +126,7 @@ function simulation.setup(targetUpgrade, duration)
         g.stats[resInfo.limitStat] = 1e9
     end
 
-    simulation.buyAffordableUpgrades(objects.Set({targetUpgrade}))
+    buyAffordableUpgrades(upgId, 0)
 
     -- Set user currency to zero
     for _, resId in ipairs(g.RESOURCE_LIST) do
