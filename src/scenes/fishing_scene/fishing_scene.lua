@@ -68,6 +68,8 @@ function fishing:init()
     self.mainCat = FisherCat(x,y)
     self.world.mainFishercat = self.mainCat
 
+    self.timeSinceCatch = 0xfffffff
+
     self.reelPos = 0 -- between 0 and 1
 end
 
@@ -84,6 +86,7 @@ end
 function fishing:update(dt)
     self.world:update(dt)
 
+    self.timeSinceCatch = self.timeSinceCatch + dt
     self.reelPos = triangleWave(love.timer.getTime(), CATCH_SPEED)
 end
 
@@ -154,6 +157,7 @@ end
 
 local CAST_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Fish!")
 local WAITING_FOR_FISH = loc("{o}{c r=0.7 g=0.8 b=1}Waiting for fishy...")
+local CAUGHT_FISH = loc("{o}{c r=0.7 g=0.8 b=1}CAUGHT!")
 
 local HIRE_FISHERCAT = interp("{o}Hire fishercat!\n$%{price}")
 local UPGRADE_ROD = interp("{o}Upgrade Rod!\n$%{price}")
@@ -184,13 +188,16 @@ function fishing:drawUI()
 
     local W1,W2 = objects.Color.WHITE, objects.Color.GRAY
 
-    if self.mainCat.state == "idle" then
+    if self.timeSinceCatch < 0.45 then
+        lg.setColor(1,1,1)
+        richtext.printRichContained(CAUGHT_FISH, g.getSmallFont(16), buttonR:get())
+
+    elseif self.mainCat.state == "idle" then
         if ui.Button(CAST_ROD, W1,W2, castR:get()) then
             local cx,cy = helper.randomInRegion(self.world.castArea:get())
             self.mainCat:cast(cx,cy)
         end
 
-        local C = objects.Color("#".."FFFFE8BE")
         if ui.Button(HIRE_FISHERCAT({price = 1000}), W1,W2, hireFishercatR:get()) then
             print("Son, ur hired!")
         end
@@ -260,6 +267,8 @@ end
 
 function fishing:mousepressed(mx,my,button)
     if self.mainCat.state == "reeling" and button == 1 then
+        -- CATCH FISH!!!
+        self.timeSinceCatch = 0
         self.mainCat:reset()
     end
 end
