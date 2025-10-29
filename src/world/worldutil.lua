@@ -115,15 +115,17 @@ end
 
 
 
----@param x any
----@param y any
----@param damage any
+---@param x number
+---@param y number
+---@param damage number?
 function worldutil.explosion(x,y,damage)
     g.spawnEntity("small_explosion_animation", x,y)
     g.playSound("small_explosion", 1,0.3,0.35)
-    g.iterateTokensInArea(x,y, 40, function(tok)
-        g.damageToken(tok,damage)
-    end)
+    if damage then
+        g.iterateTokensInArea(x,y, 40, function(tok)
+            g.damageToken(tok,damage)
+        end)
+    end
 end
 
 
