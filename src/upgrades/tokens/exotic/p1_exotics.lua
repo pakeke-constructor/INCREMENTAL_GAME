@@ -83,3 +83,24 @@ g.defineTokenUpgrade("mushroom_green", "Green Mushroom", {
 })
 
 
+
+-- TODO: Balancing
+g.defineTokenUpgrade("plant_pot", "Plant Pot", {
+    token = {
+        maxHealth = 10,
+        resources = {},
+        ---@param tok g.Token
+        tokenDestroyed = function(tok)
+            worldutil.explosion(tok.x, tok.y)
+            g.iterateTokensInArea(tok.x, tok.y, 36, function(t)
+                if t.category == "grass" then
+                    g.damageToken(t, 8)
+                end
+            end)
+        end
+    },
+    upgrade = {
+        description = "When destroyed, damages surrounding grass tokens.",
+        price = {money = 100}
+    }
+})

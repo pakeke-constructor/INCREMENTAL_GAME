@@ -1019,9 +1019,12 @@ do
     end
 end
 
+---@class g.UpgradeDefinitionWithoutKind: g.UpgradeDefinition
+---@field public kind nil
+
 ---@class g.TokenUpgradeDefinition
 ---@field public token g.TokenDefinition
----@field public upgrade g.UpgradeDefinition|{type:nil,kind:nil}
+---@field public upgrade g.UpgradeDefinitionWithoutKind
 
 
 ---@param id string
