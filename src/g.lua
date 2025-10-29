@@ -734,18 +734,18 @@ end
 ---@param tok g.Token
 ---@param bundle g.Bundle
 local function spawnTokenResource(tok, bundle)
-    local hud = g.getHUD()
+    local rhud = g.getHUD().resourceHUD
     if bundle.money then
-        hud:spawnResourceParticles("money", tok.x, tok.y, bundle.money)
+        rhud:spawnParticles("money", tok.x, tok.y, bundle.money)
     end
     if bundle.logs then
-        hud:spawnResourceParticles("logs", tok.x, tok.y, bundle.logs)
+        rhud:spawnParticles("logs", tok.x, tok.y, bundle.logs)
     end
     if bundle.rocks then
-        hud:spawnResourceParticles("rocks", tok.x, tok.y, bundle.rocks)
+        rhud:spawnParticles("rocks", tok.x, tok.y, bundle.rocks)
     end
     if bundle.bones then
-        hud:spawnResourceParticles("bones", tok.x, tok.y, bundle.bones)
+        rhud:spawnParticles("bones", tok.x, tok.y, bundle.bones)
     end
 end
 

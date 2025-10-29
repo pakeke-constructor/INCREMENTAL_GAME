@@ -31,14 +31,6 @@ function HUD:draw(camera, show)
     self.profileHUD:draw(camera, show.profile == false)
 end
 
----@param kind g.ResourceType
----@param x number Position of the token in world-space.
----@param y number Position of the token in world-space.
----@param amount number Amount to add to the display once it's done.
-function HUD:spawnResourceParticles(kind, x, y, amount)
-    return self.resourceHUD:spawnParticles(kind, x, y, amount)
-end
-
 function HUD:getSafeArea()
     return Kirigami(0, 0, ui.getScaledUIDimensions())
         :intersection(self.resourceHUD:getSafeArea())
