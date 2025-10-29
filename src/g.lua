@@ -1017,11 +1017,14 @@ do
     end
 end
 
+---@class g.TokenUpgradeDefinition
+---@field public token g.TokenDefinition
+---@field public upgrade g.UpgradeDefinition|{type:nil,kind:nil}
 
 
 ---@param id string
 ---@param name string
----@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil,kind:nil} }
+---@param def g.TokenUpgradeDefinition
 function g.defineTokenUpgrade(id, name, def)
     def.upgrade.populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
         tokens:add(id, level)
