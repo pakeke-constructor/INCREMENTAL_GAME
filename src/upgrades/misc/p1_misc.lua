@@ -61,26 +61,35 @@ g.defineUpgrade("capitalist", "Capitalist", {
 -- Farmer Cat upgrade
 ---------------------
 
--- TODO: Balancing
-g.defineUpgrade("farmer_cat", "Farmer Cat", {
-    kind = "MISC",
-    description = "Farmer-Cats farm automatically!",
-    image = "happy_cat",
-    price = {money = 1000},
-    maxLevel = 10,
-    getEntityCount = function(uinfo, level)
+---@param id string
+---@param name string
+---@param def g.UpgradeDefinition|{kind:nil}
+local function defineFarmerCat(id, name, def)
+    function def:getEntityCount(level)
         return level
-    end,
-    spawnEntity = function()
+    end
+    function def:spawnEntity()
         local world = g.getMainWorld()
         local x = love.math.random(0, world.WIDTH - 1)
         local y = love.math.random(0, world.HEIGHT - 1)
-        local e = g.spawnEntity("farmer_cat", x, y)
-        ---@cast e FarmerCatEntity
-        e.dirX = love.math.random(0, 1) * 2 - 1
-        e.dirY = love.math.random(0, 1) * 2 - 1
-        return e
+        return g.spawnEntity(id, x, y)
     end
+    def.kind = "MISC"
+
+    g.defineUpgrade(id, name, def)
+end
+
+-- TODO: Balancing
+defineFarmerCat("grass_farmer_cat", "Grass Farmer Cat", {
+    description = "Grass Farmer-Cats farm grasses automatically!",
+    price = {money = 800},
+    maxLevel = 10
+})
+
+defineFarmerCat("lumberjack_cat", "Lumberjack Cat", {
+    description = "Lumberjack Cat farm woods automatically!",
+    price = {money = 100, logs = 10},
+    maxLevel = 10,
 })
 
 
