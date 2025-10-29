@@ -57,6 +57,11 @@ function Session:init()
         [metricName] -> number
     ]]}
 
+    -- Fishing-scene upgrades stored in here,
+    -- (theres no other good place to put them; they arent regular upgrades)
+    self.fishingRodLevel = 0
+    self.fisherCatCount = 0
+
     -- Tokens that are queued for spawning in harvest area
     ---@type string[]
     self.tokenQueue = {}

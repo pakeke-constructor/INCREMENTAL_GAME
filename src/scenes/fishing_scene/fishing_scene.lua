@@ -163,6 +163,21 @@ local HIRE_FISHERCAT = loc("{o}{c r=0.7 g=0.8 b=1}Hire fishercat!{/c}{/o}")
 local UPGRADE_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Upgrade Rod!{/c}{/o}")
 
 
+local function getFisherCatPrice()
+    local sn = g.getSn()
+    local t = sn.fisherCatCount
+    return 2000 + 2*t
+end
+
+
+local function getFishingRodUpgradePrice()
+    local sn = g.getSn()
+    local t = sn.fishingRodLevel
+    return 500 + 3*t
+end
+
+
+
 
 function fishing:drawUI()
 
@@ -204,23 +219,41 @@ function fishing:drawUI()
             local r = Kirigami(x,y,w,h)
             local top,bot = r:splitVertical(1,1)
             richtext.printRichContained(mainText, font, top:padRatio(0.1):get())
-            local botleft,botright = bot:splitHorizontal(1,1)
-            richtext.printRichContained("{wavy}{o}{MONEY}$" .. tostring(price), font, botleft:padRatio(0.15):get())
-            richtext.printRichContained("{c r=0.6 g=0.7 b=0.75}" .. tostring(level) .. "/" .. tostring(maxLevel), font, botright:padRatio(0.15):get())
+            if level < maxLevel then
+                local botleft,botright = bot:splitHorizontal(1,1)
+                richtext.printRichContained("{wavy}{o}{MONEY}$" .. tostring(price), font, botleft:padRatio(0.15):get())
+                richtext.printRichContained("{c r=0.6 g=0.7 b=0.75}" .. tostring(level) .. "/" .. tostring(maxLevel), font, botright:padRatio(0.15):get())
+            else
+                richtext.printRichContained("{o}{c r=0.2 g=0.8 b=0.3}" .. tostring(maxLevel).."/"..tostring(maxLevel), font, bot:padRatio(0.15):get())
+            end
         end
 
+        local sn = g.getSn()
+        local MAX_FISHERCATS = self.world.MAX_FISHERCATS
+        local MAX_ROD_LEVEL = self.world.MAX_ROD_LEVEL
+
+        do
+        local price = getFisherCatPrice()
         local function hireFisherCat(x,y,w,h)
-            upgradeWidget(HIRE_FISHERCAT, 1000, 1,3, x,y,w,h)
+            upgradeWidget(HIRE_FISHERCAT, price, sn.fisherCatCount,MAX_FISHERCATS, x,y,w,h)
         end
         if ui.CustomButton(hireFisherCat, W1,W2, hireFishercatR:get()) then
-            print("Son, ur hired!")
+            if g.trySubtractResources({money = price}) then
+                sn.fisherCatCount = math.min(sn.fisherCatCount + 1, MAX_FISHERCATS)
+            end
+        end
         end
 
+        do
+        local price = getFishingRodUpgradePrice()
         local function upgradeRod(x,y,w,h)
-            upgradeWidget(UPGRADE_ROD, 1000, 1,3, x,y,w,h)
+            upgradeWidget(UPGRADE_ROD, 1000, sn.fishingRodLevel,self.world.MAX_ROD_LEVEL, x,y,w,h)
         end
         if ui.CustomButton(upgradeRod, W1,W2, upgradeRodR:get()) then
-            print("upg!")
+            if g.trySubtractResources({money = price}) then
+                sn.fishingRodLevel = math.min(sn.fishingRodLevel + 1, MAX_ROD_LEVEL)
+            end
+        end
         end
 
     elseif self.mainCat.state == "fishing" then

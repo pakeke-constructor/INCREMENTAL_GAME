@@ -1,5 +1,7 @@
----@class g.FishingWorld: objects.Class
-local FishingWorld = objects.Class("g:FishingWorld")
+---@class FishingWorld: objects.Class
+local FishingWorld = objects.Class("FishingWorld")
+
+local FisherCat = require(".FisherCat")
 
 ---@alias g.FishingRarity
 ---| "common"
@@ -12,8 +14,12 @@ local img = love.graphics.newImage("src/scenes/fishing_scene/fishing_wharf.png")
 local WHARF_IMAGE_REGION = Kirigami(169,148, 124,56)
 
 
+FishingWorld.MAX_FISHERCATS = 9
+FishingWorld.MAX_ROD_LEVEL = 9
 
----@param self g.FishingWorld
+
+
+---@param self FishingWorld
 ---@return number,number
 local function getImagePos(self)
     local ix = -self.worldArea.w/2 - 20
@@ -50,7 +56,7 @@ end
 
 
 if false then
-    ---@return g.FishingWorld
+    ---@return FishingWorld
     ---@diagnostic disable-next-line: cast-local-type, missing-return
     function FishingWorld() end
 end
@@ -73,6 +79,12 @@ local function sortOrder(a, b)
 end
 
 
+---@param self FishingWorld
+local function addFisherCat(self)
+    local x,y = helper.randomInRegion(self:getWharfArea():get())
+    table.insert(self.managedFishercat, FisherCat(x,y))
+end
+
 
 function FishingWorld:draw()
     ---@type g.FisherCat[]
@@ -80,6 +92,12 @@ function FishingWorld:draw()
 
     if self.mainFishercat then
         objlist[#objlist+1] = self.mainFishercat
+    end
+
+    local len = #self.managedFishercat
+    local sn = g.getSn()
+    if sn.fisherCatCount > len then
+       addFisherCat(self)
     end
 
     for _, v in ipairs(self.managedFishercat) do
@@ -90,11 +108,12 @@ function FishingWorld:draw()
 
     love.graphics.draw(img,getImagePos(self))
 
-    love.graphics.setColor(1,1,1)
     for _, v in ipairs(objlist) do
+        love.graphics.setColor(1,1,1)
         v:draw()
     end
 end
+
 
 
 function FishingWorld:getRandomCastPosition()
