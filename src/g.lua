@@ -778,13 +778,15 @@ end
 ---| "wood"
 ---| "cat"
 ---| "mushroom"
+---| "rock"
 
 ---@type table<g.Category, true|nil>
 g.CATEGORIES = {
     grass = true,
     wood = true,
     cat = true,
-    mushroom = true
+    mushroom = true,
+    rock = true,
 }
 
 
