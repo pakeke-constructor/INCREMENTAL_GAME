@@ -138,3 +138,40 @@ g.defineTokenUpgrade("business_cat", "Business Cat", {
 end
 
 
+
+do
+
+g.defineTokenUpgrade("pebbles", "Pebbles", {
+    token = {
+        category = "rock",
+        resources = {rocks = 1},
+        maxHealth = 8
+    },
+    upgrade = {
+        price = {money = 40}
+    }
+})
+
+g.defineTokenUpgrade("small_rock", "Rock", {
+    token = {
+        category = "rock",
+        resources = {rocks = 5},
+        maxHealth = 18
+    },
+    upgrade = {
+        price = {money = 90}
+    }
+})
+
+g.defineTokenUpgrade("big_rock", "Big Rock", {
+    token = {
+        category = "rock",
+        resources = {rocks = 10},
+        maxHealth = 34
+    },
+    upgrade = {
+        price = {money = 200}
+    }
+})
+
+end

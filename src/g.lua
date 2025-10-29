@@ -778,13 +778,15 @@ end
 ---| "wood"
 ---| "cat"
 ---| "mushroom"
+---| "rock"
 
 ---@type table<g.Category, true|nil>
 g.CATEGORIES = {
     grass = true,
     wood = true,
     cat = true,
-    mushroom = true
+    mushroom = true,
+    rock = true,
 }
 
 
@@ -1017,11 +1019,17 @@ do
     end
 end
 
+---@class _UpgradeDefinitionWithoutKind: g.UpgradeDefinition
+---@field public kind nil
+
+---@class _TokenUpgradeDefinition
+---@field public token g.TokenDefinition
+---@field public upgrade _UpgradeDefinitionWithoutKind
 
 
 ---@param id string
 ---@param name string
----@param def { token: g.TokenDefinition, upgrade: g.UpgradeDefinition|{type:nil,kind:nil} }
+---@param def _TokenUpgradeDefinition
 function g.defineTokenUpgrade(id, name, def)
     def.upgrade.populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
         tokens:add(id, level)
