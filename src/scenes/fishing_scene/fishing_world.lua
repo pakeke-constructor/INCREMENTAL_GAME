@@ -35,6 +35,7 @@ function FishingWorld:init()
     local castX = img:getWidth()+ix
     self.castArea = Kirigami(castX, 0, self.worldArea.w-castX, self.worldArea.h)
         :padRatio(0.3)
+        :moveRatio(0,0.3)
     end
 end
 
