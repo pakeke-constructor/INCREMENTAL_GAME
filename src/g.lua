@@ -1019,17 +1019,17 @@ do
     end
 end
 
----@class g.UpgradeDefinitionWithoutKind: g.UpgradeDefinition
+---@class _UpgradeDefinitionWithoutKind: g.UpgradeDefinition
 ---@field public kind nil
 
----@class g.TokenUpgradeDefinition
+---@class _TokenUpgradeDefinition
 ---@field public token g.TokenDefinition
----@field public upgrade g.UpgradeDefinitionWithoutKind
+---@field public upgrade _UpgradeDefinitionWithoutKind
 
 
 ---@param id string
 ---@param name string
----@param def g.TokenUpgradeDefinition
+---@param def _TokenUpgradeDefinition
 function g.defineTokenUpgrade(id, name, def)
     def.upgrade.populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
         tokens:add(id, level)
