@@ -63,11 +63,8 @@ g.defineUpgrade("capitalist", "Capitalist", {
 
 ---@param id string
 ---@param name string
----@param targetCategory g.Category
----@param entName string
 ---@param def g.UpgradeDefinition|{kind:nil}
-local function defineFarmerCat(id, name, targetCategory, entName, def)
-    local img = def.image or id
+local function defineFarmerCat(id, name, def)
     function def:getEntityCount(level)
         return level
     end
@@ -75,15 +72,7 @@ local function defineFarmerCat(id, name, targetCategory, entName, def)
         local world = g.getMainWorld()
         local x = love.math.random(0, world.WIDTH - 1)
         local y = love.math.random(0, world.HEIGHT - 1)
-        local e = g.spawnEntity(entName, x, y)
-        ---@cast e FarmerCatEntity
-        e.dirX = love.math.random(0, 1) * 2 - 1
-        e.dirY = love.math.random(0, 1) * 2 - 1
-        e.targetCategory = targetCategory
-        if g.isImage(img) then
-            e.image = img
-        end
-        return e
+        return g.spawnEntity(id, x, y)
     end
     def.kind = "MISC"
 
@@ -91,13 +80,13 @@ local function defineFarmerCat(id, name, targetCategory, entName, def)
 end
 
 -- TODO: Balancing
-defineFarmerCat("grass_farmer_cat", "Grass Farmer Cat", "grass", "farmer_cat", {
+defineFarmerCat("grass_farmer_cat", "Grass Farmer Cat", {
     description = "Grass Farmer-Cats farm grasses automatically!",
     price = {money = 800},
     maxLevel = 10
 })
 
-defineFarmerCat("lumberjack_cat", "Lumberjack Cat", "wood", "lumberjack_cat", {
+defineFarmerCat("lumberjack_cat", "Lumberjack Cat", {
     description = "Lumberjack Cat farm woods automatically!",
     price = {money = 100, logs = 10},
     maxLevel = 10,
