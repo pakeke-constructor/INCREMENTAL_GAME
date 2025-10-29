@@ -155,12 +155,13 @@ end
 
 
 
-local CAST_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Fish!")
-local WAITING_FOR_FISH = loc("{o}{c r=0.7 g=0.8 b=1}Waiting for fishy...")
-local CAUGHT_FISH = loc("{o}{c r=0.7 g=0.8 b=1}CAUGHT!")
+local CAST_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Fish!{/c}{/o}")
+local WAITING_FOR_FISH = loc("{o}{c r=0.7 g=0.8 b=1}Waiting for fishy...{/c}{/o}")
+local CAUGHT_FISH = loc("{o}{c r=0.7 g=0.8 b=1}CAUGHT!{/c}{/o}")
 
-local HIRE_FISHERCAT = interp("{o}Hire fishercat!\n$%{price}")
-local UPGRADE_ROD = interp("{o}Upgrade Rod!\n$%{price}")
+local HIRE_FISHERCAT = loc("{o}{c r=0.7 g=0.8 b=1}Hire fishercat!{/c}{/o}")
+local UPGRADE_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Upgrade Rod!{/c}{/o}")
+
 
 
 function fishing:drawUI()
@@ -186,7 +187,7 @@ function fishing:drawUI()
     hireFishercatR = right:padRatio(0.4)
     end
 
-    local W1,W2 = objects.Color.WHITE, objects.Color.GRAY
+    local W1,W2 = objects.Color.WHITE, objects.Color({0.76,0.78,0.82})
 
     if self.timeSinceCatch < 0.45 then
         lg.setColor(1,1,1)
@@ -198,11 +199,27 @@ function fishing:drawUI()
             self.mainCat:cast(cx,cy)
         end
 
-        if ui.Button(HIRE_FISHERCAT({price = 1000}), W1,W2, hireFishercatR:get()) then
+        local font = g.getSmallFont(16)
+        local function upgradeWidget(mainText, price, level, maxLevel, x,y,w,h)
+            local r = Kirigami(x,y,w,h)
+            local top,bot = r:splitVertical(1,1)
+            richtext.printRichContained(mainText, font, top:padRatio(0.1):get())
+            local botleft,botright = bot:splitHorizontal(1,1)
+            richtext.printRichContained("{wavy}{o}{MONEY}$" .. tostring(price), font, botleft:padRatio(0.15):get())
+            richtext.printRichContained("{c r=0.6 g=0.7 b=0.75}" .. tostring(level) .. "/" .. tostring(maxLevel), font, botright:padRatio(0.15):get())
+        end
+
+        local function hireFisherCat(x,y,w,h)
+            upgradeWidget(HIRE_FISHERCAT, 1000, 1,3, x,y,w,h)
+        end
+        if ui.CustomButton(hireFisherCat, W1,W2, hireFishercatR:get()) then
             print("Son, ur hired!")
         end
 
-        if ui.Button(UPGRADE_ROD({price = 1000}), W1,W2, upgradeRodR:get()) then
+        local function upgradeRod(x,y,w,h)
+            upgradeWidget(UPGRADE_ROD, 1000, 1,3, x,y,w,h)
+        end
+        if ui.CustomButton(upgradeRod, W1,W2, upgradeRodR:get()) then
             print("upg!")
         end
 

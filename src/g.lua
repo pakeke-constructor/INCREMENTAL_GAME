@@ -1983,10 +1983,20 @@ g.COLORS = {
     SHADOW = objects.Color(0,0,0,0.4),
 
     CANT_AFFORD = objects.Color("#".."FFC81515"),
-    MONEY = objects.Color(g.getResourceInfo("money").color),
+    MONEY = objects.Color("#".."FFF7D127"),
     RECOMMENDED = objects.Color("#".."FF9DEC4E"),
     UPGRADE_CONNECTOR = objects.Color("#".."FF123A85")
 }
+
+do
+for k,v in pairs(g.COLORS) do
+    if getmetatable(v) == objects.Color then
+        richtext.defineEffect(k, function (context, char)
+            char:setColor(v)
+        end)
+    end
+end
+end
 
 
 richtext.defineImage("health_icon", g.getAtlas(), g.getImageQuad("health_icon"))

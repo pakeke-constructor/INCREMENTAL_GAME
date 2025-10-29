@@ -28,7 +28,7 @@ local function drawResourceType(r, resId)
     local b1, b2, b3, b4 = r:splitVertical(1, 1, 1, 1)
     local limit = g.getResourceLimit(resId)
 
-    local W1,W2 = objects.Color.WHITE, objects.Color.GRAY
+    local W1,W2 = objects.Color.WHITE, objects.Color({0.8,0.8,0.84})
 
     if ui.Button("{o}MAX "..resId, W1,W2, b1:padUnit(4):get()) then
         g.addResource(resId, limit)
