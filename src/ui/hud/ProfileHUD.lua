@@ -124,7 +124,7 @@ end
 ---@param tok string
 ---@param x number
 ---@param y number
-function Profile:spawnParticle(tok, x, y)
+function Profile:spawnTokenVisual(tok, x, y)
     self.particles[#self.particles+1] = {
         token = tok,
         x = x,

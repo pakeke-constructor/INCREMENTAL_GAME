@@ -313,13 +313,13 @@ function Resources:draw(camera, noDraw)
 end
 
 
+---@param self g.hud.Resources
 ---@param kind g.ResourceType
 ---@param tier integer
 ---@param x number
 ---@param y number
 ---@param amount integer
----@private
-function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
+local function _spawnParticleImpl(self, kind, tier, x, y, amount)
     local smallAmount = 0
     -- 20% chance to spawn 1 additional smaller particles
     if tier > 1 and love.math.random() < 0.2 then
@@ -351,7 +351,7 @@ function Resources:_spawnParticleImpl(kind, tier, x, y, amount)
     }
 
     if smallAmount > 0 then
-        return self:_spawnParticleImpl(kind, tier - 1, x, y, smallAmount)
+        _spawnParticleImpl(self, kind, tier - 1, x, y, smallAmount)
     end
 end
 
@@ -366,7 +366,7 @@ end
 ---@param x number Position of the token in world-space.
 ---@param y number Position of the token in world-space.
 ---@param amount number Amount to add to the display once it's done.
-function Resources:spawnParticle(kind, x, y, amount)
+function Resources:spawnParticles(kind, x, y, amount)
     if amount <= 0 then return end
 
     local category = PARTICLE_SPAWN_CATEGORY[kind]
@@ -384,7 +384,7 @@ function Resources:spawnParticle(kind, x, y, amount)
     for tier, spawnCount in ipairs(tiersToSpawn) do
         local spawnAmount = category.counts[tier]
         for _ = 1, spawnCount do
-            self:_spawnParticleImpl(kind, tier, x, y, spawnAmount)
+            _spawnParticleImpl(self, kind, tier, x, y, spawnAmount)
         end
     end
 end

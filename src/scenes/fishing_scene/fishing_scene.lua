@@ -11,16 +11,6 @@ local fishing = FreeCameraScene()
 local lg = love.graphics
 
 
--- Random time to choose from
-local GOOD_REEL_IN_TIME_RANGE = {3, 5}
--- Reel in timing window in seconds to get a catch
-local CATCH_TIMING_WINDOW = 1
-
-
-local function rerollTimer()
-    return helper.lerp(GOOD_REEL_IN_TIME_RANGE[1], GOOD_REEL_IN_TIME_RANGE[2], love.math.random())
-end
-
 
 -- Note: this table MUSt be sorted by lowest window to highest.
 ---@type {window:number,name:string,rarity:(fun():g.FishingRarity?)}[]
@@ -78,7 +68,7 @@ local CATCH_SPEED = 0.5
 
 local function triangleWave(t, freq)
   local phase = (t * freq) % 1
-  return (1 - 4 * math.abs(phase - 0.5)) / 2 + 0.5
+  return (1 - 4 * math.abs(phase - 0.5))
 end
 
 
@@ -129,11 +119,12 @@ local function drawReelMeter(self)
     end
 
     -- Draw reel catch position
-    local linepos = self.reelPos * w
+    local linepos = self.reelPos * w/2
     lg.setColor(0, 0, 0)
     local lw = lg.getLineWidth()
     lg.setLineWidth(4)
-    lg.line(x + linepos, y, x + linepos, y + h)
+    local reelX = x + w/2 + linepos
+    lg.line(reelX, y, reelX, y + h)
 
     -- Draw outline
     lg.setColor(0, 0, 0)
@@ -147,8 +138,8 @@ local function drawReelMeter(self)
     local SC=2
     local t = love.timer.getTime() * 8
     local ww,hh = SPINNING_FISH:getDimensions()
-    lg.draw(SPINNING_FISH, x+linepos,y, t, SC,SC, ww/2,hh/2)
-    lg.draw(SPINNING_FISH, x+linepos,y+h, -t, SC,SC, ww/2,hh/2)
+    lg.draw(SPINNING_FISH, reelX,y, t, SC,SC, ww/2,hh/2)
+    lg.draw(SPINNING_FISH, reelX,y+h, -t, SC,SC, ww/2,hh/2)
     lg.pop()
     end
 end
@@ -259,7 +250,7 @@ function fishing:drawUI()
     elseif self.mainCat.state == "fishing" then
         lg.setColor(1,1,1)
         richtext.printRichContained(WAITING_FOR_FISH, g.getSmallFont(16), buttonR:moveUnit(0,4*math.sin(love.timer.getTime()*10)):get())
-        if love.math.random()*5 < love.timer.getAverageDelta() then
+        if (self.mainCat:getTimeSinceCast() > 4) and (love.math.random()*3 < love.timer.getAverageDelta()) then
             self.mainCat.state = "reeling"
         end
 
@@ -277,13 +268,7 @@ function fishing:drawUI()
                 break
             end
         end
-
-        print("Rarity", rarity)
-        if rarity then
-            self.world:giveLootRewardFor(rarity)
-        else
-            print("No fish :pensivebear:")
-        end
+        
     end
 
     -- Debug
@@ -317,8 +302,18 @@ end
 
 function fishing:mousepressed(mx,my,button)
     if self.mainCat.state == "reeling" and button == 1 then
-        -- CATCH FISH!!!
+        -- Player catches fish!
         self.timeSinceCatch = 0
+        local accuracy = math.abs(self.reelPos)
+        local rarity
+        for _, spc in ipairs(SPACING) do
+            if accuracy <= spc.window then
+                rarity = spc.rarity()
+                break
+            end
+        end
+
+        self.mainCat:catch(rarity)
         self.mainCat:reset()
     end
 end

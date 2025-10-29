@@ -3,10 +3,16 @@ local FishingWorld = objects.Class("FishingWorld")
 
 local FisherCat = require(".FisherCat")
 
----@alias g.FishingRarity
+---@alias _FishingRarity
 ---| "common"
 ---| "rare"
 ---| "epic"
+
+FishingWorld.FISHING_RARITIES = {
+    common=true,
+    rare=true,
+    epic=true,
+}
 
 
 local img = love.graphics.newImage("src/scenes/fishing_scene/fishing_wharf.png")
@@ -124,9 +130,5 @@ function FishingWorld:getRandomCastPosition()
 end
 
 
----@param rarity g.FishingRarity
-function FishingWorld:giveLootRewardFor(rarity)
-    print("Got a(n) "..rarity.." fish")
-end
 
 return FishingWorld

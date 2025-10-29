@@ -736,19 +736,26 @@ end
 local function spawnTokenResource(tok, bundle)
     local hud = g.getHUD()
     if bundle.money then
-        hud:spawnResourceParticle("money", tok.x, tok.y, bundle.money)
+        hud:spawnResourceParticles("money", tok.x, tok.y, bundle.money)
     end
     if bundle.logs then
-        hud:spawnResourceParticle("logs", tok.x, tok.y, bundle.logs)
+        hud:spawnResourceParticles("logs", tok.x, tok.y, bundle.logs)
     end
     if bundle.rocks then
-        hud:spawnResourceParticle("rocks", tok.x, tok.y, bundle.rocks)
+        hud:spawnResourceParticles("rocks", tok.x, tok.y, bundle.rocks)
     end
     if bundle.bones then
-        hud:spawnResourceParticle("bones", tok.x, tok.y, bundle.bones)
+        hud:spawnResourceParticles("bones", tok.x, tok.y, bundle.bones)
     end
 end
 
+
+---@param x number
+---@param y number
+---@param bundle g.Bundle
+function g.addResourceFromPosition(x,y,bundle)
+
+end
 
 
 ---@param tok g.Token
@@ -1855,7 +1862,7 @@ function g.stackToken(tok, x, y)
     end
 
     if x and y then
-        g.getHUD().profileHUD:spawnParticle(tok, x, y)
+        g.getHUD().profileHUD:spawnTokenVisual(tok, x, y)
     end
 end
 

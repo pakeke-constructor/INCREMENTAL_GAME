@@ -9,10 +9,12 @@ local FisherCat = objects.Class("g:FisherCat")
 
 ---@param x number
 ---@param y number
-function FisherCat:init(x, y)
+function FisherCat:init(x, y, isPlayerCat)
     self.x = x
     self.y = y
     self.image = "fishing_cat"
+
+    self.isPlayerCat = isPlayerCat
 
     self.bobberX, self.bobberY = x,y
     self.targX, self.targY = x,y -- where we are casting the bobber towards
@@ -34,10 +36,22 @@ end
 local CAST_TIME = 0.6
 local BOBBER_CAST_HEIGHT = 50
 
+local TIME_TO_CATCH = 25
+
+
+function FisherCat:getTimeSinceCast()
+    if self.state ~= "fishing" then
+        return 0
+    end
+    local time = love.timer.getTime()
+    local waitTime = time - self.timeOfLastCast
+    return waitTime
+end
+
+
 ---@param dt number
 function FisherCat:update(dt)
-    local time = love.timer.getTime()
-    local delta = time - self.timeOfLastCast
+    local delta = self:getTimeSinceCast()
     if delta < CAST_TIME then
         -- its still casting! Move bobber.
         local h = -math.sin(delta * (math.pi/CAST_TIME)) * BOBBER_CAST_HEIGHT
@@ -46,6 +60,13 @@ function FisherCat:update(dt)
         local xx, yy = lerp(self.x, self.targX, t), lerp(self.y, self.targY, t)
         self.bobberX = xx
         self.bobberY = yy + h
+    end
+
+    if not self.isPlayerCat then
+        if delta > TIME_TO_CATCH and (love.math.random() < dt/3) then
+            -- catch fish!
+            self:catch()
+        end
     end
 end
 
@@ -76,6 +97,27 @@ function FisherCat:cast(x, y)
     self.targY = y
 end
 
+
+
+
+---@param rarity _FishingRarity
+function FisherCat:catch(rarity)
+    self:reset()
+
+    if (not self.isPlayerCat) and (love.math.random() < 0.6) then
+        -- x% of the time, bot-cats just earn money.
+        -- (This is so we clog the queue with too many tokens)
+
+    elseif rarity == "common" then
+        
+    elseif rarity == "uncommon" then
+        
+    elseif rarity == "rare" then
+        
+    else
+        error("invalid rarity: " .. tostring(rarity))
+    end
+end
 
 
 function FisherCat:reset()
