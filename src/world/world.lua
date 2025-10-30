@@ -8,6 +8,7 @@ The world is a container for tokens and entities.
 
 local ParticleService = require(".particle.ParticleService")
 local DataCollection = require(".data_collection")
+local table_clear = require("table.clear")
 
 ---@class g.World: objects.Class
 ---@field entities objects.BufferedSet
@@ -29,6 +30,8 @@ local MIN_HOVER_TIME = 0.07
 
 function World:init()
     self.tokens = objects.BufferedSet()
+    ---@type table<string, integer>
+    self.tokenCounts = {}
     self.entities = objects.BufferedSet()
     ---@type table<string, objects.BufferedSet<g.Entity>>
     self.upgradeEntities = {}
@@ -396,11 +399,13 @@ function World:_update(dt)
         tp:add("grass_blades", 5)
     end
     self.tokenPool = tp
-
+    table_clear(self.tokenCounts)
 
     self.tokenPartition:clear()
     for _, t in ipairs(self.tokens) do
+        ---@cast t g.Token
         self.tokenPartition:add(t, t.x,t.y)
+        self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
     end
 
     -- Update effect durations (iterate backward)
