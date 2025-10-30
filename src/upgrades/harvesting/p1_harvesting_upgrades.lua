@@ -140,3 +140,17 @@ defUpgrade("more_loot", "More Loot", {
 
 
 
+
+defUpgrade("critical_damage", "Critical Damage", {
+    price = {money = 100},
+    description = "%{1} chance of hitting token with 100x more damage.",
+    getValues = function(uinfo, level)
+        return 1 + (level - 1) / 2
+    end,
+    valueFormatter = {"%.14g%%"},
+
+    getTokenHitMultiplier = function(uinfo, level)
+        local val = uinfo:getValues(level) / 100
+        return love.math.random() <= val and 100 or 1
+    end
+})
