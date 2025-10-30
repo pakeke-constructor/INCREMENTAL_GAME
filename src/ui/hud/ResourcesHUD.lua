@@ -18,7 +18,7 @@ Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24,
 ---@field package time number
 ---@field package tohudTime number
 
-local SPAWN_ANIMATION_DURATION = 0.05
+local SPAWN_ANIMATION_DURATION = 0.025
 local AFTERSPAWN_ANIMATION_DELAY = 0.06
 local TOHUD_ANIMATION_DURATION = {0.4, 0.5} -- random between these
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY

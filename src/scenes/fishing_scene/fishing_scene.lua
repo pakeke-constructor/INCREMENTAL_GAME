@@ -13,7 +13,7 @@ local lg = love.graphics
 
 
 -- Note: this table MUSt be sorted by lowest window to highest.
----@type {window:number,name:string,rarity:(fun():g.FishingRarity?)}[]
+---@type {window:number,name:string,rarity:(fun():_FishingRarity?)}[]
 local SPACING = {
     {
         window = 0.1,

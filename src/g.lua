@@ -1851,18 +1851,18 @@ end
 
 local MAX_QUEUED_TOKENS = 100
 
----@param tok string
+---@param tokenId string
 ---@param x number?
 ---@param y number?
-function g.stackToken(tok, x, y)
-    currentSession.tokenQueue[#currentSession.tokenQueue+1] = tok
+function g.stackToken(tokenId, x, y)
+    currentSession.tokenQueue[#currentSession.tokenQueue+1] = tokenId
 
     while #currentSession.tokenQueue > MAX_QUEUED_TOKENS do
         g.popStackedToken()
     end
 
     if x and y then
-        g.getHUD().profileHUD:spawnTokenVisual(tok, x, y)
+        g.getHUD().profileHUD:spawnTokenVisual(tokenId, x, y)
     end
 end
 
