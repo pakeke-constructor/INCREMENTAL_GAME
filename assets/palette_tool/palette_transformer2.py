@@ -58,7 +58,9 @@ def get_palette(image: NDArray[numpy.float32], n: int = 256):
     while len(bucket) < n:
         median_cut(bucket)
 
-    return numpy.vstack(list(average_image_array(bucket)), dtype=numpy.float32)
+    cols = (numpy.vstack(list(average_image_array(bucket)), dtype=numpy.float32))
+    print(cols)
+    return cols
 
 
 def quantize_image_smolsize(img: NDArray[numpy.float32], palette: NDArray[numpy.float32]):
@@ -108,7 +110,7 @@ class Args:
     input: collections.abc.Sequence[str]
 
 
-def main():
+def main(args=None):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--input-merged", help="Where to store the merged input (optional)", default=None)
     parser.add_argument("--palette", help="Where to store the palette (optional)", default=None)
@@ -118,7 +120,7 @@ def main():
     parser.add_argument("--ncolors", help="How many colors in the palette?", type=int, default=64)
     parser.add_argument("output_merged", help="Where to store the quantized merged output")
     parser.add_argument("input", nargs="+", help="Input image files")
-    args = parser.parse_args(namespace=Args())
+    args = args or parser.parse_args(namespace=Args())
 
     input_merged = stack_images(*args.input)
     if args.input_merged:
@@ -153,4 +155,21 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    a = Args()
+    a.input_merged = "output_merged.png"
+    a.palette = None
+    a.colorspace = "oklab"
+    a.ncolors = 64
+    a.output_merged = "output_merged.png"
+    a.input = ["input1.png", "input2.png", "input3.png", "input4.png", "input5.png"]
+
+    # input_merged: str | None
+    # palette: str | None
+    # colorspace: Literal["rgb", "oklab"]
+    # ncolors: int
+    # output_merged: str
+    # input: collections.abc.Sequence[str]
+
+    main(a)
+
+    #main()
