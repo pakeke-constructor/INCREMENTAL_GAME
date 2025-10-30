@@ -63,6 +63,36 @@ def get_palette(image: NDArray[numpy.float32], n: int = 256):
     return cols
 
 
+def get_palette_smart(image: NDArray[numpy.float32], n: int = 256):
+    bucket = [image.reshape(-1, 3)]
+
+    while len(bucket) < n:
+        median_cut(bucket)
+
+    cols = list(average_image_array(bucket))
+    c = rgb2oklab(cols.pop())
+    newcols = [c]
+    while cols:
+        best_i = 0
+        best_dist = 0xfffffffffff
+        for i,c1 in enumerate(cols):
+            cc = rgb2oklab(c1)
+            dist = numpy.linalg.norm(cc - c)
+            if dist < best_dist:
+                best_dist = dist
+                best_i = i
+        c = rgb2oklab(cols.pop(best_i))
+        newcols.append(c)
+
+    for i,c in enumerate(newcols):
+        newcols[i] = oklab2rgb(c)
+
+    cols = numpy.vstack(newcols, dtype=numpy.float32)
+    
+    return cols
+
+
+
 def quantize_image_smolsize(img: NDArray[numpy.float32], palette: NDArray[numpy.float32]):
     dist = img.reshape(-1, 3)[:, None, :] - palette[None, :, :]
     # Squared Euclidean distances to all palette colors
@@ -157,7 +187,7 @@ def main(args=None):
 if __name__ == "__main__":
     a = Args()
     a.input_merged = "output_merged.png"
-    a.palette = None
+    a.palette = "output_palette.png"
     a.colorspace = "oklab"
     a.ncolors = 64
     a.output_merged = "output_merged.png"
