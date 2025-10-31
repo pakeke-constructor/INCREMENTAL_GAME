@@ -44,8 +44,6 @@ love.graphics.setDefaultFilter("nearest", "nearest")
 -- todo: set a better font here
 love.graphics.setFont(love.graphics.newFont(64))
 
-local font = love.graphics.getFont()
--- font:setFilter("nearest", "nearest")
 
 --[[
 =========
@@ -112,6 +110,7 @@ setmetatable(_G, {
 })
 
 
+local postproc = require("src.postproc")
 local vignette = require("src.modules.vignette.vignette")
 vignette.setStrength(0.35)
 
@@ -198,12 +197,14 @@ function love.update(dt)
 end
 
 function love.draw()
+    postproc.start()
     local sc = sceneManager.getCurrentScene()
     if sc and sc.draw then
         iml.beginFrame()
         sc:draw()
         iml.endFrame()
     end
+    postproc.finish()
 end
 
 
