@@ -585,7 +585,7 @@ function World:_spawnDamageNumber(num, x, y, col)
     self.damageNumbers[#self.damageNumbers+1] = {
         color = col,
         number = num,
-        x = x + helper.lerp(-5, 5, love.math.random()),
+        x = x + helper.lerp(-3, 3, love.math.random()),
         y = y + helper.lerp(-5, 1, love.math.random()),
         lifetime = DAMAGE_NUMBER_LIFETIME,
     }
