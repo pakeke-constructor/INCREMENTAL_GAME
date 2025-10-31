@@ -605,6 +605,8 @@ function World:_updateSparkle(dt)
             end
         end
     end
+
+    table.sort(self.damageNumbers, sortOrder)
 end
 
 ---@private
@@ -620,7 +622,7 @@ function World:_drawSparkle()
         else
             local tspawn = helper.clamp((DAMAGE_NUMBER_LIFETIME - dn.lifetime) / DAMAGE_NUMBER_POPUP_TIME, 0, 1)
             local scale = math.max(helper.EASINGS.easeOutBack(tspawn) ^ 3, 0)
-            local text = tostring(-dn.number)
+            local text = tostring(dn.number)
             local width = smallFont:getWidth(text)
             helper.printTextOutlineSimple(text, smallFont, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
         end
