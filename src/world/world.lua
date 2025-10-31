@@ -515,6 +515,12 @@ function World:_update(dt)
             end
         end
 
+        for _, tok in ipairs(self.tokens) do
+            if tok.perSecondUpdate then
+                tok:perSecondUpdate()
+            end
+        end
+
         g.call("perSecondUpdate")
         updateResourceDataCollection(self)
         self.timer = self.timer - 1

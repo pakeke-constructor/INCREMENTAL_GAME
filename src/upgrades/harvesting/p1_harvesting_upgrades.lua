@@ -154,3 +154,27 @@ defUpgrade("critical_damage", "Critical Damage", {
         return love.math.random() <= val and 100 or 1
     end
 })
+
+
+
+defUpgrade("bomb", "Bomb", {
+    description = "Every second, there's %{1} chance of spawning Bomb token.",
+    getValues = function(uinfo, level)
+        return 5 + level * 5
+    end,
+    valueFormatter = {"%d%%"},
+    price = {money = 100},
+
+    perSecondUpdate = function(uinfo, level)
+        local world = g.getMainWorld()
+        local bombs = world.tokenCounts.bomb or 0
+        if bombs < 10 then
+            local chance = uinfo:getValues(level) / 100
+            if love.math.random() <= chance then
+                local x = helper.lerp(8, world.WIDTH - 8, love.math.random())
+                local y = helper.lerp(8, world.HEIGHT - 8, love.math.random())
+                g.spawnToken("bomb", x, y)
+            end
+        end
+    end
+})

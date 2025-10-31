@@ -115,27 +115,8 @@ g.defineToken("bomb", "Bomb", {
 
     tokenDestroyed = function(tok)
         worldutil.explosion(tok.x, tok.y, 32)
-    end
-})
-g.defineUpgrade("bomb", "Bomb", {
-    kind = "TOKEN",
-    description = "Every second, there's %{1} chance of spawning Bomb token, max of 10 in harvest area.",
-    getValues = function(uinfo, level)
-        return 5 + level * 5
     end,
-    valueFormatter = {"%d%%"},
-    price = {money = 100},
-
-    perSecondUpdate = function(uinfo, level)
-        local world = g.getMainWorld()
-        local bombs = world.tokenCounts.bomb or 0
-        if bombs < 10 then
-            local chance = uinfo:getValues(level) / 100
-            if love.math.random() <= chance then
-                local x = helper.lerp(8, world.WIDTH - 8, love.math.random())
-                local y = helper.lerp(8, world.HEIGHT - 8, love.math.random())
-                g.spawnToken("bomb", x, y)
-            end
-        end
+    perSecondUpdate = function(tok)
+        g.damageToken(tok, 1)
     end
 })
