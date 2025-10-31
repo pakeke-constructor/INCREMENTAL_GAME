@@ -1787,7 +1787,7 @@ function g.damageToken(tok, dmg)
         dmg + math.min(tok.health, 0),
         tok.x,
         tok.y - 5,
-        g.COLORS.DAMAGE_NUMBERS_BY_CATEGORY[tok.category]
+        g.COLORS.DAMAGE_NUMBERS_BY_CATEGORY[tok.category] or objects.Color.WHITE
     )
 
     tok.timeSinceDamaged = 0
@@ -2003,13 +2003,13 @@ g.COLORS = {
         MISC = objects.Color("#" .. "FFFFFFFF"),
     },
 
-    ---@type table<g.Category?, objects.Color>
-    DAMAGE_NUMBERS_BY_CATEGORY = setmetatable({
+    ---@type table<g.Category, objects.Color>
+    DAMAGE_NUMBERS_BY_CATEGORY = {
         grass = objects.Color("#".."FF84CDFA"),
         wood = objects.Color("#".."FFF5D48E"),
         mushroom = objects.Color("#".."FFFAFCC0"),
         rock = objects.Color("#".."FFF7A8A6"),
-    }, {__index = function() return objects.Color.WHITE end}),
+    },
 
     SHADOW = objects.Color(0,0,0,0.4),
 
