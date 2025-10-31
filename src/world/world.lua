@@ -573,7 +573,7 @@ local DAMAGE_NUMBER_LIFETIME = 0.5
 -- After lifetime, show popup with bouncy easing.
 local DAMAGE_NUMBER_POPUP_TIME = 0.2
 -- For every 0.1 seconds below lifetime, draw sparkles.
-local DAMANGE_NUMBER_SPARKLE = 0.1
+local DAMAGE_NUMBER_SPARKLE_TIME = 0.03
 -- If the indices (computed using above variable) is out-of-range, remove the damage numbers.
 local DAMAGE_NUMBER_SPARKLE_ASSETS = {"damage_number_sparkle_1", "damage_number_sparkle_2"}
 
@@ -599,7 +599,7 @@ function World:_updateDamageNumbers(dt)
         dn.lifetime = dn.lifetime - dt
 
         if dn.lifetime < 0 then
-            local sparkidx = math.ceil(-dn.lifetime / DAMANGE_NUMBER_SPARKLE)
+            local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
             if not DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx] then
                 table.remove(self.damageNumbers, i)
             end
@@ -617,7 +617,7 @@ function World:_drawDamageNumbers()
         love.graphics.setColor(dn.color)
 
         if dn.lifetime < 0 then
-            local sparkidx = math.ceil(-dn.lifetime / DAMANGE_NUMBER_SPARKLE)
+            local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
             g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
         else
             local tspawn = helper.clamp((DAMAGE_NUMBER_LIFETIME - dn.lifetime) / DAMAGE_NUMBER_POPUP_TIME, 0, 1)
