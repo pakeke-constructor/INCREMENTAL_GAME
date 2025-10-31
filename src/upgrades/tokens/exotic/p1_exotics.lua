@@ -104,3 +104,19 @@ g.defineTokenUpgrade("plant_pot", "Plant Pot", {
         price = {money = 100}
     }
 })
+
+
+
+-- defineTokenUpgrade is not used because we don't want it in token pool.
+-- but probably this _may_ be moved anyway.
+g.defineToken("bomb", "Bomb", {
+    maxHealth = 10,
+    resources = {},
+
+    tokenDestroyed = function(tok)
+        worldutil.explosion(tok.x, tok.y, 32)
+    end,
+    perSecondUpdate = function(tok)
+        g.damageToken(tok, 1)
+    end
+})
