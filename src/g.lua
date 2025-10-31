@@ -1783,10 +1783,18 @@ function g.damageToken(tok, dmg)
     tok.health = tok.health - dmg
     g.call("tokenDamaged", tok, dmg)
 
+    currentSession.mainWorld:_spawnDamageNumber(
+        dmg + math.min(tok.health, 0),
+        tok.x,
+        tok.y - 5,
+        g.COLORS.DAMAGE_NUMBERS_BY_CATEGORY[tok.category] or objects.Color.WHITE
+    )
+
     tok.timeSinceDamaged = 0
     if tok.health <= 0 then
         g.destroyToken(tok)
     end
+
 end
 
 
@@ -1993,6 +2001,14 @@ g.COLORS = {
         TOKEN = objects.Color("#" .. "FF1479CB"),
         TOKEN_MODIFIER = objects.Color("#" .. "FF15C39A"),
         MISC = objects.Color("#" .. "FFFFFFFF"),
+    },
+
+    ---@type table<g.Category, objects.Color>
+    DAMAGE_NUMBERS_BY_CATEGORY = {
+        grass = objects.Color("#".."FF84CDFA"),
+        wood = objects.Color("#".."FFF5D48E"),
+        mushroom = objects.Color("#".."FFFAFCC0"),
+        rock = objects.Color("#".."FFF7A8A6"),
     },
 
     SHADOW = objects.Color(0,0,0,0.4),

@@ -122,7 +122,14 @@ helper.EASINGS = {
     -- out
     sineOut = function(x) return math.sin((x * math.pi) / 2) end,
     -- inout
-    sineInOut = function(x) return -(math.cos(math.pi * x) - 1) / 2 end
+    sineInOut = function(x) return -(math.cos(math.pi * x) - 1) / 2 end,
+    -- out
+    easeOutBack = function(x)
+        local c1 = 1.70158
+        local c3 = c1 + 1
+
+        return 1 + c3 * math.pow(x - 1, 3) + c1 * math.pow(x - 1, 2)
+    end
 }
 
 
@@ -133,6 +140,32 @@ helper.EASINGS = {
 function helper.multiplyAlpha(color, alpha)
     local r, g, b, a = color:getRGBA()
     return r, g, b, a * alpha
+end
+
+
+
+---@param text string
+---@param font love.Font
+---@param x number
+---@param y number
+---@param r number?
+---@param sx number?
+---@param sy number?
+---@param ox number?
+---@param oy number?
+function helper.printTextOutlineSimple(text, font, x, y, r, sx, sy, ox, oy)
+    local col = {love.graphics.getColor()}
+    -- Draw outline
+    love.graphics.setColor(0, 0, 0, col[4])
+    for dy = -1, 1 do
+        for dx = -1, 1 do
+            if not (dx == 0 and dy == 0) then
+                love.graphics.print(text, font, x + dx, y + dy, r, sx, sy, ox, oy)
+            end
+        end
+    end
+    love.graphics.setColor(col)
+    love.graphics.print(text, font, x, y, r, sx, sy, ox, oy)
 end
 
 

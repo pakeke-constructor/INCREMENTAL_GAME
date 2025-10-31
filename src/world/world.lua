@@ -57,6 +57,9 @@ function World:init()
     -- Holds all effect durations
     ---@type table<string, number>
     self.effectDurations = {}
+
+    ---@type {color:objects.Color,number:number,x:number,y:number,lifetime:number}[]
+    self.damageNumbers = {}
 end
 
 
@@ -304,6 +307,8 @@ function World:_draw()
         end
     end
 
+    self:_drawDamageNumbers()
+
     love.graphics.setColor(1, 1, 1)
     self.particles:draw()
 
@@ -529,6 +534,7 @@ function World:_update(dt)
     self.tokens:flush()
 
     self.particles:update(dt)
+    self:_updateDamageNumbers(dt)
 end
 
 
@@ -560,6 +566,68 @@ function World:_iterateActiveEffects()
 end
 
 
+
+
+-- Initial lifetime of the damage numbers
+local DAMAGE_NUMBER_LIFETIME = 0.5
+-- After lifetime, show popup with bouncy easing.
+local DAMAGE_NUMBER_POPUP_TIME = 0.2
+-- For every 0.1 seconds below lifetime, draw sparkles.
+local DAMANGE_NUMBER_SPARKLE = 0.1
+-- If the indices (computed using above variable) is out-of-range, remove the damage numbers.
+local DAMAGE_NUMBER_SPARKLE_ASSETS = {"damage_number_sparkle_1", "damage_number_sparkle_2"}
+
+---@param num number
+---@param x number
+---@param y number
+---@param col objects.Color
+function World:_spawnDamageNumber(num, x, y, col)
+    self.damageNumbers[#self.damageNumbers+1] = {
+        color = col,
+        number = num,
+        x = x + helper.lerp(-5, 5, love.math.random()),
+        y = y + helper.lerp(-5, 1, love.math.random()),
+        lifetime = DAMAGE_NUMBER_LIFETIME,
+    }
+end
+
+---@param dt number
+---@private
+function World:_updateDamageNumbers(dt)
+    for i = #self.damageNumbers, 1, -1 do
+        local dn = self.damageNumbers[i]
+        dn.lifetime = dn.lifetime - dt
+
+        if dn.lifetime < 0 then
+            local sparkidx = math.ceil(-dn.lifetime / DAMANGE_NUMBER_SPARKLE)
+            if not DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx] then
+                table.remove(self.damageNumbers, i)
+            end
+        end
+    end
+
+    table.sort(self.damageNumbers, sortOrder)
+end
+
+---@private
+function World:_drawDamageNumbers()
+    local smallFont = g.getSmallFont(16)
+    local fontHeight = smallFont:getHeight()
+    for _, dn in ipairs(self.damageNumbers) do
+        love.graphics.setColor(dn.color)
+
+        if dn.lifetime < 0 then
+            local sparkidx = math.ceil(-dn.lifetime / DAMANGE_NUMBER_SPARKLE)
+            g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
+        else
+            local tspawn = helper.clamp((DAMAGE_NUMBER_LIFETIME - dn.lifetime) / DAMAGE_NUMBER_POPUP_TIME, 0, 1)
+            local scale = math.max(helper.EASINGS.easeOutBack(tspawn) ^ 3, 0)
+            local text = tostring(dn.number)
+            local width = smallFont:getWidth(text)
+            helper.printTextOutlineSimple(text, smallFont, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
+        end
+    end
+end
 
 
 
