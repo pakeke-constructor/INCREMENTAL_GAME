@@ -307,7 +307,7 @@ function World:_draw()
         end
     end
 
-    self:_drawSparkle()
+    self:_drawDamageNumbers()
 
     love.graphics.setColor(1, 1, 1)
     self.particles:draw()
@@ -534,7 +534,7 @@ function World:_update(dt)
     self.tokens:flush()
 
     self.particles:update(dt)
-    self:_updateSparkle(dt)
+    self:_updateDamageNumbers(dt)
 end
 
 
@@ -593,7 +593,7 @@ end
 
 ---@param dt number
 ---@private
-function World:_updateSparkle(dt)
+function World:_updateDamageNumbers(dt)
     for i = #self.damageNumbers, 1, -1 do
         local dn = self.damageNumbers[i]
         dn.lifetime = dn.lifetime - dt
@@ -610,7 +610,7 @@ function World:_updateSparkle(dt)
 end
 
 ---@private
-function World:_drawSparkle()
+function World:_drawDamageNumbers()
     local smallFont = g.getSmallFont(16)
     local fontHeight = smallFont:getHeight()
     for _, dn in ipairs(self.damageNumbers) do
