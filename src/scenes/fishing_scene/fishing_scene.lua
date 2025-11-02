@@ -74,6 +74,7 @@ end
 
 ---@param dt number
 function fishing:update(dt)
+    g.getHUD():update(dt)
     self.world:update(dt)
 
     self.timeSinceCatch = self.timeSinceCatch + dt
@@ -157,14 +158,14 @@ local UPGRADE_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Upgrade Rod!{/c}{/o}")
 local function getFisherCatPrice()
     local sn = g.getSn()
     local t = sn.fisherCatCount
-    return 2000 + 2*t
+    return 2000 * 2*(t+1)
 end
 
 
 local function getFishingRodUpgradePrice()
     local sn = g.getSn()
     local t = sn.fishingRodLevel
-    return 500 + 3*t
+    return 500 * 3*(t+1)
 end
 
 
@@ -238,7 +239,7 @@ function fishing:drawUI()
         do
         local price = getFishingRodUpgradePrice()
         local function upgradeRod(x,y,w,h)
-            upgradeWidget(UPGRADE_ROD, 1000, sn.fishingRodLevel,self.world.MAX_ROD_LEVEL, x,y,w,h)
+            upgradeWidget(UPGRADE_ROD, price, sn.fishingRodLevel,self.world.MAX_ROD_LEVEL, x,y,w,h)
         end
         if ui.CustomButton(upgradeRod, W1,W2, upgradeRodR:get()) then
             if g.trySubtractResources({money = price}) then
