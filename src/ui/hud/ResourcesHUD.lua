@@ -20,7 +20,7 @@ Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24,
 
 local SPAWN_ANIMATION_DURATION = 0.025
 local AFTERSPAWN_ANIMATION_DELAY = 0.06
-local TOHUD_ANIMATION_DURATION = {0.4, 0.5} -- random between these
+local TOHUD_ANIMATION_DURATION = {0.7, 0.8} -- random between these
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
 local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.3
