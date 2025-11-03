@@ -1790,7 +1790,7 @@ function g.damageToken(tok, dmg)
     local displayDmg = math.min(dmg, math.max(tok.health, 0))
 
     -- Ensure lagged health number is updated first before tok.health
-    local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTH_DURATION, 0, 1)
+    local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
     t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
     tok.laggedHealth = helper.lerp(tok.laggedHealth, tok.health, t)
 

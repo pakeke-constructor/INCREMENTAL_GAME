@@ -115,7 +115,9 @@ local function updateToken(tok,dt)
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
     tok.timeSinceHit = tok.timeSinceHit + dt
 
-    if tok.health <= 0 and tok.timeSinceDamaged >= consts.LAGGED_HEALTH_DURATION then
+    if tok.health <= 0 and (tok.timeSinceDamaged >= consts.TOKEN_DEATH_DELAY) then
+        -- QUESTION: wont this cause tokens to be invincible if they are hit repeatedly?
+        -- ANSWER: No, because `g.damageToken` returns early if health <= 0
         g.destroyToken(tok)
         return
     end
@@ -140,7 +142,7 @@ local function drawTokenHealthBar(tok)
     love.graphics.setColor(0,0,0,0.5)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
     -- Draw lagged health
-    local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTH_DURATION, 0, 1)
+    local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
     t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
     local laggedW = HP_BAR_W * helper.lerp(tok.laggedHealth, tok.health, t) / tok.maxHealth
     love.graphics.setColor(1,1-t,1-t,1)
