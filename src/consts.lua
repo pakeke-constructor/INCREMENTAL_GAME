@@ -21,7 +21,9 @@ local consts = {
 
     DEFAULT_UPGRADE_MAX_LEVEL = 10,
 
-    TEST = true
+    TEST = true,
+
+    LAGGED_HEALTH_DURATION = 0.4
 }
 
 

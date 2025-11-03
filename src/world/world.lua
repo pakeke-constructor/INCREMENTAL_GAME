@@ -121,6 +121,7 @@ local function updateToken(tok,dt)
 end
 
 
+---@param tok g.Token
 local function drawTokenHealthBar(tok)
     if tok.health >= tok.maxHealth then
         return -- dont draw
@@ -130,10 +131,19 @@ local function drawTokenHealthBar(tok)
     local HP_BAR_W = 14
     local HP_BAR_H = 3
     local realW = HP_BAR_W * (tok.health / tok.maxHealth)
+    -- Draw bar background
     love.graphics.setColor(0,0,0,0.5)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    -- Draw lagged health
+    local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTH_DURATION, 0, 1)
+    t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
+    local laggedW = HP_BAR_W * helper.lerp(tok.laggedHealth, tok.health, t) / tok.maxHealth
+    love.graphics.setColor(1,1-t,1-t,1)
+    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, laggedW, HP_BAR_H)
+    -- Draw health
     love.graphics.setColor(1,0,0,1)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, realW, HP_BAR_H)
+    -- Draw border
     love.graphics.setLineWidth(1)
     love.graphics.setColor(0,0,0,1)
     love.graphics.rectangle("line", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
