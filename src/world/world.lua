@@ -115,12 +115,18 @@ local function updateToken(tok,dt)
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
     tok.timeSinceHit = tok.timeSinceHit + dt
 
+    if tok.health <= 0 and tok.timeSinceDamaged >= consts.LAGGED_HEALTH_DURATION then
+        g.destroyToken(tok)
+        return
+    end
+
     if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceHit then
         g.hitImmediately(tok)
     end
 end
 
 
+---@param tok g.Token
 local function drawTokenHealthBar(tok)
     if tok.health >= tok.maxHealth then
         return -- dont draw
@@ -130,10 +136,19 @@ local function drawTokenHealthBar(tok)
     local HP_BAR_W = 14
     local HP_BAR_H = 3
     local realW = HP_BAR_W * (tok.health / tok.maxHealth)
+    -- Draw bar background
     love.graphics.setColor(0,0,0,0.5)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    -- Draw lagged health
+    local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTH_DURATION, 0, 1)
+    t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
+    local laggedW = HP_BAR_W * helper.lerp(tok.laggedHealth, tok.health, t) / tok.maxHealth
+    love.graphics.setColor(1,1-t,1-t,1)
+    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, laggedW, HP_BAR_H)
+    -- Draw health
     love.graphics.setColor(1,0,0,1)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, realW, HP_BAR_H)
+    -- Draw border
     love.graphics.setLineWidth(1)
     love.graphics.setColor(0,0,0,1)
     love.graphics.rectangle("line", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
@@ -368,6 +383,18 @@ local function updateResourceDataCollection(self)
 end
 
 
+---@generic T
+---@param t T[]
+---@return fun():(integer,T)
+local function wrapIpairs(t)
+    return coroutine.wrap(function()
+        for i, v in ipairs(t) do
+            coroutine.yield(i, v)
+        end
+    end)
+end
+
+
 
 ---@param id string
 ---@param dur number
@@ -430,15 +457,23 @@ function World:_update(dt)
     end
 
     -- Spawn or delete upgrade entity if necessary
-    for _, upgradeId in ipairs(g.UPGRADE_LIST) do
+    -- Note: If we're in dev mode (for testing), we want to iterate all upgrade list as the upgrade may
+    -- not defined in any prestige yet. But in normal mode, iterate the upgrade tree for efficiency instead.
+    local iterator = consts.DEV_MODE and wrapIpairs(g.UPGRADE_LIST) or g.iterateUpgradeTree(g.getPrestige())
+    for _, upgradeId in iterator do
         local uinfo = g.getUpgradeInfo(upgradeId)
         local ulevel = g.getUpgradeLevel(uinfo)
 
-        if ulevel > 0 and uinfo.spawnEntity then
-            local ecount = 1
-            if uinfo.getEntityCount then
-                ecount = math.max(uinfo:getEntityCount(ulevel), 0)
+        if uinfo.spawnEntity then
+            local ecount = 0
+            if ulevel > 0 then
+                if uinfo.getEntityCount then
+                    ecount = math.max(uinfo:getEntityCount(ulevel), 0)
+                else
+                    ecount = 1
+                end
             end
+
             local diff = self:_countEntityUpgrades(upgradeId) - ecount
 
             if diff ~= 0 then
@@ -622,7 +657,7 @@ function World:_drawDamageNumbers()
         else
             local tspawn = helper.clamp((DAMAGE_NUMBER_LIFETIME - dn.lifetime) / DAMAGE_NUMBER_POPUP_TIME, 0, 1)
             local scale = math.max(helper.EASINGS.easeOutBack(tspawn) ^ 3, 0)
-            local text = tostring(dn.number)
+            local text = g.formatNumber(dn.number)
             local width = smallFont:getWidth(text)
             helper.printTextOutlineSimple(text, smallFont, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
         end

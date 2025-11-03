@@ -111,17 +111,25 @@ end
 -- List of easing functions.
 helper.EASINGS = {
     -- in
+    ---@param x number
     sineIn = function(x) return 1 - math.cos((x * math.pi) / 2) end,
     -- out
+    ---@param x number
     sineOut = function(x) return math.sin((x * math.pi) / 2) end,
     -- inout
+    ---@param x number
     sineInOut = function(x) return -(math.cos(math.pi * x) - 1) / 2 end,
     -- out
+    ---@param x number
     easeOutBack = function(x)
         local c1 = 1.70158
         local c3 = c1 + 1
 
         return 1 + c3 * math.pow(x - 1, 3) + c1 * math.pow(x - 1, 2)
+    end,
+    ---@param x number
+    easeInCubic = function(x)
+        return x ^ 3
     end
 }
 
