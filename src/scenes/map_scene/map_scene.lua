@@ -247,7 +247,7 @@ function map:draw()
         -- TODO: Use better icon?
         love.graphics.circle("fill", poi.x, poi.y, POI_CLICK_RADIUS)
 
-        if math.distance(mwx - poi.x, mwy - poi.y) <= POI_CLICK_RADIUS then
+        if helper.magnitude(mwx - poi.x, mwy - poi.y) <= POI_CLICK_RADIUS then
             hoveredPOI = poi
         end
     end

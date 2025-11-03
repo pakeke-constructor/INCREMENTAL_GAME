@@ -1662,6 +1662,7 @@ end
 ---@field x number
 ---@field y number
 ---@field id number
+---@field laggedHealth number for lag-health-visual
 ---@field health number
 ---@field maxHealth number
 ---@field image string
@@ -1849,7 +1850,7 @@ end
 ---@param func fun(tok:g.Token)
 function g.iterateTokensInArea(x, y, radius, func)
     g.getMainWorld().tokenPartition:query(x, y, function(tok)
-        if math.distance(x-tok.x, y-tok.y) <= radius then
+        if helper.magnitude(x-tok.x, y-tok.y) <= radius then
             func(tok)
         end
     end, radius)
