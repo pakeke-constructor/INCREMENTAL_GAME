@@ -12,7 +12,7 @@ local map = FreeCameraScene()
 
 
 local POI = {}
-local unlockedPOIs = objects.Set()
+local unlockedPOIs = objects.Set {"harvest", "upgrade"}
 local POI_CLICK_RADIUS = 8
 local function definePOI(id, name, def)
     def.type = id
@@ -20,8 +20,22 @@ local function definePOI(id, name, def)
     POI[id] = def
 end
 
+definePOI("harvest", "Harvest Area", {
+    x = 248, y = 196,
+    price = {},
+    action = function()
+        g.gotoScene("harvest_scene")
+    end
+})
+definePOI("upgrade", "Upgrades", {
+    x = 136, y = 187,
+    price = {},
+    action = function()
+        g.gotoScene("upgrade_scene")
+    end
+})
 definePOI("fishing", "Fishing", {
-    x = 593, y = 91,
+    x = 352, y = 108,
     price = {money = 5000, logs = 100},
     action = function()
         g.gotoScene("fishing_scene")
@@ -30,17 +44,17 @@ definePOI("fishing", "Fishing", {
 
 
 
+local MAP_BACKGROUND = objects.Color("#".."FF0F379B")
+
 local mapAnim = {
-    lg.newImage("src/scenes/map_scene/maps/new_map1.png"),
-    lg.newImage("src/scenes/map_scene/maps/new_map2.png"),
+    lg.newImage("src/scenes/map_scene/maps/IKEA_MAP.png"),
+    -- lg.newImage("src/scenes/map_scene/maps/new_map2.png"),
     -- lg.newImage("src/scenes/map_scene/maps/map1.png"),
     -- lg.newImage("src/scenes/map_scene/maps/map2.png")
 }
 
 
 local cloudImg = lg.newImage("src/scenes/map_scene/maps/new_map_clouds.png")
-
-local WASD = lg.newImage("src/scenes/map_scene/maps/wasd_image.png")
 
 
 
@@ -56,16 +70,13 @@ end
 
 
 function map:init()
-    local w,h = mapAnim[1]:getDimensions()
-    self.camera:setPos(w/2,h/2-200)
+    self.allowMousePan = false
 
-    prop(300,150,"happy_cat")
+    prop(302,215,"happy_cat")
 end
 
 
 
-local clampCameraToMap
-do
 
 
 -- Clamps camera position and zoom to stay within map bounds
@@ -74,75 +85,17 @@ do
 ---@param mapY number
 ---@param mapW number
 ---@param mapH number
-function clampCameraToMap(camera, mapX, mapY, mapW, mapH)
-    -- Get viewport dimensions from camera if not provided
-    local vpx, vpy, vpw, vph = camera:getViewport()
-    local viewportWidth = vpw or lg.getWidth()
-    local viewportHeight = vph or lg.getHeight()
+local function clampCameraToMap2(camera, mapX, mapY, mapW, mapH)
+    -- Adjust viewport and set position to center of map.
+    local w, h = love.graphics.getDimensions()
+    camera:setViewport(0, 0, w, h, 0.5, 0.5)
+    camera:setPos(mapX + mapW / 2, mapY + mapH / 2)
 
-    local zoom = camera:getZoom()
-    local x, y = camera:getPos()
-
-    local visibleWidth = viewportWidth / zoom
-    local visibleHeight = viewportHeight / zoom
-
-    -- Clamp X position
-    if visibleWidth >= mapW then
-        x = mapX + mapW / 2
-    else
-        local minX = mapX + visibleWidth / 2
-        local maxX = mapX + mapW - visibleWidth / 2
-        x = math.max(minX, math.min(maxX, x))
-    end
-
-    -- Clamp Y position
-    if visibleHeight >= mapH then
-        y = mapY + mapH / 2
-    else
-        local minY = mapY + visibleHeight / 2
-        local maxY = mapY + mapH - visibleHeight / 2
-        y = math.max(minY, math.min(maxY, y))
-    end
-
-    -- Optional: Clamp zoom to ensure map always fills viewport
-    local minZoomX = viewportWidth / mapW
-    local minZoomY = viewportHeight / mapH
-    local minZoom = math.max(minZoomX, minZoomY)
-
-    if zoom < minZoom then
-        zoom = minZoom
-    end
-
-    -- Apply clamped values back to camera
-    camera:setPos(x, y)
-
-    -- HACK: Scale with respect to dimensions
-    local ww,hh = lg.getDimensions()
-    camera:setZoom(math.floor(10*(ww+hh)/600)/10)
-end
-
-end
-
-
-
-local function drawWASDVisual()
-    local x=10
-    local y=10
-    lg.push()
-    lg.scale(1.5)
-    love.graphics.setColor(0.3,0.3,0.4)
-    lg.draw(WASD, x+2, y)
-    lg.draw(WASD, x+2, y+2)
-    lg.draw(WASD, x, y+2)
-    lg.setColor(0,0,0)
-    for dx=-1,1,2 do
-        for dy=-1,1,2 do
-            lg.draw(WASD, x+dx, y+dy)
-        end
-    end
-    lg.setColor(1,1,1)
-    lg.draw(WASD,x,y)
-    lg.pop()
+    -- Adjust zooming
+    local scale = math.min(w / mapW, h / mapH)
+    -- Only allow integer scaling with minimum of 1
+    scale = math.max(math.floor(scale), 1)
+    camera:setZoom(scale)
 end
 
 
@@ -222,16 +175,15 @@ end
 
 
 function map:draw()
-    local COL = objects.Color("#FF2080D8")
-    lg.clear(COL)
+    lg.clear(MAP_BACKGROUND)
 
     local mapW,mapH = mapAnim[1]:getDimensions()
-    clampCameraToMap(self.camera,0,0,mapW,mapH)
+    clampCameraToMap2(self.camera,0,0,mapW,mapH)
     self:setCamera()
 
     lg.setColor(1,1,1)
     local t = love.timer.getTime()
-    local i = (math.floor(t) % 2) + 1
+    local i = (math.floor(t) % #mapAnim) + 1
     lg.draw(mapAnim[i],0,0)
 
     local cloudW = cloudImg:getDimensions()
@@ -258,7 +210,6 @@ function map:draw()
 
     ui.startUI()
     self:renderNavbar()
-    drawWASDVisual()
     if hoveredPOI then
         local r = Kirigami(0, 0, ui.getScaledUIDimensions())
         drawPOITooltip(r, self.camera, hoveredPOI)
@@ -275,7 +226,7 @@ end
 
 
 
-map.wheelmoved = map.defaultWheelmoved
+function map.wheelmoved() end -- disable zooming
 map.mousemoved = map.defaultMousemoved
 map.keyreleased = map.defaultKeyreleased
 
