@@ -170,4 +170,24 @@ end
 
 
 
+---@param maxRadius number
+---@param rng (fun():number)? Function that returns random number from 0 to 1.
+function helper.randomPosInCircle(maxRadius, rng)
+    rng = rng or love.math.random
+    local angle = rng() * 2 * math.pi
+    local radius = rng() * maxRadius
+    return math.cos(angle) * radius, math.sin(angle) * radius
+end
+
+
+
+---Calculate length of position relative to (0, 0)
+---@param x number
+---@param y number
+function helper.poslength(x,y)
+    return (x*x + y*y)^0.5
+end
+
+
+
 return helper
