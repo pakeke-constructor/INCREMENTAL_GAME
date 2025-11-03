@@ -7,8 +7,6 @@ Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24,
 ---@field package kind g.ResourceType
 ---@field package amount integer
 ---@field package image string
----@field package tokenAngle number (angle between x,y and token position)
----@field package tokenRadius number (radius between x,y and token position)
 ---@field package spawnEasing fun(x:number):number
 ---@field package rot number
 ---@field package x number (offsetted from tokenAngle and tokenRadius)
@@ -18,9 +16,8 @@ Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24,
 ---@field package time number
 ---@field package tohudTime number
 
-local SPAWN_ANIMATION_DURATION = 0.025
-local AFTERSPAWN_ANIMATION_DELAY = 0.06
-local TOHUD_ANIMATION_DURATION = {0.7, 0.8} -- random between these
+local SPAWN_ANIMATION_DURATION = 0.15
+local AFTERSPAWN_ANIMATION_DELAY = 0.1
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
 local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.3
@@ -91,7 +88,7 @@ function Resources:update(dt)
         resourcesInFlight[p.kind] = (resourcesInFlight[p.kind] or 0) + p.amount
 
         p.time = p.time + dt
-        if p.time >= BEFOREHUD_TIME + p.tohudTime then
+        if p.time >= p.tohudTime then
             -- particle hit!
             table.remove(self.particles, i)
             self.timeSinceChanged[p.kind] = 0
@@ -268,36 +265,27 @@ local lerp = helper.lerp
 function Resources:drawParticles()
     love.graphics.setColor(1,1,1)
     for _, particle in ipairs(self.particles) do
-        -- Time can be negative to delay it slightly
-        if particle.time >= 0 then
-            local x, y, scale
+        local x = particle.x
+        local y = particle.y
+        local scale = 1
 
-            -- Which phase are we in?
-            if particle.time < SPAWN_ANIMATION_DURATION then
-                -- Spawning
-                local t = particle.time / SPAWN_ANIMATION_DURATION
-                local easeT = math.min(math.max(particle.spawnEasing(t), 0), 1)
-                x = particle.x - math.cos(particle.tokenAngle) * particle.tokenRadius * (1 - easeT)
-                y = particle.y - math.sin(particle.tokenAngle) * particle.tokenRadius * (1 - easeT)
-                scale = easeT
-            elseif particle.time < BEFOREHUD_TIME then
-                -- Idling
-                x = particle.x
-                y = particle.y
-                scale = 1
-            else
-                -- Moving to HUD
-                local t = (particle.time - BEFOREHUD_TIME) / particle.tohudTime
-                local easeX = helper.clamp(particle.xEasing(t), 0, 1)
-                local easeY = helper.clamp(particle.yEasing(t), 0, 1)
+        -- Which phase are we in?
+        if particle.time < 0 then
+            -- Spawning
+            local time = -(particle.time + AFTERSPAWN_ANIMATION_DELAY)
+            local t = 1 - helper.clamp(time / SPAWN_ANIMATION_DURATION, 0, 1)
+            scale = helper.clamp(particle.spawnEasing(t), 0, 1)
+        else
+            -- Moving to HUD
+            local t = particle.time / particle.tohudTime
+            local easeX = helper.clamp(particle.xEasing(t), 0, 1)
+            local easeY = helper.clamp(particle.yEasing(t), 0, 1)
 
-                x = lerp(particle.x, self.poses[particle.kind][1], easeX)
-                y = lerp(particle.y, self.poses[particle.kind][2], easeY)
-                scale = 1
-            end
-
-            g.drawImage(particle.image, x, y, particle.rot, scale)
+            x = lerp(particle.x, self.poses[particle.kind][1], easeX)
+            y = lerp(particle.y, self.poses[particle.kind][2], easeY)
         end
+
+        g.drawImage(particle.image, x, y, particle.rot, scale)
     end
 end
 
@@ -328,26 +316,25 @@ local function _spawnParticleImpl(self, kind, tier, x, y, amount)
     end
 
     local category = PARTICLE_SPAWN_CATEGORY[kind]
+    local resPos = self.poses[kind]
+    local ox, oy = helper.randomPosInCircle(AROUND_TOKEN_RADIUS)
+    x = x + ox
+    y = y + oy
 
-    local angle = math.rad(love.math.random() * 360)
-    local radius = love.math.random() * AROUND_TOKEN_RADIUS
-    local px = x + math.cos(angle) * radius
-    local py = y + math.sin(angle) * radius
+    local lifetime = helper.poslength(resPos[1] - x, resPos[2] - y) / 1000
 
     self.particles[#self.particles+1] = {
         kind = kind,
         amount = amount,
         image = string.format(category.format, tier),
-        tokenAngle = angle,
         rot = love.math.random() * (2*math.pi),
-        tokenRadius = radius,
         spawnEasing = helper.EASINGS[helper.choice(EASINGS)],
-        x = px,
-        y = py,
+        x = x,
+        y = y,
         xEasing = helper.EASINGS[helper.choice(EASINGS)],
         yEasing = helper.EASINGS[helper.choice(EASINGS)],
-        time = -RANDOM_DELAY * love.math.random(),
-        tohudTime = helper.randrange(TOHUD_ANIMATION_DURATION)
+        time = -RANDOM_DELAY * love.math.random() - BEFOREHUD_TIME,
+        tohudTime = lifetime
     }
 
     if smallAmount > 0 then
