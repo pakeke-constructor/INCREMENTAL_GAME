@@ -322,7 +322,7 @@ local function _spawnParticleImpl(self, kind, tier, x, y, amount)
     x = x + ox
     y = y + oy
 
-    local lifetime = helper.poslength(resPos[1] - x, resPos[2] - y) / PARTICLE_SPEED
+    local lifetime = helper.magnitude(resPos[1]-x, resPos[2]-y) / PARTICLE_SPEED
 
     self.particles[#self.particles+1] = {
         kind = kind,

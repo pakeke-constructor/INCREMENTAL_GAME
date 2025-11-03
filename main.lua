@@ -55,13 +55,6 @@ GLOBALS START
 _G.utf8 = require("utf8")
 _G.table.clear = require("table.clear")
 
----@param x number
----@param y number
----@return number
----@deprecated use `helper.poslength` instead.
-function _G.math.distance(x,y)
-    return (x*x + y*y)^0.5
-end
 
 _G.json = require("lib.json")
 _G.consts = require("src.consts")

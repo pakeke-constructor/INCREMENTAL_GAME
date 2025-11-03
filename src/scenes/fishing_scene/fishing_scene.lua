@@ -167,10 +167,10 @@ function fishing:drawUI()
         :moveRatio(-1,-1)
         :padRatio(0.1)
 
-    local top, bot = buttonR:splitVertical(1,1)
+    local _, bot = buttonR:splitVertical(1,1)
     local left,right = bot:splitHorizontal(1,1)
 
-    castR = top:padRatio(0.5,0,0.5,0):padRatio(0.15)
+    castR = left:padRatio(0.15)
     hireFishercatR = right:padRatio(0.4)
     end
 

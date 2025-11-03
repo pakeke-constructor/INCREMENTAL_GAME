@@ -95,7 +95,7 @@ function FisherCat:draw()
     local s = math.sin(t*2)
     local q = g.getImageQuad(self.image)
     q:getTextureDimensions()
-    g.drawImage(self.image, self.x, self.y, s/9)
+    g.drawImage(self.image, self.x, self.y+s, s/17)
 
     g.drawImage("fishing_rod", self.x + 12, self.y-4)
 

@@ -94,13 +94,6 @@ function helper.choice(tab, rng)
 end
 
 
----@param vals [number, number]
----@param rng (fun():number)? Function that returns random number from 0 to 1.
-function helper.randrange(vals, rng)
-    rng = rng or love.math.random
-    return helper.lerp(vals[1], vals[2], rng())
-end
-
 
 
 ---@param x number
@@ -184,7 +177,7 @@ end
 ---Calculate length of position relative to (0, 0)
 ---@param x number
 ---@param y number
-function helper.poslength(x,y)
+function helper.magnitude(x,y)
     return (x*x + y*y)^0.5
 end
 
