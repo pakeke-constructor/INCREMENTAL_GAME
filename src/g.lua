@@ -1781,11 +1781,12 @@ function g.damageToken(tok, dmg)
     local dmgMult = g.ask("getTokenDamageMultiplier", tok)
     local dmgMod = g.ask("getTokenDamageModifier", tok)
     dmg = (dmg + dmgMod) * dmgMult
+    local displayDmg = math.min(dmg, math.max(tok.health, 0))
     tok.health = tok.health - dmg
     g.call("tokenDamaged", tok, dmg)
 
     currentSession.mainWorld:_spawnDamageNumber(
-        dmg + math.min(tok.health, 0),
+        displayDmg,
         tok.x,
         tok.y - 5,
         g.COLORS.DAMAGE_NUMBERS_BY_CATEGORY[tok.category] or objects.Color.WHITE
