@@ -16,8 +16,9 @@ Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24,
 ---@field package time number
 ---@field package tohudTime number
 
-local SPAWN_ANIMATION_DURATION = 0.15
-local AFTERSPAWN_ANIMATION_DELAY = 0.1
+local SPAWN_ANIMATION_DURATION = 0.025
+local AFTERSPAWN_ANIMATION_DELAY = 0.06
+local PARTICLE_SPEED = 1000
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
 local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.3
@@ -321,7 +322,7 @@ local function _spawnParticleImpl(self, kind, tier, x, y, amount)
     x = x + ox
     y = y + oy
 
-    local lifetime = helper.poslength(resPos[1] - x, resPos[2] - y) / 1000
+    local lifetime = helper.poslength(resPos[1] - x, resPos[2] - y) / PARTICLE_SPEED
 
     self.particles[#self.particles+1] = {
         kind = kind,
