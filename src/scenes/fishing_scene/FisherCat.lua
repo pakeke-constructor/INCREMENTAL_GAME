@@ -1,5 +1,5 @@
 
----@class g.FisherCat: objects.Class
+---@class _FisherCat: objects.Class
 ---@field public image string (Read-only)
 ---@field public x number
 ---@field public y number
@@ -9,10 +9,13 @@ local FisherCat = objects.Class("g:FisherCat")
 
 ---@param x number
 ---@param y number
-function FisherCat:init(x, y, isPlayerCat)
+function FisherCat:init(x, y, fishingWorld, isPlayerCat)
     self.x = x
     self.y = y
     self.image = "fishing_cat"
+    self.fishingWorld = fishingWorld
+
+    self.randomId = love.math.random(1,10000)
 
     self.isPlayerCat = isPlayerCat
 
@@ -26,10 +29,11 @@ end
 if false then
     ---@param x number
     ---@param y number
-    ---@param image string?
-    ---@return g.FisherCat
+    ---@param fishingWorld FishingWorld
+    ---@param isPlayer boolean
+    ---@return _FisherCat
     ---@diagnostic disable-next-line: cast-local-type, missing-return
-    function FisherCat(x, y, image) end
+    function FisherCat(x, y, fishingWorld, isPlayer) end
 end
 
 
@@ -49,6 +53,20 @@ function FisherCat:getTimeSinceCast()
 end
 
 
+
+---@param self _FisherCat
+local function updateBot(self,dt)
+    local delta = self:getTimeSinceCast()
+    if self.state == "idle" then
+        local cx,cy = helper.randomInRegion(self.fishingWorld.castArea:get())
+        self:cast(cx,cy)
+    elseif self.state == "fishing" and (delta > TIME_TO_CATCH) and (love.math.random() < dt/3) then
+        -- catch fish!
+        self:catch("common")
+    end
+end
+
+
 ---@param dt number
 function FisherCat:update(dt)
     local delta = self:getTimeSinceCast()
@@ -63,10 +81,7 @@ function FisherCat:update(dt)
     end
 
     if not self.isPlayerCat then
-        if delta > TIME_TO_CATCH and (love.math.random() < dt/3) then
-            -- catch fish!
-            self:catch()
-        end
+        updateBot(self,dt)
     end
 end
 
@@ -74,13 +89,23 @@ end
 
 function FisherCat:draw()
     -- TODO: Draw other fishing-related elements
-    g.drawImage(self.image, self.x, self.y)
 
+    -- draw body:
+    local t = love.timer.getTime() + self.randomId/3777
+    local s = math.sin(t*2)
+    local q = g.getImageQuad(self.image)
+    q:getTextureDimensions()
+    g.drawImage(self.image, self.x, self.y, s/9)
+
+    g.drawImage("fishing_rod", self.x + 12, self.y-4)
+
+    -- draw bobber:
     love.graphics.setColor(0,0,0)
     if self.state ~= "idle" then
-        local bobY = self.bobberY + 3*math.sin(love.timer.getTime()*5)
+        local bobY = self.bobberY + 3*math.sin(love.timer.getTime()*5 + self.randomId/377.34)
 
-        love.graphics.line(self.x+11,self.y-11, self.bobberX,bobY)
+        love.graphics.setColor(1,1,1,0.5)
+        love.graphics.line(self.x+16,self.y-15, self.bobberX,bobY)
         love.graphics.setColor(1,1,1)
         g.drawImage("fishing_cat_bobber", self.bobberX, bobY)
     end
@@ -110,9 +135,9 @@ function FisherCat:catch(rarity)
 
     elseif rarity == "common" then
         
-    elseif rarity == "uncommon" then
-        
     elseif rarity == "rare" then
+        
+    elseif rarity == "epic" then
         
     else
         error("invalid rarity: " .. tostring(rarity))

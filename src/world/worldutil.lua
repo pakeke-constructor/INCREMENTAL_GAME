@@ -131,9 +131,8 @@ end
 
 
 
-do
 
-local WADDLE_SPEED=6
+local WADDLE_ANIM_SPEED=6
 
 ---@param ent g.Entity
 ---@param vx number
@@ -148,7 +147,7 @@ function worldutil.updateWaddleAnimation(ent,vx,vy)
         ent.sx = -1
     end
 
-    local t = love.timer.getTime() * WADDLE_SPEED
+    local t = love.timer.getTime() * WADDLE_ANIM_SPEED
     if (vx*vx + vy*vy) > 0.01 then
         -- then we are moving! do waddle
         local height = math.abs(math.sin(t))*7
@@ -160,8 +159,6 @@ function worldutil.updateWaddleAnimation(ent,vx,vy)
     end
 end
 
-
-end
 
 
 

@@ -55,7 +55,7 @@ function fishing:init()
     -- Not sure if this should be session or here but let's put it here for now.
     self.world = FishingWorld()
     local x,y = helper.randomInRegion(self.world:getWharfArea():get())
-    self.mainCat = FisherCat(x,y)
+    self.mainCat = FisherCat(x,y, self.world, true)
     self.world.mainFishercat = self.mainCat
 
     self.timeSinceCatch = 0xfffffff
@@ -148,7 +148,7 @@ end
 
 
 local CAST_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Fish!{/c}{/o}")
-local WAITING_FOR_FISH = loc("{o}{c r=0.7 g=0.8 b=1}Waiting for fishy...{/c}{/o}")
+local WAITING_FOR_FISH = loc("{o}{c r=0.7 g=0.8 b=1}Waiting for fish...{/c}{/o}")
 local CAUGHT_FISH = loc("{o}{c r=0.7 g=0.8 b=1}CAUGHT!{/c}{/o}")
 
 local HIRE_FISHERCAT = loc("{o}{c r=0.7 g=0.8 b=1}Hire fishercat!{/c}{/o}")
