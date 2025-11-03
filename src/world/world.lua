@@ -368,6 +368,18 @@ local function updateResourceDataCollection(self)
 end
 
 
+---@generic T
+---@param t T[]
+---@return fun():(integer,T)
+local function wrapIpairs(t)
+    return coroutine.wrap(function()
+        for i, v in ipairs(t) do
+            coroutine.yield(i, v)
+        end
+    end)
+end
+
+
 
 ---@param id string
 ---@param dur number
@@ -430,15 +442,23 @@ function World:_update(dt)
     end
 
     -- Spawn or delete upgrade entity if necessary
-    for _, upgradeId in ipairs(g.UPGRADE_LIST) do
+    -- Note: If we're in dev mode (for testing), we want to iterate all upgrade list as the upgrade may
+    -- not defined in any prestige yet. But in normal mode, iterate the upgrade tree for efficiency instead.
+    local iterator = consts.DEV_MODE and wrapIpairs(g.UPGRADE_LIST) or g.iterateUpgradeTree(g.getPrestige())
+    for _, upgradeId in iterator do
         local uinfo = g.getUpgradeInfo(upgradeId)
         local ulevel = g.getUpgradeLevel(uinfo)
 
-        if ulevel > 0 and uinfo.spawnEntity then
-            local ecount = 1
-            if uinfo.getEntityCount then
-                ecount = math.max(uinfo:getEntityCount(ulevel), 0)
+        if uinfo.spawnEntity then
+            local ecount = 0
+            if ulevel > 0 then
+                if uinfo.getEntityCount then
+                    ecount = math.max(uinfo:getEntityCount(ulevel), 0)
+                else
+                    ecount = 1
+                end
             end
+
             local diff = self:_countEntityUpgrades(upgradeId) - ecount
 
             if diff ~= 0 then
