@@ -13,40 +13,27 @@ local lg = love.graphics
 
 
 -- Note: this table MUSt be sorted by lowest window to highest.
----@type {window:number,name:string,rarity:(fun():_FishingRarity?)}[]
+---@type {window:number,name:string,failChance: number}[]
 local SPACING = {
     {
         window = 0.1,
-        rarity = function()
-            return "epic"
-        end
+        failChance = 0,
     },
     {
         window = 0.3,
-        rarity = function()
-            return "rare"
-        end
+        failChance = 0,
     },
     {
         window = 0.55,
-        rarity = function()
-            return "common"
-        end
+        failChance = 0.4,
     },
     {
         window = 0.7,
-        rarity = function()
-            if love.math.random() <= 0.5 then
-                return "common"
-            end
-            return nil
-        end
+        failChance = 1,
     },
     {
         window = 1.0,
-        rarity = function()
-            return nil
-        end
+        failChance = 1,
     }
 }
 
@@ -149,10 +136,11 @@ end
 
 local CAST_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Fish!{/c}{/o}")
 local WAITING_FOR_FISH = loc("{o}{c r=0.7 g=0.8 b=1}Waiting for fish...{/c}{/o}")
-local CAUGHT_FISH = loc("{o}{c r=0.7 g=0.8 b=1}CAUGHT!{/c}{/o}")
+
+local CATCH_SUCCESS = loc("{o}{c r=0.7 g=0.8 b=1}CAUGHT!{/c}{/o}")
+local CATCH_FAILED = loc("{o}{c r=0.9 g=0.2 b=0.1}FAILED!{/c}{/o}")
 
 local HIRE_FISHERCAT = loc("{o}{c r=0.7 g=0.8 b=1}Hire fishercat!{/c}{/o}")
-local UPGRADE_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Upgrade Rod!{/c}{/o}")
 
 
 local function getFisherCatPrice()
@@ -162,18 +150,11 @@ local function getFisherCatPrice()
 end
 
 
-local function getFishingRodUpgradePrice()
-    local sn = g.getSn()
-    local t = sn.fishingRodLevel
-    return 500 * 3*(t+1)
-end
-
-
 
 
 function fishing:drawUI()
 
-    local buttonR, castR, upgradeRodR, hireFishercatR
+    local buttonR, castR, hireFishercatR
     do
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
     local r2,_
@@ -190,15 +171,18 @@ function fishing:drawUI()
     local left,right = bot:splitHorizontal(1,1)
 
     castR = top:padRatio(0.5,0,0.5,0):padRatio(0.15)
-    upgradeRodR = left:padRatio(0.4)
     hireFishercatR = right:padRatio(0.4)
     end
 
     local W1,W2 = objects.Color.WHITE, objects.Color({0.76,0.78,0.82})
 
-    if self.timeSinceCatch < 0.45 then
+    if self.timeSinceCatch < 1.25 then
         lg.setColor(1,1,1)
-        richtext.printRichContained(CAUGHT_FISH, g.getSmallFont(16), buttonR:get())
+        if self.catchSuccess then
+            richtext.printRichContained(CATCH_SUCCESS, g.getSmallFont(16), buttonR:get())
+        else
+            richtext.printRichContained(CATCH_FAILED, g.getSmallFont(16), buttonR:get())
+        end
 
     elseif self.mainCat.state == "idle" then
         if ui.Button(CAST_ROD, W1,W2, castR:get()) then
@@ -222,7 +206,6 @@ function fishing:drawUI()
 
         local sn = g.getSn()
         local MAX_FISHERCATS = self.world.MAX_FISHERCATS
-        local MAX_ROD_LEVEL = self.world.MAX_ROD_LEVEL
 
         do
         local price = getFisherCatPrice()
@@ -236,18 +219,6 @@ function fishing:drawUI()
         end
         end
 
-        do
-        local price = getFishingRodUpgradePrice()
-        local function upgradeRod(x,y,w,h)
-            upgradeWidget(UPGRADE_ROD, price, sn.fishingRodLevel,self.world.MAX_ROD_LEVEL, x,y,w,h)
-        end
-        if ui.CustomButton(upgradeRod, W1,W2, upgradeRodR:get()) then
-            if g.trySubtractResources({money = price}) then
-                sn.fishingRodLevel = math.min(sn.fishingRodLevel + 1, MAX_ROD_LEVEL)
-            end
-        end
-        end
-
     elseif self.mainCat.state == "fishing" then
         lg.setColor(1,1,1)
         richtext.printRichContained(WAITING_FOR_FISH, g.getSmallFont(16), buttonR:moveUnit(0,4*math.sin(love.timer.getTime()*10)):get())
@@ -257,19 +228,6 @@ function fishing:drawUI()
 
     elseif self.mainCat.state == "reeling" then
         drawReelMeter(self)
-    end
-
-
-    local function catch()
-        local accuracy, rarity = error("todo calculate")
-
-        for _, spc in ipairs(SPACING) do
-            if accuracy <= spc.window then
-                rarity = spc.rarity()
-                break
-            end
-        end
-        
     end
 
     -- Debug
@@ -306,15 +264,18 @@ function fishing:mousepressed(mx,my,button)
         -- Player catches fish!
         self.timeSinceCatch = 0
         local accuracy = math.abs(self.reelPos)
-        local rarity
         for _, spc in ipairs(SPACING) do
             if accuracy <= spc.window then
-                rarity = spc.rarity()
+                if spc.failChance >= love.math.random() then
+                    self.catchSuccess = false
+                else
+                    self.catchSuccess = true
+                end
                 break
             end
         end
 
-        self.mainCat:catch(rarity)
+        self.mainCat:catch()
         self.mainCat:reset()
     end
 end

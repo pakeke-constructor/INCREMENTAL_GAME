@@ -62,7 +62,7 @@ local function updateBot(self,dt)
         self:cast(cx,cy)
     elseif self.state == "fishing" and (delta > TIME_TO_CATCH) and (love.math.random() < dt/3) then
         -- catch fish!
-        self:catch("common")
+        self:catch()
     end
 end
 
@@ -125,22 +125,11 @@ end
 
 
 
----@param rarity _FishingRarity
-function FisherCat:catch(rarity)
+function FisherCat:catch()
     self:reset()
 
-    if (not self.isPlayerCat) and (love.math.random() < 0.6) then
-        -- x% of the time, bot-cats just earn money.
-        -- (This is so we clog the queue with too many tokens)
-
-    elseif rarity == "common" then
-        
-    elseif rarity == "rare" then
-        
-    elseif rarity == "epic" then
-        
-    else
-        error("invalid rarity: " .. tostring(rarity))
+    if (self.isPlayerCat) and (love.math.random() < 0.6) then
+        -- player cat gets a secret buff :)
     end
 end
 
