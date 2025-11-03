@@ -115,6 +115,11 @@ local function updateToken(tok,dt)
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
     tok.timeSinceHit = tok.timeSinceHit + dt
 
+    if tok.health <= 0 and tok.timeSinceDamaged >= consts.LAGGED_HEALTH_DURATION then
+        g.destroyToken(tok)
+        return
+    end
+
     if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceHit then
         g.hitImmediately(tok)
     end

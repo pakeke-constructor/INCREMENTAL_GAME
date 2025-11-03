@@ -1780,6 +1780,10 @@ end
 ---@param tok g.Token
 ---@param dmg number
 function g.damageToken(tok, dmg)
+    if tok.health <= 0 then
+        return
+    end
+
     local dmgMult = g.ask("getTokenDamageMultiplier", tok)
     local dmgMod = g.ask("getTokenDamageModifier", tok)
     dmg = (dmg + dmgMod) * dmgMult
@@ -1791,7 +1795,7 @@ function g.damageToken(tok, dmg)
     tok.laggedHealth = helper.lerp(tok.laggedHealth, tok.health, t)
 
     -- Now update tok.health
-    tok.health = tok.health - dmg
+    tok.health = math.max(tok.health - dmg, 0)
     g.call("tokenDamaged", tok, dmg)
 
     currentSession.mainWorld:_spawnDamageNumber(
@@ -1802,10 +1806,6 @@ function g.damageToken(tok, dmg)
     )
 
     tok.timeSinceDamaged = 0
-    if tok.health <= 0 then
-        g.destroyToken(tok)
-    end
-
 end
 
 
@@ -1819,7 +1819,7 @@ end
 
 ---@param tok g.Token
 function g.tryHitToken(tok)
-    if not g.isBeingHit(tok) then
+    if tok.health > 0 and not g.isBeingHit(tok) then
         tok.timeSinceHitStart = 0
         g.call("tokenHitStart", tok)
     end
