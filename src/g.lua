@@ -473,6 +473,8 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
 ---@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer))?
+---
+---@field drawUI (fun(uinfo: g.UpgradeInfo, level:integer, x:number,y:number,w:number,h:number): boolean)?
 local g_UpgradeDefinition = {}
 
 
@@ -483,6 +485,12 @@ local g_UpgradeDefinition = {}
 ---@field description string?
 ---@field particles string?
 ---@field category g.Category?
+---
+---@field init (fun(tok:g.Token))?
+---@field update (fun(tok: g.Token, dt:number))?
+---@field drawBelow (fun(tok: g.Token))?
+---@field draw (fun(tok: g.Token))?
+---@field destroyed (fun(tok: g.Token))?
 local g_TokenDefinition = {}
 
 
@@ -786,6 +794,7 @@ end
 ---| "cat"
 ---| "mushroom"
 ---| "rock"
+---| "slime"
 
 ---@type table<g.Category, true|nil>
 g.CATEGORIES = {
@@ -794,6 +803,7 @@ g.CATEGORIES = {
     cat = true,
     mushroom = true,
     rock = true,
+    slime = true,
 }
 
 
@@ -1158,7 +1168,8 @@ local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
 local SPECIAL_FUNCTIONS = {
     getValues = true,
     getEntityCount = true,
-    spawnEntity = true
+    spawnEntity = true,
+    drawUI = true
 }
 
 
@@ -1743,6 +1754,10 @@ function g.spawnToken(tokType, x,y)
     tok.health = tok.maxHealth
     tok.laggedHealth = tok.health
 
+    if tok.init then
+        tok:init()
+    end
+
     w.tokens:addBuffered(tok)
     g.call("tokenSpawned", tok)
     return tok
@@ -1761,11 +1776,16 @@ function g.destroyToken(tok)
     local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
 
+    if tok.destroyed then
+        tok:destroyed()
+    end
+
     g.addResourceFrom(tok, tok.resources)
 
     if tok.slimed then
         g.spawnParticle("slime", tok.x,tok.y, love.math.random(3,5))
-    elseif tok.particles then
+    end
+    if tok.particles then
         g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))
     end
 
@@ -1775,6 +1795,16 @@ function g.destroyToken(tok)
     -- Each token should have different "sound"
     g.playSound("pop", 1, 1, 0.15)
     return true
+end
+
+
+
+---@param tok g.Token
+function g.slimeToken(tok)
+    if not tok.slimed then
+        g.call("tokenSlimed",tok)
+    end
+    tok.slimed=true
 end
 
 

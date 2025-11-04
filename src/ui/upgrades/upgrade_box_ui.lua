@@ -114,7 +114,7 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h, isRecommended)
     end
 
     --------------------
-    -- draw image/icon:
+    -- draw image/icon/custom shit:
     --------------------
     local sc=1
     if level > 0 then
@@ -127,6 +127,10 @@ local function upgradeBoxUI(uinfo, level, x,y,w,h, isRecommended)
     end
     g.drawImage(uinfo.image, cx, cy, 0,sc,sc)
 
+    -- custom rendering:
+    if uinfo.drawUI then
+        uinfo:drawUI(level, x,y,w,h)
+    end
 
     --------------------
     -- draw level:

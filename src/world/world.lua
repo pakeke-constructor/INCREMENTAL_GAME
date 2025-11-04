@@ -115,6 +115,10 @@ local function updateToken(tok,dt)
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
     tok.timeSinceHit = tok.timeSinceHit + dt
 
+    if tok.update then
+        tok:update(dt)
+    end
+
     if tok.health <= 0 and (tok.timeSinceDamaged >= consts.TOKEN_DEATH_DELAY) then
         -- QUESTION: wont this cause tokens to be invincible if they are hit repeatedly?
         -- ANSWER: No, because `g.damageToken` returns early if health <= 0
@@ -245,7 +249,17 @@ local function drawToken(tok)
     love.graphics.ellipse("fill",tok.x,tok.y+6,6,3)
 
     love.graphics.setColor(1,1,1)
+    if tok.drawBelow then
+        tok:drawBelow()
+    end
+
+    love.graphics.setColor(1,1,1)
     g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
+
+    love.graphics.setColor(1,1,1)
+    if tok.draw then
+        tok:draw()
+    end
 
     if tok.slimed then
         local s = math.sin(love.timer.getTime()*4 + tok.id*7.343)
