@@ -191,7 +191,11 @@ function love.update(dt)
 end
 
 function love.draw()
-    crt.start()
+    local crtActive = love.keyboard.isModifierActive("capslock")
+
+    if crtActive then
+        crt.start()
+    end
     love.graphics.setShader(subpixel.shader)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.draw then
@@ -200,7 +204,9 @@ function love.draw()
         iml.endFrame()
     end
     love.graphics.setShader()
-    crt.finish()
+    if crtActive then
+        crt.finish()
+    end
 end
 
 
