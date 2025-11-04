@@ -103,7 +103,7 @@ setmetatable(_G, {
 })
 
 
-local postproc = require("src.postproc")
+local crt = require("src.modules.crt")
 local vignette = require("src.modules.vignette.vignette")
 vignette.setStrength(0.35)
 local subpixel = require("src.modules.subpixel")
@@ -191,7 +191,7 @@ function love.update(dt)
 end
 
 function love.draw()
-    postproc.start()
+    crt.start()
     love.graphics.setShader(subpixel.shader)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.draw then
@@ -200,7 +200,7 @@ function love.draw()
         iml.endFrame()
     end
     love.graphics.setShader()
-    postproc.finish()
+    crt.finish()
 end
 
 
