@@ -43,8 +43,6 @@ end
 -- todo: set a better font here
 love.graphics.setFont(love.graphics.newFont(64))
 
-local font = love.graphics.getFont()
--- font:setFilter("nearest", "nearest")
 
 --[[
 =========
@@ -105,6 +103,7 @@ setmetatable(_G, {
 })
 
 
+local crt = require("src.modules.crt")
 local vignette = require("src.modules.vignette.vignette")
 vignette.setStrength(0.35)
 local subpixel = require("src.modules.subpixel")
@@ -192,6 +191,11 @@ function love.update(dt)
 end
 
 function love.draw()
+    local crtActive = love.keyboard.isModifierActive("capslock")
+
+    if crtActive then
+        crt.start()
+    end
     love.graphics.setShader(subpixel.shader)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.draw then
@@ -200,6 +204,9 @@ function love.draw()
         iml.endFrame()
     end
     love.graphics.setShader()
+    if crtActive then
+        crt.finish()
+    end
 end
 
 
