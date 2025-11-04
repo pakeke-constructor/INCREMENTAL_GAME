@@ -139,6 +139,15 @@ function initParticles()
         }
     })
 
+
+    local slime = defineParticle("slime", {
+        frames = makeFrames("slimed_particle_", 3),
+        lifetime = 0.3,
+        emissionArea = {
+            distribution = "ellipse",
+            distance = {4, 4}
+        }
+    })
     -- ... 
 
     -- ... 

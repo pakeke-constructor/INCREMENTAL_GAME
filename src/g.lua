@@ -1763,7 +1763,9 @@ function g.destroyToken(tok)
 
     g.addResourceFrom(tok, tok.resources)
 
-    if tok.particles then
+    if tok.slimed then
+        g.spawnParticle("slime", tok.x,tok.y, love.math.random(3,5))
+    elseif tok.particles then
         g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))
     end
 

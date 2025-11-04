@@ -247,6 +247,11 @@ local function drawToken(tok)
     love.graphics.setColor(1,1,1)
     g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
 
+    if tok.slimed then
+        local s = math.sin(love.timer.getTime()*4 + tok.id*7.343)
+        g.drawImage("slimed_visual2", tok.x+6,tok.y-5+s, 0, 1,1)
+    end
+
     if tok.timeSinceHitStart < getSwingTime() then
         drawAxe(tok)
     end
