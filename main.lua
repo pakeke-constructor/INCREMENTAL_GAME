@@ -39,7 +39,6 @@ end
 
 
 
-love.graphics.setDefaultFilter("nearest", "nearest")
 
 -- todo: set a better font here
 love.graphics.setFont(love.graphics.newFont(64))
@@ -108,6 +107,7 @@ setmetatable(_G, {
 
 local vignette = require("src.modules.vignette.vignette")
 vignette.setStrength(0.35)
+local subpixel = require("src.modules.subpixel")
 
 require("src.ev_q_definitions")
 
@@ -192,12 +192,14 @@ function love.update(dt)
 end
 
 function love.draw()
+    love.graphics.setShader(subpixel.shader)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.draw then
         iml.beginFrame()
         sc:draw()
         iml.endFrame()
     end
+    love.graphics.setShader()
 end
 
 
