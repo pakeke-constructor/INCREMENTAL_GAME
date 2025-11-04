@@ -13,7 +13,6 @@ local map = FreeCameraScene()
 
 local POI = {}
 local unlockedPOIs = objects.Set {"harvest", "upgrade"}
-local POI_CLICK_RADIUS = 8
 local function definePOI(id, name, def)
     def.type = id
     def.name = name
@@ -21,21 +20,28 @@ local function definePOI(id, name, def)
 end
 
 definePOI("harvest", "Harvest Area", {
-    x = 248, y = 196,
+    x = 219, y = 178, w = 55, h = 43,
+    highlight = "harvest_highlight",
+    hx = 219, hy = 178,
     price = {},
     action = function()
         g.gotoScene("harvest_scene")
     end
 })
 definePOI("upgrade", "Upgrades", {
-    x = 136, y = 187,
+    x = 104, y = 135, w = 64, h = 59,
+    highlight = "upgrade_highlight",
+    hx = 104, hy = 135,
     price = {},
     action = function()
         g.gotoScene("upgrade_scene")
     end
 })
 definePOI("fishing", "Fishing", {
-    x = 352, y = 108,
+    x = 220, y = 89, w = 142, h = 41,
+    highlight = "fishing_highlight",
+    hx = 220, hy = 85,
+    
     price = {money = 5000, logs = 100},
     action = function()
         g.gotoScene("fishing_scene")
@@ -53,8 +59,6 @@ local mapAnim = {
     -- lg.newImage("src/scenes/map_scene/maps/map2.png")
 }
 
-
-local cloudImg = lg.newImage("src/scenes/map_scene/maps/new_map_clouds.png")
 
 
 
@@ -136,7 +140,7 @@ local function drawPOITooltip(r, cam, poi)
     end
 
     -- Compute regions
-    local tx, ty = ui.getUIScalingTransform():inverseTransformPoint(cam:toScreen(poi.x, poi.y))
+    local tx, ty = ui.getUIScalingTransform():inverseTransformPoint(cam:toScreen(poi.x + poi.w / 2, poi.y + poi.h))
     local tooltipR = Kirigami(tx - width / 2, ty + 16, width, height)
         -- Apply padding
         :padUnit(-TOOLTIP_PADDING)
@@ -160,17 +164,6 @@ local function drawPOITooltip(r, cam, poi)
     if not hasBought then
         richtext.printRich(buyText, font, tooltipContentR.x, tooltipContentR.y + titleFont:getHeight(), tooltipContentR.w, "center")
     end
-
-    -- Action area
-    local poid = POI_CLICK_RADIUS * 2
-    if iml.wasJustClicked(tx - POI_CLICK_RADIUS, ty - POI_CLICK_RADIUS, poid, poid) then
-        if hasBought then
-            poi.action()
-        elseif canAfford then
-            g.subtractResources(poi.price)
-            unlockedPOIs:add(poi.type)
-        end
-    end
 end
 
 
@@ -186,21 +179,30 @@ function map:draw()
     local i = (math.floor(t) % #mapAnim) + 1
     lg.draw(mapAnim[i],0,0)
 
-    local cloudW = cloudImg:getDimensions()
-    lg.draw(cloudImg, (mapW-cloudW)/2 + math.sin(t/4)*10,0)
-
     for _,p in ipairs(props) do
         g.drawImage(p.image,p.x,p.y)
     end
 
-    local mwx, mwy = self.camera:toWorld(ui.getUIScalingTransform():transformPoint(ui.getMouse()))
     local hoveredPOI = nil
     for _, poi in pairs(POI) do
-        -- TODO: Use better icon?
-        love.graphics.circle("fill", poi.x, poi.y, POI_CLICK_RADIUS)
-
-        if helper.magnitude(mwx - poi.x, mwy - poi.y) <= POI_CLICK_RADIUS then
+        if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
             hoveredPOI = poi
+
+            local a = math.sin((t % 1) * math.pi) ^ 2
+            lg.setColor(1, 1, 1, a)
+            g.drawImageOffset(poi.highlight, poi.hx, poi.hy, 0, 1, 1, 0, 0)
+        end
+
+        if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) then
+            local hasBought = unlockedPOIs:has(poi.type)
+            local canAfford = hasBought or g.canAfford(poi.price)
+
+            if hasBought then
+                poi.action()
+            elseif canAfford then
+                g.subtractResources(poi.price)
+                unlockedPOIs:add(poi.type)
+            end
         end
     end
 
