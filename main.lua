@@ -43,8 +43,6 @@ end
 -- todo: set a better font here
 love.graphics.setFont(love.graphics.newFont(64))
 
-local font = love.graphics.getFont()
--- font:setFilter("nearest", "nearest")
 
 --[[
 =========
@@ -105,6 +103,7 @@ setmetatable(_G, {
 })
 
 
+local postproc = require("src.postproc")
 local vignette = require("src.modules.vignette.vignette")
 vignette.setStrength(0.35)
 local subpixel = require("src.modules.subpixel")
@@ -192,6 +191,7 @@ function love.update(dt)
 end
 
 function love.draw()
+    postproc.start()
     love.graphics.setShader(subpixel.shader)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.draw then
@@ -200,6 +200,7 @@ function love.draw()
         iml.endFrame()
     end
     love.graphics.setShader()
+    postproc.finish()
 end
 
 
