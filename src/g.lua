@@ -473,7 +473,6 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
 ---@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer))?
----
 ---@field drawUI (fun(uinfo: g.UpgradeInfo, level:integer, x:number,y:number,w:number,h:number): boolean)?
 local g_UpgradeDefinition = {}
 
@@ -485,12 +484,14 @@ local g_UpgradeDefinition = {}
 ---@field description string?
 ---@field particles string?
 ---@field category g.Category?
----
 ---@field init (fun(tok:g.Token))?
 ---@field update (fun(tok: g.Token, dt:number))?
 ---@field drawBelow (fun(tok: g.Token))?
----@field draw (fun(tok: g.Token))?
----@field destroyed (fun(tok: g.Token))?
+--- below this line are events (via g.call)
+---@field drawToken (fun(tok: g.Token))?
+---@field tokenHit (fun(tok: g.Token))?
+---@field tokenDestroyed (fun(tok: g.Token))?
+---@field tokenDamaged (fun(tok: g.Token, dmg:number))?
 local g_TokenDefinition = {}
 
 
@@ -1775,10 +1776,6 @@ function g.destroyToken(tok)
 
     local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
-
-    if tok.destroyed then
-        tok:destroyed()
-    end
 
     g.addResourceFrom(tok, tok.resources)
 

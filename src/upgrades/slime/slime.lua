@@ -7,7 +7,7 @@ g.defineTokenUpgrade("slime_token", "Slime", {
         description = "When destroyed, covers surrounding tokens in slime!",
         resources = {money = 0},
         maxHealth = 7,
-        destroyed = function(tok)
+        tokenDestroyed = function(tok)
             local MAX_TOKENS_TO_SLIME = 5
             local i = 0
             g.iterateTokensInArea(tok.x,tok.y, 50, function(tok)

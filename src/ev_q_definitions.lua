@@ -13,7 +13,7 @@ g.defineEvent("populateTokenPool")
 
 
 
-g.defineEvent("tokenDraw")
+g.defineEvent("drawToken")
 g.defineEvent("tokenSpawned")
 g.defineEvent("tokenHitStart")
 g.defineEvent("tokenHit")
