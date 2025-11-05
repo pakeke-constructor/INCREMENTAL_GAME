@@ -4,7 +4,7 @@ g.defineTokenUpgrade("slime_token", "Slime", {
     token = {
         particles = "slime",
         category = "slime",
-        description = "When destroyed, covers surrounding tokens in slime!",
+        description = "When destroyed, covers surrounding crops in slime!",
         resources = {money = 0},
         maxHealth = 7,
         tokenDestroyed = function(tok)
@@ -37,16 +37,11 @@ g.defineUpgrade("corrosive_slime", "Corrosive Slime", {
     drawUI=drawSlime,
     kind="HARVESTING",
 
-    maxLevel = 4,
+    maxLevel = 6,
 
-    getValues = function(self,level)
-        -- level 1: 20%
-        -- level 2: 30%
-        -- etc.
-        return (level+1)*10
-    end,
+    getValues = helper.percentageGetter(10),
 
-    description = "Tokens that are slimed take +%{1}% extra damage",
+    description = "Crops that are slimed take +%{1}% extra damage",
 
     ---@param tok g.Token
     getTokenDamageMultiplier = function(self,level, tok)
@@ -62,10 +57,15 @@ g.defineUpgrade("corrosive_slime", "Corrosive Slime", {
 
 --[[
 
-UPGRADE: Slimed-tokens gain +1 gold
-UPGRADE: Slimed-tokens explode when destroyed
-UPGRADE: When a token is slimed, deal 10 damage to it!
-UPGRADE: Grass has a 10% chance to spawn slimed
-UPGRADE: Rocks have a 10% chance to spawn slimed
+Corrosive slime: Crops that are slimed take +X% extra damage
+Better-slime: Crops that are slimed earn +5% resources
+Slime apocalypse: Every second, 1 random crop becomes slimed
+Slime pandemic: When a slimed crop is destroyed, 20% chance to spread slimed to a nearby crop
+Slime genetics: Crops that are slimed earn $1 passively every second
+Slime crockpot: Grass crops that are slimed earn +X% money
+Slime recycling: When Grass crops that are slimed earn +X% money
+Slime grenade: Crops that are slimed have a 10% chance to explode when destroyed!
+
 
 ]]
+

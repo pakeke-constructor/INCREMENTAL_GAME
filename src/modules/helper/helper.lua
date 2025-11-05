@@ -190,5 +190,37 @@ function helper.magnitude(x,y)
 end
 
 
+function helper.assert(b,er, ...)
+    if not b then
+        local t = {...}
+        for i,v in ipairs(t)do
+            t[i]=tostring(v)
+        end
+        local str = table.concat(t," ")
+        error(tostring(er) .. " " .. str, 3)
+    end
+    return b,er,...
+end
+
+
+---@param increase integer
+---@param startingPercentage integer?
+---@return function
+function helper.percentageGetter(increase, startingPercentage)
+    helper.assert(math.floor(increase) == increase, "Increase must be an integer. E.g. 5%, 10%, etc")
+    if startingPercentage then
+        helper.assert(math.floor(startingPercentage) == startingPercentage, "startingPercentage must be an integer. E.g. 10%, 20%, etc")
+    end
+
+    local function getValues(self, level)
+        if startingPercentage then
+            return startingPercentage + ((level-1) * increase)
+        end
+        return level*increase
+    end
+    return getValues
+end
+
+
 
 return helper
