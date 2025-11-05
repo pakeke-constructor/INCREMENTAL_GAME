@@ -58,39 +58,7 @@ def get_palette(image: NDArray[numpy.float32], n: int = 256):
     while len(bucket) < n:
         median_cut(bucket)
 
-    cols = (numpy.vstack(list(average_image_array(bucket)), dtype=numpy.float32))
-    print(cols)
-    return cols
-
-
-def get_palette_smart(image: NDArray[numpy.float32], n: int = 256):
-    bucket = [image.reshape(-1, 3)]
-
-    while len(bucket) < n:
-        median_cut(bucket)
-
-    cols = list(average_image_array(bucket))
-    c = rgb2oklab(cols.pop())
-    newcols = [c]
-    while cols:
-        best_i = 0
-        best_dist = 0xfffffffffff
-        for i,c1 in enumerate(cols):
-            cc = rgb2oklab(c1)
-            dist = numpy.linalg.norm(cc - c)
-            if dist < best_dist:
-                best_dist = dist
-                best_i = i
-        c = rgb2oklab(cols.pop(best_i))
-        newcols.append(c)
-
-    for i,c in enumerate(newcols):
-        newcols[i] = oklab2rgb(c)
-
-    cols = numpy.vstack(newcols, dtype=numpy.float32)
-    
-    return cols
-
+    return numpy.vstack(list(average_image_array(bucket)), dtype=numpy.float32)
 
 
 def quantize_image_smolsize(img: NDArray[numpy.float32], palette: NDArray[numpy.float32]):
@@ -134,23 +102,27 @@ def numpy_float32_to_pil(img: NDArray[numpy.float32]):
 class Args:
     input_merged: str | None
     palette: str | None
+    input_palette: str | None
     colorspace: Literal["rgb", "oklab"]
     ncolors: int
     output_merged: str
     input: collections.abc.Sequence[str]
 
 
-def main(args=None):
+def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--input-merged", help="Where to store the merged input (optional)", default=None)
-    parser.add_argument("--palette", help="Where to store the palette (optional)", default=None)
+    parser.add_argument("--palette", help="Where to store the generated palette (optional)", default=None)
+    parser.add_argument("--input-palette", help="What palette to use (optional)", default=None)
     parser.add_argument(
         "--colorspace", help="Which colorspace to use?", choices=["rgb", "oklab"], type=str.lower, default="rgb"
     )
-    parser.add_argument("--ncolors", help="How many colors in the palette?", type=int, default=64)
+    parser.add_argument(
+        "--ncolors", help="How many colors in the palette? Ignored if --input-palette is used", type=int, default=64
+    )
     parser.add_argument("output_merged", help="Where to store the quantized merged output")
     parser.add_argument("input", nargs="+", help="Input image files")
-    args = args or parser.parse_args(namespace=Args())
+    args = parser.parse_args(namespace=Args())
 
     input_merged = stack_images(*args.input)
     if args.input_merged:
@@ -159,22 +131,36 @@ def main(args=None):
 
     input_np = pil_to_numpy_float32(input_merged)
     input_rgb, input_alpha = input_np[:, :, :3], input_np[:, :, 3]
+    pal_rgb = None
+
+    if args.input_palette:
+        pal_pil = PIL.Image.open(args.input_palette).convert("RGBA")
+        pal_np = pil_to_numpy_float32(pal_pil).reshape(-1, 4)
+        # Only select non-fully-transparent color, discarding the alpha
+        pal_rgb = numpy.unique(pal_np[pal_np[:, 3] > 0][:, :3], axis=0)
+        print("Palette", args.input_palette, "has", len(pal_rgb), "colors")
 
     print("Quantizing in", args.colorspace, "colorspace")
     match args.colorspace:
         case "rgb":
-            pal_rgb = get_palette(input_rgb, args.ncolors)
+            if pal_rgb is None:
+                pal_rgb = get_palette(input_rgb, args.ncolors)
             quantized_rgb = quantize_image_smolsize(input_rgb, pal_rgb)
         case "oklab":
             image_oklab = rgb2oklab(input_rgb)
-            pal = get_palette(image_oklab, args.ncolors)
-            pal_rgb = oklab2rgb(pal)
+
+            if pal_rgb is None:
+                pal = get_palette(image_oklab, args.ncolors)
+                pal_rgb = oklab2rgb(pal)
+            else:
+                pal = rgb2oklab(pal_rgb)
+
             quantized = quantize_image_smolsize(image_oklab, pal)
             quantized_rgb = oklab2rgb(quantized)
         case _:
             raise ValueError("invalid colorspace")
 
-    if args.palette:
+    if args.palette and not args.input_palette:
         print("Writing palette", args.palette)
         numpy_float32_to_pil(pal_rgb.reshape(1, -1, 3)).save(args.palette)
 
@@ -185,21 +171,5 @@ def main(args=None):
 
 
 if __name__ == "__main__":
-    a = Args()
-    a.input_merged = "output_merged.png"
-    a.palette = "output_palette.png"
-    a.colorspace = "oklab"
-    a.ncolors = 64
-    a.output_merged = "output_merged.png"
-    a.input = ["input1.png", "input2.png", "input3.png", "input4.png", "input5.png"]
+    main()
 
-    # input_merged: str | None
-    # palette: str | None
-    # colorspace: Literal["rgb", "oklab"]
-    # ncolors: int
-    # output_merged: str
-    # input: collections.abc.Sequence[str]
-
-    main(a)
-
-    #main()
