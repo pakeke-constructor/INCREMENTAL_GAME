@@ -269,7 +269,8 @@ function map:draw()
 
             for _, buildingId in ipairs(poi.highlight) do
                 local b = buildings[buildingId]
-                g.drawImageOffset(b.image.."_outline", b.x - 2, b.y - 2, 0, 1, 1, 0, 0)
+                -- Buildings are relative to top right
+                g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
             end
         end
 
@@ -288,9 +289,9 @@ function map:draw()
 
     lg.setColor(1, 1, 1)
     for _, b in pairs(buildings) do
-        --if (b.needpoi and unlockedPOIs:contains(b.needpoi)) or (not b.needpoi) then
-            g.drawImageOffset(b.image, b.x, b.y, 0, 1, 1, 0, 0)
-        --end
+        -- if (b.needpoi and unlockedPOIs:contains(b.needpoi)) or (not b.needpoi) then
+            g.drawImageOffset(b.image, b.x, b.y, 0, 1, 1, 1, 0)
+        -- end
     end
 
     self:resetCamera()
