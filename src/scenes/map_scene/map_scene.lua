@@ -11,37 +11,113 @@ local map = FreeCameraScene()
 
 
 
+---@class (exact) _MapBuilding
+---@field public x integer
+---@field public y integer
+---@field public image string
+---@field public needpoi string?
+
+-- This data structure is WIP. Once we have all the minigames
+-- and boss sorted, this will be merged into POI.
+---@type table<string, _MapBuilding>
+local buildings = {
+    questarea_buildings = {
+        image = "questarea_buildings",
+        x = 413, y = 269,
+    },
+    bossarea_statue = {
+        image = "bossarea_statue",
+        x = 484, y = 183,
+    },
+    harvestarea_windmill = {
+        image = "harvestarea_windmill",
+        x = 338, y = 158,
+        needpoi = "harvest",
+    },
+    harvestarea_house = {
+        image = "harvestarea_house",
+        x = 237, y = 211,
+        needpoi = "harvest",
+    },
+    harvestarea_platform = {
+        image = "harvestarea_platform",
+        x = 294, y = 177,
+        needpoi = "harvest",
+    },
+    upgradearea_dome = {
+        image = "upgradearea_dome",
+        x = 181, y = 140,
+        needpoi = "upgrade",
+    },
+    upgradearea_plasmahut = {
+        image = "upgradearea_plasmahut",
+        x = 157, y = 95,
+        needpoi = "upgrade",
+    },
+    fishingarea_buildings = {
+        image = "fishingarea_buildings",
+        x = 393, y = 94,
+        needpoi = "fishing",
+    },
+    fishingarea_dock = {
+        image = "fishingarea_dock",
+        x = 377, y = 90,
+        needpoi = "fishing"
+    },
+    carnivalarea_attractions = {
+        image = "carnivalarea_attractions",
+        x = 221, y = 255,
+    }
+}
+
+
+---@class (exact) _POI.Def
+---@field public x integer
+---@field public y integer
+---@field public w integer
+---@field public h integer
+---@field public highlight string[] building to highlight
+---@field public price g.Bundle?
+---@field public action function
+
+---@class (exact) _POI: _POI.Def
+---@field public type string
+---@field public name string
+
+---@type table<string, _POI>
 local POI = {}
-local unlockedPOIs = objects.Set {"harvest", "upgrade"}
+local unlockedPOIs = objects.Set()
+---@param id string
+---@param name string
+---@param def _POI.Def
 local function definePOI(id, name, def)
+    ---@cast def _POI
     def.type = id
-    def.name = name
+    def.name = loc(name)
     POI[id] = def
+
+    if not def.price then
+        unlockedPOIs:add(id)
+    end
 end
 
 definePOI("harvest", "Harvest Area", {
     x = 219, y = 178, w = 55, h = 43,
-    highlight = "harvest_highlight",
-    hx = 219, hy = 178,
-    price = {},
+    highlight = {"harvestarea_windmill", "harvestarea_house", "harvestarea_platform"},
     action = function()
         g.gotoScene("harvest_scene")
     end
 })
 definePOI("upgrade", "Upgrades", {
     x = 104, y = 135, w = 64, h = 59,
-    highlight = "upgrade_highlight",
-    hx = 104, hy = 135,
-    price = {},
+    highlight = {"upgradearea_dome", "upgradearea_plasmahut"},
     action = function()
         g.gotoScene("upgrade_scene")
     end
 })
 definePOI("fishing", "Fishing", {
     x = 220, y = 89, w = 142, h = 41,
-    highlight = "fishing_highlight",
-    hx = 220, hy = 85,
-    
+    highlight = {"fishingarea_buildings", "fishingarea_dock"},
     price = {money = 5000, logs = 100},
     action = function()
         g.gotoScene("fishing_scene")
@@ -53,7 +129,7 @@ definePOI("fishing", "Fishing", {
 local MAP_BACKGROUND = objects.Color("#".."FF0F379B")
 
 local mapAnim = {
-    lg.newImage("src/scenes/map_scene/maps/IKEA_MAP.png"),
+    lg.newImage("src/scenes/map_scene/maps/map.png"),
     -- lg.newImage("src/scenes/map_scene/maps/new_map2.png"),
     -- lg.newImage("src/scenes/map_scene/maps/map1.png"),
     -- lg.newImage("src/scenes/map_scene/maps/map2.png")
@@ -190,7 +266,11 @@ function map:draw()
 
             local a = math.sin((t % 1) * math.pi) ^ 2
             lg.setColor(1, 1, 1, a)
-            g.drawImageOffset(poi.highlight, poi.hx, poi.hy, 0, 1, 1, 0, 0)
+
+            for _, buildingId in ipairs(poi.highlight) do
+                local b = buildings[buildingId]
+                g.drawImageOffset(b.image.."_outline", b.x - 2, b.y - 2, 0, 1, 1, 0, 0)
+            end
         end
 
         if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) then
@@ -204,6 +284,13 @@ function map:draw()
                 unlockedPOIs:add(poi.type)
             end
         end
+    end
+
+    lg.setColor(1, 1, 1)
+    for _, b in pairs(buildings) do
+        --if (b.needpoi and unlockedPOIs:contains(b.needpoi)) or (not b.needpoi) then
+            g.drawImageOffset(b.image, b.x, b.y, 0, 1, 1, 0, 0)
+        --end
     end
 
     self:resetCamera()
