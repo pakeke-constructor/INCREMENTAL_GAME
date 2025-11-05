@@ -24,7 +24,6 @@ local consts = {
     TEST = true,
 
     LAGGED_HEALTHBAR_DURATION = 0.3, -- the "healtbar lag" on tokens, (purely visual effect)
-    TOKEN_DEATH_DELAY = 0.3 -- token dies X seconds after health reaches 0
 }
 
 

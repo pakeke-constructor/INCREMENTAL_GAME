@@ -119,9 +119,7 @@ local function updateToken(tok,dt)
         tok:update(dt)
     end
 
-    if tok.health <= 0 and (tok.timeSinceDamaged >= consts.TOKEN_DEATH_DELAY) then
-        -- QUESTION: wont this cause tokens to be invincible if they are hit repeatedly?
-        -- ANSWER: No, because `g.damageToken` returns early if health <= 0
+    if tok.health <= 0 then
         g.destroyToken(tok)
         return
     end
