@@ -33,12 +33,7 @@ local function drawSlime(uinfo,level,x,y,w,h)
 end
 
 
---[[
-TODO: 
-rename this shit, its dumb,
-and doesnt fit with theme.
-]]
-g.defineUpgrade("slime_knife", "Slime Knife", {
+g.defineUpgrade("corrosive_slime", "Corrosive Slime", {
     drawUI=drawSlime,
     kind="HARVESTING",
 
@@ -51,7 +46,7 @@ g.defineUpgrade("slime_knife", "Slime Knife", {
         return (level+1)*10
     end,
 
-    description = "Slimed tokens take +%{1}% extra damage",
+    description = "Tokens that are slimed take +%{1}% extra damage",
 
     ---@param tok g.Token
     getTokenDamageMultiplier = function(self,level, tok)
