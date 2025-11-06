@@ -262,75 +262,15 @@ end
 
 
 
----@param r layout.Region
----@param cam Camera
----@param poi _POI
-local function drawPOITooltip(r, cam, poi)
-    local TOOLTIP_PADDING = 4
-    local SCREEN_PADDING = 4
-
-    local titleFont = g.getBigFont(32)
-    local font = g.getSmallFont(16)
-    local hasBought = unlockedPOIs:has(poi.type)
-    local canAfford = hasBought or g.canAfford(poi.price)
-
-    -- Calculate box width and height
-    local height = titleFont:getHeight()
-    local width = titleFont:getWidth(richtext.stripEffects(poi.name))
-    local buyText = ""
-    if not hasBought then
-        local buyTextWidth = 0
-
-        if canAfford then
-            buyText = "Buy"
-        end
-
-        for _, resId in ipairs(g.RESOURCE_LIST) do
-            if poi.price[resId] then
-                local resInfo = g.getResourceInfo(resId)
-                buyText = buyText.." {"..resInfo.image.."}"..poi.price[resId]
-                buyTextWidth = buyTextWidth + 16
-            end
-        end
-
-        buyTextWidth = buyTextWidth + font:getWidth(richtext.stripEffects(buyText))
-        width = math.max(width, buyTextWidth)
-        height = height + font:getHeight()
-    end
-
-    -- Compute regions
-    local tx, ty = ui.getUIScalingTransform():inverseTransformPoint(cam:toScreen(poi.x + poi.w / 2, poi.y + poi.h))
-    local tooltipR = Kirigami(tx - width / 2, ty + 16, width, height)
-        -- Apply padding
-        :padUnit(-TOOLTIP_PADDING)
-        -- Clamp
-        :clampInside(r:padUnit(SCREEN_PADDING))
-    local tooltipContentR = tooltipR:padUnit(TOOLTIP_PADDING)
-
-    -- Draw it
-    if canAfford then
-        love.graphics.setColor(0.2, 0.2, 0.4, 0.8)
-    else
-        love.graphics.setColor(0.4, 0.2, 0.2, 0.8)
-    end
-    love.graphics.rectangle("fill", tooltipR:get())
-
-    love.graphics.setColor(0.,0.,0.08)
-    love.graphics.rectangle("line", tooltipR:get())
-
-    love.graphics.setColor(1, 1, 1)
-    richtext.printRich(poi.name, titleFont, tooltipContentR.x, tooltipContentR.y, tooltipContentR.w, "center")
-    if not hasBought then
-        richtext.printRich(buyText, font, tooltipContentR.x, tooltipContentR.y + titleFont:getHeight(), tooltipContentR.w, "center")
-    end
-end
 
 ---@param poi _POI
-local function drawPOIText(poi)
+---@param x number?
+---@param y number?
+local function drawPOIText(poi, x, y)
     local r, g, b = poi.tcolor:getRGBA()
-    local text = string.format("{o r=%.2f g=%.2f b=%.2f}%s{/o}", r, g, b, poi.name)
+    local text = string.format("{o thickness=2 r=%.2f g=%.2f b=%.2f}%s{/o}", r, g, b, poi.name)
 
-    richtext.printRich(text, _G.g.getBigFont(32), poi.tx, poi.ty, 1000, "center", 0, 1, 1, 500, 16)
+    richtext.printRich(text, _G.g.getBigFont(32), x or poi.tx, y or poi.ty, 1000, "center", 0, 1, 1, 500, 16)
 end
 
 
@@ -415,7 +355,7 @@ function map:draw()
             local bw, bh = select(3, g.getImageQuad("map_unlockbutton"):getViewport()) --[[@as number]]
 
             if iml.isHovered(cx - bw / 2, cy, bw, bh) then
-                drawPOIText(poi)
+                drawPOIText(poi, cx, cy - 16)
             end
 
             if iml.wasJustClicked(cx - bw / 2, cy, bw, bh, 1) then
