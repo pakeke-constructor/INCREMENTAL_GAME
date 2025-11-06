@@ -151,7 +151,7 @@ definePOI("upgrade", "Upgrades", {
     end
 })
 definePOI("fishing", "Fishing", {
-    x = 220, y = 89, w = 142, h = 41,
+    x = 238, y = 88, w = 136, h = 63,
     highlight = {"fishingarea_buildings", "fishingarea_dock"},
     price = {money = 5000, logs = 100},
     action = function()
