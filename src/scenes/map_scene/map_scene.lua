@@ -15,10 +15,7 @@ local map = FreeCameraScene()
 ---@field public x integer
 ---@field public y integer
 ---@field public image string
----@field public needpoi string?
 
--- This data structure is WIP. Once we have all the minigames
--- and boss sorted, this will be merged into POI.
 ---@type table<string, _MapBuilding>
 local buildings = {
     questarea_buildings = {
@@ -32,43 +29,79 @@ local buildings = {
     harvestarea_windmill = {
         image = "harvestarea_windmill",
         x = 338, y = 158,
-        needpoi = "harvest",
     },
     harvestarea_house = {
         image = "harvestarea_house",
         x = 237, y = 211,
-        needpoi = "harvest",
     },
     harvestarea_platform = {
         image = "harvestarea_platform",
         x = 294, y = 177,
-        needpoi = "harvest",
     },
     upgradearea_dome = {
         image = "upgradearea_dome",
         x = 181, y = 140,
-        needpoi = "upgrade",
     },
     upgradearea_plasmahut = {
         image = "upgradearea_plasmahut",
         x = 157, y = 95,
-        needpoi = "upgrade",
     },
     fishingarea_buildings = {
         image = "fishingarea_buildings",
         x = 393, y = 94,
-        needpoi = "fishing",
     },
     fishingarea_dock = {
         image = "fishingarea_dock",
         x = 377, y = 90,
-        needpoi = "fishing"
     },
     carnivalarea_attractions = {
         image = "carnivalarea_attractions",
         x = 221, y = 255,
     }
 }
+
+
+
+---@class (exact) _CloudPlacement: _MapBuilding
+---@field public seed integer pick any random integer to be used to randomize cloud bobbing
+
+-- key same as POI ID
+---@type table<string, _CloudPlacement>
+local clouds = {
+    fishing = {
+        image = "bigcloud_fishingzone", seed = 12345,
+        x = 210, y = 64
+    },
+    minigame = {
+        image = "bigcloud_minigamezone", seed = 1,
+        x = 107, y = 247
+    },
+    quest = {
+        image = "bigcloud_questzone", seed = 42,
+        x = 256, y = 232
+    },
+    boss = {
+        image = "bigcloud_bosszone", seed = 666,
+        x = 367, y = 131
+    },
+    _empty1 = {
+        image = "bigcloud_emptyzone", seed = 0,
+        x = 158, y = 2,
+    }
+}
+
+-- We can't just pairs(clouds) as they have undefined order
+---@type string[]
+local cloudsOrder = {}
+for k in pairs(clouds) do
+    cloudsOrder[#cloudsOrder+1] = k
+end
+table.sort(cloudsOrder, function(a, b)
+    return clouds[a].y > clouds[b].y
+end)
+
+
+
 
 
 ---@class (exact) _POI.Def
@@ -96,7 +129,9 @@ local function definePOI(id, name, def)
     def.name = loc(name)
     POI[id] = def
 
-    if not def.price then
+    if def.price then
+        assert(clouds[id], "cloud info must exist for this POI")
+    else
         unlockedPOIs:add(id)
     end
 end
@@ -122,6 +157,30 @@ definePOI("fishing", "Fishing", {
     action = function()
         g.gotoScene("fishing_scene")
     end
+})
+definePOI("minigame", "Minigames", {
+    x = 127, y = 269, w = 93, h = 63,
+    highlight = {"carnivalarea_attractions"},
+    -- TODO: Price
+    price = {},
+    -- TODO: Action
+    action = function() end
+})
+definePOI("quest", "Quests", {
+    x = 263, y = 276, w = 143, h = 71,
+    highlight = {"questarea_buildings"},
+    -- TODO: Price
+    price = {},
+    -- TODO: Action
+    action = function() end
+})
+definePOI("boss", "Challenges", {
+    x = 399, y = 183, w = 80, h = 70,
+    highlight = {"bossarea_statue"},
+    -- TODO: Price
+    price = {},
+    -- TODO: Action
+    action = function() end
 })
 
 
@@ -259,23 +318,27 @@ function map:draw()
         g.drawImage(p.image,p.x,p.y)
     end
 
+    -- POI outline, tooltip, and action.
     local hoveredPOI = nil
     for _, poi in pairs(POI) do
+        local hasBought = unlockedPOIs:has(poi.type)
+
         if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
             hoveredPOI = poi
 
-            local a = math.sin((t % 1) * math.pi) ^ 2
-            lg.setColor(1, 1, 1, a)
+            if hasBought then
+                local a = math.sin((t % 1) * math.pi) ^ 2
+                lg.setColor(1, 1, 1, a)
 
-            for _, buildingId in ipairs(poi.highlight) do
-                local b = buildings[buildingId]
-                -- Buildings are relative to top right
-                g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
+                for _, buildingId in ipairs(poi.highlight) do
+                    local b = buildings[buildingId]
+                    -- Buildings are relative to top right
+                    g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
+                end
             end
         end
 
         if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) then
-            local hasBought = unlockedPOIs:has(poi.type)
             local canAfford = hasBought or g.canAfford(poi.price)
 
             if hasBought then
@@ -287,11 +350,25 @@ function map:draw()
         end
     end
 
+    -- Draw buildings
     lg.setColor(1, 1, 1)
     for _, b in pairs(buildings) do
-        -- if (b.needpoi and unlockedPOIs:contains(b.needpoi)) or (not b.needpoi) then
-            g.drawImageOffset(b.image, b.x, b.y, 0, 1, 1, 1, 0)
-        -- end
+        g.drawImageOffset(b.image, b.x, b.y, 0, 1, 1, 1, 0)
+    end
+
+    -- Draw clouds
+    for _, clid in ipairs(cloudsOrder) do
+        if not unlockedPOIs:has(clid) then
+            local cloud = clouds[clid]
+            local offsetStartBase = (cloud.seed * 214013 + 2531011) % 65536
+            local frequencyBase = (offsetStartBase * 214013 + 2531011) % 65536
+            local offset = (offsetStartBase / 65536) * 2 * math.pi
+            -- Tweak these values to tune the bobbing speed
+            local frequency = 0.1 + (frequencyBase / 65536) * 0.3
+
+            local yoff = math.sin(2 * math.pi * frequency * t + offset)
+            g.drawImageOffset(cloud.image, cloud.x, cloud.y + yoff, 0, 1, 1, 0, 0)
+        end
     end
 
     self:resetCamera()
