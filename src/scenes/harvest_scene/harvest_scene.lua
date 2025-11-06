@@ -198,7 +198,7 @@ function harvest:draw()
     vignette.draw()
 
     ui.startUI()
-    self:renderNavbar()
+    self:renderMapButton()
 
     g.getHUD():draw(self.camera)
     self:_drawActiveEffects()

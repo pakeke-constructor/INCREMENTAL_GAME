@@ -224,7 +224,7 @@ function upgscene:draw()
     vignette.draw()
 
     ui.startUI()
-    self:renderNavbar()
+    self:renderMapButton()
 
     g.getHUD():draw(self.camera, {profile = false})
 
