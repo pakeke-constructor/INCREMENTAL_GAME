@@ -30,8 +30,12 @@ return function(text)
     local function outlineEffect(args,char)
         local thickness = args.thickness or 1
         local r, g, b, a = love.graphics.getColor()
+        local cr = args.r or 0
+        local cg = args.g or 0
+        local cb = args.b or 0
+        local ca = (args.a or 1) * a
 
-        love.graphics.setColor(0, 0, 0, a)
+        love.graphics.setColor(cr, cg, cb, ca)
 
         local ox, oy = char:getOffset()
 
