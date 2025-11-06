@@ -356,6 +356,7 @@ end
 ---@param amount number Amount to add to the display once it's done.
 function Resources:spawnParticles(kind, x, y, amount)
     if amount <= 0 then return end
+    amount = math.floor(amount)
 
     local category = PARTICLE_SPAWN_CATEGORY[kind]
     ---@type number[]

@@ -1,4 +1,19 @@
 
+--[[
+
+(TOKEN) Slime: When destroyed, slime surrounding crops
+Corrosive slime: Crops that are slimed take +X% extra damage
+Better-slime: Crops that are slimed earn +5% resources
+Acidic slime: Crops that are slimed take X damage every second
+Slime apocalypse: Every 4 seconds, 1 random crop becomes slimed
+Slime pandemic: When a slimed crop is destroyed, 20% chance to spread slimed to a nearby crop
+Slime fertilizer: Crops that are slimed earn $X passively every second
+Slime grenade: Crops that are slimed have a 10% chance to explode when destroyed!
+
+
+]]
+
+
 
 g.defineTokenUpgrade("slime_token", "Slime", {
     token = {
@@ -21,7 +36,7 @@ g.defineTokenUpgrade("slime_token", "Slime", {
 
     upgrade = {
         price = {money=500},
-        maxLevel=2,
+        maxLevel=3,
     }
 })
 
@@ -55,17 +70,170 @@ g.defineUpgrade("corrosive_slime", "Corrosive Slime", {
 })
 
 
---[[
-
-Corrosive slime: Crops that are slimed take +X% extra damage
-Better-slime: Crops that are slimed earn +5% resources
-Slime apocalypse: Every second, 1 random crop becomes slimed
-Slime pandemic: When a slimed crop is destroyed, 20% chance to spread slimed to a nearby crop
-Slime genetics: Crops that are slimed earn $1 passively every second
-Slime crockpot: Grass crops that are slimed earn +X% money
-Slime recycling: When Grass crops that are slimed earn +X% money
-Slime grenade: Crops that are slimed have a 10% chance to explode when destroyed!
 
 
-]]
+g.defineUpgrade("better_slime", "Better Slime", {
+    drawUI=drawSlime,
+    kind="TOKEN_MODIFIER",
+
+    maxLevel = 6,
+    getValues = helper.percentageGetter(5),
+
+    description = "Crops that are slimed earn +%{1}% extra resources",
+
+    ---@param tok g.Token
+    getTokenResourceMultiplier = function(self,level, tok)
+        if tok.slimed then
+            local a=self:getValues(level)
+            return 1+(a/100)
+        end
+    end,
+
+    price={money=2000},
+})
+
+
+
+
+g.defineUpgrade("acidic_slime", "Acidic Slime", {
+    drawUI=drawSlime,
+    kind="TOKEN_MODIFIER",
+
+    maxLevel = 6,
+    getValues = helper.valueGetter(1),
+
+    description = "Crops that are slimed take %{1} damage every second",
+
+    perSecondUpdate = function(self,level)
+        local world = g.getSn().mainWorld
+        local dmg = self:getValues(level)
+        for _,tok in ipairs(world.tokens)do
+            ---@cast tok g.Token
+            if tok.slimed then
+                g.damageToken(tok, dmg)
+            end
+        end
+    end,
+
+    price={money=2000},
+})
+
+
+
+
+
+
+g.defineUpgrade("slime_apocalypse", "Slime Apocalypse", {
+    drawUI=drawSlime,
+    kind="TOKEN_MODIFIER",
+
+    maxLevel = 4,
+
+    getValues = function(uinfo,level)
+        return level
+    end,
+
+    description = "Every second, %{1} random crop(s) becomes slimed!",
+
+    perSecondUpdate = function(self,level)
+        ---@param t g.Token
+        local function notSlimed(t)
+            return not t.slimed
+        end
+        for _=1,level do
+            local tok = g.getRandomToken(notSlimed)
+            if tok then
+                g.slimeToken(tok)
+            end
+        end
+    end,
+
+    price={money=2000},
+})
+
+
+
+g.defineUpgrade("slime_pandemic", "Slime Pandemic", {
+    drawUI=drawSlime,
+    kind="TOKEN_MODIFIER",
+
+    maxLevel = 4,
+
+    getValues = helper.percentageGetter(8,20),
+    valueFormatter = helper.PERCENTAGE_FORMATTER,
+
+    description = "When a slimed crop is destroyed, %{1} chance to spread slimed to a nearby crop",
+
+    tokenDestroyed = function(self,level, tok)
+        if tok.slimed then
+            local p = (self:getValues(level)/100)
+            if love.math.random() < p then
+                local done=false
+                g.iterateTokensInArea(tok.x,tok.y, 60, function (t)
+                    if (not done) and (not t.slimed) then
+                        g.slimeToken(t)
+                        done=true
+                    end
+                end)
+            end
+        end
+    end,
+
+    price={money=2000},
+})
+
+
+
+
+g.defineUpgrade("slime_fertilizer", "Slime Fertilizer", {
+    drawUI=drawSlime,
+    kind="TOKEN_MODIFIER",
+
+    maxLevel = 4,
+
+    getValues = helper.valueGetter(1),
+
+    description = "Crops that are slimed earn %{1} passively every second",
+
+    perSecondUpdate = function(self,level)
+        local world = g.getSn().mainWorld
+        local moneh = self:getValues(level)
+        local bundle = {
+            money=moneh
+        }
+        for _,tok in ipairs(world.tokens)do
+            ---@cast tok g.Token
+            if tok.slimed then
+                g.addResourceFrom(tok, bundle)
+            end
+        end
+    end,
+
+    price={money=2000},
+})
+
+
+
+
+g.defineUpgrade("slime_grenade", "Slime Grenade", {
+    drawUI=drawSlime,
+    kind="HARVESTING",
+
+    maxLevel = 5,
+
+    getValues = helper.percentageGetter(5,10),
+    valueFormatter=helper.PERCENTAGE_FORMATTER,
+
+    description = "Crops that are slimed have a %{1} chance to explode when destroyed!",
+
+    tokenDestroyed = function(self,level, tok)
+        ---@cast tok g.Token
+        if tok.slimed then
+            worldutil.explosion(tok.x,tok.y, 50)
+        end
+    end,
+
+    price={money=2000},
+})
+
 

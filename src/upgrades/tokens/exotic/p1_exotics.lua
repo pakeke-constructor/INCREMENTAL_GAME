@@ -9,10 +9,6 @@ Green Mushroom (When destroyed, spawns 6 random grasses)
 Red Mushroom (When destroyed, explodes, dealing 10 dmg)
 Blue mushroom: When destroyed, spawns a lightning-bolt!
 
-Jungle cat: When hit, deals damage to surrounding grass tokens
-Clay Pot: gives a random amount of money, between 0 and 50
-Treasure chest: Gives random loot! (Between $50 and $500)
-Evil cat: Deal 10 damage to the nearest token every 0.4 seconds
 
 ]]
 
@@ -77,7 +73,7 @@ g.defineTokenUpgrade("mushroom_green", "Green Mushroom", {
         end
     },
     upgrade = {
-        description = "When destroyed, spawns 6 grass tokens",
+        description = "When destroyed, spawns 6 grass crops",
         price = {money = 250}
     }
 })
@@ -100,7 +96,7 @@ g.defineTokenUpgrade("plant_pot", "Plant Pot", {
         end
     },
     upgrade = {
-        description = "When destroyed, damages surrounding grass tokens.",
+        description = "When destroyed, damages surrounding grass crops",
         price = {money = 100}
     }
 })
