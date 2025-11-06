@@ -291,17 +291,17 @@ function map:draw()
     end
 
     -- Draw POI outline only.
-    for _, poi in pairs(POI) do
-        if unlockedPOIs:has(poi.type) then
-            if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
-                local a = math.sin((t % 1) * math.pi) ^ 2
-                lg.setColor(1, 1, 1, a)
+    for _, poiType in ipairs(unlockedPOIs) do
+        local poi = POI[poiType]
 
-                for _, buildingId in ipairs(poi.highlight) do
-                    local b = buildings[buildingId]
-                    -- Buildings are relative to top right
-                    g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
-                end
+        if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
+            local a = math.sin((t % 1) * math.pi) ^ 2
+            lg.setColor(1, 1, 1, a)
+
+            for _, buildingId in ipairs(poi.highlight) do
+                local b = buildings[buildingId]
+                -- Buildings are relative to top right
+                g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
             end
         end
     end
