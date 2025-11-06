@@ -87,7 +87,7 @@ g.defineTokenUpgrade("plant_pot", "Plant Pot", {
         resources = {},
         ---@param tok g.Token
         tokenDestroyed = function(tok)
-            g.playSound("pot_smash", nil, 0.8, 0.2)
+            g.playWorldSound("pot_smash", nil, 0.8, 0.2)
             g.iterateTokensInArea(tok.x, tok.y, 36, function(t)
                 if t.category == "grass" then
                     g.damageToken(t, 8)

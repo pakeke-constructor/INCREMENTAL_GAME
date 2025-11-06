@@ -1769,7 +1769,7 @@ function g.destroyToken(tok)
 
     -- todo: rework/rethink this.
     -- Each token should have different "sound"
-    g.playSound("pop", 1, 1, 0.15)
+    g.playWorldSound("pop", 1, 1, 0.15)
     return true
 end
 
@@ -1845,19 +1845,19 @@ function g.hitImmediately(tok)
 
     local i = love.math.random(1,3)
     local s = "hit_generic_"..i
-    g.playSound(s, 1,0.1,0.2,0.2)
+    g.playWorldSound(s, 1,0.1,0.2,0.2)
 
     -- todo: rework all this.
     if tok.category == "grass" then
         if love.math.random()<0.3 then
-            g.playSound("hit_grass",1,0.15, 0.1)
+            g.playWorldSound("hit_grass",1,0.15, 0.1)
         else
-            g.playSound("hit_grass2",1,0.15, 0.1)
+            g.playWorldSound("hit_grass2",1,0.15, 0.1)
         end
     elseif love.math.random()<0.5 then
-        g.playSound("hit_billiard", 1, 0.18, 0.3)
+        g.playWorldSound("hit_billiard", 1, 0.18, 0.3)
     else
-        g.playSound("hit_soft", 1, 0.18, 0.3)
+        g.playWorldSound("hit_soft", 1, 0.18, 0.3)
     end
 end
 
@@ -1915,7 +1915,8 @@ end
 
 
 
--- g.playSound defined here
+-- g.playWorldSound
+-- g.playUISound
 do
 
 local MAX_SOURCE_POOL = 4
@@ -1953,7 +1954,7 @@ end
 ---@param volume number? (defaults to 1)
 ---@param pitchVar number? (pitch variance, default 0)
 ---@param volumeVar number? (volume variance, default 0)
-function g.playSound(soundname, pitch, volume, pitchVar, volumeVar)
+local function playSound(soundname, pitch, volume, pitchVar, volumeVar)
     local s = getSourceFromPool(soundname)
     if not s then
         return false
@@ -1973,6 +1974,34 @@ function g.playSound(soundname, pitch, volume, pitchVar, volumeVar)
     s:play()
     return true
 end
+
+
+---@param soundname string
+---@param pitch number? (defaults to 1)
+---@param volume number? (defaults to 1)
+---@param pitchVar number? (pitch variance, default 0)
+---@param volumeVar number? (volume variance, default 0)
+function g.playWorldSound(soundname, pitch, volume, pitchVar, volumeVar)
+    -- HACK: checks harvest-scene is active!!!
+    -- Maybe do a cleaner way? ... i guess we keep it like this until we run into problems. 
+    sceneManager = sceneManager or require("src.scenes.sceneManager")
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.name == "harvest_scene" then
+        playSound(soundname, pitch, volume, pitchVar, volumeVar)
+    end
+end
+
+
+---@param soundname string
+---@param pitch number? (defaults to 1)
+---@param volume number? (defaults to 1)
+---@param pitchVar number? (pitch variance, default 0)
+---@param volumeVar number? (volume variance, default 0)
+function g.playUISound(soundname, pitch, volume, pitchVar, volumeVar)
+    playSound(soundname, pitch, volume, pitchVar, volumeVar)
+end
+
+
 
 local validExtensions = {
     wav = true,

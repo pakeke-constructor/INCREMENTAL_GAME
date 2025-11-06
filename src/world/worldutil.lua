@@ -105,7 +105,7 @@ end
 ---@param damage any
 function worldutil.spawnLightning(x,y, damage, radius)
     g.spawnEntity("lightning_animation", x,y)
-    g.playSound("lightning_foreground",0.9,0.7,0.3,0)
+    g.playWorldSound("lightning_foreground",0.9,0.7,0.3,0)
     radius = radius or 40
     g.iterateTokensInArea(x,y, radius, function(tok)
         g.damageToken(tok,damage)
@@ -120,7 +120,7 @@ end
 ---@param damage number?
 function worldutil.explosion(x,y,damage)
     g.spawnEntity("small_explosion_animation", x,y)
-    g.playSound("small_explosion", 1,0.3,0.35)
+    g.playWorldSound("small_explosion", 1,0.3,0.35)
     if damage then
         g.iterateTokensInArea(x,y, 40, function(tok)
             g.damageToken(tok,damage)

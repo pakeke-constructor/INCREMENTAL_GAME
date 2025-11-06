@@ -28,6 +28,7 @@ for _, name in ipairs(allScenes) do
     if scene.init then
         scene:init()
     end
+    scene.name = name
     nameToScene[name] = scene
 end
 
