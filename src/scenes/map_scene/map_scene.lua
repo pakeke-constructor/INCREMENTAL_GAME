@@ -295,8 +295,7 @@ function map:draw()
         local poi = POI[poiType]
 
         if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
-            local a = math.sin((t % 1) * math.pi) ^ 2
-            lg.setColor(1, 1, 1, a)
+            lg.setColor(1, 1, 1, 1)
 
             for _, buildingId in ipairs(poi.highlight) do
                 local b = buildings[buildingId]
