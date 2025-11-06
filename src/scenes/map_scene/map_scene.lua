@@ -407,22 +407,14 @@ function map:draw()
             local yoff = computeOffsetBySeed(t, cloud.seed)
 
             local cx = poi.x + poi.w / 2
-            local cy = poi.y + yoff
-            g.drawImageOffset("map_unlockbutton", cx, cy, 0, 1, 1, 0.5, 0)
+            local cy = poi.y
+            g.drawImageOffset("map_unlockbutton", cx, cy + yoff, 0, 1, 1, 0.5, 0)
             richtext.printRich("{o}"..buyText.."{/o}", smallFont, cx, cy + 10, 1000, "center", 0, 1, 1, 500, 0)
 
             -- Button dimensions
             local bw, bh = select(3, g.getImageQuad("map_unlockbutton"):getViewport()) --[[@as number]]
-            ui.debugRegion(Kirigami(poi.x, poi.y, poi.w, poi.h))
-            love.graphics.setColor(1, 0, 0)
-            ui.debugRegion(Kirigami(cx - bw / 2, cy, bw, bh))
-            love.graphics.setColor(1, 1, 1)
 
-            if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
-                print("ok i guess?")
-            end
             if iml.isHovered(cx - bw / 2, cy, bw, bh) then
-                print("gottem")
                 drawPOIText(poi)
             end
 
