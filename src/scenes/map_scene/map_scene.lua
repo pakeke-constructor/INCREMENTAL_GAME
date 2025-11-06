@@ -110,6 +110,9 @@ end)
 ---@field public w integer
 ---@field public h integer
 ---@field public highlight string[] building to highlight
+---@field public tx number text position
+---@field public ty number text position
+---@field public tcolor objects.Color Outline text color (actual text color always white)
 ---@field public price g.Bundle?
 ---@field public action function
 
@@ -136,24 +139,27 @@ local function definePOI(id, name, def)
     end
 end
 
-definePOI("harvest", "Harvest Area", {
-    x = 219, y = 178, w = 55, h = 43,
+definePOI("harvest", "Harvest", {
+    x = 203, y = 174, w = 123, h = 54,
     highlight = {"harvestarea_windmill", "harvestarea_house", "harvestarea_platform"},
+    tx = 262, ty = 169, tcolor = objects.Color("#".."FF0FA569"),
     action = function()
         g.gotoScene("harvest_scene")
     end
 })
-definePOI("upgrade", "Upgrades", {
+definePOI("upgrade", "Upgrade", {
     x = 104, y = 135, w = 64, h = 59,
     highlight = {"upgradearea_dome", "upgradearea_plasmahut"},
+    tx = 152, ty = 132, tcolor = objects.Color("#".."FF41D7D7"),
     action = function()
         g.gotoScene("upgrade_scene")
     end
 })
-definePOI("fishing", "Fishing", {
+definePOI("fishing", "Fish", {
     x = 238, y = 88, w = 136, h = 63,
     highlight = {"fishingarea_buildings", "fishingarea_dock"},
-    price = {money = 5000, logs = 100},
+    tx = 323, ty = 100, tcolor = objects.Color("#".."FF14A0CD"),
+    price = {money = 5000},
     action = function()
         g.gotoScene("fishing_scene")
     end
@@ -161,24 +167,27 @@ definePOI("fishing", "Fishing", {
 definePOI("minigame", "Minigames", {
     x = 127, y = 269, w = 93, h = 63,
     highlight = {"carnivalarea_attractions"},
+    tx = 188, ty = 277, tcolor = objects.Color("#".."FFE65AE6"),
     -- TODO: Price
-    price = {},
+    price = {money = 1000},
     -- TODO: Action
     action = function() end
 })
 definePOI("quest", "Quests", {
     x = 263, y = 276, w = 143, h = 71,
     highlight = {"questarea_buildings"},
+    tx = 327, ty = 291, tcolor = objects.Color("#".."FFB4236E"),
     -- TODO: Price
-    price = {},
+    price = {money = 7000},
     -- TODO: Action
     action = function() end
 })
 definePOI("boss", "Challenges", {
     x = 399, y = 183, w = 80, h = 70,
     highlight = {"bossarea_statue"},
+    tx = 441, ty = 175, tcolor = objects.Color("#".."FF7891A5"),
     -- TODO: Price
-    price = {},
+    price = {money = 10000},
     -- TODO: Action
     action = function() end
 })
@@ -208,6 +217,20 @@ local function prop(x,y,img)
 end
 
 
+
+---@param t number
+---@param seed integer
+local function computeOffsetBySeed(t, seed)
+    local offsetStartBase = (seed * 214013 + 2531011) % 65536
+    local frequencyBase = (offsetStartBase * 214013 + 2531011) % 65536
+    local offset = (offsetStartBase / 65536) * 2 * math.pi
+    -- Tweak these values to tune the bobbing speed
+    local frequency = 0.1 + (frequencyBase / 65536) * 0.3
+    return math.sin(2 * math.pi * frequency * t + offset)
+end
+
+
+
 function map:init()
     self.allowMousePan = false
 
@@ -224,7 +247,7 @@ end
 ---@param mapY number
 ---@param mapW number
 ---@param mapH number
-local function clampCameraToMap2(camera, mapX, mapY, mapW, mapH)
+local function clampCameraToMap(camera, mapX, mapY, mapW, mapH)
     -- Adjust viewport and set position to center of map.
     local w, h = love.graphics.getDimensions()
     camera:setViewport(0, 0, w, h, 0.5, 0.5)
@@ -241,6 +264,7 @@ end
 
 ---@param r layout.Region
 ---@param cam Camera
+---@param poi _POI
 local function drawPOITooltip(r, cam, poi)
     local TOOLTIP_PADDING = 4
     local SCREEN_PADDING = 4
@@ -301,12 +325,20 @@ local function drawPOITooltip(r, cam, poi)
     end
 end
 
+---@param poi _POI
+local function drawPOIText(poi)
+    local r, g, b = poi.tcolor:getRGBA()
+    local text = string.format("{o r=%.2f g=%.2f b=%.2f}%s{/o}", r, g, b, poi.name)
+
+    richtext.printRich(text, _G.g.getBigFont(32), poi.tx, poi.ty, 1000, "center", 0, 1, 1, 500, 16)
+end
+
 
 function map:draw()
     lg.clear(MAP_BACKGROUND)
 
     local mapW,mapH = mapAnim[1]:getDimensions()
-    clampCameraToMap2(self.camera,0,0,mapW,mapH)
+    clampCameraToMap(self.camera,0,0,mapW,mapH)
     self:setCamera()
 
     lg.setColor(1,1,1)
@@ -318,15 +350,10 @@ function map:draw()
         g.drawImage(p.image,p.x,p.y)
     end
 
-    -- POI outline, tooltip, and action.
-    local hoveredPOI = nil
+    -- Draw POI outline only.
     for _, poi in pairs(POI) do
-        local hasBought = unlockedPOIs:has(poi.type)
-
-        if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
-            hoveredPOI = poi
-
-            if hasBought then
+        if unlockedPOIs:has(poi.type) then
+            if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
                 local a = math.sin((t % 1) * math.pi) ^ 2
                 lg.setColor(1, 1, 1, a)
 
@@ -335,17 +362,6 @@ function map:draw()
                     -- Buildings are relative to top right
                     g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
                 end
-            end
-        end
-
-        if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) then
-            local canAfford = hasBought or g.canAfford(poi.price)
-
-            if hasBought then
-                poi.action()
-            elseif canAfford then
-                g.subtractResources(poi.price)
-                unlockedPOIs:add(poi.type)
             end
         end
     end
@@ -360,27 +376,73 @@ function map:draw()
     for _, clid in ipairs(cloudsOrder) do
         if not unlockedPOIs:has(clid) then
             local cloud = clouds[clid]
-            local offsetStartBase = (cloud.seed * 214013 + 2531011) % 65536
-            local frequencyBase = (offsetStartBase * 214013 + 2531011) % 65536
-            local offset = (offsetStartBase / 65536) * 2 * math.pi
-            -- Tweak these values to tune the bobbing speed
-            local frequency = 0.1 + (frequencyBase / 65536) * 0.3
-
-            local yoff = math.sin(2 * math.pi * frequency * t + offset)
+            local yoff = computeOffsetBySeed(t, cloud.seed)
             g.drawImageOffset(cloud.image, cloud.x, cloud.y + yoff, 0, 1, 1, 0, 0)
         end
     end
+
+    -- Draw POI tooltip
+    local smallFont = g.getSmallFont(16)
+    for _, poi in pairs(POI) do
+        if unlockedPOIs:has(poi.type) then
+            if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
+                drawPOIText(poi)
+            end
+
+            if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) then
+                poi.action()
+            end
+        else
+            local buyText = ""
+
+            for _, resId in ipairs(g.RESOURCE_LIST) do
+                if poi.price[resId] then
+                    local resInfo = g.getResourceInfo(resId)
+                    buyText = buyText.." {"..resInfo.image.."} "..g.formatNumber(poi.price[resId])
+                end
+            end
+
+            -- Compute cloud bobbing offset
+            local cloud = clouds[poi.type]
+            local yoff = computeOffsetBySeed(t, cloud.seed)
+
+            local cx = poi.x + poi.w / 2
+            local cy = poi.y + yoff
+            g.drawImageOffset("map_unlockbutton", cx, cy, 0, 1, 1, 0.5, 0)
+            richtext.printRich("{o}"..buyText.."{/o}", smallFont, cx, cy + 10, 1000, "center", 0, 1, 1, 500, 0)
+
+            -- Button dimensions
+            local bw, bh = select(3, g.getImageQuad("map_unlockbutton"):getViewport()) --[[@as number]]
+            ui.debugRegion(Kirigami(poi.x, poi.y, poi.w, poi.h))
+            love.graphics.setColor(1, 0, 0)
+            ui.debugRegion(Kirigami(cx - bw / 2, cy, bw, bh))
+            love.graphics.setColor(1, 1, 1)
+
+            if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
+                print("ok i guess?")
+            end
+            if iml.isHovered(cx - bw / 2, cy, bw, bh) then
+                print("gottem")
+                drawPOIText(poi)
+            end
+
+            if iml.wasJustClicked(cx - bw / 2, cy, bw, bh, 1) then
+                if g.canAfford(poi.price) then
+                    g.subtractResources(poi.price)
+                    unlockedPOIs:add(poi.type)
+                end
+            end
+        end
+    end
+
+    -- Well it's unfortunate that we iterate POI twice, but we need to ensure
+    -- the draw order is correct.
 
     self:resetCamera()
 
     vignette.draw()
 
     ui.startUI()
-    self:renderNavbar()
-    if hoveredPOI then
-        local r = Kirigami(0, 0, ui.getScaledUIDimensions())
-        drawPOITooltip(r, self.camera, hoveredPOI)
-    end
     ui.endUI()
 end
 
