@@ -30,8 +30,10 @@ return function(text)
     local function outlineEffect(args,char)
         local thickness = args.thickness or 1
         local r, g, b, a = love.graphics.getColor()
-
-        love.graphics.setColor(0, 0, 0, a)
+        local cr = args.r or 0
+        local cg = args.g or 0
+        local cb = args.b or 0
+        local ca = (args.a or 1) * a
 
         local ox, oy = char:getOffset()
 
@@ -40,7 +42,7 @@ return function(text)
             for dx = -1, 1 do
                 if not (dx == 0 and dy == 0) then
                     char:setOffset(ox + dx * thickness, oy + dy * thickness)
-                    char:draw(0, 0, 0, a, true)
+                    char:draw(cr, cg, cb, ca, true)
                 end
             end
         end

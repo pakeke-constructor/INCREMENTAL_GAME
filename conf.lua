@@ -30,7 +30,7 @@ function _G.love.conf(t)
     t.window.depth = nil                -- The number of bits per sample in the depth buffer
     t.window.stencil = nil              -- The number of bits per sample in the stencil buffer
     t.window.displayindex = 1                -- Index of the monitor to show the window in (number)
-    t.window.usedpiscale = true        -- Enable automatic DPI scaling when highdpi is set to true as well (boolean)
+    t.window.usedpiscale = false        -- Enable automatic DPI scaling when highdpi is set to true as well (boolean)
     t.window.x = nil                    -- The x-coordinate of the window's position in the specified display (number)
     t.window.y = nil                    -- The y-coordinate of the window's position in the specified display (number)
 
