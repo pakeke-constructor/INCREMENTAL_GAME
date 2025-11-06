@@ -84,13 +84,14 @@ local clouds = {
         image = "bigcloud_bosszone", seed = 666,
         x = 367, y = 131
     },
+    -- Use underscore to denote decoration.
     _empty1 = {
         image = "bigcloud_emptyzone", seed = 0,
         x = 158, y = 2,
     }
 }
 
--- We can't just pairs(clouds) as they have undefined order
+-- We can't just `pairs(clouds)` when drawing as they have undefined order
 ---@type string[]
 local cloudsOrder = {}
 for k in pairs(clouds) do
@@ -231,8 +232,16 @@ end
 
 
 
+---@class _MapTransitionTarget
+---@field public time number
+---@field public x number
+---@field public y number
+---@field public action function?
+
 function map:init()
     self.allowMousePan = false
+    ---@type _MapTransitionTarget|nil
+    self.transitionTarget = nil
 
     prop(302,215,"happy_cat")
 end
@@ -247,17 +256,30 @@ end
 ---@param mapY number
 ---@param mapW number
 ---@param mapH number
-local function clampCameraToMap(camera, mapX, mapY, mapW, mapH)
+---@param ttgt _MapTransitionTarget?
+local function clampCameraToMap(camera, mapX, mapY, mapW, mapH, ttgt)
     -- Adjust viewport and set position to center of map.
     local w, h = love.graphics.getDimensions()
     camera:setViewport(0, 0, w, h, 0.5, 0.5)
-    camera:setPos(mapX + mapW / 2, mapY + mapH / 2)
+    local posX = mapX + mapW / 2
+    local posY = mapY + mapH / 2
+
+    local transitionT = 0
+    local transitionScale = 1
+    if ttgt then
+        local t = 1 - math.abs(1 - helper.clamp(ttgt.time, 0, 1) * 2)
+        transitionT = helper.EASINGS.sineOut(t)
+        posX = helper.lerp(posX, ttgt.x, transitionT)
+        posY = helper.lerp(posY, ttgt.y, transitionT)
+        transitionScale = transitionScale + transitionT * 3
+    end
+    camera:setPos(posX, posY)
 
     -- Adjust zooming
     local scale = math.min(w / mapW, h / mapH)
     -- Only allow integer scaling with minimum of 1
     scale = math.max(math.floor(scale), 1)
-    camera:setZoom(scale)
+    camera:setZoom(scale * transitionScale)
 end
 
 
@@ -278,7 +300,7 @@ function map:draw()
     lg.clear(MAP_BACKGROUND)
 
     local mapW,mapH = mapAnim[1]:getDimensions()
-    clampCameraToMap(self.camera,0,0,mapW,mapH)
+    clampCameraToMap(self.camera,0,0,mapW,mapH,self.transitionTarget)
     self:setCamera()
 
     lg.setColor(1,1,1)
@@ -328,8 +350,13 @@ function map:draw()
                 drawPOIText(poi)
             end
 
-            if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) then
-                poi.action()
+            if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) and not self.transitionTarget then
+                self.transitionTarget = {
+                    time = 0,
+                    x = poi.x + poi.w / 2,
+                    y = poi.y + poi.h / 2,
+                    action = poi.action
+                }
             end
         else
             local buyText = ""
@@ -382,6 +409,18 @@ end
 
 function map:update(dt)
     self:updateCamera(dt)
+
+    -- Update transition data
+    if self.transitionTarget then
+        self.transitionTarget.time = self.transitionTarget.time + dt
+
+        if self.transitionTarget.time >= 0.5 and self.transitionTarget.action then
+            self.transitionTarget.action()
+            self.transitionTarget.action = nil
+        elseif self.transitionTarget.time >= 1 then
+            self.transitionTarget = nil
+        end
+    end
 end
 
 
