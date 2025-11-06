@@ -23,12 +23,11 @@ function HUD:update(dt)
     self.profileHUD:update(dt)
 end
 
----@param camera Camera
 ---@param show {resource:boolean?,profile:boolean?}?
-function HUD:draw(camera, show)
+function HUD:draw(show)
     show = show or {}
-    self.resourceHUD:draw(camera, show.resource == false)
-    self.profileHUD:draw(camera, show.profile == false)
+    self.resourceHUD:draw(show.resource == false)
+    self.profileHUD:draw(show.profile == false)
 end
 
 function HUD:getSafeArea()

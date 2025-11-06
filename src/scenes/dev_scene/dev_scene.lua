@@ -925,7 +925,7 @@ function dev:draw()
     ui.startUI()
     drawDevUI(self)
     self:renderMapButton()
-    g.getHUD():draw(self.camera, {profile = false})
+    g.getHUD():draw({profile = false})
     ui.endUI()
 end
 

@@ -41,7 +41,6 @@ local PARTICLE_SPAWN_CATEGORY = {
         counts = {1, 10, 100},
     },
 }
-local AROUND_TOKEN_RADIUS = 10
 
 local EASINGS = {"sineIn", "sineOut", "sineInOut"}
 
@@ -140,6 +139,7 @@ local function easeInCubic(x)
     return x * x * x
 end
 
+---@param self g.hud.Resources
 ---@param kind g.ResourceType
 ---@param reg layout.Region
 ---@param image string
@@ -147,7 +147,7 @@ end
 ---@param bgcolor [number, number, number, number?]
 ---@param barcolor [number, number, number, number?]
 ---@param noDraw boolean?
-function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolor, noDraw)
+local function _drawResourcesMeter(self, kind, reg, image, scale, bgcolor, barcolor, noDraw)
     local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0):padUnit(4)
     local textR = reg:attachToRightOf(iconR):padUnit(4, 6)
     local t = self:_getInterpolationTime(kind)
@@ -198,9 +198,8 @@ function Resources:_drawResourcesMeter(kind, reg, image, scale, bgcolor, barcolo
     return ux, uy, iconR:union(textR)
 end
 
----@param camera Camera
 ---@param noDraw boolean?
-function Resources:drawHUD(camera, noDraw)
+function Resources:drawHUD(noDraw)
     if not g.getSn() then return end
 
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
@@ -236,13 +235,13 @@ function Resources:drawHUD(camera, noDraw)
             bgCol.value = bgCol.value/2
             bgCol.a = bgCol.a / 3
 
-            local icx, icy, finalR = self:_drawResourcesMeter(
+            local icx, icy, finalR = _drawResourcesMeter(
+                self,
                 resId, targetR, resInfo.image, scale,
                 bgCol, resInfo.color, noDraw
             )
-            local ux, uy = love.graphics.transformPoint(icx, icy)
             local pos = self.poses[resId]
-            pos[1], pos[2] = camera:toWorld(ux, uy)
+            pos[1], pos[2] = icx, icy
 
             if prevR then
                 leftPad = finalR.x + finalR.w
@@ -290,15 +289,10 @@ function Resources:drawParticles()
     end
 end
 
----@param camera Camera
 ---@param noDraw boolean?
-function Resources:draw(camera, noDraw)
-    camera:attach()
-    if not noDraw then
-        self:drawParticles()
-    end
-    camera:detach()
-    self:drawHUD(camera, noDraw)
+function Resources:draw(noDraw)
+    self:drawParticles()
+    self:drawHUD(noDraw)
 end
 
 
@@ -318,9 +312,6 @@ local function _spawnParticleImpl(self, kind, tier, x, y, amount)
 
     local category = PARTICLE_SPAWN_CATEGORY[kind]
     local resPos = self.poses[kind]
-    local ox, oy = helper.randomPosInCircle(AROUND_TOKEN_RADIUS)
-    x = x + ox
-    y = y + oy
 
     local lifetime = helper.magnitude(resPos[1]-x, resPos[2]-y) / PARTICLE_SPEED
 
@@ -351,8 +342,8 @@ end
 
 
 ---@param kind g.ResourceType
----@param x number Position of the token in world-space.
----@param y number Position of the token in world-space.
+---@param x number Position of the token (same coordinate space as HUD)
+---@param y number Position of the token (same coordinate space as HUD)
 ---@param amount number Amount to add to the display once it's done.
 function Resources:spawnParticles(kind, x, y, amount)
     if amount <= 0 then return end

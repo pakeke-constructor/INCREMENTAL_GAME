@@ -85,7 +85,6 @@ function harvest:_drawActiveEffects()
         :moveRatio(-1, 0)
         :moveUnit(-8, 0)
 
-    local icons = {"money_particle_4", "thick_grass", "happy_cat"}
     local font = g.getSmallFont(16)
     for eff, duration in g.getMainWorld():_iterateActiveEffects() do
         local effInfo = g.getEffectInfo(eff)
@@ -176,6 +175,28 @@ end
 
 
 
+---@param tok g.Token
+---@param bundle g.Bundle
+function harvest:tokenEarnedResources(tok, bundle)
+    local normX, normY = self.camera:getTransform():transformPoint(tok.x, tok.y)
+    local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(normX,normY)
+    local rhud = g.getHUD().resourceHUD
+
+    if bundle.money then
+        rhud:spawnParticles("money", uiX, uiY, bundle.money)
+    end
+    if bundle.logs then
+        rhud:spawnParticles("logs", uiX, uiY, bundle.logs)
+    end
+    if bundle.rocks then
+        rhud:spawnParticles("rocks", uiX, uiY, bundle.rocks)
+    end
+    if bundle.bones then
+        rhud:spawnParticles("bones", uiX, uiY, bundle.bones)
+    end
+end
+
+
 function harvest:draw()
     centerCamera(self)
 
@@ -199,8 +220,7 @@ function harvest:draw()
 
     ui.startUI()
     self:renderMapButton()
-
-    g.getHUD():draw(self.camera)
+    g.getHUD():draw()
     self:_drawActiveEffects()
     ui.endUI()
 end

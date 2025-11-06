@@ -11,7 +11,7 @@ local TOHUD_ANIMATION_DURATION = 0.4
 
 function Profile:init()
     ---@type g.hud._TokenParticle[]
-    self.particles = {}
+    self.inflightTokens = {}
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
     self.tokenQueuePos = {x = 0, y = 0}
 end
@@ -24,19 +24,24 @@ end
 
 ---@param dt number
 function Profile:update(dt)
-    for i = #self.particles, 1, -1 do
-        local p = self.particles[i]
+    for i = #self.inflightTokens, 1, -1 do
+        local p = self.inflightTokens[i]
         p.time = p.time + dt
 
         if p.time >= TOHUD_ANIMATION_DURATION then
-            table.remove(self.particles, i)
+            table.remove(self.inflightTokens, i)
         end
     end
 end
 
----@param camera Camera
+
+
+local MAX_NUMBER_OF_TOKEN_TYPES = 6
+-- no more than X tokens stacked at a time; dont wanna overwhelm player
+
+
 ---@param noDraw boolean?
-function Profile:draw(camera, noDraw)
+function Profile:draw(noDraw)
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
     local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
     local profileR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(r):moveRatio(0, -1):padRatio(0.05)
@@ -67,12 +72,11 @@ function Profile:draw(camera, noDraw)
         -- Draw inflight token
         ---@type table<string, integer>
         local inflight = {}
-        for _, p in ipairs(self.particles) do
+        for _, p in ipairs(self.inflightTokens) do
             local t = p.time / TOHUD_ANIMATION_DURATION
             local et = helper.clamp(helper.EASINGS.sineInOut(t), 0, 1)
             -- p.x and p.y is in world-space
-            local spx, spy = camera:toScreen(p.x, p.y) -- in screen-space
-            local sspx, sspy = ui.getUIScalingTransform():inverseTransformPoint(spx, spy) -- in "scaled screen" space
+            local sspx, sspy = ui.getUIScalingTransform():inverseTransformPoint(p.x,p.y) -- in "scaled screen" space
             local px = helper.lerp(sspx, self.tokenQueuePos.x, et)
             local py = helper.lerp(sspy, self.tokenQueuePos.y, et)
             inflight[p.token] = (inflight[p.token] or 0) + 1
@@ -87,7 +91,7 @@ function Profile:draw(camera, noDraw)
         for _, tok in ipairs(g.getSn().tokenQueue) do
             if countByToken[tok] then
                 countByToken[tok] = countByToken[tok] + 1
-            elseif #tokens <= 5 then -- If you change the size of the stack token, change this too
+            elseif #tokens < MAX_NUMBER_OF_TOKEN_TYPES then
                 countByToken[tok] = 1
                 tokens[#tokens+1] = tok
             end
@@ -97,16 +101,18 @@ function Profile:draw(camera, noDraw)
         for i, tok in ipairs(tokens) do
             local s = math.min(stackTokenR.w / 16, stackTokenR.h / 16)
             local bob = math.sin(curtime * 2 + i)
-            local count = math.max(countByToken[tok] - (inflight[tok] or 0), 0)
-            g.drawImageOffset(tok, stackTokenR.x, stackTokenR.y + bob, 0, s, s, 0, 0)
-            richtext.printRich(
-                "{w freq=0.5 amp=0.5 k=0}{o}"..count.."{/o}{/w}",
-                font,
-                stackTokenR.x + stackTokenR.w - 4,
-                stackTokenR.y + stackTokenR.h - 12 + bob,
-                100,
-                "left"
-            )
+            local count = math.max((countByToken[tok] - (inflight[tok] or 0) - 1), 0)
+            if count > 0 then
+                g.drawImageOffset(tok, stackTokenR.x, stackTokenR.y + bob, 0, s, s, 0, 0)
+                richtext.printRich(
+                    "{w freq=0.5 amp=0.5 k=0}{o}"..count.."{/o}{/w}",
+                    font,
+                    stackTokenR.x + stackTokenR.w - 4,
+                    stackTokenR.y + stackTokenR.h - 12 + bob,
+                    100,
+                    "left"
+                )
+            end
             stackTokenR = stackTokenR
                 :moveRatio(0, 1)
                 :moveUnit(0, 2)
@@ -125,7 +131,7 @@ end
 ---@param x number
 ---@param y number
 function Profile:spawnTokenVisual(tok, x, y)
-    self.particles[#self.particles+1] = {
+    self.inflightTokens[#self.inflightTokens+1] = {
         token = tok,
         x = x,
         y = y,

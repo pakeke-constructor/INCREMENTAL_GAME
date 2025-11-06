@@ -111,6 +111,12 @@ function g.call(ev, arg1, ...)
 
     callUpgrades(ev, arg1, ...)
     callEffects(ev, arg1, ...)
+
+    sceneManager = sceneManager or require("src.scenes.sceneManager")
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc[ev] then
+        sc[ev](sc, arg1, ...)
+    end
 end
 
 
@@ -742,33 +748,6 @@ end
 
 ---@param tok g.Token
 ---@param bundle g.Bundle
-local function spawnTokenResource(tok, bundle)
-    local rhud = g.getHUD().resourceHUD
-    if bundle.money then
-        rhud:spawnParticles("money", tok.x, tok.y, bundle.money)
-    end
-    if bundle.logs then
-        rhud:spawnParticles("logs", tok.x, tok.y, bundle.logs)
-    end
-    if bundle.rocks then
-        rhud:spawnParticles("rocks", tok.x, tok.y, bundle.rocks)
-    end
-    if bundle.bones then
-        rhud:spawnParticles("bones", tok.x, tok.y, bundle.bones)
-    end
-end
-
-
----@param x number
----@param y number
----@param bundle g.Bundle
-function g.addResourceFromPosition(x,y,bundle)
-
-end
-
-
----@param tok g.Token
----@param bundle g.Bundle
 ---@return g.Bundle
 function g.addResourceFrom(tok, bundle)
     local mod = g.ask("getTokenResourceModifier", tok)
@@ -777,9 +756,9 @@ function g.addResourceFrom(tok, bundle)
     bundle = g.addBundles(bundle, mod)
     bundle = g.multBundles(bundle, mult)
 
-    -- TODO: MAKE g.call here?  "tokenEarnedResource"
     g.addResources(bundle)
-    spawnTokenResource(tok, bundle)
+
+    g.call("tokenEarnedResources", tok, bundle)
     return bundle
 end
 
@@ -1900,17 +1879,17 @@ end
 local MAX_QUEUED_TOKENS = 100
 
 ---@param tokenId string
----@param x number?
----@param y number?
-function g.stackToken(tokenId, x, y)
+---@param screenX number?
+---@param screenY number?
+function g.stackToken(tokenId, screenX,screenY)
     currentSession.tokenQueue[#currentSession.tokenQueue+1] = tokenId
 
     while #currentSession.tokenQueue > MAX_QUEUED_TOKENS do
         g.popStackedToken()
     end
 
-    if x and y then
-        g.getHUD().profileHUD:spawnTokenVisual(tokenId, x, y)
+    if screenX and screenY then
+        g.getHUD().profileHUD:spawnTokenVisual(tokenId, screenX, screenY)
     end
 end
 

@@ -226,7 +226,7 @@ function upgscene:draw()
     ui.startUI()
     self:renderMapButton()
 
-    g.getHUD():draw(self.camera, {profile = false})
+    g.getHUD():draw({profile = false})
 
     if hoveredUpgrade then
         if not self.upgradeDescription or self.upgradeDescription:getType() ~= hoveredUpgrade.type then

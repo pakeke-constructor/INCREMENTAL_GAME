@@ -255,7 +255,7 @@ function fishing:draw()
     self:drawUI()
     self:renderMapButton()
 
-    g.getHUD():draw(self.camera)
+    g.getHUD():draw()
     ui.endUI()
 end
 
