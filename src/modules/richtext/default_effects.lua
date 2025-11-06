@@ -35,8 +35,6 @@ return function(text)
         local cb = args.b or 0
         local ca = (args.a or 1) * a
 
-        love.graphics.setColor(cr, cg, cb, ca)
-
         local ox, oy = char:getOffset()
 
         -- dy=-2 because we want a thicker outline at bottom
@@ -44,7 +42,7 @@ return function(text)
             for dx = -1, 1 do
                 if not (dx == 0 and dy == 0) then
                     char:setOffset(ox + dx * thickness, oy + dy * thickness)
-                    char:draw(0, 0, 0, a, true)
+                    char:draw(cr, cg, cb, ca, true)
                 end
             end
         end
