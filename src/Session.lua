@@ -128,7 +128,7 @@ function Session.deserialize(data)
 
     -- Stats
     for k,sta in pairs(g.VALID_STATS) do
-        g.stats[k] = assert(tonumber(data.stats[k]))
+        g.stats[k] = helper.assert(tonumber(data.stats[k] or sta.startingValue), "invalid stat value", k)
     end
 
     return sess
