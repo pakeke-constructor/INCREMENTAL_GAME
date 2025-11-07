@@ -244,5 +244,42 @@ helper.PERCENTAGE_FORMATTER = {"%d%%"}
 
 
 
+---Note: Returned tilemap is 2D array in [y][x] order.
+---@param imageName string
+---@param splitsize integer
+function helper.splitTileImage(imageName, splitsize)
+    local atlas = g.getAtlas()
+    local tilemapQuad = g.getImageQuad(imageName)
+    local tx, ty, tw, th = tilemapQuad:getViewport()
+    ---@type love.Quad[][]
+    local tilemap = {}
+    for y = 0, th - 1, splitsize do
+        local tmap = {}
+
+        for x = 0, tw - 1, splitsize do
+            tmap[#tmap+1] = love.graphics.newQuad(x + tx, y + ty, splitsize, splitsize, atlas)
+        end
+
+        tilemap[#tilemap+1] = tmap
+    end
+
+    return tilemap
+end
+
+
+
+---@param int integer
+---@param steps integer?
+---@param mod integer?
+---@return integer
+function helper.randomizeInteger(int, steps, mod)
+    mod = mod or 4294967296
+    for _ = 1, steps or 1 do
+        int = (int * 214013 + 2531011) % mod
+    end
+    return int
+end
+
+
 
 return helper
