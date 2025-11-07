@@ -22,10 +22,8 @@ local function makeFarmerCatUpdate(targetCategory)
     ---@param self FarmerCatEntity
     ---@param dt number
     local function farmerCatUpdate(self, dt)
-        local world = g.getMainWorld()
-
         -- Update positions
-        worldutil.updateLikeDVD(world, self, dt)
+        worldutil.updateLikeDVD(self, dt)
         worldutil.updateWaddleAnimation(self, self.dirX,self.dirY)
         self.sx = -self.sx
 

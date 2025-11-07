@@ -937,11 +937,11 @@ end
 
 ---@param scene FreeCameraScene
 local function trySpawnTokenAtMouse(scene)
-    local world = g.getMainWorld()
+    local worldW, worldH = g.getWorldDimensions()
     local mx, my = love.mouse.getPosition()
     local wx, wy = scene.camera:toWorld(mx, my)
 
-    if wx >= 0 and wy >= 0 and wx < world.WIDTH and wy < world.HEIGHT then
+    if wx >= 0 and wy >= 0 and wx < worldW and wy < worldH then
         g.spawnToken(g.TOKEN_LIST[selectedTokenIndex], wx, wy)
     end
 end

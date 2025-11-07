@@ -69,7 +69,7 @@ local function defineFarmerCat(id, name, def)
         return level
     end
     function def:spawnEntity()
-        local world = g.getMainWorld()
+        local worldW, worldH = g.getWorldDimensions()
         local x = love.math.random(0, world.WIDTH - 1)
         local y = love.math.random(0, world.HEIGHT - 1)
         return g.spawnEntity(id, x, y)
@@ -114,9 +114,9 @@ g.defineUpgrade("lightning_upgrade", "Lightning Bolt", {
         local chance = uinfo:getValues(level) / 100
         if love.math.random() < chance then
             -- Damage token around
-            local world = g.getMainWorld()
-            local x = love.math.random(world.WIDTH) - 1
-            local y = love.math.random(world.HEIGHT) - 1
+            local worldW, worldH = g.getWorldDimensions()
+            local x = love.math.random(worldW) - 1
+            local y = love.math.random(worldH) - 1
             worldutil.spawnLightning(x, y, 50)
         end
     end

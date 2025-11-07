@@ -19,10 +19,6 @@ local table_clear = require("table.clear")
 ---@field mouseY number?
 local World = objects.Class("g:World")
 
--- Think of this as the "dimensions" of the harvest-area
-World.WIDTH = 400
-World.HEIGHT = 250
-
 -- Minimum hover time before a token can be mined
 -- (Prevents players flicking their mouse all over the screen)
 local MIN_HOVER_TIME = 0.07
@@ -308,7 +304,7 @@ end
 
 
 function World:_draw()
-    local w,h = self.WIDTH, self.HEIGHT
+    local w,h = g.getWorldDimensions()
     love.graphics.setColor(0,0,0)
     love.graphics.rectangle("line", 0,0, w,h)
 
