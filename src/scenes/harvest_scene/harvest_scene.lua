@@ -15,6 +15,9 @@ function harvest:init()
     self.stackedTokenX = 0
     self.stackedTokenY = 0
     self.stackedTokenLerpTime = -1
+
+    -- This background is not part of the texture atlas so it needs to be loaded manually
+    self.background = love.graphics.newImage("src/scenes/harvest_scene/background_harvest.png")
 end
 
 
@@ -198,10 +201,18 @@ end
 
 
 function harvest:draw()
-    centerCamera(self)
-
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
+
+    -- Draw background
+    do
+        local w, h = love.graphics.getDimensions()
+        local iw, ih = self.background:getDimensions()
+        local scale = math.max(w / iw, h / ih)
+        love.graphics.draw(self.background, w / 2, h / 2, 0, scale, scale, iw / 2, ih / 2)
+    end
+
+    centerCamera(self) -- has implicit self:setCamera()
 
     local world = g.getMainWorld()
 
@@ -239,13 +250,12 @@ function harvest:update(dt)
     local sx, sy = safeArea.x * uis, safeArea.y * uis
     local sw, sh = safeArea.w * uis, safeArea.h * uis
     local scale = math.min(sw / worldW, sh / worldH)
+    -- Only do integer scaling
+    scale = math.floor(math.max(scale, 1))
     local zf = self:zoomFromScale(scale)
-    -- Make sure it's in 0.2 increments
-    zf = math.floor(zf / 0.2) * 0.2
     self:setZoom(zf)
 
     -- Now move the position
-    scale = self:scaleFromZoom(zf)
     local w, h = love.graphics.getDimensions()
     self.camera:setViewport(0, 0, w, h, (sx + sw / 2) / w, (sy + sh / 2) / h)
     self.camera:setPos(worldW / 2, worldH / 2)
