@@ -229,8 +229,8 @@ end
 ---@param t number
 ---@param seed integer
 local function computeOffsetBySeed(t, seed)
-    local offsetStartBase = (seed * 214013 + 2531011) % 65536
-    local frequencyBase = (offsetStartBase * 214013 + 2531011) % 65536
+    local offsetStartBase = helper.randomizeInteger(seed, 1, 65536)
+    local frequencyBase = helper.randomizeInteger(offsetStartBase, 1, 65536)
     local offset = (offsetStartBase / 65536) * 2 * math.pi
     -- Tweak these values to tune the bobbing speed
     local frequency = 0.1 + (frequencyBase / 65536) * 0.3
