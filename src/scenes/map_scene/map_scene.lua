@@ -11,6 +11,13 @@ local map = FreeCameraScene()
 
 
 
+-- Total duration of transition, including fade in and fade out.
+-- fade in is half the duration and fade out is half of it too.
+local TRANSITION_DURATION = 1
+-- Target transition scale.
+local TRANSITION_SCALE = 4
+
+
 ---@class (exact) _MapBuilding
 ---@field public x integer
 ---@field public y integer
@@ -232,11 +239,12 @@ end
 
 
 
----@class _MapTransitionTarget
+---@class (exact) _MapTransitionTarget
 ---@field public time number
 ---@field public x number
 ---@field public y number
 ---@field public action function?
+---@field public duration number
 
 function map:init()
     self.allowMousePan = false
@@ -267,11 +275,11 @@ local function clampCameraToMap(camera, mapX, mapY, mapW, mapH, ttgt)
     local transitionT = 0
     local transitionScale = 1
     if ttgt then
-        local t = 1 - math.abs(1 - helper.clamp(ttgt.time, 0, 1) * 2)
+        local t = 1 - math.abs(1 - helper.clamp(ttgt.time / ttgt.duration, 0, 1) * 2)
         transitionT = helper.EASINGS.sineOut(t)
         posX = helper.lerp(posX, ttgt.x, transitionT)
         posY = helper.lerp(posY, ttgt.y, transitionT)
-        transitionScale = transitionScale + transitionT * 3
+        transitionScale = helper.lerp(1, TRANSITION_SCALE, transitionT)
     end
     camera:setPos(posX, posY)
 
@@ -355,7 +363,8 @@ function map:draw()
                     time = 0,
                     x = poi.x + poi.w / 2,
                     y = poi.y + poi.h / 2,
-                    action = poi.action
+                    action = poi.action,
+                    duration = TRANSITION_DURATION
                 }
             end
         else
@@ -414,10 +423,11 @@ function map:update(dt)
     if self.transitionTarget then
         self.transitionTarget.time = self.transitionTarget.time + dt
 
-        if self.transitionTarget.time >= 0.5 and self.transitionTarget.action then
+        if self.transitionTarget.time >= self.transitionTarget.duration / 2 and self.transitionTarget.action then
             self.transitionTarget.action()
             self.transitionTarget.action = nil
-        elseif self.transitionTarget.time >= 1 then
+        elseif self.transitionTarget.time >= self.transitionTarget.duration then
+            -- TODO: Don't set this to nil when we chain transition later.
             self.transitionTarget = nil
         end
     end
