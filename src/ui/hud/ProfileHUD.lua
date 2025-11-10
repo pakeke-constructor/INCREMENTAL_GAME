@@ -41,7 +41,8 @@ local MAX_NUMBER_OF_TOKEN_TYPES = 6
 
 
 ---@param noDraw boolean?
-function Profile:draw(noDraw)
+---@param drawXPBar boolean?
+function Profile:draw(noDraw, drawXPBar)
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
     local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
     local profileR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(r):moveRatio(0, -1):padRatio(0.05)
@@ -54,12 +55,7 @@ function Profile:draw(noDraw)
     local _,xpBarR = r:splitVertical(18,1)
     xpBarR = xpBarR:shrinkTo(xpBarR.w - profileR.w, xpBarR.h)
         :moveUnit(profileR.w)
-        :padRatio(0.3)
-        :padUnit(10,0,10,0)
-
-    love.graphics.rectangle("fill", xpBarR:get())
-    love.graphics.setColor(1,0,0)
-    love.graphics.rectangle("line", xpBarR:get())
+        :padUnit(14,0,20,0)
 
     self.tokenQueuePos.x, self.tokenQueuePos.y = stackTokenR:getCenter()
 
@@ -78,6 +74,12 @@ function Profile:draw(noDraw)
         love.graphics.setLineWidth(lw)
 
         love.graphics.setColor(1, 1, 1)
+
+        if drawXPBar then
+            love.graphics.rectangle("fill", xpBarR:get())
+            love.graphics.setColor(1,0,0)
+            love.graphics.rectangle("line", xpBarR:get())
+        end
 
         -- Draw inflight token
         ---@type table<string, integer>
@@ -130,7 +132,7 @@ function Profile:draw(noDraw)
     end
 
     local maxX = math.max(profileR.x + profileR.w, stackTokenR.x + stackTokenR.w)
-    self.freeArea = r:padUnit(maxX, 0, 0, 0)
+    self.freeArea = r:padUnit(maxX, 0, 0, xpBarR.h)
 end
 
 function Profile:getSafeArea()
