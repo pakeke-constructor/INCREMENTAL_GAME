@@ -388,9 +388,9 @@ function World:_draw()
             -- Why we do this hash you ask? So we can place random decoration
             -- in respect to tile X and tile Y.
             local hashpos = g.hashPos(x, y, 0)
-            hashpos = helper.hashInteger(hashpos)
+            hashpos = helper.hashInteger(hashpos) % 65536
             if hashpos / 65535 <= 0.1 then
-                local noise = helper.hashInteger(hashpos)
+                local noise = helper.hashInteger(hashpos) % 65536
                 local index = math.floor(noise / 65535 * #self.decorTilemap + 0.5)
                 index = helper.clamp(index, 1, #self.decorTilemap)
                 love.graphics.draw(atlas, self.decorTilemap[index], x * wtz, y * wtz)
