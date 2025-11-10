@@ -1297,8 +1297,10 @@ end
 ---TODO: Not sure if this should be in g. but upgrade_scene needs it.
 ---@param uinfo g.UpgradeInfo
 ---@param prestige integer
-function g.getUpgradeConnectors(uinfo, prestige)
+---@param makeArtifical boolean? Set to true to generate connector directly adjacent to an upgrade (for rendering purpose)
+function g.getUpgradeConnectors(uinfo, prestige, makeArtifical)
     local pos = g.getUpgradePosition(uinfo, prestige)
+    local selfHidden = g.isUpgradeHidden(uinfo)
     ---@type _dev.Connector[]
     local result = {}
     for _, d in ipairs(NEIGHBORS) do
@@ -1306,14 +1308,29 @@ function g.getUpgradeConnectors(uinfo, prestige)
         local isVertical = d[1] == 0 and d[2] ~= 0
         local con = upgradePositionsHash[h]
 
-        if con and type(con) ~= "string" and con.isVertical == isVertical then
-            -- Also make sure none of the connector target is hidden
-            local target = getTargetConnector(con, prestige)
-            if target then
-                local hidden1 = g.isUpgradeHidden(g.getUpgradeInfo(target[1]))
-                local hidden2 = g.isUpgradeHidden(g.getUpgradeInfo(target[2]))
-                if not (hidden1 or hidden2) then
-                    result[#result+1] = con
+        if con then
+            local t = type(con)
+            if t == "string" and makeArtifical then
+                -- Another upgrade
+                local hidden = g.isUpgradeHidden(g.getUpgradeInfo(con))
+                if not (hidden or selfHidden) then
+                    -- Generate artifical connector
+                    result[#result+1] = {
+                        isVertical = isVertical,
+                        x = pos.x + math.max(d[1], 0),
+                        y = pos.y + math.max(d[2], 0),
+                        length = 0
+                    }
+                end
+            elseif t == "table" and con.isVertical == isVertical then
+                -- Also make sure none of the connector target is hidden
+                local target = getTargetConnector(con, prestige)
+                if target then
+                    local hidden1 = g.isUpgradeHidden(g.getUpgradeInfo(target[1]))
+                    local hidden2 = g.isUpgradeHidden(g.getUpgradeInfo(target[2]))
+                    if not (hidden1 or hidden2) then
+                        result[#result+1] = con
+                    end
                 end
             end
         end
