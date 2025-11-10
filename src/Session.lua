@@ -33,6 +33,10 @@ function Session:init()
     self.playtime = 0
     self.idletime = 0
 
+    self.xp = 0 -- 1 crop harvested  ==>  +1 xp
+    -- (used for harvest-XP system; should only increment
+    --   when player is INSIDE harvest-scene)
+
     self.resources = {}
     for _,resId in ipairs(g.RESOURCE_LIST) do
         self.resources[resId] = 0

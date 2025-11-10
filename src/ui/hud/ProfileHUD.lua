@@ -51,6 +51,16 @@ function Profile:draw(noDraw)
         :moveRatio(0, 1)
         :moveUnit(-8, 0)
 
+    local _,xpBarR = r:splitVertical(18,1)
+    xpBarR = xpBarR:shrinkTo(xpBarR.w - profileR.w, xpBarR.h)
+        :moveUnit(profileR.w)
+        :padRatio(0.3)
+        :padUnit(10,0,10,0)
+
+    love.graphics.rectangle("fill", xpBarR:get())
+    love.graphics.setColor(1,0,0)
+    love.graphics.rectangle("line", xpBarR:get())
+
     self.tokenQueuePos.x, self.tokenQueuePos.y = stackTokenR:getCenter()
 
     if not noDraw then
