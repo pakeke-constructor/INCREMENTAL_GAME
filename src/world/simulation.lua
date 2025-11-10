@@ -20,7 +20,7 @@ end
 
 
 local function getBestMousePositionInWorld()
-    local world = g.getMainWorld()
+    local worldW, worldH = g.getWorldDimensions()
 
     local RESOLUTION_X = 30
     local RESOLUTION_Y = 20
@@ -28,8 +28,8 @@ local function getBestMousePositionInWorld()
     local bestX, bestY = 0,0
     local bestRank = 0
 
-    for x=0, world.WIDTH, (world.WIDTH/RESOLUTION_X) do
-        for y=0, world.HEIGHT, (world.HEIGHT/RESOLUTION_Y) do
+    for x=0, worldW, (worldW/RESOLUTION_X) do
+        for y=0, worldH, (worldH/RESOLUTION_Y) do
             local rank = 0
             g.iterateTokensInArea(x,y, g.stats.HarvestArea, function (tok)
                 local hp = (tok.health / tok.maxHealth)

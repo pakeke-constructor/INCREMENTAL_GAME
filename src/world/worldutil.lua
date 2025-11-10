@@ -34,18 +34,18 @@ local function computeValueBouncing(dt, value, velocity, maxvalue)
     return value, false
 end
 
----@param world g.World
 ---@param obj {x:number,y:number,dirX:number,dirY:number,speed:number}
 ---@param dt number
-function worldutil.updateLikeDVD(world, obj, dt)
+function worldutil.updateLikeDVD(obj, dt)
     local flip
+    local worldW, worldH = g.getWorldDimensions()
 
-    obj.x, flip = computeValueBouncing(dt, obj.x, obj.speed * obj.dirX, world.WIDTH)
+    obj.x, flip = computeValueBouncing(dt, obj.x, obj.speed * obj.dirX, worldW)
     if flip then
         obj.dirX = -obj.dirX
     end
 
-    obj.y, flip = computeValueBouncing(dt, obj.y, obj.speed * obj.dirY, world.HEIGHT)
+    obj.y, flip = computeValueBouncing(dt, obj.y, obj.speed * obj.dirY, worldH)
     if flip then
         obj.dirY = -obj.dirY
     end
