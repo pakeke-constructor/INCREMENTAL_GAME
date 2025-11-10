@@ -269,13 +269,11 @@ end
 
 
 ---@param int integer
----@param steps integer?
----@param mod integer?
 ---@return integer
-function helper.randomizeInteger(int, steps, mod)
-    mod = mod or 4294967296
-    for _ = 1, steps or 1 do
-        int = (int * 214013 + 2531011) % mod
+function helper.hashInteger(int)
+    int = int % 4294967296
+    for i = 1, 3 do
+        int = (int * 214013 + 2531011) % 4294967296
     end
     return int
 end

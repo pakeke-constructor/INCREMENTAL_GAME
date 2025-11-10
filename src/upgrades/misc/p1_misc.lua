@@ -70,8 +70,8 @@ local function defineFarmerCat(id, name, def)
     end
     function def:spawnEntity()
         local worldW, worldH = g.getWorldDimensions()
-        local x = love.math.random(0, world.WIDTH - 1)
-        local y = love.math.random(0, world.HEIGHT - 1)
+        local x = love.math.random(0, worldW - 1)
+        local y = love.math.random(0, worldH - 1)
         return g.spawnEntity(id, x, y)
     end
     def.kind = "MISC"
