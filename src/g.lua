@@ -2078,7 +2078,7 @@ g.COLORS = {
     CANT_AFFORD = objects.Color("#".."FFC81515"),
     MONEY = objects.Color("#".."FFF7D127"),
     RECOMMENDED = objects.Color("#".."FF9DEC4E"),
-    UPGRADE_CONNECTOR = objects.Color("#".."FF123A85")
+    UPGRADE_CONNECTOR = objects.Color("#".."FF000000")
 }
 
 do

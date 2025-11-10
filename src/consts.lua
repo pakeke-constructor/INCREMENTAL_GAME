@@ -10,8 +10,9 @@ local consts = {
 
     ATLAS_SIZE = 4096,
 
-    UPGRADE_IMAGE_SIZE = 24,
+    UPGRADE_IMAGE_SIZE = 28,
     UPGRADE_GRID_SPACING = 8, -- spaced 8 units apart
+    UPGRADE_CONNECTOR_WIDTH = 8,
 
     HARVEST_AREA_LEEWAY = 4, -- Mouse-harvest extends by this amount so it "feels good"
 

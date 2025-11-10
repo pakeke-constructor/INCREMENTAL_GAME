@@ -19,37 +19,40 @@ upgscene.upgradeDescription = nil
 ---@param x integer
 ---@param y integer
 local function getUpgradeCoords(x, y)
-    local size = consts.UPGRADE_IMAGE_SIZE
-    local spacing = consts.UPGRADE_GRID_SPACING + size
-    return x * spacing, y * spacing, size
+    local spacing = consts.UPGRADE_GRID_SPACING + consts.UPGRADE_IMAGE_SIZE
+    return math.floor((x + 0.5) * spacing), math.floor((y + 0.5) * spacing)
 end
 
 
 
+---Draws connector.
+---
+---It's assumed it's either right to left (isVertical = false)
+---or top to bottom (isVertical = true)
 ---@param x integer
 ---@param y integer
 ---@param length integer
 ---@param isVertical boolean
 local function drawConnector(x, y, length, isVertical)
-    local tx, ty, sz = getUpgradeCoords(x, y)
+    local spacing = consts.UPGRADE_IMAGE_SIZE + consts.UPGRADE_GRID_SPACING
     local rx, ry, rw, rh
 
     if isVertical then
-        rx = tx + consts.UPGRADE_GRID_SPACING
-        ry = ty - consts.UPGRADE_GRID_SPACING
-        rw = sz - 2 * consts.UPGRADE_GRID_SPACING
-        rh = (sz + consts.UPGRADE_GRID_SPACING) * length + consts.UPGRADE_GRID_SPACING
+        local tx, ty = getUpgradeCoords(x, y - 1)
+        rx = tx - consts.UPGRADE_CONNECTOR_WIDTH / 2
+        rw = consts.UPGRADE_CONNECTOR_WIDTH
+        ry = ty
+        rh = (length + 1) * spacing
     else
-        rx = tx - consts.UPGRADE_GRID_SPACING
-        ry = ty + consts.UPGRADE_GRID_SPACING
-        rw = (sz + consts.UPGRADE_GRID_SPACING) * length + consts.UPGRADE_GRID_SPACING
-        rh = sz - 2 * consts.UPGRADE_GRID_SPACING
+        local tx, ty = getUpgradeCoords(x - 1, y)
+        ry = ty - consts.UPGRADE_CONNECTOR_WIDTH / 2
+        rh = consts.UPGRADE_CONNECTOR_WIDTH
+        rx = tx
+        rw = (length + 1) * spacing
     end
 
     love.graphics.setColor(g.COLORS.UPGRADE_CONNECTOR)
     love.graphics.rectangle("fill", rx, ry, rw, rh)
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("line", rx, ry, rw, rh)
 end
 
 
@@ -165,9 +168,10 @@ local function drawUpgradeBoxes()
             end
 
             -- Then draw upgrade box
-            local x, y, sz = getUpgradeCoords(pos.x, pos.y)
+            local x, y = getUpgradeCoords(pos.x, pos.y)
             local isRecommended = bundleGreaterOrEqual(bestUpgradeThreshold, g.getUpgradePrice(uinfo, level))
-            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(uinfo, level, x,y,sz,sz, isRecommended)
+            love.graphics.setColor(1, 1, 1)
+            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(uinfo, level, x,y,isRecommended)
             if isHovered then
                 hoveredUpgrade = uinfo
             end
