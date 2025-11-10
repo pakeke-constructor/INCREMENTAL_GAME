@@ -8,13 +8,15 @@ local godrays = {}
 ---@param y number
 ---@param rot number
 ---@param length number
----@param color table
+---@param color objects.Color
 ---@param startWidth number
 ---@param widthGrowRate number?
 ---@param divisions integer?
-function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, divisions)
+---@param alphaEasing? fun(x:number):number
+function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, divisions, alphaEasing)
     divisions = divisions or 20
     widthGrowRate = widthGrowRate or 0.1
+    alphaEasing = alphaEasing or helper.EASINGS.linear
 
     -- Calculate the step length for each division
     local stepLength = length / divisions
@@ -29,8 +31,8 @@ function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, di
     -- Draw each segment with decreasing opacity
     for i = 0, divisions - 1 do
         -- Calculate opacity for this segment (starts at full, ends at near-zero)
-        local alpha = (color[4] or 1) * (1 - i / divisions)
-    
+        local alpha = alphaEasing((1 - i / divisions))
+
         -- Width tapers as the ray extends
         local function getWidth(ii)
             return startWidth + startWidth * ((ii+1)/divisions) * ((1+widthGrowRate))
@@ -62,7 +64,7 @@ function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, di
         local x4 = sx + px*sw
         local y4 = sy + py*sw
         -- Set color with diminishing alpha
-        love.graphics.setColor(color[1], color[2], color[3], alpha)
+        love.graphics.setColor(helper.multiplyAlpha(color, alpha))
 
         -- Draw the polygon segment
         love.graphics.polygon("fill", x1, y1, x2, y2, x3, y3, x4, y4)
@@ -75,11 +77,12 @@ end
 
 ---@class godrays.RayBundle
 ---@field rayCount integer
----@field color number[]
+---@field color objects.Color
 ---@field startWidth number
 ---@field length number
 ---@field divisions integer?
 ---@field growRate number?
+---@field alphaEasing? fun(x:number):number
 local godrays_RayBundle
 
 
@@ -94,7 +97,7 @@ function godrays.drawRays(x,y, rot, opt)
         godrays.drawRay(
             x,y, r,
             opt.length, opt.color, opt.startWidth,
-            opt.growRate, opt.divisions
+            opt.growRate, opt.divisions, opt.alphaEasing
         )
     end
 end
