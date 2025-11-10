@@ -22,6 +22,7 @@ INTUITION VISUALS:
 ]]
 
 local lg = love.graphics
+local godrays = require("src.modules.godrays.godrays")
 
 
 
@@ -57,19 +58,20 @@ local function easeInOutSine(x)
     return -(math.cos(math.pi * x) - 1) / 2;
 end
 
+local RAY_COLOR = objects.Color("#".."FFF2E46C")
+
 ---@param uinfo g.UpgradeInfo
 ---@param level integer
 ---@param cx number
 ---@param cy number
----@param isRecommended boolean
 ---@return boolean isHovered
 ---@return boolean wasJustClicked
 ---@return boolean wasJustHovered
-local function upgradeBoxUI(uinfo, level, cx, cy, isRecommended)
+local function upgradeBoxUI(uinfo, level, cx, cy)
     local time = love.timer.getTime()
 
     local hasBought = level > 0
-    local canAfford = g.canAffordUpgrade(uinfo, level)
+    local canAfford = level < uinfo.maxLevel and g.canAffordUpgrade(uinfo, level + 1)
 
     ------------------------------
     -- define background and frame
@@ -102,7 +104,17 @@ local function upgradeBoxUI(uinfo, level, cx, cy, isRecommended)
     x = cx - w / 2
     y = cy - h / 2
 
-    -- TODO: Draw godrays.
+    ---------------
+    -- draw godrays
+    ---------------
+    love.graphics.setColor(1, 1, 1)
+    if canAfford and not hasBought then
+        local t = time % (2 * math.pi)
+        local t2 = (time * 0.8 + 1) % (2 * math.pi)
+        godrays.drawRays(cx, cy, t, {color = RAY_COLOR, rayCount = 6, startWidth = 2, length = 32, alphaEasing = helper.EASINGS.sineOut})
+        godrays.drawRays(cx, cy, -t2, {color = RAY_COLOR, rayCount = 4, startWidth = 2, length = 32, alphaEasing = helper.EASINGS.sineOut})
+        love.graphics.setColor(1, 1, 1)
+    end
 
     ----------------------------
     -- draw background and frame

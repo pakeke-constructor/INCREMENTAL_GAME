@@ -181,10 +181,7 @@ local function drawUpgradeBoxes()
 
             -- Then draw upgrade box
             local x, y = getUpgradeCoords(pos.x, pos.y)
-            local isRecommended = bundleGreaterOrEqual(bestUpgradeThreshold, g.getUpgradePrice(uinfo, level))
-
-            love.graphics.setColor(1, 1, 1)
-            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(uinfo, level, x,y,isRecommended)
+            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(uinfo, level, x,y)
             if isHovered then
                 hoveredUpgrade = uinfo
             end

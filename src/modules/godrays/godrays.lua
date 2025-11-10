@@ -8,7 +8,7 @@ local godrays = {}
 ---@param y number
 ---@param rot number
 ---@param length number
----@param color table
+---@param color objects.Color
 ---@param startWidth number
 ---@param widthGrowRate number?
 ---@param divisions integer?
@@ -77,7 +77,7 @@ end
 
 ---@class godrays.RayBundle
 ---@field rayCount integer
----@field color number[]
+---@field color objects.Color
 ---@field startWidth number
 ---@field length number
 ---@field divisions integer?
