@@ -19,10 +19,6 @@ local table_clear = require("table.clear")
 ---@field mouseY number?
 local World = objects.Class("g:World")
 
--- Think of this as the "dimensions" of the harvest-area
-World.WIDTH = 400
-World.HEIGHT = 250
-
 -- Minimum hover time before a token can be mined
 -- (Prevents players flicking their mouse all over the screen)
 local MIN_HOVER_TIME = 0.07
@@ -60,6 +56,20 @@ function World:init()
 
     ---@type {color:objects.Color,number:number,x:number,y:number,lifetime:number}[]
     self.damageNumbers = {}
+
+    -- Create tile atlas
+    self.tilemap = helper.splitTileImage("harvestarea_tilemap", consts.WORLD_TILE_SIZE)
+    -- For decor tile, we want it to be flat so pickRandom do the job.
+    do
+        local decorTilemap = helper.splitTileImage("decorationgrass_tilemap", consts.WORLD_TILE_SIZE)
+        ---@type love.Quad[]
+        self.decorTilemap = {}
+        for _, tmaps in ipairs(decorTilemap) do
+            for _, tquad in ipairs(tmaps) do
+                self.decorTilemap[#self.decorTilemap+1] = tquad
+            end
+        end
+    end
 end
 
 
@@ -308,9 +318,85 @@ end
 
 
 function World:_draw()
-    local w,h = self.WIDTH, self.HEIGHT
-    love.graphics.setColor(0,0,0)
-    love.graphics.rectangle("line", 0,0, w,h)
+    -- local w,h = g.getWorldDimensions()
+    -- love.graphics.setColor(0,0,0)
+    -- love.graphics.rectangle("line", 0,0, w,h)
+    love.graphics.setColor(1, 1, 1)
+    local wtw = g.stats.WorldTileWidth - 1
+    local wth = g.stats.WorldTileHeight - 1
+    local wtz = consts.WORLD_TILE_SIZE
+    local atlas = g.getAtlas()
+    for y = 0, wth do
+        for x = 0, wtw do
+            local targetQuad = nil
+
+            -- Border specializations
+            if y == 0 then
+                if x == 0 then
+                    -- Top left
+                    love.graphics.draw(atlas, self.tilemap[1][2], x * wtz, (y - 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[2][1], (x - 1) * wtz, y * wtz)
+                    targetQuad = self.tilemap[2][2]
+                elseif x == wtw then
+                    -- Top right
+                    love.graphics.draw(atlas, self.tilemap[1][4], x * wtz, (y - 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[2][5], (x + 1) * wtz, y * wtz)
+                    targetQuad = self.tilemap[2][4]
+                else
+                    -- Top center
+                    love.graphics.draw(atlas, self.tilemap[1][3], x * wtz, (y - 1) * wtz)
+                    targetQuad = self.tilemap[2][3]
+                end
+            elseif y == wth then
+                if x == 0 then
+                    -- Bottom left
+                    love.graphics.draw(atlas, self.tilemap[4][1], (x - 1) * wtz, y * wtz)
+                    love.graphics.draw(atlas, self.tilemap[5][2], x * wtz, (y + 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[6][2], x * wtz, (y + 2) * wtz)
+                    targetQuad = self.tilemap[4][2]
+                elseif x == wtw then
+                    -- Bottom right
+                    love.graphics.draw(atlas, self.tilemap[4][5], (x + 1) * wtz, y * wtz)
+                    love.graphics.draw(atlas, self.tilemap[5][4], x * wtz, (y + 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[6][4], x * wtz, (y + 2) * wtz)
+                    targetQuad = self.tilemap[4][4]
+                else
+                    -- Bottom center
+                    love.graphics.draw(atlas, self.tilemap[5][3], x * wtz, (y + 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[6][3], x * wtz, (y + 2) * wtz)
+                    targetQuad = self.tilemap[4][3]
+                end
+            else
+                if x == 0 then
+                    -- Left center
+                    love.graphics.draw(atlas, self.tilemap[3][1], (x - 1) * wtz, y * wtz)
+                    targetQuad = self.tilemap[3][2]
+                elseif x == wtw then
+                    -- Right center
+                    love.graphics.draw(atlas, self.tilemap[3][5], (x + 1) * wtz, y * wtz)
+                    targetQuad = self.tilemap[3][4]
+                else
+                    -- Center
+                    targetQuad = self.tilemap[3][3]
+                end
+            end
+
+            -- Draw tile
+            love.graphics.draw(atlas, targetQuad, x * wtz, y * wtz)
+
+            -- Draw decoration
+            -- Why we do this hash you ask? So we can place random decoration
+            -- in respect to tile X and tile Y.
+            local hashpos = g.hashPos(x, y, 0)
+            hashpos = helper.hashInteger(hashpos) % 65536
+            if hashpos / 65535 <= 0.1 then
+                local noise = helper.hashInteger(hashpos) % 65536
+                local index = math.floor(noise / 65535 * #self.decorTilemap + 0.5)
+                index = helper.clamp(index, 1, #self.decorTilemap)
+                love.graphics.draw(atlas, self.decorTilemap[index], x * wtz, y * wtz)
+            end
+        end
+    end
 
     ---@type (g.Token|g.Entity)[]
     local objlist = {}

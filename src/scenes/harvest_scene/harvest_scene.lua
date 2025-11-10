@@ -15,15 +15,18 @@ function harvest:init()
     self.stackedTokenX = 0
     self.stackedTokenY = 0
     self.stackedTokenLerpTime = -1
+
+    -- This background is not part of the texture atlas so it needs to be loaded manually
+    self.background = love.graphics.newImage("src/scenes/harvest_scene/background_harvest.png")
 end
 
 
 
 ---@param self HarvestScene
 local function centerCamera(self)
-    local world = g.getMainWorld()
-    local cx = world.WIDTH / 2
-    local cy = world.HEIGHT / 2
+    local worldW, worldH = g.getWorldDimensions()
+    local cx = worldW / 2
+    local cy = worldH / 2
     self.camera:setPos(cx, cy)
     self:setCamera()
 end
@@ -40,9 +43,9 @@ function harvest:_resetStackTokenAnim()
     local x, y = g.getRandomPositionForToken()
     if not (x and y) then
         -- Just fallback to any random pos
-        local wld = g.getMainWorld()
-        x = helper.lerp(8, wld.WIDTH - 8, love.math.random())
-        y = helper.lerp(8, wld.HEIGHT - 8, love.math.random())
+        local worldW, worldH = g.getWorldDimensions()
+        x = helper.lerp(8, worldW - 8, love.math.random())
+        y = helper.lerp(8, worldH - 8, love.math.random())
     end
     self.stackedTokenX = x
     self.stackedTokenY = y
@@ -198,10 +201,18 @@ end
 
 
 function harvest:draw()
-    centerCamera(self)
-
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
+
+    -- Draw background
+    do
+        local w, h = love.graphics.getDimensions()
+        local iw, ih = self.background:getDimensions()
+        local scale = math.max(w / iw, h / ih)
+        love.graphics.draw(self.background, w / 2, h / 2, 0, scale, scale, iw / 2, ih / 2)
+    end
+
+    centerCamera(self) -- has implicit self:setCamera()
 
     local world = g.getMainWorld()
 
@@ -230,7 +241,7 @@ function harvest:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
 
-    local sn = g.getSn()
+    local worldW, worldH = g.getWorldDimensions()
 
     -- Move the camera such that harvest area is not obstructed by the HUD
     local safeArea = g.getHUD():getSafeArea()
@@ -238,17 +249,16 @@ function harvest:update(dt)
     local uis = ui.getUIScaling()
     local sx, sy = safeArea.x * uis, safeArea.y * uis
     local sw, sh = safeArea.w * uis, safeArea.h * uis
-    local scale = math.min(sw / sn.mainWorld.WIDTH, sh / sn.mainWorld.HEIGHT)
+    local scale = math.min(sw / worldW, sh / worldH)
+    -- Only do integer scaling
+    scale = math.floor(math.max(scale, 1))
     local zf = self:zoomFromScale(scale)
-    -- Make sure it's in 0.2 increments
-    zf = math.floor(zf / 0.2) * 0.2
     self:setZoom(zf)
 
     -- Now move the position
-    scale = self:scaleFromZoom(zf)
     local w, h = love.graphics.getDimensions()
     self.camera:setViewport(0, 0, w, h, (sx + sw / 2) / w, (sy + sh / 2) / h)
-    self.camera:setPos(sn.mainWorld.WIDTH / 2, sn.mainWorld.HEIGHT / 2)
+    self.camera:setPos(worldW / 2, worldH / 2)
 
     -- Pull stack token
     local stkTok = g.peekStackedToken()

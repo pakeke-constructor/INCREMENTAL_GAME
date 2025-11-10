@@ -435,6 +435,15 @@ g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
+-- World stat
+g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 25)
+g.stats.WorldTileHeight = g.defineStat("WorldTileHeight", 16)
+
+function g.getWorldDimensions()
+    local w = math.floor(g.stats.WorldTileWidth * consts.WORLD_TILE_SIZE)
+    local h = math.floor(g.stats.WorldTileHeight * consts.WORLD_TILE_SIZE)
+    return w, h
+end
 
 
 
@@ -1517,6 +1526,12 @@ end
 local DEFAULT_MIN_SPACING = 12
 
 ---@param world g.World
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param minSpacing number?
+---@param maxAttempts integer?
 local function getRandomPos(world, x, y, w, h, minSpacing, maxAttempts)
     maxAttempts = maxAttempts or 20
     minSpacing = minSpacing or DEFAULT_MIN_SPACING
@@ -1670,12 +1685,11 @@ local g_Token = {}
 
 
 
----@return number?
----@return number
+---@return number?,number?
 function g.getRandomPositionForToken()
-    local world = g.getMainWorld()
+    local worldW, worldH = g.getWorldDimensions()
     local pad=4
-    return getRandomPos(world, pad,pad, world.WIDTH-pad*2,world.HEIGHT-pad*2) ---@diagnostic disable-line
+    return getRandomPos(g.getMainWorld(), pad,pad, worldW-pad*2,worldH-pad*2)
 end
 
 
