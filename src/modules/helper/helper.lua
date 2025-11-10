@@ -110,6 +110,10 @@ end
 
 -- List of easing functions.
 helper.EASINGS = {
+    -- linear
+    ---@param x number
+    linear = function(x) return x end,
+
     -- in
     ---@param x number
     sineIn = function(x) return 1 - math.cos((x * math.pi) / 2) end,
