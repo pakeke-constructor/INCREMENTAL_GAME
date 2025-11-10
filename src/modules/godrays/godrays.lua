@@ -2,12 +2,6 @@
 
 local godrays = {}
 
--- TODO: What options are passed?
-
--- TODO: What options are passed?
--- rayCount
--- rotation
--- rotation
 
 
 ---@param x number
