@@ -1653,7 +1653,7 @@ do
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
 ---@field blendalphamode love.BlendAlphaMode?
----@field init (fun(ent:g.Entity))?
+---@field init (fun(ent:g.Entity,...:any))?
 ---@field update (fun(ent: g.Entity, dt:number))?
 ---@field perSecondUpdate (fun(e:g.Entity))?
 ---@field drawBelow (fun(ent: g.Entity))?
@@ -1686,7 +1686,7 @@ local currentId = 0
 ---@param x number
 ---@param y number
 ---@return g.Entity
-function g.spawnEntity(ename, x,y)
+function g.spawnEntity(ename, x,y, ...)
     local w = g.getMainWorld()
     local mt = ENTITY_DEFS[ename]
     if not mt then
@@ -1700,7 +1700,7 @@ function g.spawnEntity(ename, x,y)
     }, mt)
 
     if ent.init then
-        ent:init()
+        ent:init(...)
     end
 
     currentId = currentId + 1
@@ -1815,6 +1815,10 @@ function g.spawnToken(tokType, x,y)
     tok.health = tok.maxHealth
     tok.laggedHealth = tok.health
 
+    if tabl.stalk and tabl.growth then
+        tok.growths = {stalk = tabl.stalk, growth = tabl.growth}
+    end
+
     if tok.init then
         tok:init()
     end
@@ -1844,6 +1848,12 @@ function g.destroyToken(tok)
     end
     if tok.particles then
         g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))
+    end
+    if tok.growths then
+        local stalkInfo = g.getStalkInfo(tok.growths.stalk)
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.spawnEntity("growth_falling", tok.x + pos.x, tok.y + pos.y, tok.growths.growth, tok.y + 8)
+        end
     end
 
     w.tokens:removeBuffered(tok)
