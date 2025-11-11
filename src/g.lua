@@ -496,8 +496,7 @@ local g_UpgradeDefinition = {}
 ---@field maxHealth number
 ---@field resources g.Bundle
 ---@field image string?
----@field stalk string?
----@field growth string?
+---@field growths {stalk:string,growth:string}?
 ---@field description string?
 ---@field particles string?
 ---@field category g.Category?
@@ -1549,12 +1548,12 @@ function g.defineToken(tokType, name, tabl)
         error("invalid category '"..tabl.category.."'")
     end
 
-    if tabl.growth or tabl.stalk then
-        assert(tabl.growth, "growth field is missing")
-        assert(tabl.stalk, "stalk field is missing")
+    if tabl.growths then
+        assert(tabl.growths.growth, "growth field is missing")
+        assert(tabl.growths.stalk, "stalk field is missing")
         -- LuaLS why you not remove nil on assert of table field?
         ---@type g.StalkDefinition
-        local stalkInfo = helper.assert(STALKS[tabl.stalk], "invalid stalk", tabl.stalk)
+        local stalkInfo = helper.assert(STALKS[tabl.growths.stalk], "invalid stalk", tabl.growths.stalk)
 
         assert(not tabl.image, "cannot define image when defining stalk")
         tabl.image = assert(stalkInfo.image)
@@ -1737,9 +1736,6 @@ end
 ---@field maxHealth number
 ---@field image string
 ---@field resources g.Bundle
----@field growths {stalk:string,growth:string}?
----@field stalk nil
----@field growth nil
 ---@field timeSinceHitStart number Time since last `tryHitToken` is initiated (it's not immediately hit).
 ---@field timeSinceHit number Time since `tryHitToken` actually hits the token.
 ---@field timeSinceDamaged number
@@ -1814,10 +1810,6 @@ function g.spawnToken(tokType, x,y)
     tok.maxHealth = tabl.maxHealth * g.ask("getTokenMaxHealthMultiplier", tok)
     tok.health = tok.maxHealth
     tok.laggedHealth = tok.health
-
-    if tabl.stalk and tabl.growth then
-        tok.growths = {stalk = tabl.stalk, growth = tabl.growth}
-    end
 
     if tok.init then
         tok:init()
