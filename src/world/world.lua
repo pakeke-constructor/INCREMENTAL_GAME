@@ -245,6 +245,7 @@ local function drawAxe(tok)
     g.drawImageOffset("iron_axe", tok.x - 14 * scale, tok.y + 4, scale * (t * t - 0.9), scale, 1, 0.1, 0.9)
 end
 
+---@param tok g.Token
 local function drawToken(tok)
     love.graphics.setColor(1,1,1,1)
 
@@ -263,6 +264,13 @@ local function drawToken(tok)
 
     love.graphics.setColor(1,1,1)
     g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
+
+    if tok.growths then
+        local stalkInfo = g.getStalkInfo(tok.growths.stalk)
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.drawImage(tok.growths.growth, tok.x + pos.x, tok.y + pos.y, rot, sx, sy, kx, ky)
+        end
+    end
 
     love.graphics.setColor(1,1,1)
     if tok.draw then

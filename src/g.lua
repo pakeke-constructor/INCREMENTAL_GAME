@@ -496,6 +496,8 @@ local g_UpgradeDefinition = {}
 ---@field maxHealth number
 ---@field resources g.Bundle
 ---@field image string?
+---@field stalk string?
+---@field growth string?
 ---@field description string?
 ---@field particles string?
 ---@field category g.Category?
@@ -1482,6 +1484,37 @@ end
 
 
 
+---@type table<string, g.StalkDefinition>
+local STALKS = {}
+
+---@class g.StalkDefinition
+---@field public image string?
+---@field public growthpos {x: number, y: number}[]
+
+---@param id string
+---@param def g.StalkDefinition
+function g.defineStalk(id, def)
+    helper.assert(not STALKS[id], "stalk", id, "already defined")
+    assert(def.growthpos and type(def.growthpos) == "table", "missing or invalid growth position table")
+    assert(#def.growthpos > 0, "missing growth position (must at least 1)")
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "invalid image", def.image)
+
+    STALKS[id] = def
+end
+
+---@param stalk string
+function g.getStalkInfo(stalk)
+    return (helper.assert(STALKS[stalk], "invalid stalk", stalk))
+end
+
+
+
+
+
+
+
+
 
 
 
@@ -1515,10 +1548,24 @@ function g.defineToken(tokType, name, tabl)
     if tabl.category and not g.CATEGORIES[tabl.category] then
         error("invalid category '"..tabl.category.."'")
     end
-    tabl.type = tokType ---@diagnostic disable-line
-    tabl.image = tabl.image or tokType ---@diagnostic disable-line
-    tabl.name = loc(name) ---@diagnostic disable-line
+
+    if tabl.growth or tabl.stalk then
+        assert(tabl.growth, "growth field is missing")
+        assert(tabl.stalk, "stalk field is missing")
+        -- LuaLS why you not remove nil on assert of table field?
+        ---@type g.StalkDefinition
+        local stalkInfo = helper.assert(STALKS[tabl.stalk], "invalid stalk", tabl.stalk)
+
+        assert(not tabl.image, "cannot define image when defining stalk")
+        tabl.image = assert(stalkInfo.image)
+    end
+
+    tabl.image = tabl.image or tokType
+
     tokenDefinitions[tokType] = tabl
+    ---@cast tabl g.Token
+    tabl.type = tokType
+    tabl.name = loc(name) ---@diagnostic disable-line
     local mt = {__index = tabl}
     tokenMts[tokType] = mt
     reverseTokMt[mt] = true
@@ -1690,11 +1737,14 @@ end
 ---@field maxHealth number
 ---@field image string
 ---@field resources g.Bundle
+---@field growths {stalk:string,growth:string}?
+---@field stalk nil
+---@field growth nil
 ---@field timeSinceHitStart number Time since last `tryHitToken` is initiated (it's not immediately hit).
 ---@field timeSinceHit number Time since `tryHitToken` actually hits the token.
 ---@field timeSinceDamaged number
 ---@field timeAlive number
----
+---@field draw (fun(self:g.Token))?
 ---@field slimed boolean?
 ---@field ___destroyed boolean?
 local g_Token = {}

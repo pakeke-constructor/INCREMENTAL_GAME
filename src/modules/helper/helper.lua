@@ -194,6 +194,13 @@ function helper.magnitude(x,y)
 end
 
 
+---@generic T, U, V
+---@param b T
+---@param er U
+---@param ... V
+---@return T
+---@return U
+---@return V ...
 function helper.assert(b,er, ...)
     if not b then
         local t = {...}
