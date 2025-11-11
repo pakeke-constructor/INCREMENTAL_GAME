@@ -496,6 +496,7 @@ local g_UpgradeDefinition = {}
 ---@field maxHealth number
 ---@field resources g.Bundle
 ---@field image string?
+---@field growths {stalk:string,growth:string}?
 ---@field description string?
 ---@field particles string?
 ---@field category g.Category?
@@ -1482,6 +1483,37 @@ end
 
 
 
+---@type table<string, g.StalkDefinition>
+local STALKS = {}
+
+---@class g.StalkDefinition
+---@field public image string?
+---@field public growthpos {x: number, y: number}[]
+
+---@param id string
+---@param def g.StalkDefinition
+function g.defineStalk(id, def)
+    helper.assert(not STALKS[id], "stalk", id, "already defined")
+    assert(def.growthpos and type(def.growthpos) == "table", "missing or invalid growth position table")
+    assert(#def.growthpos > 0, "missing growth position (must at least 1)")
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "invalid image", def.image)
+
+    STALKS[id] = def
+end
+
+---@param stalk string
+function g.getStalkInfo(stalk)
+    return (helper.assert(STALKS[stalk], "invalid stalk", stalk))
+end
+
+
+
+
+
+
+
+
 
 
 
@@ -1515,10 +1547,24 @@ function g.defineToken(tokType, name, tabl)
     if tabl.category and not g.CATEGORIES[tabl.category] then
         error("invalid category '"..tabl.category.."'")
     end
-    tabl.type = tokType ---@diagnostic disable-line
-    tabl.image = tabl.image or tokType ---@diagnostic disable-line
-    tabl.name = loc(name) ---@diagnostic disable-line
+
+    if tabl.growths then
+        assert(tabl.growths.growth, "growth field is missing")
+        assert(tabl.growths.stalk, "stalk field is missing")
+        -- LuaLS why you not remove nil on assert of table field?
+        ---@type g.StalkDefinition
+        local stalkInfo = helper.assert(STALKS[tabl.growths.stalk], "invalid stalk", tabl.growths.stalk)
+
+        assert(not tabl.image, "cannot define image when defining stalk")
+        tabl.image = assert(stalkInfo.image)
+    end
+
+    tabl.image = tabl.image or tokType
+
     tokenDefinitions[tokType] = tabl
+    ---@cast tabl g.Token
+    tabl.type = tokType
+    tabl.name = loc(name) ---@diagnostic disable-line
     local mt = {__index = tabl}
     tokenMts[tokType] = mt
     reverseTokMt[mt] = true
@@ -1606,7 +1652,7 @@ do
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
 ---@field blendalphamode love.BlendAlphaMode?
----@field init (fun(ent:g.Entity))?
+---@field init (fun(ent:g.Entity,...:any))?
 ---@field update (fun(ent: g.Entity, dt:number))?
 ---@field perSecondUpdate (fun(e:g.Entity))?
 ---@field drawBelow (fun(ent: g.Entity))?
@@ -1639,7 +1685,7 @@ local currentId = 0
 ---@param x number
 ---@param y number
 ---@return g.Entity
-function g.spawnEntity(ename, x,y)
+function g.spawnEntity(ename, x,y, ...)
     local w = g.getMainWorld()
     local mt = ENTITY_DEFS[ename]
     if not mt then
@@ -1653,7 +1699,7 @@ function g.spawnEntity(ename, x,y)
     }, mt)
 
     if ent.init then
-        ent:init()
+        ent:init(...)
     end
 
     currentId = currentId + 1
@@ -1694,7 +1740,7 @@ end
 ---@field timeSinceHit number Time since `tryHitToken` actually hits the token.
 ---@field timeSinceDamaged number
 ---@field timeAlive number
----
+---@field draw (fun(self:g.Token))?
 ---@field slimed boolean?
 ---@field ___destroyed boolean?
 local g_Token = {}
@@ -1794,6 +1840,12 @@ function g.destroyToken(tok)
     end
     if tok.particles then
         g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))
+    end
+    if tok.growths then
+        local stalkInfo = g.getStalkInfo(tok.growths.stalk)
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.spawnEntity("growth_falling", tok.x + pos.x, tok.y + pos.y, tok.growths.growth, tok.y + 8)
+        end
     end
 
     w.tokens:removeBuffered(tok)
