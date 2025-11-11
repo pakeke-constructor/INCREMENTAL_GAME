@@ -194,6 +194,13 @@ function helper.magnitude(x,y)
 end
 
 
+---@generic T, U, V
+---@param b T
+---@param er U
+---@param ... V
+---@return T
+---@return U
+---@return V ...
 function helper.assert(b,er, ...)
     if not b then
         local t = {...}
@@ -280,6 +287,18 @@ function helper.hashInteger(int)
         int = (int * 214013 + 2531011) % 4294967296
     end
     return int
+end
+
+
+
+---@param x number
+function helper.sign(x)
+    if x > 0 then
+        return 1
+    elseif x < 0 then
+        return -1
+    end
+    return 0
 end
 
 
