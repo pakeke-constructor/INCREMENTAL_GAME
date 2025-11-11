@@ -314,13 +314,12 @@ function drawPopup(self)
     -- number from 0 -> 1
     local progress = math.min(1, self.timeSincePopupOpened / LEVELUP_POPUP_FADE_IN_TIME)
 
-    local left, rr, right = r:splitHorizontal(1,12,1)
-    local top, mid, bot = rr:splitVertical(1,8,1)
+    local top, mid, bot = r:splitVertical(1,8,1)
     local _,popup = mid:splitHorizontal(1,2,1)
     popup = popup:padRatio(0.1)
 
-    left = left:moveRatio(-(1-progress),0)
-    right = right:moveRatio((1-progress),0)
+    top = top:moveRatio(0,-(1-progress))
+    bot = bot:moveRatio(0,(1-progress))
 
     do
     local x,y,w,h = r:get()
@@ -354,8 +353,8 @@ function drawPopup(self)
     -- TODO: im not sure if these black bars look very good...
     -- i think we need OOMPH, not a cinematic.
     lg.setColor(0,0,0)
-    lg.rectangle("fill", left:get())
-    lg.rectangle("fill", right:get())
+    lg.rectangle("fill", top:get())
+    lg.rectangle("fill", bot:get())
     --- yeah... idk, maybe remove this stuff ^^^^
 
     lg.setColor(1,1,1)
