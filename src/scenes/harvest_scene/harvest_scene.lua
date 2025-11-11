@@ -1,4 +1,7 @@
 
+local lg=love.graphics
+
+
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
@@ -8,6 +11,10 @@ local simulation = require("src.world.simulation")
 local harvest = FreeCameraScene()
 
 
+local LEVELUP_POPUP_FADE_IN_TIME = 0.36
+-- How many seconds it takes to fade in the popup
+
+
 
 function harvest:init()
     self.allowMousePan = false
@@ -15,6 +22,9 @@ function harvest:init()
     self.timeTakenThisLevel = 0
     self.levelUpPopup = nil
     self.xpRequirement = 1 -- set every frame.
+
+    self.timeSincePopupOpened = 0
+    self.levelUpPopup = true
 
     self.stackedTokenX = 0
     self.stackedTokenY = 0
@@ -225,6 +235,128 @@ local function getXPMultiplier(self)
 end
 
 
+local function levelup(self)
+    -- BOOM! level up!
+    local sn = g.getSn()
+    sn.level = sn.level + 1
+    self.levelUpPopup = true
+    self.timeSincePopupOpened = 0
+    self.timeTakenThisLevel = 0
+    sn.xp = 0
+end
+
+
+
+local function closePopup(self)
+    self.levelUpPopup = false
+    self.timeSincePopupOpened = 0
+    self.timeTakenThisLevel = 0
+end
+
+
+
+
+local drawPopup
+do
+
+local COLS = {
+    "#11E0D1",
+    "#27D1D9",
+    "#3FBEDC",
+    "#5CA8DF",
+    "#7991E0",
+    "#9482DE",
+    "#AD7BD9",
+    "#C178D3",
+    "#D77BCC",
+    "#EE7FC4"
+}
+---@cast COLS table[]
+for i=1, #COLS do
+    local c = objects.Color(COLS[i])
+    c.a = 1
+    COLS[i] = c
+end
+for i=#COLS-1,2,-1 do
+    -- make it reflective
+    table.insert(COLS, COLS[i])
+end
+
+
+local RAINBOW = {}
+local NUM = 10
+for i=0, NUM do
+    local c = objects.Color(objects.Color.HSVtoRGB((i*360) / NUM, 0.8, 0.8))
+    table.insert(RAINBOW, c)
+end
+
+
+local RAINBOW_SCROLL_SPEED = 1
+
+---@param barR layout.Region
+---@param cols table[]
+local function drawRainbowBar(barR, cols)
+    local regions = barR:grid(#cols,1)
+    for i,r in ipairs(regions) do
+        local col_i = (i % #cols) + 1
+        lg.setColor(cols[col_i])
+        lg.rectangle("fill", r:get())
+    end
+end
+
+
+
+local GRADIENT_IMG = love.graphics.newImage("src/scenes/harvest_scene/gradient_background.png")
+
+function drawPopup(self)
+    local r = Kirigami(0,0, ui.getScaledUIDimensions())
+
+    -- number from 0 -> 1
+    local progress = math.min(1, self.timeSincePopupOpened / LEVELUP_POPUP_FADE_IN_TIME)
+
+    local top, mid, bot = r:splitVertical(1,8,1)
+    local _,popup = mid:splitHorizontal(1,2,1)
+    popup = popup:padRatio(0.1)
+
+    top = top:moveRatio(0,-(1-progress))
+    bot = bot:moveRatio(0,(1-progress))
+
+    do
+    local x,y,w,h = r:get()
+    local iw,ih = GRADIENT_IMG:getDimensions()
+    local sx = w/iw
+    local sy = h/ih
+    lg.setColor(1,1,1,progress*0.9)
+    lg.draw(GRADIENT_IMG, x, y, 0, sx, sy, 0, 0)
+    end
+
+    local cx,cy = r:getCenter()
+    godrays.drawRays(cx,cy, love.timer.getTime()*2, {
+        rayCount = 4,
+        color = {0.3,1,0.7},
+        startWidth = 15,
+        divisions = 30,
+        growRate = 0.4,
+        length = r.w * 0.5
+    })
+
+    -- TODO: im not sure if these black bars look very good...
+    -- i think we need OOMPH, not a cinematic.
+    lg.setColor(0,0,0)
+    lg.rectangle("fill", top:get())
+    lg.rectangle("fill", bot:get())
+
+    lg.setColor(1,1,1)
+    lg.rectangle("fill", popup:get())
+
+    richtext.printRichContained("{c r=0 g=0 b=0}click\nto close", g.getSmallFont(16), popup:get())
+
+    if iml.wasJustClicked(popup:get()) then
+        closePopup(self)
+    end
+end
+
+end
 
 
 function harvest:tokenDestroyed(tok)
@@ -272,20 +404,28 @@ function harvest:draw()
         xpbar=true
     })
     self:_drawActiveEffects()
+    if self.levelUpPopup then
+        drawPopup(self)
+    end
     ui.endUI()
 end
+
+
 
 
 function harvest:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
 
-    self.timeTakenThisLevel = self.timeTakenThisLevel + dt
+    if self.levelUpPopup then
+        self.timeSincePopupOpened = self.timeSincePopupOpened + dt
+    else
+        self.timeTakenThisLevel = self.timeTakenThisLevel + dt
+    end
 
     local sn = g.getSn()
     if sn.xp > sn.xpRequirement then
-        -- BOOM! level up!
-        self.popup = true
+        levelup(self)
     end
 
     local worldW, worldH = g.getWorldDimensions()
@@ -351,6 +491,8 @@ function harvest:keyreleased(k)
         elseif k=="3" then
             local eff = helper.choice(g.EFFECT_LIST)
             g.grantEffect(eff, 10)
+        elseif k=="4" then
+            levelup(self)
         end
     end
 end

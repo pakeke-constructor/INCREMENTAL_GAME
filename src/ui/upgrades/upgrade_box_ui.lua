@@ -111,8 +111,8 @@ local function upgradeBoxUI(uinfo, level, cx, cy)
     if canAfford and not hasBought then
         local t = time % (2 * math.pi)
         local t2 = (time * 0.8 + 1) % (2 * math.pi)
-        godrays.drawRays(cx, cy, t, {color = RAY_COLOR, rayCount = 6, startWidth = 2, length = 32, alphaEasing = helper.EASINGS.sineOut})
-        godrays.drawRays(cx, cy, -t2, {color = RAY_COLOR, rayCount = 4, startWidth = 2, length = 32, alphaEasing = helper.EASINGS.sineOut})
+        godrays.drawRays(cx, cy, t, {color = RAY_COLOR, rayCount = 6, startWidth = 2, length = 32})
+        godrays.drawRays(cx, cy, -t2, {color = RAY_COLOR, rayCount = 4, startWidth = 2, length = 32})
         love.graphics.setColor(1, 1, 1)
     end
 
