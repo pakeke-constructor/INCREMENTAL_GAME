@@ -12,6 +12,10 @@ local harvest = FreeCameraScene()
 function harvest:init()
     self.allowMousePan = false
 
+    self.timeTakenThisLevel = 0
+    self.levelUpPopup = nil
+    self.xpRequirement = 1 -- set every frame.
+
     self.stackedTokenX = 0
     self.stackedTokenY = 0
     self.stackedTokenLerpTime = -1
@@ -200,6 +204,39 @@ function harvest:tokenEarnedResources(tok, bundle)
 end
 
 
+
+
+
+
+---@param self HarvestScene
+local function getXPMultiplier(self)
+    --[[
+    every 1% the player is over the "target time" for XP harvesting, 
+    gain +3% xp multiplier.
+
+    e.g. if target-time is 50 seconds, and player has taken 100 seconds,
+    then they are 100% over the "target-time".
+    Therefore they should earn (3% * 100) = +300% more XP
+    ]]
+    local targTime = consts.TARGET_TIME_PER_LEVEL_UP
+    local overtime = math.max(0, self.timeTakenThisLevel - targTime) / targTime
+    local XP_MULTIPLIER_RATE = 3 -- 1% over ==> 3% XP increase
+    return 1 + XP_MULTIPLIER_RATE*overtime
+end
+
+
+
+
+function harvest:tokenDestroyed(tok)
+    if not self.levelUpPopup then
+        local xp = tok.maxHealth
+        local mult = getXPMultiplier(self)
+        local sn = g.getSn()
+        sn.xp = sn.xp + xp*mult
+    end
+end
+
+
 function harvest:draw()
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
@@ -231,7 +268,9 @@ function harvest:draw()
 
     ui.startUI()
     self:renderMapButton()
-    g.getHUD():draw()
+    g.getHUD():draw({
+        xpbar=true
+    })
     self:_drawActiveEffects()
     ui.endUI()
 end
@@ -240,6 +279,14 @@ end
 function harvest:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
+
+    self.timeTakenThisLevel = self.timeTakenThisLevel + dt
+
+    local sn = g.getSn()
+    if sn.xp > sn.xpRequirement then
+        -- BOOM! level up!
+        self.popup = true
+    end
 
     local worldW, worldH = g.getWorldDimensions()
 

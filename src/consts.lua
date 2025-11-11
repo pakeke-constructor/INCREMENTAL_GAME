@@ -8,6 +8,8 @@ local consts = {
     FILE_LOG_LEVEL = "warn",
     CONSOLE_LOG_LEVEL = "trace",
 
+    TARGET_TIME_PER_LEVEL_UP = 25,
+
     ATLAS_SIZE = 4096,
 
     UPGRADE_IMAGE_SIZE = 28,

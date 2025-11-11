@@ -1,5 +1,10 @@
+
+local lg=love.graphics
+
+
 ---@class g.hud.Profile: objects.Class
 local Profile = objects.Class("h.hud:Profile")
+
 
 ---@class g.hud._TokenParticle
 ---@field package token string (also the image)
@@ -36,6 +41,20 @@ end
 
 
 
+
+local function drawExperienceBar(xpBarR)
+    local sn = g.getSn()
+    lg.setColor(1,1,1)
+    lg.rectangle("fill", xpBarR:get())
+    local x,y,w,h = xpBarR:padRatio(0.2):get()
+    lg.setColor(0,1,1)
+    lg.rectangle("fill", x,y,w*sn.xp/sn.xpRequirement,h)
+
+    lg.setColor(0,0,1)
+    lg.rectangle("line", xpBarR:get())
+end
+
+
 local MAX_NUMBER_OF_TOKEN_TYPES = 6
 -- no more than X tokens stacked at a time; dont wanna overwhelm player
 
@@ -61,24 +80,22 @@ function Profile:draw(noDraw, drawXPBar)
 
     if not noDraw then
         -- Draw dummy profile picture
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.rectangle("fill", profileR:get())
+        lg.setColor(1, 1, 1)
+        lg.rectangle("fill", profileR:get())
         local x,y,w,h = profileR:get()
-        love.graphics.setColor(1,1,1)
+        lg.setColor(1,1,1)
         local SCALE=4
         g.drawImage("happy_cat",x+w/2,y+h/2, 0, -SCALE,SCALE)
-        love.graphics.setColor(1, 0, 0)
-        local lw = love.graphics.getLineWidth()
-        love.graphics.setLineWidth(3)
-        love.graphics.rectangle("line", profileR:get())
-        love.graphics.setLineWidth(lw)
+        lg.setColor(1, 0, 0)
+        local lw = lg.getLineWidth()
+        lg.setLineWidth(3)
+        lg.rectangle("line", profileR:get())
+        lg.setLineWidth(lw)
 
-        love.graphics.setColor(1, 1, 1)
+        lg.setColor(1, 1, 1)
 
         if drawXPBar then
-            love.graphics.rectangle("fill", xpBarR:get())
-            love.graphics.setColor(1,0,0)
-            love.graphics.rectangle("line", xpBarR:get())
+            drawExperienceBar(xpBarR)
         end
 
         -- Draw inflight token

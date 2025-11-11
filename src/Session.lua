@@ -33,9 +33,13 @@ function Session:init()
     self.playtime = 0
     self.idletime = 0
 
-    self.xp = 0 -- 1 crop harvested  ==>  +1 xp
-    -- (used for harvest-XP system; should only increment
-    --   when player is INSIDE harvest-scene)
+    -- xp is basically just token-health.
+    -- eg.  Harvest token with 5 health ==> earn +5 xp
+    self.xpRequirement = 1
+    self.xp = 0 
+    -- (only increments when player is INSIDE harvest-scene)
+
+    self.level = 0 -- when xp > xpRequirement, level up!
 
     self.resources = {}
     for _,resId in ipairs(g.RESOURCE_LIST) do
@@ -84,6 +88,29 @@ end
 
 
 
+local function calculateXPRequirement()
+    --[[
+    xp requirement scales with the number of tokens.
+    xp = the amount of token-health destroyed
+    ]]
+    local totalTokenHP = 0
+    local world = g.getMainWorld()
+    for tokType, count in world:iterateTokenPool() do
+        local tinfo = g.getTokenInfo(tokType)
+        totalTokenHP = totalTokenHP + (tinfo.maxHealth * count)
+    end
+
+    local level = g.getSn().level
+    if level <= 1 then
+        return math.ceil(totalTokenHP * 1.8)
+    elseif level <= 5 then
+        return math.ceil(totalTokenHP * 2.5)
+    end
+
+    return math.ceil(totalTokenHP * math.sqrt(level))
+end
+
+
 
 --- updates session and main world. should only be called once, (hence _)
 ---@param dt any
@@ -95,6 +122,8 @@ function Session:_update(dt)
     end
     self.playtime = self.playtime + dt
     self.mainWorld:_update(dt)
+
+    self.xpRequirement = calculateXPRequirement()
 end
 
 

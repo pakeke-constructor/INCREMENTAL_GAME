@@ -23,11 +23,13 @@ function HUD:update(dt)
     self.profileHUD:update(dt)
 end
 
----@param show {resource:boolean?,profile:boolean?}?
+
+
+---@param show {resource:boolean?,profile:boolean?,xpbar:boolean?}?
 function HUD:draw(show)
     show = show or {}
     self.resourceHUD:draw(show.resource == false)
-    self.profileHUD:draw(show.profile == false)
+    self.profileHUD:draw(show.profile == false, show.xpbar)
 end
 
 function HUD:getSafeArea()

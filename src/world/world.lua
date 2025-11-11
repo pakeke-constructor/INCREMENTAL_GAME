@@ -488,6 +488,12 @@ local function updateResourceDataCollection(self)
 end
 
 
+---@return fun(table: table<string, integer>, index?: string):string
+---@return integer
+function World:iterateTokenPool()
+    return pairs(self.tokenPool.tokens)
+end
+
 
 ---@param id string
 ---@param dur number
