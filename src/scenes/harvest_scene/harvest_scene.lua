@@ -314,12 +314,13 @@ function drawPopup(self)
     -- number from 0 -> 1
     local progress = math.min(1, self.timeSincePopupOpened / LEVELUP_POPUP_FADE_IN_TIME)
 
-    local top, mid, bot = r:splitVertical(1,8,1)
+    local left, rr, right = r:splitHorizontal(1,12,1)
+    local top, mid, bot = rr:splitVertical(1,8,1)
     local _,popup = mid:splitHorizontal(1,2,1)
     popup = popup:padRatio(0.1)
 
-    top = top:moveRatio(0,-(1-progress))
-    bot = bot:moveRatio(0,(1-progress))
+    left = left:moveRatio(-(1-progress),0)
+    right = right:moveRatio((1-progress),0)
 
     do
     local x,y,w,h = r:get()
@@ -330,21 +331,32 @@ function drawPopup(self)
     lg.draw(GRADIENT_IMG, x, y, 0, sx, sy, 0, 0)
     end
 
+    local DIVISIONS = 100
     local cx,cy = r:getCenter()
-    godrays.drawRays(cx,cy, love.timer.getTime()*2, {
-        rayCount = 4,
+    godrays.drawRays(cx,cy, love.timer.getTime()*1.3, {
+        rayCount = 5,
         color = {0.3,1,0.7},
         startWidth = 15,
-        divisions = 30,
+        divisions = DIVISIONS,
         growRate = 0.4,
         length = r.w * 0.5
+    })
+
+    godrays.drawRays(cx,cy, -love.timer.getTime(), {
+        rayCount = 3,
+        color = {0.7,1,0.3},
+        startWidth = 20,
+        divisions = DIVISIONS,
+        growRate = 0.5,
+        length = r.w * 0.6
     })
 
     -- TODO: im not sure if these black bars look very good...
     -- i think we need OOMPH, not a cinematic.
     lg.setColor(0,0,0)
-    lg.rectangle("fill", top:get())
-    lg.rectangle("fill", bot:get())
+    lg.rectangle("fill", left:get())
+    lg.rectangle("fill", right:get())
+    --- yeah... idk, maybe remove this stuff ^^^^
 
     lg.setColor(1,1,1)
     lg.rectangle("fill", popup:get())
