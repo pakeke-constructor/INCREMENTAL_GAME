@@ -1,12 +1,24 @@
 
 
+local n9slice = require("src.modules.n9slice.n9slice")
 
 ---@class ui.UpgradeDescription: objects.Class
 local UpgradeDescription = objects.Class("g:UpgradeDescription")
 
 
-local UPGRADE_DESC_MAX_WIDTH = 200
-local CONTENT_PADDING = 8
+local CONTENT_PADDING = 9
+local CONTENT_PADDING_BLACK_BORDER = 3
+local DESCIPTION_TEXT_MAX_WIDTH = 200
+
+local PRICE_TAG_PADDING = 15
+local PRICE_TAG_OFFSET = -5
+
+
+local UI_PANEL_COLOR = objects.Color("#".."FF14A0CD")
+local NOT_BOUGHT_COLOR = objects.Color("#".."fff75e5e")
+local MAX_LEVEL_COLOR = objects.Color("#".."ff63f75e")
+local NOT_ENOUGH_MONEY_COLOR = NOT_BOUGHT_COLOR
+local CAN_BOUGH_COLOR = MAX_LEVEL_COLOR
 
 ---@param uinfo g.UpgradeInfo
 function UpgradeDescription:init(uinfo)
@@ -24,6 +36,28 @@ function UpgradeDescription:init(uinfo)
     self.elements = {}
     self.uinfo = uinfo
 
+    self.singleColorPanel = n9slice.new {
+        image = g.getAtlas(),
+        padding = 4,
+        quad = g.getImageQuad("single_color_ui_panel")
+    }
+    self.simpleUIPanel = n9slice.new {
+        image = g.getAtlas(),
+        padding = CONTENT_PADDING,
+        quad = g.getImageQuad("simple_ui_panel")
+    }
+    self.priceTagPanel = n9slice.new {
+        image = g.getAtlas(),
+        padding = {PRICE_TAG_PADDING, 0},
+        quad = g.getImageQuad("pricetag")
+    }
+    ---@type [g.ResourceType,string][]
+    self.priceText = {}
+    -- richText.stripEffects also strips image identifier
+    -- so it's gone when passed through Font:getWidth()
+    -- This means we have to track manually how many images it is.
+    self.priceImageCount = 0
+
     self:autoBuild(uinfo)
 end
 
@@ -39,7 +73,7 @@ function UpgradeDescription:getType()
 end
 
 
-local STAT_UP_COLOR = {0.94, 0.56, 0.99}
+local STAT_UP_COLOR = objects.Color("#".."FFEF8EFC")
 ---@param col [number, number, number]
 ---@param text string
 local function wrapColor(col, text)
@@ -98,27 +132,34 @@ function UpgradeDescription:autoBuild(uinfo)
     else
         self:addTitle(uinfo.name)
     end
-    self:addDivider()
+
+    if isTokenUpgrade then
+        local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
+        if next(tinfo.resources) then
+            local text = loc "Gives Resources"
+            local actualText = "{yield_scythe}"..text
+            self:addDivider()
+            self:addInlineText(actualText, "center", 16)
+            self:addTokenInfo(tinfo)
+        end
+    end
 
     if uinfo.description then
         local level = g.getUpgradeLevel(uinfo)
         local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
         self:addText(realDesc)
-        self:addDivider()
     end
 
-    if isTokenUpgrade then
-        local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
-        self:addTokenInfo(tinfo)
-        self:addDivider()
+    self:addLevel(g.getUpgradeLevel(uinfo), uinfo.maxLevel)
 
-        if tinfo.description then
-            self:addText(tinfo.description)
-            self:addDivider()
+    -- Build price tag text.
+    local price = g.getUpgradePrice(uinfo, g.getUpgradeLevel(uinfo))
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        if price[resId] then
+            self.priceText[#self.priceText+1] = {resId, g.formatNumber(price[resId])}
+            self.priceImageCount = self.priceImageCount + 1
         end
     end
-
-    self:addPriceAndLevel(g.getUpgradePrice(uinfo), g.getUpgradeLevel(uinfo), uinfo.maxLevel)
 end
 
 
@@ -130,20 +171,14 @@ function UpgradeDescription:addTitle(text, image)
 
     if image then
         -- Text and image side-by-side
-        -- 4 is spacing between text and image
-        local fullw = math.min(tw + th + 4, UPGRADE_DESC_MAX_WIDTH)
-        return self:addBox(fullw, th, function(x, y, w, h)
-            richtext.printRichContained(text, self.titleFont, x, y, w - h - 4, h)
-            -- It's just simpler to specify 0,0 offset
-            g.drawImageOffset(image, x + w - h, y, 0, 2, 2, 0, 0)
-        end)
-    else
-        -- Text only
-        local fullw = math.min(tw, UPGRADE_DESC_MAX_WIDTH)
-        return self:addBox(fullw, th, function(x, y, w, h)
-            richtext.printRichContained(text, self.titleFont, x, y, w, h)
-        end)
+        -- +32 because token image takes 16 pixel and we're using font size of 32px.
+        tw = tw + 32
+        text = "{"..image.."}"..text
     end
+
+    return self:addBox(tw, th, function(x, y, w, h)
+        richtext.printRich(text, self.titleFont, x, y, 1000, "left")
+    end)
 end
 
 
@@ -152,12 +187,14 @@ end
 ---@param w number
 ---@param h number
 local function drawDivider(x, y, w, h)
-    love.graphics.line(x + 8, y + h / 2, x + w - 8, y + h / 2)
+    local pad = CONTENT_PADDING - CONTENT_PADDING_BLACK_BORDER
+    love.graphics.setColor(UI_PANEL_COLOR)
+    love.graphics.rectangle("fill", x - pad, y + math.floor(h / 2), w + 2 * pad, 2)
 end
 
----Divider always takes height of 8 and width of self.boxWidth - 16
+---Divider always takes height of 4
 function UpgradeDescription:addDivider()
-    return self:addBox(nil, 8, drawDivider)
+    return self:addBox(nil, 4, drawDivider)
 end
 
 
@@ -166,7 +203,7 @@ end
 ---@param align love.AlignMode?
 function UpgradeDescription:addText(txt, align)
     local stripped = richtext.stripEffects(txt)
-    local fw, lines = self.font:getWrap(stripped, UPGRADE_DESC_MAX_WIDTH)
+    local fw, lines = self.font:getWrap(stripped, DESCIPTION_TEXT_MAX_WIDTH)
     local fh = self.font:getHeight() * #lines
     align = align or "center"
 
@@ -175,11 +212,40 @@ function UpgradeDescription:addText(txt, align)
     -- But respect the boxWidth dimension in case it's larger (so width is nil)
     -- this is needed so that alignment other than "center" works.
     return self:addBox(nil, fh, function(x,y,w,h)
+        love.graphics.setColor(1, 1, 1)
+        richtext.printRich(txt, self.font, x,y, w, align)
+    end)
+end
+
+---This centers the text but no wrapping
+---@param txt string
+---@param align love.AlignMode?
+---@param extraw number?
+function UpgradeDescription:addInlineText(txt, align, extraw)
+    local stripped = richtext.stripEffects(txt)
+    local fw = self.font:getWidth(stripped)
+    local fh = self.font:getHeight()
+    align = align or "center"
+    fw = fw + (extraw or 0)
+
+    -- Update the box width
+    self.boxWidth = math.max(self.boxWidth, fw)
+    -- But respect the boxWidth dimension in case it's larger (so width is nil)
+    -- this is needed so that alignment other than "center" works.
+    return self:addBox(nil, fh, function(x,y,w,h)
+        love.graphics.setColor(1, 1, 1)
         richtext.printRich(txt, self.font, x,y, w, align)
     end)
 end
 
 
+
+
+local function dummy() end
+---@param h number
+function UpgradeDescription:addSpacer(h)
+    return self:addBox(nil, h, dummy)
+end
 
 ---@param w number|nil (specify nil to follow current box width)
 ---@param h number
@@ -188,44 +254,31 @@ function UpgradeDescription:addBox(w, h, render)
     self.elements[#self.elements+1] = {width = w, height = h, render = render}
 
     if w then
-        self.boxWidth = math.min(math.max(self.boxWidth, w), UPGRADE_DESC_MAX_WIDTH)
+        self.boxWidth = math.max(self.boxWidth, w)
     end
 end
 
----@param bundle g.Bundle
----@param ulevel integer
----@param maxlevel integer
-function UpgradeDescription:addPriceAndLevel(bundle, ulevel, maxlevel)
-    -- TODO: Support more than 1 resource while keeping the "Price" text inline
-    -- It will be layouting nightmare though!
-    ---@type string[]
-    local resdata = {}
-    local textWidth = 0
 
-    if ulevel < maxlevel then
-        resdata[#resdata+1] = "Price"
-
-        for _, resId in ipairs(g.RESOURCE_LIST) do
-            if bundle[resId] then
-                local resInfo = g.getResourceInfo(resId)
-                resdata[#resdata+1] = "{"..resInfo.image.."}"..g.formatNumber(bundle[resId])
-                -- The image size must be precomputed.
-                -- `richtext.stripEffects` doesn't take them into account
-                textWidth = textWidth + 32
-            end
-        end
-
-        resdata[#resdata+1] = ""
-        resdata[#resdata+1] = ""
-        resdata[#resdata+1] = ""
+---@param level integer
+---@param maxLevel integer
+function UpgradeDescription:addLevel(level, maxLevel)
+    local col = objects.Color.WHITE
+    if level == 0 then
+        col = NOT_BOUGHT_COLOR
+    elseif level >= maxLevel then
+        col = MAX_LEVEL_COLOR
     end
 
-    resdata[#resdata+1] = string.format("{c a=0.6}%d/%d{/c}", ulevel, maxlevel)
+    local text = loc("Level %{level}/%{maxLevel}", {level = level, maxLevel = maxLevel})
+    local fw = self.font:getWidth(richtext.stripEffects(text))
+    local fh = self.font:getHeight()
 
-    local actualText = table.concat(resdata, " ")
-    textWidth = textWidth + self.largeFont:getWidth(richtext.stripEffects(actualText))
-    return self:addBox(textWidth, self.largeFont:getHeight(), function(x, y, w, h)
-        richtext.printRich(actualText, self.largeFont, x, y, w, "center")
+    -- Update the box width
+    self.boxWidth = math.max(self.boxWidth, fw)
+    -- But respect the boxWidth dimension
+    return self:addBox(nil, fh, function(x,y,w,h)
+        love.graphics.setColor(col)
+        richtext.printRich(text, self.largeFont, x,y, w, "center")
     end)
 end
 
@@ -283,7 +336,7 @@ end
 ---@param x number
 ---@param y number
 function UpgradeDescription:draw(x, y)
-    local w, h = self:getDimensions()
+    local w, h = self:getMainBoxDimensions()
 
     -- Draw background color
     if g.canAfford(g.getUpgradePrice(self.uinfo)) then
@@ -294,11 +347,8 @@ function UpgradeDescription:draw(x, y)
     love.graphics.rectangle("fill", x, y, w, h)
 
     -- Draw border
-    local lw = love.graphics.getLineWidth()
-    love.graphics.setLineWidth(2)
-    love.graphics.setColor(0.,0.,0.08)
-    love.graphics.rectangle("line", x, y, w, h)
-    love.graphics.setLineWidth(lw)
+    love.graphics.setColor(UI_PANEL_COLOR)
+    self.simpleUIPanel:draw(x, y, w, h)
 
     -- Start drawing the content
     love.graphics.setColor(1,1,1)
@@ -312,19 +362,85 @@ function UpgradeDescription:draw(x, y)
         elem.render(x + xoff, y + yoff, width, elem.height)
         yoff = yoff + elem.height
     end
+
+    local level = g.getUpgradeLevel(self.uinfo)
+    if level < self.uinfo.maxLevel then
+        -- Start drawing price tag
+        love.graphics.setColor(1,1,1)
+
+        -- Yeah I'm lazy calculating layout by hand
+        local r = Kirigami(x - CONTENT_PADDING, y - CONTENT_PADDING, w, h)
+        local ptagW, ptagH, ptagText = self:_getPriceTagDimensions()
+        local ptagR = Kirigami(0, 0, ptagW, ptagH)
+            :attachToBottomOf(r)
+            :centerX(r)
+        self.priceTagPanel:drawConstraint(ptagR)
+
+        richtext.printRich(ptagText, self.largeFont, ptagR.x - 4, ptagR.y, ptagR.w, "center")
+    end
 end
 
-function UpgradeDescription:getDimensions()
+---@return integer
+---@return integer
+function UpgradeDescription:getMainBoxDimensions()
     local width, height = self.boxWidth, 0
 
     for _, elem in ipairs(self.elements) do
         if elem.width then
-            width = math.min(math.max(width, elem.width), UPGRADE_DESC_MAX_WIDTH)
+            width = math.max(width, elem.width)
         end
         height = height + elem.height
     end
 
     return width + 2 * CONTENT_PADDING, height + 2 * CONTENT_PADDING
+end
+
+---@return number
+---@return number
+function UpgradeDescription:getDimensions()
+    local width, height = self:getMainBoxDimensions()
+    local ptagW, ptagH = self:_getPriceTagDimensions()
+    return math.max(width, ptagW), height + ptagH + PRICE_TAG_OFFSET
+end
+
+
+
+
+
+---@private
+function UpgradeDescription:_getPriceTagDimensions()
+    local ptagQH = select(4, g.getImageQuad("pricetag"):getViewport()) --[[@as number]]
+    local ptagText = self:_createPriceTagString()
+
+    local ptagWidth = self.largeFont:getWidth(richtext.stripEffects(ptagText))
+        + self.priceImageCount * 32
+        + CONTENT_PADDING * 2
+    return ptagWidth, ptagQH, ptagText
+end
+
+---@private
+function UpgradeDescription:_createPriceTagString()
+    local result = {}
+    local price = g.getUpgradePrice(self.uinfo, g.getUpgradeLevel(self.uinfo))
+
+    for _, pt in ipairs(self.priceText) do
+        local resInfo = g.getResourceInfo(pt[1])
+        if g.isResourceUnlocked(pt[1]) then
+            result[#result+1] = "{"..resInfo.image.."}"
+        else
+            result[#result+1] = wrapColor(objects.Color.BLACK, "{"..resInfo.image.."}")
+        end
+
+        local textcol
+        if g.getResource(pt[1]) >= price[pt[1]] then
+            textcol = CAN_BOUGH_COLOR
+        else
+            textcol = NOT_ENOUGH_MONEY_COLOR
+        end
+        result[#result+1] = wrapColor(textcol, g.formatNumber(price[pt[1]]))
+    end
+
+    return table.concat(result)
 end
 
 
