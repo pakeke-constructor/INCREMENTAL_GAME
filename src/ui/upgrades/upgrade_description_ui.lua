@@ -11,6 +11,7 @@ local CONTENT_PADDING = 8
 ---@param uinfo g.UpgradeInfo
 function UpgradeDescription:init(uinfo)
     self.font = g.getSmallFont(16)
+    self.largeFont = g.getSmallFont(32)
     self.titleFont = g.getBigFont(32)
 
     self.boxWidth = 100
@@ -117,7 +118,7 @@ function UpgradeDescription:autoBuild(uinfo)
         end
     end
 
-    self:addPrice(g.getUpgradePrice(uinfo))
+    self:addPriceAndLevel(g.getUpgradePrice(uinfo), g.getUpgradeLevel(uinfo), uinfo.maxLevel)
 end
 
 
@@ -192,23 +193,39 @@ function UpgradeDescription:addBox(w, h, render)
 end
 
 ---@param bundle g.Bundle
-function UpgradeDescription:addPrice(bundle)
+---@param ulevel integer
+---@param maxlevel integer
+function UpgradeDescription:addPriceAndLevel(bundle, ulevel, maxlevel)
     -- TODO: Support more than 1 resource while keeping the "Price" text inline
     -- It will be layouting nightmare though!
     ---@type string[]
-    local resdata = {"Price"}
+    local resdata = {}
+    local textWidth = 0
 
-    for _, resId in ipairs(g.RESOURCE_LIST) do
-        if bundle[resId] then
-            local resInfo = g.getResourceInfo(resId)
-            resdata[#resdata+1] = "{"..resInfo.image.."}"..g.formatNumber(bundle[resId])
+    if ulevel < maxlevel then
+        resdata[#resdata+1] = "Price"
+
+        for _, resId in ipairs(g.RESOURCE_LIST) do
+            if bundle[resId] then
+                local resInfo = g.getResourceInfo(resId)
+                resdata[#resdata+1] = "{"..resInfo.image.."}"..g.formatNumber(bundle[resId])
+                -- The image size must be precomputed.
+                -- `richtext.stripEffects` doesn't take them into account
+                textWidth = textWidth + 32
+            end
         end
+
+        resdata[#resdata+1] = ""
+        resdata[#resdata+1] = ""
+        resdata[#resdata+1] = ""
     end
 
+    resdata[#resdata+1] = string.format("{c a=0.6}%d/%d{/c}", ulevel, maxlevel)
+
     local actualText = table.concat(resdata, " ")
-    local textWidth = self.font:getWidth(richtext.stripEffects(actualText)) + 16 * (#resdata - 1)
-    return self:addBox(textWidth, self.font:getHeight(), function(x, y, w, h)
-        richtext.printRich(actualText, self.font, x, y, w, "center")
+    textWidth = textWidth + self.largeFont:getWidth(richtext.stripEffects(actualText))
+    return self:addBox(textWidth, self.largeFont:getHeight(), function(x, y, w, h)
+        richtext.printRich(actualText, self.largeFont, x, y, w, "center")
     end)
 end
 
