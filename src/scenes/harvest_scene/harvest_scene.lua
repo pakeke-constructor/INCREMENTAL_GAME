@@ -11,7 +11,7 @@ local simulation = require("src.world.simulation")
 local harvest = FreeCameraScene()
 
 
-local LEVELUP_POPUP_FADE_IN_TIME = 0.36
+local LEVELUP_POPUP_FADE_IN_TIME = 0.25
 -- How many seconds it takes to fade in the popup
 
 
@@ -24,7 +24,7 @@ function harvest:init()
     self.xpRequirement = 1 -- set every frame.
 
     self.timeSincePopupOpened = 0
-    self.levelUpPopup = true
+    self.levelUpPopup = false
 
     self.stackedTokenX = 0
     self.stackedTokenY = 0
@@ -236,13 +236,10 @@ end
 
 
 local function levelup(self)
-    -- BOOM! level up!
-    local sn = g.getSn()
-    sn.level = sn.level + 1
+    -- BOOM! level up popup!
     self.levelUpPopup = true
     self.timeSincePopupOpened = 0
     self.timeTakenThisLevel = 0
-    sn.xp = 0
 end
 
 
@@ -251,6 +248,9 @@ local function closePopup(self)
     self.levelUpPopup = false
     self.timeSincePopupOpened = 0
     self.timeTakenThisLevel = 0
+    local sn = g.getSn()
+    sn.xp = 0
+    sn.level = sn.level + 1
 end
 
 
@@ -316,7 +316,7 @@ function drawPopup(self)
 
     local top, mid, bot = r:splitVertical(1,8,1)
     local _,popup = mid:splitHorizontal(1,2,1)
-    popup = popup:padRatio(0.1)
+    popup = popup:padRatio(0.1 + (1-progress))
 
     top = top:moveRatio(0,-(1-progress))
     bot = bot:moveRatio(0,(1-progress))
@@ -326,19 +326,20 @@ function drawPopup(self)
     local iw,ih = GRADIENT_IMG:getDimensions()
     local sx = w/iw
     local sy = h/ih
-    lg.setColor(1,1,1,progress*0.9)
+    lg.setColor(1,1,1,progress*0.3)
     lg.draw(GRADIENT_IMG, x, y, 0, sx, sy, 0, 0)
     end
 
-    local DIVISIONS = 100
+    local DIVISIONS = 120
     local cx,cy = r:getCenter()
     godrays.drawRays(cx,cy, love.timer.getTime()*1.3, {
         rayCount = 5,
         color = {0.3,1,0.7},
         startWidth = 15,
         divisions = DIVISIONS,
-        growRate = 0.4,
-        length = r.w * 0.5
+        growRate = 0.1,
+        length = r.w * 0.7 * progress,
+        fadeTo=0.3
     })
 
     godrays.drawRays(cx,cy, -love.timer.getTime(), {
@@ -346,15 +347,28 @@ function drawPopup(self)
         color = {0.7,1,0.3},
         startWidth = 20,
         divisions = DIVISIONS,
-        growRate = 0.5,
-        length = r.w * 0.6
+        growRate = 0.3,
+        length = r.w * 0.9 * progress,
+        fadeTo=0.6
+    })
+
+    godrays.drawRays(cx,cy, -love.timer.getTime()*-0.7, {
+        rayCount = 2,
+        color = {0.1,0.1,0.9},
+        startWidth = 8,
+        divisions = DIVISIONS,
+        growRate = 0.2,
+        length = r.w * 0.9 * progress,
+        fadeTo=0.4
     })
 
     -- TODO: im not sure if these black bars look very good...
     -- i think we need OOMPH, not a cinematic.
+    --[[
     lg.setColor(0,0,0)
     lg.rectangle("fill", top:get())
     lg.rectangle("fill", bot:get())
+    ]]
     --- yeah... idk, maybe remove this stuff ^^^^
 
     lg.setColor(1,1,1)
@@ -435,7 +449,7 @@ function harvest:update(dt)
     end
 
     local sn = g.getSn()
-    if sn.xp > sn.xpRequirement then
+    if (not self.levelUpPopup) and sn.xp > sn.xpRequirement then
         levelup(self)
     end
 
@@ -503,7 +517,8 @@ function harvest:keyreleased(k)
             local eff = helper.choice(g.EFFECT_LIST)
             g.grantEffect(eff, 10)
         elseif k=="4" then
-            levelup(self)
+            local sn=g.getSn()
+            sn.xp = sn.xp + sn.xpRequirement
         end
     end
 end

@@ -42,6 +42,7 @@ end
 
 
 
+---@param xpBarR layout.Region
 local function drawExperienceBar(xpBarR)
     local sn = g.getSn()
     lg.setColor(1,1,1)
@@ -50,8 +51,19 @@ local function drawExperienceBar(xpBarR)
     lg.setColor(0,1,1)
     lg.rectangle("fill", x,y,w*sn.xp/sn.xpRequirement,h)
 
+    local lw=lg.getLineWidth()
+    lg.setLineWidth(3)
+
     lg.setColor(0,0,1)
     lg.rectangle("line", xpBarR:get())
+
+    if sn.xp >= sn.xpRequirement then
+        local on = math.floor(love.timer.getTime()*4) % 2 ==0
+        lg.setColor(1,1,1, on and 1 or 0)
+        lg.rectangle("line", xpBarR:padUnit(-3):get())
+    end
+
+    lg.setLineWidth(lw)
 end
 
 

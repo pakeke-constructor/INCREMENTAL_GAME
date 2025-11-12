@@ -12,9 +12,11 @@ local godrays = {}
 ---@param startWidth number
 ---@param widthGrowRate number?
 ---@param divisions integer?
-function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, divisions)
+---@param fadeTo number?
+function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, divisions, fadeTo)
     divisions = divisions or 20
     widthGrowRate = widthGrowRate or 0.1
+    fadeTo = fadeTo or 0
 
     -- Calculate the step length for each division
     local stepLength = length / divisions
@@ -29,7 +31,7 @@ function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, di
     -- Draw each segment with decreasing opacity
     for i = 0, divisions - 1 do
         -- Calculate opacity for this segment (starts at full, ends at near-zero)
-        local alpha = ((1 - i / divisions))
+        local alpha = (1 - (i/divisions)) + fadeTo
 
         -- Width tapers as the ray extends
         local function getWidth(ii)
@@ -79,6 +81,7 @@ end
 ---@field length number
 ---@field divisions integer?
 ---@field growRate number?
+---@field fadeTo number?
 local godrays_RayBundle
 
 
@@ -93,7 +96,7 @@ function godrays.drawRays(x,y, rot, opt)
         godrays.drawRay(
             x,y, r,
             opt.length, opt.color, opt.startWidth,
-            opt.growRate, opt.divisions
+            opt.growRate, opt.divisions, opt.fadeTo
         )
     end
 end
