@@ -1,4 +1,3 @@
-
 -- NPad's 9-patch Slicing Library
 --
 -- Copyright (c) 2024 Miku AuahDark
@@ -46,7 +45,7 @@ end
 --- Tile to fit (don't scale).
 ---| "repeat"
 
----@class (exact) n9p.Instance
+---@class n9p.Instance
 ---@field private hmeasure {[1]:n9p.QuadDrawMode,[2]:integer}[]
 ---@field private vmeasure {[1]:n9p.QuadDrawMode,[2]:integer}[]
 ---@field private padding {[1]:integer,[2]:integer,[3]:integer,[4]:integer} order is left top right bottom
@@ -313,7 +312,7 @@ function Instance:_drawInternal(width, height)
 	end
 end
 
----@class (exact) n9p.Builder
+---@class n9p.Builder
 ---@field private hregion {[1]:integer,[2]:integer,[3]:boolean}[]
 ---@field private vregion {[1]:integer,[2]:integer,[3]:boolean}[]
 ---@field private padding {[1]:integer,[2]:integer,[3]:integer,[4]:integer}
