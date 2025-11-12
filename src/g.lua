@@ -345,6 +345,7 @@ local function loadImage(path)
             error("Duplicate image: "..name)
         end
         nameToQuad[name] = quad
+        richtext.defineImage(name, atlas:getTexture(), quad)
     end
 end
 
@@ -2161,6 +2162,7 @@ end
 end
 
 
+-- TODO: remove this
 richtext.defineImage("health_icon", g.getAtlas(), g.getImageQuad("health_icon"))
 
 return g
