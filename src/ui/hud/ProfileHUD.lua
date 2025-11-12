@@ -19,6 +19,8 @@ function Profile:init()
     self.inflightTokens = {}
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
     self.tokenQueuePos = {x = 0, y = 0}
+
+    self.xpLerp = 0
 end
 
 if false then
@@ -48,8 +50,9 @@ local function drawExperienceBar(xpBarR)
     lg.setColor(1,1,1)
     lg.rectangle("fill", xpBarR:get())
     local x,y,w,h = xpBarR:padRatio(0.2):get()
-    lg.setColor(0,1,1)
-    lg.rectangle("fill", x,y,w*sn.xp/sn.xpRequirement,h)
+    lg.setColor(0,0.3,0.7)
+    local targXP = sn.xp/sn.xpRequirement
+    lg.rectangle("fill", x,y,w*targXP,h)
 
     local lw=lg.getLineWidth()
     lg.setLineWidth(3)
