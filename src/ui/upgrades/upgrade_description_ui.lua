@@ -99,6 +99,13 @@ function UpgradeDescription:autoBuild(uinfo)
     end
     self:addDivider()
 
+    if uinfo.description then
+        local level = g.getUpgradeLevel(uinfo)
+        local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
+        self:addText(realDesc)
+        self:addDivider()
+    end
+
     if isTokenUpgrade then
         local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
         self:addTokenInfo(tinfo)
@@ -108,11 +115,6 @@ function UpgradeDescription:autoBuild(uinfo)
             self:addText(tinfo.description)
             self:addDivider()
         end
-    elseif uinfo.description then
-        local level = g.getUpgradeLevel(uinfo)
-        local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
-        self:addText(realDesc)
-        self:addDivider()
     end
 
     self:addPrice(g.getUpgradePrice(uinfo))
