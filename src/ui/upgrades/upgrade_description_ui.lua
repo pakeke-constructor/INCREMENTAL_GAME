@@ -18,7 +18,7 @@ local UI_PANEL_COLOR = objects.Color("#".."FF14A0CD")
 local NOT_BOUGHT_COLOR = objects.Color("#".."fff75e5e")
 local MAX_LEVEL_COLOR = objects.Color("#".."ff63f75e")
 local NOT_ENOUGH_MONEY_COLOR = NOT_BOUGHT_COLOR
-local CAN_BOUGH_COLOR = MAX_LEVEL_COLOR
+local CAN_BUY_COLOR = MAX_LEVEL_COLOR
 
 ---@param uinfo g.UpgradeInfo
 function UpgradeDescription:init(uinfo)
@@ -36,16 +36,6 @@ function UpgradeDescription:init(uinfo)
     self.elements = {}
     self.uinfo = uinfo
 
-    self.singleColorPanel = n9slice.new {
-        image = g.getAtlas(),
-        padding = 4,
-        quad = g.getImageQuad("single_color_ui_panel")
-    }
-    self.simpleUIPanel = n9slice.new {
-        image = g.getAtlas(),
-        padding = CONTENT_PADDING,
-        quad = g.getImageQuad("simple_ui_panel")
-    }
     self.priceTagPanel = n9slice.new {
         image = g.getAtlas(),
         padding = {PRICE_TAG_PADDING, 0},
@@ -348,7 +338,7 @@ function UpgradeDescription:draw(x, y)
 
     -- Draw border
     love.graphics.setColor(UI_PANEL_COLOR)
-    self.simpleUIPanel:draw(x, y, w, h)
+    ui.drawPanel(x, y, w, h)
 
     -- Start drawing the content
     love.graphics.setColor(1,1,1)
@@ -433,7 +423,7 @@ function UpgradeDescription:_createPriceTagString()
 
         local textcol
         if g.getResource(pt[1]) >= price[pt[1]] then
-            textcol = CAN_BOUGH_COLOR
+            textcol = CAN_BUY_COLOR
         else
             textcol = NOT_ENOUGH_MONEY_COLOR
         end
