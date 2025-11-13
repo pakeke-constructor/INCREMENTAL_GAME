@@ -130,6 +130,7 @@ function UpgradeDescription:autoBuild(uinfo)
             local actualText = "{yield_scythe}"..text
             self:addDivider()
             self:addInlineText(actualText, "center", 16)
+            self:addSpacer(8)
             self:addTokenInfo(tinfo)
         end
     end
@@ -137,6 +138,7 @@ function UpgradeDescription:autoBuild(uinfo)
     if uinfo.description then
         local level = g.getUpgradeLevel(uinfo)
         local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
+        self:addSpacer(8)
         self:addText(realDesc)
     end
 
@@ -150,6 +152,8 @@ function UpgradeDescription:autoBuild(uinfo)
             self.priceImageCount = self.priceImageCount + 1
         end
     end
+
+    self:addSpacer(12)
 end
 
 
@@ -162,8 +166,8 @@ function UpgradeDescription:addTitle(text, image)
     if image then
         -- Text and image side-by-side
         -- +32 because token image takes 16 pixel and we're using font size of 32px.
-        tw = tw + 32
-        text = "{"..image.."}"..text
+        tw = tw + 32 + self.titleFont:getWidth(" ")
+        text = "{"..image.."} "..text
     end
 
     return self:addBox(tw, th, function(x, y, w, h)
@@ -274,51 +278,43 @@ end
 
 ---@param tinfo g.TokenInfo
 function UpgradeDescription:addTokenInfo(tinfo)
-    -- Token info layout is:
-    -- * Left-side: List of resource it gives
-    -- * Right-side: Health icon, centered.
+    -- Token info layout is just grid.
 
     ---@type string[]
     local resources = {}
-    local splits = {} -- For Kirigami only
-    local healthText = tostring(tinfo.maxHealth)
-    local healthWidth = (self.font:getWidth(healthText) + 16 + 2) * 2 -- +2 padding, x2 scaling
-    local minCellWidth = healthWidth
+    local minCellWidth = 0
 
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if tinfo.resources[resId] then
             -- TODO: Dynamic resource output
             local resInfo = g.getResourceInfo(resId)
             local value = "+"..g.formatNumber(tinfo.resources[resId])
-            local textWidth = (self.font:getWidth(value) + 16 + 2) * 2
-            resources[#resources+1] = value.."{"..resInfo.image.."}"
-            splits[#splits+1] = 1
+            -- +32 for resource icon, +4 for padding
+            local textWidth = self.largeFont:getWidth(value) + 32 + 4
+            resources[#resources+1] = "{"..resInfo.image.."}"..value
             minCellWidth = math.max(minCellWidth, textWidth)
         end
     end
-    -- Ensure there's at least 1 split
-    if #splits == 0 then
-        splits[#splits+1] = 1
+    local rows = math.ceil(#resources / 2)
+
+    if rows == 0 then
+        -- Nothing to add
+        return
     end
 
     local fontHeight = self.font:getHeight() * 2
-    local height = math.max(#resources, 1) * fontHeight
+    local height = rows * fontHeight
     -- Update the box width
-    self.boxWidth = math.max(self.boxWidth, minCellWidth * 2 + 8)
+    self.boxWidth = math.max(self.boxWidth, minCellWidth * 2)
     -- But respect the boxWidth dimension in case it's larger (so width is nil)
     return self:addBox(nil, height, function (x, y, w, h)
         local r = Kirigami(x, y, w, h)
-        local leftR, rightR = r:splitHorizontal(1, 1)
-        local rowsR = {leftR:splitVertical(unpack(splits))}
+        local cellsR = r:grid(2, rows)
 
-        for i, res in ipairs(resources) do
-            local ix, iy, iw = rowsR[i]:get()
-            richtext.printRich(res, self.font, ix, iy, iw / 2, "center", 0, 2, 2)
+        for i = 1, #resources do
+            local cellR = cellsR[i]
+            richtext.printRich(resources[i], self.largeFont, cellR.x, cellR.y, 1000, "left")
         end
-
-        local healthR = rightR:set(nil, nil, nil, fontHeight):center(rightR)
-        local ix, iy, iw = healthR:get()
-        richtext.printRich("{health_icon}"..healthText, self.font, ix, iy, iw / 2, "center", 0, 2, 2)
     end)
 end
 
