@@ -303,4 +303,50 @@ end
 
 
 
+---@param dir "horizontal"|"vertical"
+---@param ... objects.Color
+---@return love.graphics.Mesh
+function helper.gradient(dir, ...)
+    -- Check for direction
+    local isHorizontal = true
+    if dir == "vertical" then
+        isHorizontal = false
+    elseif dir ~= "horizontal" then
+        error("bad argument #1 to 'gradient' (invalid value)", 2)
+    end
+
+    -- Check for colors
+    local colorLen = select("#", ...)
+    if colorLen < 2 then
+        error("color list is less than two", 2)
+    end
+
+    -- Generate mesh
+    local meshData = {}
+    if isHorizontal then
+        for i = 1, colorLen do
+            local color = select(i, ...)
+            ---@cast color objects.Color
+            local x = (i - 1) / (colorLen - 1)
+
+            meshData[#meshData + 1] = {x, 1, x, 1, color:getRGBA()}
+            meshData[#meshData + 1] = {x, 0, x, 0, color:getRGBA()}
+        end
+    else
+        for i = 1, colorLen do
+            local color = select(i, ...)
+            ---@cast color objects.Color
+            local y = (i - 1) / (colorLen - 1)
+
+            meshData[#meshData + 1] = {1, y, 1, y, color:getRGBA()}
+            meshData[#meshData + 1] = {0, y, 0, y, color:getRGBA()}
+        end
+    end
+
+    -- Resulting Mesh has 1x1 image size
+    return love.graphics.newMesh(meshData, "strip", "static")
+end
+
+
+
 return helper
