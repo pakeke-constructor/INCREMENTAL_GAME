@@ -10,7 +10,7 @@ local CONTENT_PADDING = 9
 local CONTENT_PADDING_BLACK_BORDER = 3
 local DESCIPTION_TEXT_MAX_WIDTH = 200
 
-local PRICE_TAG_PADDING = 15
+local PRICE_TAG_PADDING = 16
 local PRICE_TAG_OFFSET = -5
 
 
@@ -19,6 +19,9 @@ local NOT_BOUGHT_COLOR = objects.Color("#".."fff75e5e")
 local MAX_LEVEL_COLOR = objects.Color("#".."ff63f75e")
 local NOT_ENOUGH_MONEY_COLOR = NOT_BOUGHT_COLOR
 local CAN_BUY_COLOR = MAX_LEVEL_COLOR
+
+local TITLE_BACKGROUND_GRADIENT = {objects.Color("#".."FF14A0CD"), objects.Color("#".."ff191e3c")}
+local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color("#".."ff191e3c")}
 
 ---@param uinfo g.UpgradeInfo
 function UpgradeDescription:init(uinfo)
@@ -47,6 +50,9 @@ function UpgradeDescription:init(uinfo)
     -- so it's gone when passed through Font:getWidth()
     -- This means we have to track manually how many images it is.
     self.priceImageCount = 0
+
+    self.titleBackgroundGradient = helper.gradient("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
+    self.backgroundGradient = helper.gradient("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
 
     self:autoBuild(uinfo)
 end
@@ -130,6 +136,7 @@ function UpgradeDescription:autoBuild(uinfo)
             local actualText = "{yield_scythe}"..text
             self:addDivider()
             self:addInlineText(actualText, "center", 16)
+            self:addSpacer(8)
             self:addTokenInfo(tinfo)
         end
     end
@@ -137,6 +144,7 @@ function UpgradeDescription:autoBuild(uinfo)
     if uinfo.description then
         local level = g.getUpgradeLevel(uinfo)
         local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
+        self:addSpacer(8)
         self:addText(realDesc)
     end
 
@@ -150,6 +158,8 @@ function UpgradeDescription:autoBuild(uinfo)
             self.priceImageCount = self.priceImageCount + 1
         end
     end
+
+    self:addSpacer(12)
 end
 
 
@@ -162,8 +172,8 @@ function UpgradeDescription:addTitle(text, image)
     if image then
         -- Text and image side-by-side
         -- +32 because token image takes 16 pixel and we're using font size of 32px.
-        tw = tw + 32
-        text = "{"..image.."}"..text
+        tw = tw + 32 + self.titleFont:getWidth(" ")
+        text = "{"..image.."} "..text
     end
 
     return self:addBox(tw, th, function(x, y, w, h)
@@ -274,51 +284,43 @@ end
 
 ---@param tinfo g.TokenInfo
 function UpgradeDescription:addTokenInfo(tinfo)
-    -- Token info layout is:
-    -- * Left-side: List of resource it gives
-    -- * Right-side: Health icon, centered.
+    -- Token info layout is just grid.
 
     ---@type string[]
     local resources = {}
-    local splits = {} -- For Kirigami only
-    local healthText = tostring(tinfo.maxHealth)
-    local healthWidth = (self.font:getWidth(healthText) + 16 + 2) * 2 -- +2 padding, x2 scaling
-    local minCellWidth = healthWidth
+    local minCellWidth = 0
 
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if tinfo.resources[resId] then
             -- TODO: Dynamic resource output
             local resInfo = g.getResourceInfo(resId)
             local value = "+"..g.formatNumber(tinfo.resources[resId])
-            local textWidth = (self.font:getWidth(value) + 16 + 2) * 2
-            resources[#resources+1] = value.."{"..resInfo.image.."}"
-            splits[#splits+1] = 1
+            -- +32 for resource icon, +4 for padding
+            local textWidth = self.largeFont:getWidth(value) + 32 + 4
+            resources[#resources+1] = "{"..resInfo.image.."}"..value
             minCellWidth = math.max(minCellWidth, textWidth)
         end
     end
-    -- Ensure there's at least 1 split
-    if #splits == 0 then
-        splits[#splits+1] = 1
+    local rows = math.ceil(#resources / 2)
+
+    if rows == 0 then
+        -- Nothing to add
+        return
     end
 
     local fontHeight = self.font:getHeight() * 2
-    local height = math.max(#resources, 1) * fontHeight
+    local height = rows * fontHeight
     -- Update the box width
-    self.boxWidth = math.max(self.boxWidth, minCellWidth * 2 + 8)
+    self.boxWidth = math.max(self.boxWidth, minCellWidth * 2)
     -- But respect the boxWidth dimension in case it's larger (so width is nil)
     return self:addBox(nil, height, function (x, y, w, h)
         local r = Kirigami(x, y, w, h)
-        local leftR, rightR = r:splitHorizontal(1, 1)
-        local rowsR = {leftR:splitVertical(unpack(splits))}
+        local cellsR = r:grid(2, rows)
 
-        for i, res in ipairs(resources) do
-            local ix, iy, iw = rowsR[i]:get()
-            richtext.printRich(res, self.font, ix, iy, iw / 2, "center", 0, 2, 2)
+        for i = 1, #resources do
+            local cellR = cellsR[i]
+            richtext.printRich(resources[i], self.largeFont, cellR.x, cellR.y, 1000, "left")
         end
-
-        local healthR = rightR:set(nil, nil, nil, fontHeight):center(rightR)
-        local ix, iy, iw = healthR:get()
-        richtext.printRich("{health_icon}"..healthText, self.font, ix, iy, iw / 2, "center", 0, 2, 2)
     end)
 end
 
@@ -329,12 +331,14 @@ function UpgradeDescription:draw(x, y)
     local w, h = self:getMainBoxDimensions()
 
     -- Draw background color
-    if g.canAfford(g.getUpgradePrice(self.uinfo)) then
-        love.graphics.setColor(0.2, 0.2, 0.4, 0.8)
-    else
-        love.graphics.setColor(0.4, 0.2, 0.2, 0.8)
+    -- I'm sorry for have failed to create flexible system. These offset and sizes
+    -- are hardcoded. I can't find a way to make it modular with simple code.
+    do
+        local p = 4
+        local heightdivider = 41
+        love.graphics.draw(self.titleBackgroundGradient, x + p, y + p, 0, w - 2 * p, heightdivider)
+        love.graphics.draw(self.backgroundGradient, x + p, y + heightdivider + p, 0, w - 2 * p, h - heightdivider - p)
     end
-    love.graphics.rectangle("fill", x, y, w, h)
 
     -- Draw border
     love.graphics.setColor(UI_PANEL_COLOR)
@@ -364,9 +368,10 @@ function UpgradeDescription:draw(x, y)
         local ptagR = Kirigami(0, 0, ptagW, ptagH)
             :attachToBottomOf(r)
             :centerX(r)
+            :moveUnit(0, PRICE_TAG_OFFSET)
         self.priceTagPanel:drawConstraint(ptagR)
 
-        richtext.printRich(ptagText, self.largeFont, ptagR.x - 4, ptagR.y, ptagR.w, "center")
+        richtext.printRich(ptagText, self.largeFont, ptagR.x - 4, ptagR.y + 6, ptagR.w, "center")
     end
 end
 
@@ -405,6 +410,7 @@ function UpgradeDescription:_getPriceTagDimensions()
     local ptagWidth = self.largeFont:getWidth(richtext.stripEffects(ptagText))
         + self.priceImageCount * 32
         + CONTENT_PADDING * 2
+        + 8
     return ptagWidth, ptagQH, ptagText
 end
 
@@ -430,7 +436,7 @@ function UpgradeDescription:_createPriceTagString()
         result[#result+1] = wrapColor(textcol, g.formatNumber(price[pt[1]]))
     end
 
-    return table.concat(result)
+    return table.concat(result, " ")
 end
 
 
