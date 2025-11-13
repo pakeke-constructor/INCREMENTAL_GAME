@@ -267,21 +267,15 @@ end
 ---@param level integer
 ---@param maxLevel integer
 function UpgradeDescription:addLevel(level, maxLevel)
-    local col = objects.Color.WHITE
-    if level == 0 then
-        col = g.COLORS.CANT_AFFORD
-    elseif level >= maxLevel then
-        col = g.COLORS.CAN_AFFORD
-    end
-    col = helper.multiplyAlpha(col, 0.5)
-
+    local col = helper.multiplyAlpha(objects.Color.WHITE, 0.4)
     local text = loc("Level %{level}/%{maxLevel}", {level = level, maxLevel = maxLevel})
-    local fw = self.largeFont:getWidth(richtext.stripEffects(text))
-    local fh = self.largeFont:getHeight()
+    local fw = self.font:getWidth(richtext.stripEffects(text))
+    local fh = self.font:getHeight()
 
-    return self:addBox(fw, fh, function(x,y,w,h)
+    self.boxWidth = math.max(self.boxWidth, fw)
+    return self:addBox(nil, fh, function(x,y,w,h)
         love.graphics.setColor(col)
-        richtext.printRich(text, self.largeFont, x,y, w, "center")
+        richtext.printRich(text, self.font, x,y, w, "center")
     end)
 end
 
@@ -300,7 +294,7 @@ function UpgradeDescription:addTokenInfo(tinfo)
             local value = "+"..g.formatNumber(tinfo.resources[resId])
             -- +32 for resource icon, +4 for padding
             local textWidth = self.largeFont:getWidth(value) + 32 + 4
-            resources[#resources+1] = "{"..resInfo.image.."}"..value
+            resources[#resources+1] = " {"..resInfo.image.."}"..value
             minCellWidth = math.max(minCellWidth, textWidth)
         end
     end
