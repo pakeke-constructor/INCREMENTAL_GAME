@@ -1,6 +1,5 @@
 local simulation = {}
 
-local table_new = require("table.new")
 
 -- Target upgrade ID to be used as baseline
 -- If this is nil, simulation is not used.

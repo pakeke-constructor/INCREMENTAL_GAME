@@ -306,7 +306,7 @@ end
 ---@param dir "horizontal"|"vertical"
 ---@param ... objects.Color
 ---@return love.graphics.Mesh
-function helper.gradient(dir, ...)
+function helper.newGradientMesh(dir, ...)
     -- Check for direction
     local isHorizontal = true
     if dir == "vertical" then
@@ -347,6 +347,39 @@ function helper.gradient(dir, ...)
     return love.graphics.newMesh(meshData, "strip", "static")
 end
 
+
+do
+local mesh = nil
+
+
+function helper.gradientRect(dir, col1, col2, x,y,w,h)
+    local isHorizontal = true
+    if dir == "vertical" then
+        isHorizontal = false
+    elseif dir ~= "horizontal" then
+        error("bad argument #1 to 'gradient' (invalid value)", 2)
+    end
+
+    mesh = mesh or love.graphics.newMesh(4, "fan")
+    local r1, g1, b1, a1 = col1[1], col1[2], col1[3], col1[4]
+    local r2, g2, b2, a2 = col2[1], col2[2], col2[3], col2[4]
+
+    if isHorizontal then
+        mesh:setVertex(1, 0, 0, 0, 0, r1, g1, b1, a1)
+        mesh:setVertex(2, 0, 1, 0, 1, r1, g1, b1, a1)
+        mesh:setVertex(3, 1, 1, 1, 1, r2, g2, b2, a2)
+        mesh:setVertex(4, 1, 0, 1, 0, r2, g2, b2, a2)
+    else
+        mesh:setVertex(1, 0, 0, 0, 0, r1, g1, b1, a1)
+        mesh:setVertex(2, 0, 1, 0, 1, r2, g2, b2, a2)
+        mesh:setVertex(3, 1, 1, 1, 1, r2, g2, b2, a2)
+        mesh:setVertex(4, 1, 0, 1, 0, r1, g1, b1, a1)
+    end
+
+    love.graphics.draw(mesh, x,y, 0, w,h)
+end
+
+end
 
 
 return helper

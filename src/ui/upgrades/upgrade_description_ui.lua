@@ -53,8 +53,8 @@ function UpgradeDescription:init(uinfo)
     -- This means we have to track manually how many images it is.
     self.priceImageCount = 0
 
-    self.titleBackgroundGradient = helper.gradient("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
-    self.backgroundGradient = helper.gradient("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
+    self.titleBackgroundGradient = helper.newGradientMesh("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
+    self.backgroundGradient = helper.newGradientMesh("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
 
     self:autoBuild(uinfo)
 end

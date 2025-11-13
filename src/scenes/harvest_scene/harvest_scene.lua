@@ -1,6 +1,8 @@
 
 local lg=love.graphics
 
+local particles = require("src.modules.particles.particles")
+
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
@@ -235,11 +237,29 @@ local function getXPMultiplier(self)
 end
 
 
-local function levelup(self)
+
+
+local xpParticles = particles.newParticlesWorld({
+    gravity = 350,
+    drawParticle = function(p)
+        local id = p.id
+        local sx,sy = 1,1
+        local rot = 0
+        g.drawImage("money_icon", p.x,p.y, rot, sx,sy)
+    end,
+    getParticleDuration = function(p)
+        return (4 + p.id % 4) / 2
+    end
+})
+
+
+
+local function openPopup(self)
     -- BOOM! level up popup!
     self.levelUpPopup = true
     self.timeSincePopupOpened = 0
     self.timeTakenThisLevel = 0
+    xpParticles:clear()
 end
 
 
@@ -256,7 +276,7 @@ end
 
 
 
-local drawPopup
+local drawPopup, updatePopup
 do
 
 local COLS = {
@@ -306,6 +326,7 @@ end
 
 
 
+
 local GRADIENT_IMG = love.graphics.newImage("src/scenes/harvest_scene/gradient_background.png")
 
 function drawPopup(self)
@@ -330,11 +351,14 @@ function drawPopup(self)
     lg.draw(GRADIENT_IMG, x, y, 0, sx, sy, 0, 0)
     end
 
+    local GOLD = objects.Color("#".."FFFAE06B")
+
     local DIVISIONS = 120
     local cx,cy = r:getCenter()
     godrays.drawRays(cx,cy, love.timer.getTime()*1.3, {
         rayCount = 5,
-        color = {0.3,1,0.7},
+        color = GOLD,
+        --color = {0.3,1,0.7},
         startWidth = 15,
         divisions = DIVISIONS,
         growRate = 0.1,
@@ -344,7 +368,8 @@ function drawPopup(self)
 
     godrays.drawRays(cx,cy, -love.timer.getTime(), {
         rayCount = 3,
-        color = {0.7,1,0.3},
+        color = GOLD,
+        -- color = {0.7,1,0.3},
         startWidth = 20,
         divisions = DIVISIONS,
         growRate = 0.3,
@@ -354,13 +379,21 @@ function drawPopup(self)
 
     godrays.drawRays(cx,cy, -love.timer.getTime()*-0.7, {
         rayCount = 2,
-        color = {0.1,0.1,0.9},
+        color = GOLD,
+        -- color = {0.1,0.1,0.9},
         startWidth = 8,
         divisions = DIVISIONS,
         growRate = 0.2,
         length = r.w * 0.9 * progress,
         fadeTo=0.4
     })
+
+    love.graphics.setColor(1,1,1)
+    xpParticles:draw()
+    if xpParticles:getParticleCount() < 60 then
+        local x,y = helper.randomInRegion(popup:padRatio(0.5):get())
+        xpParticles:spawnParticle(x,y, math.random(-260,260), math.random(-100,-400))
+    end
 
     -- TODO: im not sure if these black bars look very good...
     -- i think we need OOMPH, not a cinematic.
@@ -371,15 +404,35 @@ function drawPopup(self)
     ]]
     --- yeah... idk, maybe remove this stuff ^^^^
 
-    lg.setColor(1,1,1)
-    lg.rectangle("fill", popup:get())
+    do
+    local a,b,c = popup:splitVertical(1,1,1)
+    local p = 0.2
 
-    richtext.printRichContained("{c r=0 g=0 b=0}click\nto close", g.getSmallFont(16), popup:get())
+    local function draw(rrr)
+        rrr = rrr:padRatio(p)
+        local col1 = objects.Color("#" .. "FF9F14F6")
+        local col2 = objects.Color("#" .. "FF3B12A4")
+        helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
+        ui.drawPanel(rrr:get())
+        richtext.printRichContained("{c r=0 g=0 b=0}option-1", g.getSmallFont(16), rrr:get())
+    end
+
+    draw(a)
+    draw(b)
+    draw(c)
+    end
 
     if iml.wasJustClicked(popup:get()) then
         closePopup(self)
     end
 end
+
+
+function updatePopup(self, dt)
+    xpParticles:update(dt)
+end
+
+
 
 end
 
@@ -443,6 +496,7 @@ function harvest:update(dt)
     g.getHUD():update(dt)
 
     if self.levelUpPopup then
+        updatePopup(self, dt)
         self.timeSincePopupOpened = self.timeSincePopupOpened + dt
     else
         self.timeTakenThisLevel = self.timeTakenThisLevel + dt
@@ -450,7 +504,7 @@ function harvest:update(dt)
 
     local sn = g.getSn()
     if (not self.levelUpPopup) and sn.xp > sn.xpRequirement then
-        levelup(self)
+        openPopup(self)
     end
 
     local worldW, worldH = g.getWorldDimensions()

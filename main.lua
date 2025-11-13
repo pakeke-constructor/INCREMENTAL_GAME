@@ -50,7 +50,9 @@ GLOBALS START
 =========
 ]]
 _G.utf8 = require("utf8")
+
 _G.table.clear = require("table.clear")
+_G.table.new = require("table.new")
 
 
 _G.json = require("lib.json")

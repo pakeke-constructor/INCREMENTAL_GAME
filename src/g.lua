@@ -2164,7 +2164,4 @@ end
 end
 
 
--- TODO: remove this
-richtext.defineImage("health_icon", g.getAtlas(), g.getImageQuad("health_icon"))
-
 return g
