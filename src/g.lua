@@ -2145,7 +2145,9 @@ g.COLORS = {
 
     SHADOW = objects.Color(0,0,0,0.4),
 
-    CANT_AFFORD = objects.Color("#".."FFC81515"),
+    CANT_AFFORD = objects.Color("#".."FFD72D2D"),
+    CAN_AFFORD = objects.Color("#".."FF73FF73"),
+
     MONEY = objects.Color("#".."FFF7D127"),
     RECOMMENDED = objects.Color("#".."FF9DEC4E"),
     UPGRADE_CONNECTOR = objects.Color("#".."FF000000")
