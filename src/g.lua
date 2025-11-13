@@ -571,7 +571,7 @@ end
 
 
 g.defineResource("money", {
-    image="money_icon",
+    image="money",
     limitStat="MoneyLimit",
     startingLimit=(consts.DEV_MODE and 10000000000000) or 1000,
     color = {0.71, 0.55, 0.02},

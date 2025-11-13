@@ -250,8 +250,6 @@ function map:init()
     self.allowMousePan = false
     ---@type _MapTransitionTarget|nil
     self.transitionTarget = nil
-
-    prop(302,215,"happy_cat")
 end
 
 

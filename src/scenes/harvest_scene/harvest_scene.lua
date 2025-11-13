@@ -245,7 +245,7 @@ local xpParticles = particles.newParticlesWorld({
         local id = p.id
         local sx,sy = 1,1
         local rot = 0
-        g.drawImage("money_icon", p.x,p.y, rot, sx,sy)
+        g.drawImage("money", p.x,p.y, rot, sx,sy)
     end,
     getParticleDuration = function(p)
         return (4 + p.id % 4) / 2
@@ -366,7 +366,17 @@ function drawPopup(self)
         fadeTo=0.3
     })
 
-    godrays.drawRays(cx,cy, -love.timer.getTime(), {
+    godrays.drawRays(cx,cy, love.timer.getTime()*-1.2, {
+        rayCount = 3,
+        color = GOLD,
+        startWidth = 7,
+        divisions = DIVISIONS,
+        growRate = 0.15,
+        length = r.w * 0.5 * progress,
+        fadeTo=0.0
+    })
+
+    godrays.drawRays(cx,cy, love.timer.getTime()*-0.7, {
         rayCount = 3,
         color = GOLD,
         -- color = {0.7,1,0.3},
@@ -374,10 +384,10 @@ function drawPopup(self)
         divisions = DIVISIONS,
         growRate = 0.3,
         length = r.w * 0.9 * progress,
-        fadeTo=0.6
+        fadeTo=0.3
     })
 
-    godrays.drawRays(cx,cy, -love.timer.getTime()*-0.7, {
+    godrays.drawRays(cx,cy, love.timer.getTime()*0.7, {
         rayCount = 2,
         color = GOLD,
         -- color = {0.1,0.1,0.9},

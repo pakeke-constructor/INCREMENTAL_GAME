@@ -40,7 +40,7 @@ defineResLimitUpgrade("bones_limit", "Bones Limit", "bones", {bones = 10}, 5)
 ---------------------
 g.defineUpgrade("capitalist", "Capitalist", {
     kind = "MISC",
-    image = "money_icon",
+    image = "money",
     description = ("All upgrades become %{1} cheaper."),
     getValues = function(uinfo, level)
         return 5 * level

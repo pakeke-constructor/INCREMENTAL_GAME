@@ -118,7 +118,7 @@ defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
 
 
 defUpgrade("more_loot", "More Loot", {
-    image = "money_icon", -- TODO: change
+    image = "money", -- TODO: change
     price = {money = 100},
     description = "All tokens have %{1} more health, and earn %{2} more resources.",
 
