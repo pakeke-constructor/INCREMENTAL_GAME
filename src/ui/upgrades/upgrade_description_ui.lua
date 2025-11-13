@@ -15,12 +15,7 @@ local PRICE_TAG_OFFSET = -5
 
 
 local UI_PANEL_COLOR = objects.Color("#".."FF14A0CD")
-local NOT_BOUGHT_COLOR = objects.Color("#".."fff75e5e")
-local MAX_LEVEL_COLOR = objects.Color("#".."ff63f75e")
-local NOT_ENOUGH_MONEY_COLOR = NOT_BOUGHT_COLOR
-local CAN_BUY_COLOR = MAX_LEVEL_COLOR
-
-local TITLE_BACKGROUND_GRADIENT = {objects.Color("#".."FF14A0CD"), objects.Color("#".."ff191e3c")}
+local TITLE_BACKGROUND_GRADIENT = {UI_PANEL_COLOR, objects.Color("#".."ff191e3c")}
 local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color("#".."ff191e3c")}
 
 ---@param uinfo g.UpgradeInfo
@@ -39,10 +34,17 @@ function UpgradeDescription:init(uinfo)
     self.elements = {}
     self.uinfo = uinfo
 
-    self.priceTagPanel = n9slice.new {
-        image = g.getAtlas(),
-        padding = {PRICE_TAG_PADDING, 0},
-        quad = g.getImageQuad("pricetag")
+    self.priceTagPanels = {
+        [true] = n9slice.new {
+            image = g.getAtlas(),
+            padding = {PRICE_TAG_PADDING, 0},
+            quad = g.getImageQuad("pricetag_can_afford")
+        },
+        [false] = n9slice.new {
+            image = g.getAtlas(),
+            padding = {PRICE_TAG_PADDING, 0},
+            quad = g.getImageQuad("pricetag_cant_afford")
+        }
     }
     ---@type [g.ResourceType,string][]
     self.priceText = {}
@@ -73,7 +75,12 @@ local STAT_UP_COLOR = objects.Color("#".."FFEF8EFC")
 ---@param col [number, number, number]
 ---@param text string
 local function wrapColor(col, text)
-    return "{c r="..col[1].." g="..col[2].." b="..col[3].."}"..text.."{/c}"
+    local a = col[4] or 1
+    if a < 1 then
+        return "{c r="..col[1].." g="..col[2].." b="..col[3].." a="..a.."}"..text.."{/c}"
+    else
+        return "{c r="..col[1].." g="..col[2].." b="..col[3].."}"..text.."{/c}"
+    end
 end
 
 ---@param uinfo g.UpgradeInfo
@@ -158,8 +165,6 @@ function UpgradeDescription:autoBuild(uinfo)
             self.priceImageCount = self.priceImageCount + 1
         end
     end
-
-    self:addSpacer(12)
 end
 
 
@@ -262,23 +267,15 @@ end
 ---@param level integer
 ---@param maxLevel integer
 function UpgradeDescription:addLevel(level, maxLevel)
-    local col = objects.Color.WHITE
-    if level == 0 then
-        col = NOT_BOUGHT_COLOR
-    elseif level >= maxLevel then
-        col = MAX_LEVEL_COLOR
-    end
-
+    local col = helper.multiplyAlpha(objects.Color.WHITE, 0.4)
     local text = loc("Level %{level}/%{maxLevel}", {level = level, maxLevel = maxLevel})
     local fw = self.font:getWidth(richtext.stripEffects(text))
     local fh = self.font:getHeight()
 
-    -- Update the box width
     self.boxWidth = math.max(self.boxWidth, fw)
-    -- But respect the boxWidth dimension
     return self:addBox(nil, fh, function(x,y,w,h)
         love.graphics.setColor(col)
-        richtext.printRich(text, self.largeFont, x,y, w, "center")
+        richtext.printRich(text, self.font, x,y, w, "center")
     end)
 end
 
@@ -297,7 +294,7 @@ function UpgradeDescription:addTokenInfo(tinfo)
             local value = "+"..g.formatNumber(tinfo.resources[resId])
             -- +32 for resource icon, +4 for padding
             local textWidth = self.largeFont:getWidth(value) + 32 + 4
-            resources[#resources+1] = "{"..resInfo.image.."}"..value
+            resources[#resources+1] = " {"..resInfo.image.."}"..value
             minCellWidth = math.max(minCellWidth, textWidth)
         end
     end
@@ -359,17 +356,18 @@ function UpgradeDescription:draw(x, y)
 
     local level = g.getUpgradeLevel(self.uinfo)
     if level < self.uinfo.maxLevel then
+        local canAfford = g.canAfford(g.getUpgradePrice(self.uinfo))
         -- Start drawing price tag
         love.graphics.setColor(1,1,1)
 
         -- Yeah I'm lazy calculating layout by hand
         local r = Kirigami(x - CONTENT_PADDING, y - CONTENT_PADDING, w, h)
-        local ptagW, ptagH, ptagText = self:_getPriceTagDimensions()
+        local ptagW, ptagH, ptagText = self:_getPriceTagDimensions(canAfford)
         local ptagR = Kirigami(0, 0, ptagW, ptagH)
             :attachToBottomOf(r)
             :centerX(r)
             :moveUnit(0, PRICE_TAG_OFFSET)
-        self.priceTagPanel:drawConstraint(ptagR)
+        self.priceTagPanels[canAfford]:drawConstraint(ptagR)
 
         richtext.printRich(ptagText, self.largeFont, ptagR.x - 4, ptagR.y + 6, ptagR.w, "center")
     end
@@ -394,7 +392,10 @@ end
 ---@return number
 function UpgradeDescription:getDimensions()
     local width, height = self:getMainBoxDimensions()
-    local ptagW, ptagH = self:_getPriceTagDimensions()
+    local ptagW, ptagH = 0, -PRICE_TAG_OFFSET
+    if g.getUpgradeLevel(self.uinfo) < self.uinfo.maxLevel then
+        ptagW, ptagH = self:_getPriceTagDimensions(true)
+    end
     return math.max(width, ptagW), height + ptagH + PRICE_TAG_OFFSET
 end
 
@@ -402,10 +403,11 @@ end
 
 
 
+---@param canAfford boolean
 ---@private
-function UpgradeDescription:_getPriceTagDimensions()
-    local ptagQH = select(4, g.getImageQuad("pricetag"):getViewport()) --[[@as number]]
-    local ptagText = self:_createPriceTagString()
+function UpgradeDescription:_getPriceTagDimensions(canAfford)
+    local ptagQH = select(4, g.getImageQuad("pricetag_can_afford"):getViewport()) --[[@as number]]
+    local ptagText = self:_createPriceTagString(canAfford)
 
     local ptagWidth = self.largeFont:getWidth(richtext.stripEffects(ptagText))
         + self.priceImageCount * 32
@@ -414,29 +416,31 @@ function UpgradeDescription:_getPriceTagDimensions()
     return ptagWidth, ptagQH, ptagText
 end
 
+---@param canAfford boolean
 ---@private
-function UpgradeDescription:_createPriceTagString()
+function UpgradeDescription:_createPriceTagString(canAfford)
     local result = {}
     local price = g.getUpgradePrice(self.uinfo, g.getUpgradeLevel(self.uinfo))
+    local alpha = canAfford and 1 or 0.75
 
     for _, pt in ipairs(self.priceText) do
         local resInfo = g.getResourceInfo(pt[1])
+        local col = objects.Color.BLACK
         if g.isResourceUnlocked(pt[1]) then
-            result[#result+1] = "{"..resInfo.image.."}"
-        else
-            result[#result+1] = wrapColor(objects.Color.BLACK, "{"..resInfo.image.."}")
+            col = objects.Color.WHITE
         end
+        result[#result+1] = wrapColor(col, " {"..resInfo.image.."}")
 
         local textcol
         if g.getResource(pt[1]) >= price[pt[1]] then
-            textcol = CAN_BUY_COLOR
+            textcol = g.COLORS.CAN_AFFORD
         else
-            textcol = NOT_ENOUGH_MONEY_COLOR
+            textcol = g.COLORS.CANT_AFFORD
         end
-        result[#result+1] = wrapColor(textcol, g.formatNumber(price[pt[1]]))
+        result[#result+1] = wrapColor(helper.multiplyAlpha(textcol, alpha), g.formatNumber(price[pt[1]]))
     end
 
-    return table.concat(result, " ")
+    return table.concat(result).." "
 end
 
 

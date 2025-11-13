@@ -144,7 +144,7 @@ helper.EASINGS = {
 ---@param alpha number
 function helper.multiplyAlpha(color, alpha)
     local r, g, b, a = color:getRGBA()
-    return r, g, b, a * alpha
+    return objects.Color(r, g, b, a * alpha)
 end
 
 
