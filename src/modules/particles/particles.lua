@@ -33,7 +33,6 @@ local F = {
     y="y",
     vx="vx",
     vy="vy",
-    image="image",
     lifetime="lifetime",
 }
 
@@ -43,7 +42,6 @@ local DEFAULT_FIELD_TYPES = {
     y = "number",
     vx = "number",
     vy = "number",
-    image = "string",
     lifetime = "number",
 }
 
@@ -137,13 +135,9 @@ function particles.newParticlesWorld(args)
     }, Proxy_mt)
 
     -- struct of arrays:
-    defField(self, "id")
-    defField(self, "x")
-    defField(self, "y")
-    defField(self, "vx")
-    defField(self, "vy")
-    defField(self, "image")
-    defField(self, "lifetime")
+    for k,_ in pairs(DEFAULT_FIELD_TYPES) do
+        defField(self, k)
+    end
     for k,v in pairs(self.extraFields) do
         defField(self, k)
     end
@@ -215,7 +209,7 @@ end
 
 function ParticlesWorld:draw()
     local count = self:getParticleCount()
-    for i=count,1,-1 do
+    for i=1,count do
         self.i = i
         local p = self.proxy
         self.drawParticle(p)
