@@ -20,6 +20,9 @@ local MAX_LEVEL_COLOR = objects.Color("#".."ff63f75e")
 local NOT_ENOUGH_MONEY_COLOR = NOT_BOUGHT_COLOR
 local CAN_BUY_COLOR = MAX_LEVEL_COLOR
 
+local TITLE_BACKGROUND_GRADIENT = {objects.Color("#".."FF14A0CD"), objects.Color("#".."ff191e3c")}
+local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color("#".."ff191e3c")}
+
 ---@param uinfo g.UpgradeInfo
 function UpgradeDescription:init(uinfo)
     self.font = g.getSmallFont(16)
@@ -47,6 +50,9 @@ function UpgradeDescription:init(uinfo)
     -- so it's gone when passed through Font:getWidth()
     -- This means we have to track manually how many images it is.
     self.priceImageCount = 0
+
+    self.titleBackgroundGradient = helper.gradient("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
+    self.backgroundGradient = helper.gradient("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
 
     self:autoBuild(uinfo)
 end
@@ -325,12 +331,14 @@ function UpgradeDescription:draw(x, y)
     local w, h = self:getMainBoxDimensions()
 
     -- Draw background color
-    if g.canAfford(g.getUpgradePrice(self.uinfo)) then
-        love.graphics.setColor(0.2, 0.2, 0.4, 0.8)
-    else
-        love.graphics.setColor(0.4, 0.2, 0.2, 0.8)
+    -- I'm sorry for have failed to create flexible system. These offset and sizes
+    -- are hardcoded. I can't find a way to make it modular with simple code.
+    do
+        local p = 4
+        local heightdivider = 41
+        love.graphics.draw(self.titleBackgroundGradient, x + p, y + p, 0, w - 2 * p, heightdivider)
+        love.graphics.draw(self.backgroundGradient, x + p, y + heightdivider + p, 0, w - 2 * p, h - heightdivider - p)
     end
-    love.graphics.rectangle("fill", x, y, w, h)
 
     -- Draw border
     love.graphics.setColor(UI_PANEL_COLOR)
