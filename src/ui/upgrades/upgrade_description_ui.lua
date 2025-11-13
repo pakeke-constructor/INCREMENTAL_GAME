@@ -10,7 +10,7 @@ local CONTENT_PADDING = 9
 local CONTENT_PADDING_BLACK_BORDER = 3
 local DESCIPTION_TEXT_MAX_WIDTH = 200
 
-local PRICE_TAG_PADDING = 15
+local PRICE_TAG_PADDING = 16
 local PRICE_TAG_OFFSET = -5
 
 
@@ -360,9 +360,10 @@ function UpgradeDescription:draw(x, y)
         local ptagR = Kirigami(0, 0, ptagW, ptagH)
             :attachToBottomOf(r)
             :centerX(r)
+            :moveUnit(0, PRICE_TAG_OFFSET)
         self.priceTagPanel:drawConstraint(ptagR)
 
-        richtext.printRich(ptagText, self.largeFont, ptagR.x - 4, ptagR.y, ptagR.w, "center")
+        richtext.printRich(ptagText, self.largeFont, ptagR.x - 4, ptagR.y + 6, ptagR.w, "center")
     end
 end
 
@@ -401,6 +402,7 @@ function UpgradeDescription:_getPriceTagDimensions()
     local ptagWidth = self.largeFont:getWidth(richtext.stripEffects(ptagText))
         + self.priceImageCount * 32
         + CONTENT_PADDING * 2
+        + 8
     return ptagWidth, ptagQH, ptagText
 end
 
@@ -426,7 +428,7 @@ function UpgradeDescription:_createPriceTagString()
         result[#result+1] = wrapColor(textcol, g.formatNumber(price[pt[1]]))
     end
 
-    return table.concat(result)
+    return table.concat(result, " ")
 end
 
 
