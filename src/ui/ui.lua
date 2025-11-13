@@ -1,4 +1,5 @@
 
+local n9slice = require("src.modules.n9slice.n9slice")
 
 ---@class ui
 local ui = {}
@@ -191,6 +192,36 @@ end
 ---@param mode love.DrawMode?
 function ui.debugRegion(region, mode)
 	lg.rectangle(mode or "line", region:get())
+end
+
+
+local singleColorPanel = nil
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function ui.drawSingleColorPanel(x, y, w, h)
+	singleColorPanel = singleColorPanel or n9slice.new {
+		image = g.getAtlas(),
+		padding = 4,
+		quad = g.getImageQuad("single_color_ui_panel")
+	}
+	return singleColorPanel:draw(x, y, w, h)
+end
+
+
+local simpleUIPanel = nil
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function ui.drawPanel(x, y, w, h)
+	simpleUIPanel = simpleUIPanel or n9slice.new {
+		image = g.getAtlas(),
+		padding = 9,
+		quad = g.getImageQuad("simple_ui_panel")
+	}
+	return simpleUIPanel:draw(x, y, w, h)
 end
 
 
