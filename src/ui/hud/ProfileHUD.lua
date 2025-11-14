@@ -114,6 +114,7 @@ function Profile:draw(noDraw, drawXPBar)
         end
 
         -- Draw inflight token
+        love.graphics.setColor(1,1,1)
         ---@type table<string, integer>
         local inflight = {}
         for _, p in ipairs(self.inflightTokens) do
