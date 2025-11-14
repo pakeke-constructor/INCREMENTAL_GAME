@@ -22,7 +22,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ]]
 
----@class layout.Region
+---@class kirigami.Region
 ---@field x number
 ---@field y number
 ---@field w number
@@ -70,7 +70,7 @@ end
 ---@param y number?
 ---@param w number?
 ---@param h number?
----@return layout.Region
+---@return kirigami.Region
 local function newRegion(x,y,w,h)
     if not x then
         -- default region is empty
@@ -119,7 +119,7 @@ end
 
 --- Splits a region vertically
 ---@param ... number
----@return layout.Region ...
+---@return kirigami.Region ...
 function Region:splitVertical(...)
     --[[
         splits a region vertically.
@@ -144,7 +144,7 @@ end
 
 --- Splits a region vertically
 ---@param ... number
----@return layout.Region ...
+---@return kirigami.Region ...
 function Region:splitHorizontal(...)
     --[[
         Same as vertical, but in other direction
@@ -168,7 +168,7 @@ end
 --- Splits a region into a grid
 ---@param width number
 ---@param height number
----@return layout.Region[]
+---@return kirigami.Region[]
 function Region:grid(width, height)
     local w, h = self.w/width, self.h/height
     local regions = {}
@@ -188,7 +188,7 @@ end
 
 --- Splits a region into rows
 ---@param rows number
----@return layout.Region
+---@return kirigami.Region
 function Region:rows(rows)
   return self:grid(rows, 1)
 end
@@ -196,7 +196,7 @@ end
 
 --- Splits a region into columns
 ---@param columns number
----@return layout.Region
+---@return kirigami.Region
 function Region:columns(columns)
   return self:grid(1, columns)
 end
@@ -221,9 +221,9 @@ end
 ---@param top number
 ---@param right number
 ---@param bot number
----@overload fun(self:layout.Region, horz:number, vert:number):layout.Region
----@overload fun(self:layout.Region, unit:number):layout.Region
----@return layout.Region
+---@overload fun(self:kirigami.Region, horz:number, vert:number):kirigami.Region
+---@overload fun(self:kirigami.Region, unit:number):kirigami.Region
+---@return kirigami.Region
 function Region:padUnit(left, top, right, bot)
     --[[
         Creates an inner region, with padding on sides.
@@ -253,8 +253,8 @@ end
 ---@param top number
 ---@param right number
 ---@param bot number
----@overload fun(self:layout.Region,pad:number):layout.Region
----@return layout.Region
+---@overload fun(self:kirigami.Region,pad:number):kirigami.Region
+---@return kirigami.Region
 function Region:padRatio(left, top, right, bot)
     --[[
         Pads a region, percentage wise.
@@ -298,7 +298,7 @@ end
 --- Gets the scale such that a region fits (width, height) bounds.
 ---@param width number
 ---@param height number
----@overload fun(self:layout.Region,region:layout.Region):number
+---@overload fun(self:kirigami.Region,region:kirigami.Region):number
 ---@return number
 function Region:getScaleToFit(width, height)
     --[[
@@ -320,7 +320,7 @@ end
 --- such that it fits a given ratio
 ---@param ratioW number
 ---@param ratioH number
----@return layout.Region
+---@return kirigami.Region
 function Region:shrinkToAspectRatio(ratioW, ratioH)
     local ratioRegion = newRegion(0,0, ratioW, ratioH)
     ratioRegion = ratioRegion:scaleToFit(self.w, self.h)
@@ -333,7 +333,7 @@ end
 --- Returns a new region that is scaled to fit certain boundaries
 ---@param width number
 ---@param height number
----@return layout.Region, number
+---@return kirigami.Region, number
 function Region:scaleToFit(width, height)
     local scale = self:getScaleToFit(width, height)
     local w, h = self.w, self.h
@@ -345,7 +345,7 @@ end
 --- Returns a new scaled region
 ---@param sx number
 ---@param sy? number
----@return layout.Region
+---@return kirigami.Region
 function Region:scale(sx, sy)
     sx = sx
     sy = sy or sx
@@ -357,7 +357,7 @@ end
 ---@param y? number
 ---@param w? number
 ---@param h? number
----@return layout.Region
+---@return kirigami.Region
 function Region:set(x,y,w,h)
     return newRegion(
         x or self.x,
@@ -419,7 +419,7 @@ end
 --- opposite of `union`.
 --- useful for putting a MAXIMUM on region size
 ---@param other any
----@return layout.Region
+---@return kirigami.Region
 function Region:intersection(other)
     --[[
     
@@ -444,8 +444,8 @@ end
 --- Takes the union between 2 regions
 --- opposite of `intersection`
 --- :union is useful for putting a MINIMUM on region size.
---- @param other layout.Region
---- @return layout.Region
+--- @param other kirigami.Region
+--- @return kirigami.Region
 function Region:union(other)
     --[[
         Takes the union between 2 regions
@@ -509,24 +509,24 @@ function Region:moveRatio(ratioX, ratioY)
 end
 
 
----@param r2 layout.Region 
----@return layout.Region
+---@param r2 kirigami.Region 
+---@return kirigami.Region
 function Region:attachToTopOf(r2)
     local top = r2.y
     local top_minus_h = top - self.h
     return self:set(nil, top_minus_h, nil, nil)
 end
 
----@param r2 layout.Region 
----@return layout.Region
+---@param r2 kirigami.Region 
+---@return kirigami.Region
 function Region:attachToBottomOf(r2)
     local bottom = r2.y + r2.h
     return self:set(nil, bottom, nil, nil)
 end
 
 
----@param r2 layout.Region 
----@return layout.Region
+---@param r2 kirigami.Region 
+---@return kirigami.Region
 function Region:attachToLeftOf(r2)
     local left = r2.x
     local left_minus_w = left - self.w
@@ -534,8 +534,8 @@ function Region:attachToLeftOf(r2)
 end
 
 
----@param r2 layout.Region 
----@return layout.Region
+---@param r2 kirigami.Region 
+---@return kirigami.Region
 function Region:attachToRightOf(r2)
     local right = r2.x + r2.w
     return self:set(right, nil, nil, nil)

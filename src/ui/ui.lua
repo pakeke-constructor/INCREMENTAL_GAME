@@ -188,7 +188,7 @@ end
 
 
 ---For debugging purpose only
----@param region layout.Region
+---@param region kirigami.Region
 ---@param mode love.DrawMode?
 function ui.debugRegion(region, mode)
 	lg.rectangle(mode or "line", region:get())

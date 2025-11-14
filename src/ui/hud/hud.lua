@@ -3,6 +3,9 @@ local Resources = require(".ResourcesHUD")
 local Profile = require(".ProfileHUD")
 
 ---@class g.HUD: objects.Class
+---@field resourceHUD g.hud.Resources
+---@field profileHUD g.hud.Profile
+---@field freeArea kirigami.Region
 local HUD = objects.Class("g:HUD")
 
 function HUD:init()

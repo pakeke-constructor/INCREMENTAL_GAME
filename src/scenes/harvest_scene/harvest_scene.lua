@@ -375,7 +375,7 @@ end
 
 local RAINBOW_SCROLL_SPEED = 1
 
----@param barR layout.Region
+---@param barR kirigami.Region
 ---@param cols table[]
 local function drawRainbowBar(barR, cols)
     local regions = barR:grid(#cols,1)

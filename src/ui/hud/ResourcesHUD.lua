@@ -119,7 +119,7 @@ end
 
 ---@param text string
 ---@param font love.Font
----@param region layout.Region
+---@param region kirigami.Region
 ---@param align love.AlignMode
 ---@param baseScale number?
 ---@param scale number?
@@ -150,7 +150,7 @@ end
 
 ---@param self g.hud.Resources
 ---@param kind g.ResourceType
----@param reg layout.Region
+---@param reg kirigami.Region
 ---@param image string
 ---@param scale number
 ---@param bgcolor [number, number, number, number?]

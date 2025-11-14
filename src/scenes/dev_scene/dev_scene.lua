@@ -22,7 +22,7 @@ end
 -- Resource Mod scene
 ---------------------
 
----@param r layout.Region
+---@param r kirigami.Region
 ---@param resId string
 local function drawResourceType(r, resId)
     local b1, b2, b3, b4 = r:splitVertical(1, 1, 1, 1)
@@ -44,7 +44,7 @@ local function drawResourceType(r, resId)
     end
 end
 
----@param r layout.Region
+---@param r kirigami.Region
 local function drawResourceSceneUI(r)
     local grid = r:padRatio(0.05):grid(#g.RESOURCE_LIST, 1)
 
@@ -81,7 +81,7 @@ local harvestTokenSpawnText = table.concat({
 
 local selectedTokenIndex = 1
 
----@param r layout.Region
+---@param r kirigami.Region
 local function drawHarvestSceneUI(r)
     local font = g.getSmallFont(16)
     local tokenPrev = (selectedTokenIndex - 2) % #g.TOKEN_LIST + 1
@@ -583,7 +583,7 @@ local selectedUpgradeText = "{o}"..table.concat({
     "[Delete] = Delete",
 }, "\n").."{/o}"
 
----@param r layout.Region
+---@param r kirigami.Region
 ---@param cam Camera
 local function drawUpgradeSceneUI(r, cam)
     local font = g.getSmallFont(16)
@@ -829,7 +829,7 @@ local function drawAllUpgrades()
     end
 end
 
----@param r layout.Region
+---@param r kirigami.Region
 local function drawAllUpgradesUI(r)
     if selectedUpgradeDescription then
         local mx, my = ui.getMouse()

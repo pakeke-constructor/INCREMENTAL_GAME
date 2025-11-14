@@ -44,7 +44,7 @@ end
 
 
 
----@param xpBarR layout.Region
+---@param xpBarR kirigami.Region
 local function drawExperienceBar(xpBarR)
     local sn = g.getSn()
     lg.setColor(1,1,1)
