@@ -40,7 +40,6 @@ function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, di
 
         local sw = getWidth(i)
         local ew = getWidth(i+1)
-        --print(sw,ew)
 
         local startDist = i * stepLength
         local endDist = (i + 1) * stepLength
