@@ -25,6 +25,8 @@ function harvest:init()
     self.levelUpPopup = nil
     self.xpRequirement = 1 -- set every frame.
 
+    self.xpBarX, self.xpBarY = 1000,0 -- where should Xp particles move to?
+
     self.timeSincePopupOpened = 0
     self.levelUpPopup = false
 
@@ -204,14 +206,17 @@ function harvest:tokenEarnedResources(tok, bundle)
     if bundle.money then
         rhud:spawnParticles("money", uiX, uiY, bundle.money)
     end
-    if bundle.logs then
-        rhud:spawnParticles("logs", uiX, uiY, bundle.logs)
+    if bundle.fish then
+        rhud:spawnParticles("fish", uiX, uiY, bundle.fish)
     end
-    if bundle.rocks then
-        rhud:spawnParticles("rocks", uiX, uiY, bundle.rocks)
+    if bundle.fabric then
+        rhud:spawnParticles("fabric", uiX, uiY, bundle.fabric)
     end
-    if bundle.bones then
-        rhud:spawnParticles("bones", uiX, uiY, bundle.bones)
+    if bundle.bread then
+        rhud:spawnParticles("bread", uiX, uiY, bundle.bread)
+    end
+    if bundle.juice then
+        rhud:spawnParticles("juice", uiX, uiY, bundle.juice)
     end
 end
 
@@ -239,16 +244,72 @@ end
 
 
 
-local xpParticles = particles.newParticlesWorld({
+local popupParticles = particles.newParticlesWorld({
     gravity = 350,
+    extraFields = {
+        "dx","dy"
+    },
     drawParticle = function(p)
         local id = p.id
         local sx,sy = 1,1
         local rot = 0
-        g.drawImage("money", p.x,p.y, rot, sx,sy)
+        local img
+        if id%2==0 then
+            img = "xp_packet_big_1"
+        else
+            img = "xp_packet_big_2"
+        end
+        sx = math.sin(love.timer.getTime()*10 + id*1.77)
+        g.drawImage(img, p.x,p.y, rot, sx,sy)
     end,
     getParticleDuration = function(p)
         return (4 + p.id % 4) / 2
+    end
+})
+
+
+local xpParticles = particles.newParticlesWorld({
+    gravity = 0,
+    extraFields = {
+        "dx","dy"
+    },
+    updateParticle = function (p, dt)
+        local ACCELLERATION = 400
+        local TARG_VEL = 400
+        local w,h = ui.getScaledUIDimensions()
+        local targX,targY = 160,h-18
+        local vx,vy = p.vx,p.vy
+        local dx, dy = (targX-p.x), (targY-p.y)
+        local mag = ((dx*dx + dy*dy) ^ 0.5)
+        local mult = 1--(TARG_VEL-velMag)/100
+        local lifetime = p.lifetime
+        if mag > 0 then
+            local targVel = TARG_VEL * (1+lifetime)
+            local tvx = (dx/mag)*targVel
+            local tvy = (dy/mag)*targVel
+            p.vx = (0.96 * vx + (dx/mag)*ACCELLERATION*dt*mult) + 0.04*tvx
+            p.vy = (0.96 * vy + (dy/mag)*ACCELLERATION*dt*mult) + 0.04*tvy
+        end
+    end,
+    drawParticle = function(p)
+        local id = p.id
+        local sx,sy = 1,1
+        local i = id%8
+        local img
+        if i<3 then
+            img = "xp_packet_small_2"
+        elseif i<6 then
+            img = "xp_packet_small_1"
+        elseif i==6 then
+            img = "xp_packet_big_1"
+        elseif i==7 then
+            img = "xp_packet_big_2"
+        end
+        local rot = 0--love.timer.getTime()*10 + id*1.77
+        g.drawImage(img, p.x,p.y, rot, sx,sy)
+    end,
+    getParticleDuration = function(p)
+        return (8 + p.id % 4) / 2
     end
 })
 
@@ -259,7 +320,7 @@ local function openPopup(self)
     self.levelUpPopup = true
     self.timeSincePopupOpened = 0
     self.timeTakenThisLevel = 0
-    xpParticles:clear()
+    popupParticles:clear()
 end
 
 
@@ -399,10 +460,10 @@ function drawPopup(self)
     })
 
     love.graphics.setColor(1,1,1)
-    xpParticles:draw()
-    if xpParticles:getParticleCount() < 60 then
+    popupParticles:draw()
+    if popupParticles:getParticleCount() < 60 then
         local x,y = helper.randomInRegion(popup:padRatio(0.5):get())
-        xpParticles:spawnParticle(x,y, math.random(-260,260), math.random(-100,-400))
+        popupParticles:spawnParticle(x,y, math.random(-260,260), math.random(-100,-400))
     end
 
     -- TODO: im not sure if these black bars look very good...
@@ -439,7 +500,7 @@ end
 
 
 function updatePopup(self, dt)
-    xpParticles:update(dt)
+    popupParticles:update(dt)
 end
 
 
@@ -454,6 +515,14 @@ function harvest:tokenDestroyed(tok)
         local sn = g.getSn()
         sn.xp = sn.xp + xp*mult
     end
+
+    local x,y = self.camera:getTransform():transformPoint(tok.x,tok.y)
+    local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(x,y)
+    local SPD = 600
+    local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
+    xpParticles:spawnParticle(uiX,uiY, vx,vy)
+    vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
+    xpParticles:spawnParticle(uiX,uiY, vx,vy)
 end
 
 
@@ -495,6 +564,10 @@ function harvest:draw()
     if self.levelUpPopup then
         drawPopup(self)
     end
+
+    lg.setColor(1,1,1)
+    xpParticles:draw()
+
     ui.endUI()
 end
 
@@ -511,6 +584,7 @@ function harvest:update(dt)
     else
         self.timeTakenThisLevel = self.timeTakenThisLevel + dt
     end
+    xpParticles:update(dt)
 
     local sn = g.getSn()
     if (not self.levelUpPopup) and sn.xp > sn.xpRequirement then

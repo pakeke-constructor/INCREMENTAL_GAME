@@ -23,6 +23,7 @@ local particles = {}
 ---@field gravity number
 ---@field drawParticle fun(p: particles.Proxy)
 ---@field getParticleDuration fun(p: particles.Proxy): number
+---@field updateParticle fun(p: particles.Proxy,dt:number)?
 local ParticlesWorld = {}
 local ParticlesWorld_mt = {__index=ParticlesWorld}
 
@@ -114,6 +115,7 @@ local Proxy_mt = {
 ---@field getParticleDuration fun(p: particles.Proxy): number
 ---@field extraFields table<string, (fun(x: any):boolean)|true>?
 ---@field gravity number?
+---@field updateParticle fun(p: particles.Proxy,dt:number)?
 local Args = {}
 
 ---@param args particles._Args
@@ -129,6 +131,7 @@ function particles.newParticlesWorld(args)
 
     self.drawParticle = assert(args.drawParticle)
     self.getParticleDuration = assert(args.getParticleDuration)
+    self.updateParticle = args.updateParticle
 
     self.proxy = setmetatable({
         _self=self
@@ -194,6 +197,9 @@ function ParticlesWorld:update(dt)
     for i=count,1,-1 do
         self.i = i
         local p = self.proxy
+        if self.updateParticle then
+            self.updateParticle(p,dt)
+        end
         p.lifetime = p.lifetime + dt
         p.x = p.x + p.vx*dt
         p.y = p.y + p.vy*dt
