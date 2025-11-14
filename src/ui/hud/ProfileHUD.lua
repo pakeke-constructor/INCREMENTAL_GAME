@@ -18,6 +18,8 @@ function Profile:init()
     ---@type g.hud._TokenParticle[]
     self.inflightTokens = {}
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
+
+    self.xpBarPos = {x = 0, y = 0}
     self.tokenQueuePos = {x = 0, y = 0}
 
     self.xpLerp = 0
@@ -111,6 +113,7 @@ function Profile:draw(noDraw, drawXPBar)
 
         if drawXPBar then
             drawExperienceBar(xpBarR)
+            self.xpBarPos = {x=xpBarR.x + 16, y=xpBarR.y + xpBarR.h/2}
         end
 
         -- Draw inflight token
@@ -186,6 +189,10 @@ end
 
 function Profile:getStackTokenPos()
     return self.tokenQueuePos.x, self.tokenQueuePos.y
+end
+
+function Profile:getXPBarStartPos()
+    return self.xpBarPos.x, self.xpBarPos.y
 end
 
 return Profile

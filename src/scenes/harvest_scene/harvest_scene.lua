@@ -271,14 +271,12 @@ local popupParticles = particles.newParticlesWorld({
 
 local xpParticles = particles.newParticlesWorld({
     gravity = 0,
-    extraFields = {
-        "dx","dy"
-    },
     updateParticle = function (p, dt)
         local ACCELLERATION = 400
         local TARG_VEL = 400
         local w,h = ui.getScaledUIDimensions()
-        local targX,targY = 160,h-18
+        local hud = g.getHUD()
+        local targX,targY = hud.profileHUD:getXPBarStartPos()
         local vx,vy = p.vx,p.vy
         local dx, dy = (targX-p.x), (targY-p.y)
         local mag = ((dx*dx + dy*dy) ^ 0.5)
