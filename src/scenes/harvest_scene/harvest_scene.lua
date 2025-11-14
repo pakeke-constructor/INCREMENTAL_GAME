@@ -281,14 +281,13 @@ local xpParticles = particles.newParticlesWorld({
         local vx,vy = p.vx,p.vy
         local dx, dy = (targX-p.x), (targY-p.y)
         local mag = ((dx*dx + dy*dy) ^ 0.5)
-        local mult = 1--(TARG_VEL-velMag)/100
         local lifetime = p.lifetime
         if mag > 0 then
             local targVel = TARG_VEL * (1+lifetime)
             local tvx = (dx/mag)*targVel
             local tvy = (dy/mag)*targVel
-            p.vx = (0.96 * vx + (dx/mag)*ACCELLERATION*dt*mult) + 0.04*tvx
-            p.vy = (0.96 * vy + (dy/mag)*ACCELLERATION*dt*mult) + 0.04*tvy
+            p.vx = (0.96 * vx + (dx/mag)*ACCELLERATION*dt) + 0.04*tvx
+            p.vy = (0.96 * vy + (dy/mag)*ACCELLERATION*dt) + 0.04*tvy
         end
     end,
     drawParticle = function(p)
