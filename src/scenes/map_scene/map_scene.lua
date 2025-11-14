@@ -148,7 +148,7 @@ local function definePOI(id, name, def)
 end
 
 definePOI("harvest", "Harvest", {
-    x = 203, y = 174, w = 123, h = 54,
+    x = 197, y = 156, w = 144, h = 98,
     highlight = {"harvestarea_windmill", "harvestarea_house", "harvestarea_platform"},
     tx = 262, ty = 169, tcolor = objects.Color("#".."FF0FA569"),
     action = function()
@@ -156,7 +156,7 @@ definePOI("harvest", "Harvest", {
     end
 })
 definePOI("upgrade", "Upgrade", {
-    x = 104, y = 135, w = 64, h = 59,
+    x = 106, y = 94, w = 91, h = 104,
     highlight = {"upgradearea_dome", "upgradearea_plasmahut"},
     tx = 152, ty = 132, tcolor = objects.Color("#".."FF41D7D7"),
     action = function()
@@ -164,7 +164,7 @@ definePOI("upgrade", "Upgrade", {
     end
 })
 definePOI("fishing", "Fish", {
-    x = 238, y = 88, w = 136, h = 63,
+    x = 236, y = 82, w = 142, h = 74,
     highlight = {"fishingarea_buildings", "fishingarea_dock"},
     tx = 323, ty = 100, tcolor = objects.Color("#".."FF14A0CD"),
     price = {money = 5000},
@@ -173,7 +173,7 @@ definePOI("fishing", "Fish", {
     end
 })
 definePOI("minigame", "Minigames", {
-    x = 127, y = 269, w = 93, h = 63,
+    x = 121, y = 246, w = 109, h = 93,
     highlight = {"carnivalarea_attractions"},
     tx = 188, ty = 277, tcolor = objects.Color("#".."FFE65AE6"),
     -- TODO: Price
@@ -182,7 +182,7 @@ definePOI("minigame", "Minigames", {
     action = function() end
 })
 definePOI("quest", "Quests", {
-    x = 263, y = 276, w = 143, h = 71,
+    x = 252, y = 267, w = 165, h = 100,
     highlight = {"questarea_buildings"},
     tx = 327, ty = 291, tcolor = objects.Color("#".."FFB4236E"),
     -- TODO: Price
@@ -191,7 +191,7 @@ definePOI("quest", "Quests", {
     action = function() end
 })
 definePOI("boss", "Challenges", {
-    x = 399, y = 183, w = 80, h = 70,
+    x = 391, y = 168, w = 98, h = 90,
     highlight = {"bossarea_statue"},
     tx = 441, ty = 175, tcolor = objects.Color("#".."FF7891A5"),
     -- TODO: Price
@@ -351,6 +351,9 @@ function map:draw()
     -- Draw POI tooltip
     local smallFont = g.getSmallFont(16)
     for _, poi in pairs(POI) do
+        if consts.DEV_MODE and love.keyboard.isDown("space") then
+            ui.debugRegion(Kirigami(poi.x, poi.y, poi.w, poi.h))
+        end
         if unlockedPOIs:has(poi.type) then
             if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
                 drawPOIText(poi)
