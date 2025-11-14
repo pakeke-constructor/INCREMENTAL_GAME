@@ -245,7 +245,7 @@ end
 
 
 local popupParticles = particles.newParticlesWorld({
-    gravity = 350,
+    gravity = 100,
     extraFields = {
         "dx","dy"
     },
@@ -259,7 +259,7 @@ local popupParticles = particles.newParticlesWorld({
         else
             img = "xp_packet_big_2"
         end
-        sx = math.sin(love.timer.getTime()*10 + id*1.77)
+        --sx = math.sin(love.timer.getTime()*10 + id*1.77)
         g.drawImage(img, p.x,p.y, rot, sx,sy)
     end,
     getParticleDuration = function(p)
@@ -305,10 +305,11 @@ local xpParticles = particles.newParticlesWorld({
             img = "xp_packet_big_2"
         end
         local rot = 0--love.timer.getTime()*10 + id*1.77
-        g.drawImage(img, p.x,p.y, rot, sx,sy)
+        local x,y = p.x,p.y
+        g.drawImage(img, x,y, rot, sx,sy)
     end,
     getParticleDuration = function(p)
-        return (8 + p.id % 4) / 2
+        return 1.8
     end
 })
 
@@ -388,6 +389,7 @@ end
 
 
 local GRADIENT_IMG = love.graphics.newImage("src/scenes/harvest_scene/gradient_background.png")
+local GOLD = objects.Color("#".."FFFAE06B")
 
 function drawPopup(self)
     local r = Kirigami(0,0, ui.getScaledUIDimensions())
@@ -402,6 +404,8 @@ function drawPopup(self)
     top = top:moveRatio(0,-(1-progress))
     bot = bot:moveRatio(0,(1-progress))
 
+    local cx,cy = r:getCenter()
+
     do
     local x,y,w,h = r:get()
     local iw,ih = GRADIENT_IMG:getDimensions()
@@ -411,10 +415,37 @@ function drawPopup(self)
     lg.draw(GRADIENT_IMG, x, y, 0, sx, sy, 0, 0)
     end
 
-    local GOLD = objects.Color("#".."FFFAE06B")
+    love.graphics.setColor(1,1,1)
+    popupParticles:draw()
+    if popupParticles:getParticleCount() < 340 then
+        local a = love.timer.getTime()*3-- math.random()*2*math.pi
+        if love.math.random()<0.5 then
+            a = a+math.pi
+        end
+        local mag = 280 + math.random()*60
+        local vx = math.cos(a) * mag
+        local vy = math.sin(a) * mag
+        popupParticles:spawnParticle(cx,cy, vx,vy)
+    end
+
+    do
+    local t = (love.timer.getTime()*1) % 1
+    local R = (r.w/5) * progress
+    local r1 = R*t
+    local r2 = R + R*t
+    local r3 = R*2 + R*t
+    lg.setLineWidth(10)
+    local lw=lg.getLineWidth()
+    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.7)
+    lg.circle("line", cx,cy, r1)
+    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.6)
+    lg.circle("line", cx,cy, r2)
+    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.5)
+    lg.circle("line", cx,cy, r3)
+    lg.setLineWidth(lw)
+    end
 
     local DIVISIONS = 120
-    local cx,cy = r:getCenter()
     godrays.drawRays(cx,cy, love.timer.getTime()*1.3, {
         rayCount = 5,
         color = GOLD,
@@ -436,16 +467,30 @@ function drawPopup(self)
         fadeTo=0.0
     })
 
-    godrays.drawRays(cx,cy, love.timer.getTime()*-0.7, {
+    do
+    local spd=-0.7
+    godrays.drawRays(cx,cy, love.timer.getTime()*spd, {
         rayCount = 3,
-        color = GOLD,
+        color = {GOLD[1],GOLD[2],GOLD[3],0.5},
         -- color = {0.7,1,0.3},
         startWidth = 20,
         divisions = DIVISIONS,
         growRate = 0.3,
-        length = r.w * 0.9 * progress,
+        length = r.w * 0.7 * progress,
         fadeTo=0.3
     })
+    godrays.drawRays(cx,cy, love.timer.getTime()*spd, {
+        rayCount = 3,
+        color = GOLD,
+        -- color = {0.7,1,0.3},
+        startWidth = 12,
+        divisions = DIVISIONS,
+        growRate = 0.3,
+        length = r.w * 0.7 * progress,
+        fadeTo=0.3
+    })
+    end
+
 
     godrays.drawRays(cx,cy, love.timer.getTime()*0.7, {
         rayCount = 2,
@@ -458,13 +503,6 @@ function drawPopup(self)
         fadeTo=0.4
     })
 
-    love.graphics.setColor(1,1,1)
-    popupParticles:draw()
-    if popupParticles:getParticleCount() < 60 then
-        local x,y = helper.randomInRegion(popup:padRatio(0.5):get())
-        popupParticles:spawnParticle(x,y, math.random(-260,260), math.random(-100,-400))
-    end
-
     -- TODO: im not sure if these black bars look very good...
     -- i think we need OOMPH, not a cinematic.
     --[[
@@ -475,6 +513,7 @@ function drawPopup(self)
     --- yeah... idk, maybe remove this stuff ^^^^
 
     do
+    love.graphics.setColor(1,1,1)
     local a,b,c = popup:splitVertical(1,1,1)
     local p = 0.2
 
@@ -520,8 +559,6 @@ function harvest:tokenDestroyed(tok)
     local SPD = 600
     local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
     xpParticles:spawnParticle(uiX,uiY, vx,vy)
-    vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
-    xpParticles:spawnParticle(uiX,uiY, vx,vy)
 end
 
 
@@ -541,7 +578,9 @@ function harvest:draw()
 
     local world = g.getMainWorld()
 
-    if not simulation.isSimulating() then
+    if self.levelUpPopup then
+        world:_enableMouseHarvester(-500,-500)
+    elseif (not simulation.isSimulating()) then
         local cx,cy = self.camera:toWorld(love.mouse.getPosition())
         world:_enableMouseHarvester(cx,cy)
     end

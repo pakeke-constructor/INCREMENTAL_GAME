@@ -1394,7 +1394,7 @@ function g.getUpgradePrice(uinfo, level)
             money = 10
         }
         for _,res in ipairs(g.RESOURCE_LIST)do
-            truePrice[res] = modifyUpgradePrice(uinfo, truePrice[res], level)
+            truePrice[res] = modifyUpgradePrice(uinfo, truePrice[res] or 0, level)
         end
     end
 

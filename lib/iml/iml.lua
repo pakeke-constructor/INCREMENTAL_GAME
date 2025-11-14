@@ -31,7 +31,7 @@ local frameState = nil
 
 
 
-local CLICK_MOVE_THRESHOLD = 6
+iml.CLICK_MOVE_THRESHOLD = 10
 -- Click and move less than X pixels = click
 -- MORE than X pixels, drag
 
@@ -68,7 +68,7 @@ local last_pointer_y = 0
 ---@return boolean
 local function isClick(cl)
     -- if it moves less than X distance, its a click
-    return math.sqrt(cl.total_dx*cl.total_dx + cl.total_dy*cl.total_dy) < CLICK_MOVE_THRESHOLD
+    return math.sqrt(cl.total_dx*cl.total_dx + cl.total_dy*cl.total_dy) < iml.CLICK_MOVE_THRESHOLD
 end
 
 

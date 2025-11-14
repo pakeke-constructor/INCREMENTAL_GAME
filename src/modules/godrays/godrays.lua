@@ -65,7 +65,7 @@ function godrays.drawRay(x, y, rot, length, color, startWidth, widthGrowRate, di
         local y4 = sy + py*sw
 
         -- Set color with diminishing alpha
-        love.graphics.setColor(color[1], color[2], color[3], alpha)
+        love.graphics.setColor(color[1], color[2], color[3], alpha*color[4])
 
         -- Draw the polygon segment
         love.graphics.polygon("fill", x1, y1, x2, y2, x3, y3, x4, y4)

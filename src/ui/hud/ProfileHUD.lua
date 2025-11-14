@@ -50,8 +50,14 @@ local function drawExperienceBar(xpBarR)
     lg.setColor(1,1,1)
     lg.rectangle("fill", xpBarR:get())
     local x,y,w,h = xpBarR:padRatio(0.2):get()
+
     lg.setColor(0,0.3,0.7)
-    local targXP = sn.xp/sn.xpRequirement
+    if sn.xp >= sn.xpRequirement then
+        local t = love.timer.getTime()
+        local r,g,b = objects.Color.HSVtoRGB((t * 90) % 360, 1, 1)
+        lg.setColor(r,g,b)
+    end
+    local targXP = math.min(1, sn.xp/sn.xpRequirement)
     lg.rectangle("fill", x,y,w*targXP,h)
 
     local lw=lg.getLineWidth()
@@ -59,12 +65,6 @@ local function drawExperienceBar(xpBarR)
 
     lg.setColor(0,0,1)
     lg.rectangle("line", xpBarR:get())
-
-    if sn.xp >= sn.xpRequirement then
-        local on = math.floor(love.timer.getTime()*4) % 2 ==0
-        lg.setColor(1,1,1, on and 1 or 0)
-        lg.rectangle("line", xpBarR:padUnit(-3):get())
-    end
 
     lg.setLineWidth(lw)
 end
