@@ -2,6 +2,7 @@
 local lg=love.graphics
 
 local particles = require("src.modules.particles.particles")
+local cloudService = require(".cloud_service")
 
 
 
@@ -587,6 +588,12 @@ function harvest:draw()
 
     world:_draw()
 
+    -- Draw clouds
+    cloudService.drawShadow()
+    love.graphics.setColor(1, 1, 1, 0.67)
+    cloudService.draw()
+
+    love.graphics.setColor(1, 1, 1)
     self:_drawTokenStackAnim()
 
     self:resetCamera()
@@ -669,6 +676,9 @@ function harvest:update(dt)
         -- then it's gone.
         self.stackedTokenLerpTime = -1
     end
+
+    -- Update cloud
+    cloudService.update(dt, self.camera)
 
     if simulation.isSimulating() then
         simulation.update(dt)
