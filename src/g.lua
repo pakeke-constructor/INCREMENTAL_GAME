@@ -1950,7 +1950,14 @@ function g.hitImmediately(tok)
     g.call("tokenHit", tok)
     g.damageToken(tok, hitMult * g.stats.HitDamage)
 
-    g.spawnParticle("crosshair", tok.x, tok.y, 1)
+    local r = love.math.random()
+    if r < 0.333 then
+        g.spawnParticle("xp1", tok.x, tok.y, 2)
+    elseif r < 0.666 then
+        g.spawnParticle("xp2", tok.x, tok.y, 1)
+    else
+        g.spawnParticle("xp3", tok.x, tok.y, 2)
+    end
 
     local i = love.math.random(1,3)
     local s = "hit_generic_"..i
