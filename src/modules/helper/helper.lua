@@ -14,6 +14,16 @@ function helper.lerp(a, b, t)
     return (1 - t) * a + t * b
 end
 
+---Remap value range from one to another
+---@param v number
+---@param r1 number
+---@param r2 number
+---@param nr1 number
+---@param nr2 number
+function helper.remap(v, r1, r2, nr1, nr2)
+    return nr1 + (v - r1) * (nr2 - nr1) / (r2 - r1)
+end
+
 
 
 ---@generic n:number
