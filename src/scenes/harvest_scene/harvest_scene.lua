@@ -600,6 +600,8 @@ function harvest:draw()
 
     ui.startUI()
     self:renderMapButton()
+    lg.setColor(1,1,1)
+    xpParticles:draw()
     g.getHUD():draw({
         xpbar=true
     })
@@ -607,9 +609,6 @@ function harvest:draw()
     if self.levelUpPopup then
         drawPopup(self)
     end
-
-    lg.setColor(1,1,1)
-    xpParticles:draw()
 
     ui.endUI()
 end

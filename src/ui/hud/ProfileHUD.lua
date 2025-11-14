@@ -51,9 +51,9 @@ local function drawExperienceBar(xpBarR)
     local sn = g.getSn()
     lg.setColor(1,1,1)
     lg.rectangle("fill", xpBarR:get())
-    local x,y,w,h = xpBarR:padRatio(0.2):get()
+    local x,y,w,h = xpBarR:padRatio(0.3):get()
 
-    lg.setColor(0,0.3,0.7)
+    lg.setColor(0.2,0.4,0.9)
     if sn.xp >= sn.xpRequirement then
         local t = love.timer.getTime()
         local r,g,b = objects.Color.HSVtoRGB((t * 90) % 360, 1, 1)
