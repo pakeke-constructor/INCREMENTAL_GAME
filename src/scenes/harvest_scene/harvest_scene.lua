@@ -586,12 +586,12 @@ function harvest:draw()
         world:_enableMouseHarvester(cx,cy)
     end
 
-    world:_draw()
-
     -- Draw clouds
     cloudService.drawShadow()
     love.graphics.setColor(1, 1, 1, 0.67)
     cloudService.draw()
+
+    world:_draw()
 
     love.graphics.setColor(1, 1, 1)
     self:_drawTokenStackAnim()
