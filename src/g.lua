@@ -448,11 +448,11 @@ end
 
 
 
----@alias g.ResourceType "money"|"logs"|"rocks"|"bones"
+---@alias g.ResourceType "money"|"fabric"|"bread"|"juice"|"fish"
 
 -- i wish we could define this as { [g.ResourceType]: number } but it doesnt work that way
----@alias g.Bundle {money?: number, bones?: number, rocks?: number, logs?: number}
----@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
+---@alias g.Bundle {money?: number, fabric?: number, bread?: number, juice?: number, fish?: number}
+---@alias g.Resources {money: number, fabric: number, bread: number, juice: number, fish: number}
 
 
 ---@alias g.PrestigeRange {lower: integer, upper: integer}
@@ -477,12 +477,12 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@class g.UpgradeDefinition
 ---@field kind g.UpgradeKind
 ---@field tokenType string? (only for kind == "TOKEN")
----@field price g.Bundle
 ---@field maxLevel integer?
 ---@field startingUpgrade boolean? starting-upgrades will be visible at the start, no matter what.
 ---@field image string?
 ---@field priceScaling number?
 ---@field description string?
+---@field getPriceOverride (fun(uinfo:g.UpgradeInfo, level:integer): g.Bundle)?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number)?
 ---@field valueFormatter ((string|(fun(x:number):string))[])?
@@ -576,20 +576,25 @@ g.defineResource("money", {
     startingLimit=(consts.DEV_MODE and 10000000000000) or 1000,
     color = {0.71, 0.55, 0.02},
 })
-g.defineResource("logs", {
-    image="logs_icon",
-    limitStat="LogLimit",
-    color={0.53, 0.5, 0.41}
+g.defineResource("fabric", {
+    image="fabric",
+    limitStat="FabricLimit",
+    color=objects.Color("#".."FFF353FB")
 })
-g.defineResource("rocks", {
-    image="rocks_icon",
-    limitStat="RockLimit",
-    color={0.35, 0.35, 0.35}
+g.defineResource("bread", {
+    image="bread",
+    limitStat="BreadLimit",
+    color=objects.Color("#".."FFB78652")
 })
-g.defineResource("bones", {
-    image="bones_icon",
-    limitStat="BoneLimit",
-    color={0.75, 0.27, 0.1}
+g.defineResource("juice", {
+    image="juice",
+    limitStat="JuiceLimit",
+    color=objects.Color("#".."FF8A2E59")
+})
+g.defineResource("fish", {
+    image="fish",
+    limitStat="FishLimit",
+    color=objects.Color("#".."FF305FCD")
 })
 
 
@@ -610,7 +615,7 @@ end
 ---@param resId string
 function g.isResourceUnlocked(resId)
     assertValidResource(resId)
-    if g.getPrestige() == 0 and (resId == "bones" or resId == "rocks") then
+    if g.getPrestige() == 0 and (g.getResource(resId) <= 0) then
         return false
     end
     return true
@@ -1160,6 +1165,7 @@ local SPECIAL_FUNCTIONS = {
     getValues = true,
     getEntityCount = true,
     spawnEntity = true,
+    getPriceOverride = true,
     drawUI = true
 }
 
@@ -1189,6 +1195,10 @@ function g.defineUpgrade(id, name, def)
 
     assert(not upgradeInfos[id], "Redefined upgrade!")
     upgradeInfos[id] = def
+
+    if rawget(def,"price") then
+        error("Deprecated.", 2)
+    end
 
     -- Cache questions and events this upgrade can handle
     for key, func in pairs(def) do
@@ -1371,15 +1381,23 @@ end
 
 ---WARNING: This incurs a table allocation.
 ---@param uinfo g.UpgradeInfo
----@param level number? Optional; defaults to the current upgrade's level.
+---@param level integer? Optional; defaults to the current upgrade's level.
 ---@return g.Bundle
 function g.getUpgradePrice(uinfo, level)
-    local truePrice = {}
-    for _,res in ipairs(g.RESOURCE_LIST)do
-        if uinfo.price[res] then
-            truePrice[res] = modifyUpgradePrice(uinfo, uinfo.price[res], level)
+    local truePrice
+    level = level or g.getUpgradeLevel(uinfo)
+
+    if uinfo.getPriceOverride then
+        truePrice = uinfo:getPriceOverride(level)
+    else
+        truePrice = {
+            money = 10
+        }
+        for _,res in ipairs(g.RESOURCE_LIST)do
+            truePrice[res] = modifyUpgradePrice(uinfo, truePrice[res], level)
         end
     end
+
     return truePrice
 end
 
@@ -1558,6 +1576,13 @@ function g.defineToken(tokType, name, tabl)
 
         assert(not tabl.image, "cannot define image when defining stalk")
         tabl.image = assert(stalkInfo.image)
+    end
+
+    if tabl.resources then
+        for resId,v in pairs(tabl.resources) do
+            assertValidResource(resId)
+            assert(v >= 0)
+        end
     end
 
     tabl.image = tabl.image or tokType

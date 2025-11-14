@@ -28,17 +28,21 @@ local PARTICLE_SPAWN_CATEGORY = {
         format = "money_particle_%d",
         counts = {1, 10, 100, 1000},
     },
-    logs = {
-        format = "log_particle_%d",
-        counts = {1, 10, 100},
+    fabric = {
+        format = "money_particle_%d",
+        counts = {1, 10, 100, 1000},
     },
-    rocks = {
-        format = "rock_particle_%d",
-        counts = {1, 10},
+    juice = {
+        format = "money_particle_%d",
+        counts = {1, 10, 100, 1000},
     },
-    bones = {
-        format = "bone_particle_%d",
-        counts = {1, 10, 100},
+    bread = {
+        format = "money_particle_%d",
+        counts = {1, 10, 100, 1000},
+    },
+    fish = {
+        format = "money_particle_%d",
+        counts = {1, 10, 100, 1000},
     },
 }
 
@@ -50,23 +54,28 @@ function Resources:init()
 
     self.poses = {
         money = {0, 0},
-        logs = {0, 0},
-        rocks = {0, 0},
-        bones = {0, 0},
+        fabric = {0, 0},
+        bread = {0, 0},
+        fish = {0,0},
+        juice = {0, 0},
     }
+
     -- Shown value
     self.displayValue = {
         money = 0,
-        logs = 0,
-        rocks = 0,
-        bones = 0,
+        fabric = 0,
+        fish = 0,
+        bread = 0,
+        juice = 0,
     }
+
     -- Used for animation interpolation (e.g. increasing text scale)
     self.timeSinceChanged = {
         money = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
-        logs = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
-        rocks = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
-        bones = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
+        fabric = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
+        bread = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
+        fish = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
+        juice = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
     }
 
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())

@@ -24,7 +24,6 @@ g.defineTokenUpgrade("mushroom_blue", "Blue Mushroom", {
     },
     upgrade = {
         description = "Spawns lightning when destroyed!",
-        price = {money = 500}
     }
 })
 
@@ -42,7 +41,6 @@ g.defineTokenUpgrade("mushroom_red", "Red Mushroom", {
     },
     upgrade = {
         description = "Explodes when destroyed!",
-        price = {money = 100}
     }
 })
 
@@ -74,7 +72,6 @@ g.defineTokenUpgrade("mushroom_green", "Green Mushroom", {
     },
     upgrade = {
         description = "When destroyed, spawns 6 grass crops",
-        price = {money = 250}
     }
 })
 
@@ -97,7 +94,6 @@ g.defineTokenUpgrade("plant_pot", "Plant Pot", {
     },
     upgrade = {
         description = "When destroyed, damages surrounding grass crops",
-        price = {money = 100}
     }
 })
 

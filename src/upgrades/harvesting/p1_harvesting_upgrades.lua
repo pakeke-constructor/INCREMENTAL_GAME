@@ -17,8 +17,6 @@ end
 defUpgrade("more_damage", "More Damage", {
     startingUpgrade=true,
 
-    price = {money=10},
-
     getValues = function(self,level)
         return level*10
     end,
@@ -33,8 +31,6 @@ defUpgrade("more_damage", "More Damage", {
 
 
 defUpgrade("hit_speed", "Hit Speed", {
-    price = {money=10},
-
     getValues = function(self,level)
         return level*10
     end,
@@ -49,8 +45,6 @@ defUpgrade("hit_speed", "Hit Speed", {
 
 
 defUpgrade("more_area", "More Area", {
-    price = {money=10},
-
     getValues = function(self,level)
         return level*4
     end,
@@ -66,8 +60,6 @@ defUpgrade("more_area", "More Area", {
 
 
 defUpgrade("lucky_hit", "Lucky Hit", {
-    price = {money=10},
-
     getValues = function(self,level)
         return level*3
     end,
@@ -93,8 +85,6 @@ defUpgrade("lucky_hit", "Lucky Hit", {
 
 
 defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
-    price = {money=800},
-
     maxLevel = 3,
 
     getValues = function(self,level)
@@ -119,7 +109,6 @@ defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
 
 defUpgrade("more_loot", "More Loot", {
     image = "money", -- TODO: change
-    price = {money = 100},
     description = "All tokens have %{1} more health, and earn %{2} more resources.",
 
     getValues = function(uinfo, level)
@@ -142,7 +131,6 @@ defUpgrade("more_loot", "More Loot", {
 
 
 defUpgrade("critical_damage", "Critical Damage", {
-    price = {money = 100},
     description = "%{1} chance of hitting token with 10x more damage.",
     getValues = function(uinfo, level)
         return 1 + (level - 1) / 2
@@ -163,7 +151,6 @@ defUpgrade("bomb", "Bomb", {
         return level
     end,
     valueFormatter = {"%d%%"},
-    price = {money = 100},
 
     perSecondUpdate = function(uinfo, level)
         local world = g.getMainWorld()

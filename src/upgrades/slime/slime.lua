@@ -35,7 +35,6 @@ g.defineTokenUpgrade("slime_token", "Slime", {
     },
 
     upgrade = {
-        price = {money=500},
         maxLevel=3,
     }
 })
@@ -65,8 +64,6 @@ g.defineUpgrade("corrosive_slime", "Corrosive Slime", {
             return 1+(a/100)
         end
     end,
-
-    price={money=2000},
 })
 
 
@@ -88,8 +85,6 @@ g.defineUpgrade("better_slime", "Better Slime", {
             return 1+(a/100)
         end
     end,
-
-    price={money=2000},
 })
 
 
@@ -114,8 +109,6 @@ g.defineUpgrade("acidic_slime", "Acidic Slime", {
             end
         end
     end,
-
-    price={money=2000},
 })
 
 
@@ -147,8 +140,6 @@ g.defineUpgrade("slime_apocalypse", "Slime Apocalypse", {
             end
         end
     end,
-
-    price={money=2000},
 })
 
 
@@ -178,8 +169,6 @@ g.defineUpgrade("slime_pandemic", "Slime Pandemic", {
             end
         end
     end,
-
-    price={money=2000},
 })
 
 
@@ -208,8 +197,6 @@ g.defineUpgrade("slime_fertilizer", "Slime Fertilizer", {
             end
         end
     end,
-
-    price={money=2000},
 })
 
 
@@ -232,8 +219,6 @@ g.defineUpgrade("slime_grenade", "Slime Grenade", {
             worldutil.explosion(tok.x,tok.y, 50)
         end
     end,
-
-    price={money=2000},
 })
 
 
