@@ -349,7 +349,20 @@ local function loadImage(path)
     end
 end
 
+-- Define 1x1 white image
+do
+    -- Add padding around to prevent bleeding
+    local id = love.image.newImageData(3, 3, "rgba8")
+    id:mapPixel(function() return 1, 1, 1, 0 end) -- fill transparent white
+    id:setPixel(1, 1, 1, 1, 1, 1) -- set middle pixel
+    local q = assert(atlas:add(id))
+    local x, y = q:getViewport()
+    -- Now define it to be 1x1 instead of 3x3
+    q:setViewport(x + 1, y + 1, 1, 1, g.getAtlas():getDimensions())
+    nameToQuad["1x1"] = q
+end
 
+-- Load other images
 g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
 g.walkDirectory("src/entities", loadImage)
