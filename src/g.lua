@@ -2332,6 +2332,7 @@ end
 ---@param scale number?
 ---@param drawBackground boolean?
 function g.drawAvatar(avatar, x, y, scale, drawBackground)
+    local oy = 0
     scale = scale or 1
 
     -- Not 100% certain if this should be in g, but we can move it later.
@@ -2339,11 +2340,13 @@ function g.drawAvatar(avatar, x, y, scale, drawBackground)
         local bginfo = g.getAvatarBackgroundInfo(avatar.background)
         love.graphics.setColor(bginfo.color)
         g.drawImage(bginfo.image, x, y, 0, scale * bginfo.upscale)
+        -- When drawing with background, assume it's for rendering in UI
+        oy = 3
     end
 
     love.graphics.setColor(1, 1, 1)
     local catinfo = g.getCatAvatarInfo(avatar.avatar)
-    g.drawImage(catinfo.image, x, y, 0, scale)
+    g.drawImage(catinfo.image, x, y + oy, 0, scale)
 
     if avatar.hat then
         local hatinfo = g.getAvatarHatInfo(avatar.hat)
@@ -2353,7 +2356,7 @@ function g.drawAvatar(avatar, x, y, scale, drawBackground)
         g.drawImageOffset(
             hatinfo.image,
             x + hatinfo.offsetX,
-            y - 8 + hatinfo.offsetY,
+            y - 8 + hatinfo.offsetY + oy,
             0, s, s,
             hatinfo.originX,
             hatinfo.originY
