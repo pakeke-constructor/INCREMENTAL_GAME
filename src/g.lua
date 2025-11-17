@@ -2351,8 +2351,8 @@ function g.drawAvatar(avatar, x, y, scale, drawBackground)
         -- Note: This assume cat avatar is 16x16. If not, make this configurable.
         g.drawImageOffset(
             hatinfo.image,
-            (x + hatinfo.offsetX) * s,
-            (y - 8 + hatinfo.offsetY + oy) * s,
+            x + (hatinfo.offsetX) * s,
+            y + (hatinfo.offsetY + oy - 8) * s,
             0, s, s,
             hatinfo.originX,
             hatinfo.originY
