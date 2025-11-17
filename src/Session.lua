@@ -82,11 +82,8 @@ function Session:init()
     self.unlockedAvatarBackgrounds = objects.Set()
     ---@type g.Avatar
     self.avatar = {
-        ---@type string
-        avatar = "cat",
-        ---@type string
-        background = "white",
-        ---@type string|nil
+        avatar = consts.DEFAULT_CAT_AVATAR,
+        background = consts.DEFAULT_BACKGROUND_AVATAR,
         hat = nil,
     }
 
@@ -176,8 +173,8 @@ function Session.deserialize(data)
     sess.unlockedAvatarHats = objects.Set(data.unlockedAvatarHats or {})
     sess.unlockedAvatarBackgrounds = objects.Set(data.unlockedAvatarBackgrounds or {})
     if data.avatar then
-        sess.avatar.avatar = data.avatar.avatar or "cat"
-        sess.avatar.background = data.avatar.background or "white"
+        sess.avatar.avatar = data.avatar.avatar or consts.DEFAULT_CAT_AVATAR
+        sess.avatar.background = data.avatar.background or consts.DEFAULT_BACKGROUND_AVATAR
         sess.avatar.hat = data.avatar.hat
     end
 
