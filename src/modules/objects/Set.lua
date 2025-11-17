@@ -162,4 +162,13 @@ end
 
 Set.contains = Set.has -- alias
 
+---@return any[]
+function Set:totable()
+    local result = {}
+    for _, v in ipairs(self) do
+        result[#result+1] = v
+    end
+    return v
+end
+
 return Set
