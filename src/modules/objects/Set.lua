@@ -168,7 +168,7 @@ function Set:totable()
     for _, v in ipairs(self) do
         result[#result+1] = v
     end
-    return v
+    return result
 end
 
 return Set

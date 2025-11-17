@@ -30,6 +30,7 @@ local consts = {
 
     WORLD_TILE_SIZE = 16, -- World tile size on both width and height.
 
+    AVATAR_SIZE = 24, -- Size of the avatar with background
     DEFAULT_CAT_AVATAR = "cat",
     DEFAULT_BACKGROUND_AVATAR = "white"
 }

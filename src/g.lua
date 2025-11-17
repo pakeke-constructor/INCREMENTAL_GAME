@@ -2187,19 +2187,19 @@ end
 
 ---@param id string Cat avatar ID
 function g.isCatAvatarUnlocked(id)
-    helper.assert(not CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
+    helper.assert(CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
     return currentSession.unlockedCatAvatars:has(id)
 end
 
 ---@param id string Cat avatar ID
 function g.unlockCatAvatar(id)
-    helper.assert(not CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
+    helper.assert(CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
     currentSession.unlockedCatAvatars:add(id)
 end
 
 ---@param id string Cat avatar ID
 function g.getCatAvatarInfo(id)
-    helper.assert(not CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
+    helper.assert(CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
     return CAT_AVATAR_INFO[id]
 end
 
@@ -2240,19 +2240,18 @@ end
 
 ---@param id string Avatar background ID
 function g.isAvatarBackgroundUnlocked(id)
-    helper.assert(not BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
     return currentSession.unlockedAvatarBackgrounds:has(id)
 end
 
 ---@param id string Avatar background ID
 function g.unlockAvatarBackground(id)
-    helper.assert(not BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
+    helper.assert(BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
     currentSession.unlockedAvatarBackgrounds:add(id)
 end
 
 ---@param id string Avatar background ID
 function g.getAvatarBackgroundInfo(id)
-    helper.assert(not BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
+    helper.assert(BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
     return BG_AVATAR_INFO[id]
 end
 
@@ -2307,19 +2306,18 @@ end
 
 ---@param id string Avatar hat ID
 function g.isAvatarHatUnlocked(id)
-    helper.assert(not HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
     return currentSession.unlockedAvatarHats:has(id)
 end
 
 ---@param id string Avatar hat ID
 function g.unlockAvatarHat(id)
-    helper.assert(not HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
+    helper.assert(HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
     currentSession.unlockedAvatarHats:add(id)
 end
 
 ---@param id string Avatar hat ID
 function g.getAvatarHatInfo(id)
-    helper.assert(not HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
+    helper.assert(HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
     return HAT_AVATAR_INFO[id]
 end
 
@@ -2341,12 +2339,12 @@ function g.drawAvatar(avatar, x, y, scale, drawBackground)
         love.graphics.setColor(bginfo.color)
         g.drawImage(bginfo.image, x, y, 0, scale * bginfo.upscale)
         -- When drawing with background, assume it's for rendering in UI
-        oy = 3
+        oy = math.floor((consts.AVATAR_SIZE - 16) / 2) - 1
     end
 
     love.graphics.setColor(1, 1, 1)
     local catinfo = g.getCatAvatarInfo(avatar.avatar)
-    g.drawImage(catinfo.image, x, y + oy, 0, scale)
+    g.drawImage(catinfo.image, x, y + oy * scale, 0, scale)
 
     if avatar.hat then
         local hatinfo = g.getAvatarHatInfo(avatar.hat)
@@ -2355,8 +2353,8 @@ function g.drawAvatar(avatar, x, y, scale, drawBackground)
         -- Note: This assume cat avatar is 16x16. If not, make this configurable.
         g.drawImageOffset(
             hatinfo.image,
-            x + hatinfo.offsetX,
-            y - 8 + hatinfo.offsetY + oy,
+            (x + hatinfo.offsetX) * s,
+            (y - 8 + hatinfo.offsetY + oy) * s,
             0, s, s,
             hatinfo.originX,
             hatinfo.originY

@@ -96,13 +96,19 @@ function Profile:draw(noDraw, drawXPBar)
     self.tokenQueuePos.x, self.tokenQueuePos.y = stackTokenR:getCenter()
 
     if not noDraw then
-        -- Draw dummy profile picture
+        -- Draw avatar background location stencil
         lg.setColor(1, 1, 1)
-        lg.rectangle("fill", profileR:get())
+        lg.setStencilMode("draw", 2)
         local x,y,w,h = profileR:get()
-        lg.setColor(1,1,1)
-        local SCALE=4
-        g.drawImage("happy_cat",x+w/2,y+h/2, 0, -SCALE,SCALE)
+        lg.rectangle("fill", x, y, w, h)
+        lg.setStencilMode("test", 2)
+
+        -- Draw avatar
+        local scale = helper.lerp(w, h, 0.5) / consts.AVATAR_SIZE
+        g.drawPlayerAvatar(x + w / 2, y + h / 2, scale, true)
+        lg.setStencilMode()
+
+        -- Draw red border
         lg.setColor(1, 0, 0)
         local lw = lg.getLineWidth()
         lg.setLineWidth(3)
