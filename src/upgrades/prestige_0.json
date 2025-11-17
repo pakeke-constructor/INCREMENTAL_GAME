@@ -7,7 +7,7 @@
         "stick": {"x": 2, "y": 1},
         "basic_log": {"x": 3, "y": 1},
         "happy_kitten": {"x": 2, "y": 0},
-        "happy_cat": {"x": 2, "y": -1},
+        "happy_cat_token": {"x": 2, "y": -1},
         "business_cat": {"x": 2, "y": -2},
         "more_damage": {"x": -3, "y": 0},
         "hit_speed": {"x": -3, "y": -1},

@@ -94,7 +94,7 @@ g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
 })
 
 
-g.defineTokenUpgrade("happy_cat", "Happy Cat", {
+g.defineTokenUpgrade("happy_cat_token", "Happy Cat", {
     token = {
         category = "cat",
         resources = {
