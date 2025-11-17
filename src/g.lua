@@ -20,6 +20,8 @@ local currentSession
 
 function g.newSession()
     currentSession = Session()
+    g.unlockCatAvatar(consts.DEFAULT_CAT_AVATAR)
+    g.unlockAvatarBackground(consts.DEFAULT_BACKGROUND_AVATAR)
 end
 
 ---@param path string
@@ -27,6 +29,17 @@ function g.loadSession(path)
     local contents = assert(love.filesystem.read(path))
     local jsondata = json.decode(contents)
     currentSession = Session.deserialize(jsondata)
+
+    -- Sanitize invalid avatar
+    if not g.isCatAvatarUnlocked(currentSession.avatar.avatar) then
+        currentSession.avatar.avatar = consts.DEFAULT_CAT_AVATAR
+    end
+    if not g.isAvatarBackgroundUnlocked(currentSession.avatar.background) then
+        currentSession.avatar.background = consts.DEFAULT_BACKGROUND_AVATAR
+    end
+    if currentSession.avatar.hat and not g.isAvatarHatUnlocked(currentSession.avatar.hat) then
+        currentSession.avatar.hat = nil
+    end
 end
 
 
