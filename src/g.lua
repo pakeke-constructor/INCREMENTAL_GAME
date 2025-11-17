@@ -919,6 +919,8 @@ end
 
 
 
+local UpgradeTree = require("src.upgrades.UpgradeTree")
+
 --------------------------------------------------
 -- Upgrades.
 --- 
