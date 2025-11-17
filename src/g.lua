@@ -2121,6 +2121,234 @@ end
 
 
 
+---------------------------------
+--- Accessories/Customization ---
+---------------------------------
+do
+
+---@class g.Avatar
+---@field public avatar string Cat avatar ID
+---@field public background string Background ID of the avatar
+---@field public hat string? Cat hat ID
+
+
+---@type string[]
+g.CAT_AVATARS = {}
+
+---@class _CatAvatarDef
+---@field public image string?
+---@class g.CatAvatarInfo: _CatAvatarDef
+---@field public name string
+---@field public type string
+---@field public image string
+
+---@type table<string, g.CatAvatarInfo>
+local CAT_AVATAR_INFO = {}
+
+---Define new cat avatar.
+---@param id string Cat avatar ID
+---@param name string
+---@param def _CatAvatarDef
+function g.defineCatAvatar(id, name, def)
+    helper.assert(not CAT_AVATAR_INFO[id], "cat avatar", id, "is already defined")
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "image", def.image, "does not exist")
+    ---@cast def g.CatAvatarInfo
+    def.name = loc(name)
+    def.type = id
+    CAT_AVATAR_INFO[id] = def
+end
+
+---@param id string Cat avatar ID
+function g.isCatAvatarUnlocked(id)
+    helper.assert(not CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
+    return currentSession.unlockedCatAvatars:has(id)
+end
+
+---@param id string Cat avatar ID
+function g.unlockCatAvatar(id)
+    helper.assert(not CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
+    currentSession.unlockedCatAvatars:add(id)
+end
+
+---@param id string Cat avatar ID
+function g.getCatAvatarInfo(id)
+    helper.assert(not CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
+    return CAT_AVATAR_INFO[id]
+end
+
+
+
+---@type string[]
+g.AVATAR_BACKGROUNDS = {}
+
+---@class _AvatarBackgroundDef
+---@field public image string?
+---@field public upscale integer?
+---@field public color objects.Color?
+---@class g.BackgroundAvatarInfo: _AvatarBackgroundDef
+---@field public name string
+---@field public type string
+---@field public image string
+---@field public upscale integer
+---@field public color objects.Color
+
+---@type table<string, g.BackgroundAvatarInfo>
+local BG_AVATAR_INFO = {}
+
+---@param id string Avatar background ID
+---@param name string
+---@param def _AvatarBackgroundDef
+function g.defineAvatarBackground(id, name, def)
+    helper.assert(not BG_AVATAR_INFO[id], "background avatar", id, "is already defined")
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "image", def.image, "does not exist")
+    def.upscale = math.floor(def.upscale or 1)
+    def.color = def.color or objects.Color.WHITE
+    ---@cast def g.BackgroundAvatarInfo
+    def.type = id
+    def.name = loc(name)
+
+    BG_AVATAR_INFO[id] = def
+end
+
+---@param id string Avatar background ID
+function g.isAvatarBackgroundUnlocked(id)
+    helper.assert(not BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
+    return currentSession.unlockedAvatarBackgrounds:has(id)
+end
+
+---@param id string Avatar background ID
+function g.unlockAvatarBackground(id)
+    helper.assert(not BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
+    currentSession.unlockedAvatarBackgrounds:add(id)
+end
+
+---@param id string Avatar background ID
+function g.getAvatarBackgroundInfo(id)
+    helper.assert(not BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
+    return BG_AVATAR_INFO[id]
+end
+
+
+
+---@type string[]
+g.AVATAR_HATS = {}
+
+
+---@class _AvatarHatDef
+---@field public image string?
+---@field public upscale integer?
+---@field public color objects.Color?
+---@field public offsetX number?
+---@field public offsetY number?
+---@field public originX number?
+---@field public originY number?
+---@class g.HatAvatarInfo: _AvatarHatDef
+---@field public name string
+---@field public type string
+---@field public image string
+---@field public upscale integer
+---@field public color objects.Color
+---@field public offsetX number
+---@field public offsetY number
+---@field public originX number
+---@field public originY number
+
+---@type table<string, g.HatAvatarInfo>
+local HAT_AVATAR_INFO = {}
+
+---@param id string Avatar hat ID
+---@param name string
+---@param def _AvatarHatDef
+function g.defineAvatarHat(id, name, def)
+    helper.assert(not HAT_AVATAR_INFO[id], "background avatar", id, "is already defined")
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "image", def.image, "does not exist")
+    def.upscale = math.floor(def.upscale or 1)
+    def.color = def.color or objects.Color.WHITE
+    def.offsetX = def.offsetX or 0
+    def.offsetY = def.offsetY or 0
+    def.originX = def.originX or 0.5
+    def.originY = def.originY or 1
+
+    ---@cast def g.HatAvatarInfo
+    def.type = id
+    def.name = loc(name)
+
+    HAT_AVATAR_INFO[id] = def
+end
+
+---@param id string Avatar hat ID
+function g.isAvatarHatUnlocked(id)
+    helper.assert(not HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
+    return currentSession.unlockedAvatarHats:has(id)
+end
+
+---@param id string Avatar hat ID
+function g.unlockAvatarHat(id)
+    helper.assert(not HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
+    currentSession.unlockedAvatarHats:add(id)
+end
+
+---@param id string Avatar hat ID
+function g.getAvatarHatInfo(id)
+    helper.assert(not HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
+    return HAT_AVATAR_INFO[id]
+end
+
+
+
+---Avatar occupy 32x32 in size, with background.
+---@param avatar g.Avatar
+---@param x number
+---@param y number
+---@param scale number?
+---@param drawBackground boolean?
+function g.drawAvatar(avatar, x, y, scale, drawBackground)
+    scale = scale or 1
+
+    -- Not 100% certain if this should be in g, but we can move it later.
+    if drawBackground then
+        local bginfo = g.getAvatarBackgroundInfo(avatar.background)
+        love.graphics.setColor(bginfo.color)
+        g.drawImage(bginfo.image, x, y, 0, scale * bginfo.upscale)
+    end
+
+    love.graphics.setColor(1, 1, 1)
+    local catinfo = g.getCatAvatarInfo(avatar.avatar)
+    g.drawImage(catinfo.image, x, y, 0, scale)
+
+    if avatar.hat then
+        local hatinfo = g.getAvatarHatInfo(avatar.hat)
+        local s = scale * hatinfo.upscale
+        love.graphics.setColor(hatinfo.color)
+        -- Note: This assume cat avatar is 16x16. If not, make this configurable.
+        g.drawImageOffset(
+            hatinfo.image,
+            x + hatinfo.offsetX,
+            y - 8 + hatinfo.offsetY,
+            0, s, s,
+            hatinfo.originX,
+            hatinfo.originY
+        )
+    end
+end
+
+---@param x number
+---@param y number
+---@param scale number?
+---@param drawBackground boolean?
+function g.drawPlayerAvatar(x, y, scale, drawBackground)
+    -- Not 100% certain if this should be in g, but we can move it later.
+    return g.drawAvatar(currentSession.avatar, x, y, scale, drawBackground)
+end
+
+
+end
+
+
+
 local validExtensions = {
     wav = true,
     mp3 = true,
