@@ -73,6 +73,23 @@ function Session:init()
     ---@type string[]
     self.tokenQueue = {}
 
+    -- Accessory data
+    ---@type objects.Set<string>
+    self.unlockedCatAvatars = objects.Set()
+    ---@type objects.Set<string>
+    self.unlockedAvatarHats = objects.Set()
+    ---@type objects.Set<string>
+    self.unlockedAvatarBackgrounds = objects.Set()
+    ---@type g.Avatar
+    self.avatar = {
+        ---@type string
+        avatar = "cat",
+        ---@type string
+        background = "white",
+        ---@type string|nil
+        hat = nil,
+    }
+
     -- reset stats:
     for k,sta in pairs(g.VALID_STATS) do
         g.stats[k] = sta.startingValue
@@ -154,6 +171,16 @@ function Session.deserialize(data)
         sess.prestigeLevels[pid - 1] = assert(tonumber(v))
     end
 
+    -- Load accessory unlocks
+    sess.unlockedCatAvatars = objects.Set(data.unlockedCatAvatars or {})
+    sess.unlockedAvatarHats = objects.Set(data.unlockedAvatarHats or {})
+    sess.unlockedAvatarBackgrounds = objects.Set(data.unlockedAvatarBackgrounds or {})
+    if data.avatar then
+        sess.avatar.avatar = data.avatar.avatar or "cat"
+        sess.avatar.background = data.avatar.background or "white"
+        sess.avatar.hat = data.avatar.hat
+    end
+
     -- Metrics
     for metric, v in pairs(data.metrics) do
         sess.metrics[metric] = assert(tonumber(v))
@@ -188,7 +215,15 @@ function Session:serialize()
         upgradeLevels = self.upgradeLevels,
         prestigeLevels = plevels,
         metrics = self.metrics,
-        stats = stats
+        stats = stats,
+        unlockedCatAvatars = self.unlockedCatAvatars:totable(),
+        unlockedAvatarHats = self.unlockedAvatarHats:totable(),
+        unlockedAvatarBackgrounds = self.unlockedAvatarBackgrounds:totable(),
+        avatar = {
+            avatar = self.avatar.avatar,
+            background = self.avatar.background,
+            hat = self.avatar.hat
+        }
     }
 end
 
