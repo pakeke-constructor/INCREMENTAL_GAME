@@ -157,6 +157,8 @@ function love.load(arg)
     else
         g.newSession()
     end
+    g.unlockCatAvatar(consts.DEFAULT_CAT_AVATAR)
+    g.unlockAvatarBackground(consts.DEFAULT_BACKGROUND_AVATAR)
 
     if arg[1] == "--simulate" then
         local upg = assert(arg[2], "missing upgrade")

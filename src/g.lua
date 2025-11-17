@@ -20,8 +20,6 @@ local currentSession
 
 function g.newSession()
     currentSession = Session()
-    g.unlockCatAvatar(consts.DEFAULT_CAT_AVATAR)
-    g.unlockAvatarBackground(consts.DEFAULT_BACKGROUND_AVATAR)
 end
 
 ---@param path string
