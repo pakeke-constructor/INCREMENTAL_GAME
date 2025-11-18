@@ -16,7 +16,8 @@ upgrades = {
 FEATURES WE NEED:
 - iterate over neighbor-upgrades [DONE]
 - Get distance to "root" upgrade
-- 
+- connecting upgrades SIMPLY
+- iterate over "frontier" upgrades
 
 ]]
 
@@ -34,21 +35,36 @@ local Upgrade = {}
 ---@class g.UpgradeTree: objects.Class
 ---@field upgrades table<integer, g.UpgradeTree.Upgrade>
 ---@field connections [integer, integer][]
+---@field _connectionMap table<integer, table<integer, true>>
+---@field _distances table<integer, integer>
 local UpgradeTree = objects.Class("g:UpgradeTree")
 
 
----@param fromJson string
-function UpgradeTree:init(fromJson)
+local finalizeConnections
+
+function UpgradeTree:init()
     self.upgrades = {--[[
         [(x,y)] -> Upgrade{x,y,upgradeId,level,price}
     ]]}
-    self.connections = {--[[
-        [(x,y)] -> true
-    ]]}
+    self.connections = {} -- List< (x,y), (x,y) >
 
-    self.distances = {--[[
+    self._connectionMap = {--[[
+        -- for efficient indexing:
+        [(x,y)] -> List< (x,y) >
+    ]]}
+    self._distances = {--[[
         [(x,y)] -> distanceFromRoot
     ]]}
+end
+
+
+---comment
+---@param data {upgrades:g.UpgradeTree.Upgrade[], connections:[integer,integer][]}
+function UpgradeTree.deserialize(data)
+    local self = UpgradeTree()
+    self.upgrades = data.upgrades
+    self.connections = data.connections
+    finalizeConnections(self)
 end
 
 
@@ -106,23 +122,6 @@ function UpgradeTree:get(x,y)
 end
 
 
-
----@param x integer
----@param y integer
----@param upgradeId string
-function UpgradeTree:put(x,y, upgradeId)
-    -- used when generating upgrade-tree
-    local i = pair(x,y)
-    self.upgrades[i] = {
-        upgradeId = upgradeId,
-        x=x,
-        y=y,
-        price=-1,
-        level=0
-    }
-end
-
-
 ---@param upg g.UpgradeTree.Upgrade
 ---@param price number
 function UpgradeTree:setPrice(upg, price)
@@ -136,66 +135,75 @@ function UpgradeTree:setLevel(upg, level)
 end
 
 
-function UpgradeTree:setRoot()
+---@param upg g.UpgradeTree.Upgrade
+function UpgradeTree:markAsRoot(upg)
+    upg.isRoot = true
+end
 
+
+---@param self g.UpgradeTree
+---@param i1 integer
+---@param i2 integer
+local function updateEdge(self, i1,i2)
+    if not (self.upgrades[i1] and self.upgrades[i2]) then
+        -- invalid upgrades!
+        log.error("Invalid upgrade connection: ", i1,i2)
+        return
+    end
+    local cmap = self._connectionMap
+    cmap[i1] = cmap[i1] or {}
+    cmap[i2] = cmap[i2] or {}
+    cmap[i2][i1] = true
+    cmap[i1][i2] = true
+end
+
+
+
+---@param self g.UpgradeTree
+function finalizeConnections(self)
+    for tabl in ipairs(self.connections) do
+        local i1, i2 = tabl[1],tabl[2]
+        updateEdge(self, i1,i2)
+    end
+end
+
+
+
+---@param upg1 any
+---@param upg2 any
+function UpgradeTree:addConnection(upg1, upg2)
+    local i1 = pair(upg1.x,upg1.y)
+    local i2 = pair(upg2.x,upg2.y)
+
+    table.insert(self.connections, {i1, i2})
+    updateEdge(self, i1, i2)
 end
 
 
 
 local DIRECTIONS = {{1,0}, {-1,0}, {0,1}, {0,-1}}
+local EMPTY = {}
 
 ---@param x number
 ---@param y number
 ---@return g.UpgradeTree.Upgrade[]
 function UpgradeTree:getNeighbors(x,y)
     local neighbors = {}
-    local visited = {}
-    local queue = {}
-
-    local function markVisited(px, py)
-        visited[pair(px, py)] = true
-    end
-
-    local function isConnector(px, py)
-        return self.connections[pair(px,py)]
-    end
-
-    local function isVisited(px, py)
-        return visited[pair(px, py)]
-    end
-
-    local function enqueue(px, py)
-        if not isVisited(px, py) then
-            -- table.insert(queue, {x = px, y = py})
-            table.insert(queue, pair(px,py))
-            markVisited(px, py)
-        end
-    end
-
-    markVisited(x, y)
 
     for _, dir in ipairs(DIRECTIONS) do
         local nx, ny = x + dir[1], y + dir[2]
-        if self:get(nx, ny) then  -- Check if valid cell
-            enqueue(nx, ny)
+        local upg = self:get(nx, ny)
+        if upg then  -- Check if valid cell
+            table.insert(neighbors, upg)
         end
     end
 
-    -- BFS 
-    while #queue > 0 do
-        local current = table.remove(queue, 1)
-        local cx, cy = unpair(current)
-
-        local upg = self.upgrades[pair(cx, cy)]
+    local arr = self._connectionMap[pair(x,y)] or EMPTY
+    for _, i in ipairs(arr) do
+        local upg = self.upgrades[i] -- HACK: using self.upgrades directly
+        -- (more efficient tho)
         if upg then
             table.insert(neighbors, upg)
-        elseif isConnector(cx, cy) then
-            for _, dir in ipairs(DIRECTIONS) do
-                local nx, ny = cx + dir[1], cy + dir[2]
-                if self:get(nx, ny) and not isVisited(nx, ny) then
-                    enqueue(nx, ny)
-                end
-            end
         end
     end
 
@@ -266,6 +274,28 @@ local function updateWithDijkstra(self, x1, y1)
     end
 
     return distances
+end
+
+
+
+---@param x integer
+---@param y integer
+---@param upgradeId string
+---@return g.UpgradeTree.Upgrade
+function UpgradeTree:put(x,y, upgradeId)
+    -- used when generating upgrade-tree
+    local i = pair(x,y)
+    helper.assert(not self.upgrades[i], "Upgrade already exists here!")
+    self.upgrades[i] = {
+        upgradeId = upgradeId,
+        x=x,
+        y=y,
+        price=-1,
+        level=0
+    }
+
+    updateWithDijkstra(self, x,y)
+    return self.upgrades[i]
 end
 
 
