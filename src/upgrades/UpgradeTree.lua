@@ -13,36 +13,50 @@ upgrades = {
 }
 
 
+FEATURES WE NEED:
+- iterate over neighbor-upgrades [DONE]
+- Get distance to "root" upgrade
+- 
+
 ]]
 
 
 ---@class g.UpgradeTree.Upgrade
----@field uinfo g.UpgradeInfo
+---@field upgradeId string
 ---@field level integer
 ---@field price integer
 ---@field x integer
 ---@field y integer
+---@field isRoot boolean?
 local Upgrade = {}
 
 
 ---@class g.UpgradeTree: objects.Class
 ---@field upgrades table<integer, g.UpgradeTree.Upgrade>
----@field connections table<integer, {x:integer,y:integer}>
+---@field connections [integer, integer][]
 local UpgradeTree = objects.Class("g:UpgradeTree")
 
 
 ---@param fromJson string
 function UpgradeTree:init(fromJson)
-    self.upgrades = {}
-    self.connections = {}
-    self.prices = {}
+    self.upgrades = {--[[
+        [(x,y)] -> Upgrade{x,y,upgradeId,level,price}
+    ]]}
+    self.connections = {--[[
+        [(x,y)] -> true
+    ]]}
 
-    self.levels = {}
+    self.distances = {--[[
+        [(x,y)] -> distanceFromRoot
+    ]]}
 end
 
 
 function UpgradeTree:serialize()
-
+    return {
+        upgrades = self.upgrades,
+        connections = self.connections
+    }
 end
 
 
@@ -95,12 +109,12 @@ end
 
 ---@param x integer
 ---@param y integer
----@param uinfo g.UpgradeInfo
-function UpgradeTree:put(x,y, uinfo)
+---@param upgradeId string
+function UpgradeTree:put(x,y, upgradeId)
     -- used when generating upgrade-tree
     local i = pair(x,y)
     self.upgrades[i] = {
-        uinfo = uinfo,
+        upgradeId = upgradeId,
         x=x,
         y=y,
         price=-1,
@@ -122,18 +136,28 @@ function UpgradeTree:setLevel(upg, level)
 end
 
 
+function UpgradeTree:setRoot()
+
+end
+
+
+
+local DIRECTIONS = {{1,0}, {-1,0}, {0,1}, {0,-1}}
 
 ---@param x number
 ---@param y number
----@return table
+---@return g.UpgradeTree.Upgrade[]
 function UpgradeTree:getNeighbors(x,y)
     local neighbors = {}
     local visited = {}
     local queue = {}
-    
-    -- Helper to mark as visited
+
     local function markVisited(px, py)
         visited[pair(px, py)] = true
+    end
+
+    local function isConnector(px, py)
+        return self.connections[pair(px,py)]
     end
 
     local function isVisited(px, py)
@@ -142,33 +166,31 @@ function UpgradeTree:getNeighbors(x,y)
 
     local function enqueue(px, py)
         if not isVisited(px, py) then
-            table.insert(queue, {x = px, y = py})
+            -- table.insert(queue, {x = px, y = py})
+            table.insert(queue, pair(px,py))
             markVisited(px, py)
         end
     end
 
     markVisited(x, y)
 
-
-    local directions = {{1,0}, {-1,0}, {0,1}, {0,-1}}
-    for _, dir in ipairs(directions) do
+    for _, dir in ipairs(DIRECTIONS) do
         local nx, ny = x + dir[1], y + dir[2]
         if self:get(nx, ny) then  -- Check if valid cell
             enqueue(nx, ny)
         end
     end
 
-    -- bfs:
+    -- BFS 
     while #queue > 0 do
         local current = table.remove(queue, 1)
-        local cx, cy = current.x, current.y
-
+        local cx, cy = unpair(current)
 
         local upg = self.upgrades[pair(cx, cy)]
         if upg then
             table.insert(neighbors, upg)
-        elseif isConnector(self, cx, cy) then
-            for _, dir in ipairs(directions) do
+        elseif isConnector(cx, cy) then
+            for _, dir in ipairs(DIRECTIONS) do
                 local nx, ny = cx + dir[1], cy + dir[2]
                 if self:get(nx, ny) and not isVisited(nx, ny) then
                     enqueue(nx, ny)
@@ -181,9 +203,76 @@ function UpgradeTree:getNeighbors(x,y)
 end
 
 
+---@param self g.UpgradeTree
+---@param x1 number
+---@param y1 number
+---@return table<integer,integer>
+local function updateWithDijkstra(self, x1, y1)
+    assert(self.upgrades[pair(x1, y1)])
 
-function UpgradeTree:iterateVisibleUpgrades()
+    local distances = {}
+    local visited = {}
+    local pqueue = {} -- Priority queue: array of {x, y, dist}
 
+    for pos, _ in pairs(self.upgrades) do
+        distances[pos] = math.huge
+    end
+
+    local startPair = pair(x1, y1)
+    distances[startPair] = 0
+    table.insert(pqueue, {x = x1, y = y1, dist = 0})
+
+    local function pqInsert(x, y, dist)
+        local node = {x = x, y = y, dist = dist}
+        local inserted = false
+        for i = 1, #pqueue do
+            if dist < pqueue[i].dist then
+                table.insert(pqueue, i, node)
+                inserted = true
+                break
+            end
+        end
+        if not inserted then
+            table.insert(pqueue, node)
+        end
+    end
+
+    -- Dijkstra's main loop
+    while #pqueue > 0 do
+        -- Get node with minimum distance
+        local current = table.remove(pqueue, 1)
+        local cx, cy, cdist = current.x, current.y, current.dist
+        local cpair = pair(cx, cy)
+
+        if not visited[cpair] then
+            visited[cpair] = true
+
+            local neighbors = self:getNeighbors(cx, cy)
+
+            for _, neighUpg in ipairs(neighbors) do
+                local nx, ny = neighUpg.x, neighUpg.y
+                local npair = pair(nx, ny)
+
+                if not visited[npair] then
+                    local newDist = cdist + 1 -- edge has weight 1
+
+                    if newDist < distances[npair] then
+                        distances[npair] = newDist
+                        pqInsert(nx, ny, newDist)
+                    end
+                end
+            end
+        end
+    end
+
+    return distances
+end
+
+
+
+
+function UpgradeTree:getVisibleUpgrades()
+    local buf = {}
 end
 
 
