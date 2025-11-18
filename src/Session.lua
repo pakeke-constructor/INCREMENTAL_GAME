@@ -74,6 +74,7 @@ function Session:init()
     self.tokenQueue = {}
 
     -- Accessory data
+    ---@type g.Avatar
     self.avatar = {
         avatar = consts.DEFAULT_CAT_AVATAR,
         background = consts.DEFAULT_BACKGROUND_AVATAR,

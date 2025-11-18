@@ -10,6 +10,8 @@ local COSMETIC_COLUMNS = 4
 local CATEGORY_SIZE = 40
 local CATEGORY_DIVIDER = 8
 
+local AVATAR_SCALE = 8
+
 
 local CATEGORIES = {
     {"All", "cosmetic_category_all"},
@@ -98,14 +100,15 @@ function custom:_drawUI()
 
         -- Draw category
         -- For now, use rounded rectangle.
-        -- TODO: Use proper assets
         local cx, cy, cw, ch = categoryR:get()
         love.graphics.setColor(color[1])
         love.graphics.rectangle("fill", cx, cy, cw, ch, 8, 8)
+
         -- Draw icon
         love.graphics.setColor(color[2])
         local s = math.floor(CATEGORY_SIZE / 16)
         g.drawImage(v[2], cx + cw / 2, cy + ch / 2, 0, s, s)
+
         -- Draw hover outline
         if iml.isHovered(cx, cy, cw, ch) then
             love.graphics.setColor(1, 1, 1)
@@ -217,6 +220,22 @@ function custom:_drawUI()
         cosmeticNameR.y,
         1000, "right"
     )
+
+    -- Draw avatar with background
+    local drawBg = self.activeCategory == 1 or self.activeCategory == 3
+    local avatarX, avatarY = math.floor(cellBaseR.x / 2), math.floor(select(2, ui.getScaledUIDimensions()) / 2)
+    local avatarSize = consts.AVATAR_SIZE * AVATAR_SCALE
+    if drawBg then
+        love.graphics.setStencilMode("draw", 3)
+        love.graphics.rectangle("fill", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
+        love.graphics.setStencilMode("test", 3)
+    end
+    g.drawPlayerAvatar(avatarX, avatarY, AVATAR_SCALE, drawBg)
+    if drawBg then
+        love.graphics.setStencilMode()
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.rectangle("line", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
+    end
 end
 
 
