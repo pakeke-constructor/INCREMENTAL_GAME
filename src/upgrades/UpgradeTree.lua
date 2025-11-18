@@ -303,13 +303,19 @@ end
 
 function UpgradeTree:getVisibleUpgrades()
     local buf = {}
+    -- TODO.
 end
 
 
-function UpgradeTree:distanceFromRoot(x,y)
+---@param upg g.UpgradeTree.Upgrade
+function UpgradeTree:distanceFromRoot(upg)
     -- gets the distance from the root upgrade
     -- (manhattan distance)
-
+    if upg.isRoot then
+        return 0
+    end
+    local i = pair(upg.x,upg.y)
+    return self._distances[i]
 end
 
 
@@ -319,15 +325,18 @@ end
 
 
 function UpgradeTree:iterateAllConnections()
-    local i = nil
-    local val
+    -- (untested)
+    local i = 1
     return function()
-        i, val = next(self.connections, i)
-        if not i then
+        local t = self.connections[i]
+        if not t then
             return nil
         end
-        local x,y = unpair(i)
-        return x,y, val
+        local i1,i2 = t[1],t[2]
+        local upg1 = self.upgrades[i1]
+        local upg2 = self.upgrades[i2]
+        i = i + 1
+        return upg1, upg2
     end
 end
 
