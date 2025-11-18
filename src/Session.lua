@@ -162,9 +162,6 @@ function Session.deserialize(data)
     end
 
     -- Load accessory unlocks
-    sess.unlockedCatAvatars = objects.Set(data.unlockedCatAvatars or {})
-    sess.unlockedAvatarHats = objects.Set(data.unlockedAvatarHats or {})
-    sess.unlockedAvatarBackgrounds = objects.Set(data.unlockedAvatarBackgrounds or {})
     if data.avatar then
         sess.avatar.avatar = data.avatar.avatar or consts.DEFAULT_CAT_AVATAR
         sess.avatar.background = data.avatar.background or consts.DEFAULT_BACKGROUND_AVATAR
