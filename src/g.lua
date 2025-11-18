@@ -2136,15 +2136,13 @@ end
 
 local cosmetics = require("src.cosmetics.cosmetics")
 
----@return string[]
-function g.getUnlockedCosmetics()
-    return cosmetics.getUnlocked()
-end
+g.getCosmeticInfo = cosmetics.getInfo
+g.getUnlockedCosmetics = cosmetics.getUnlocked
 
----@param id string
-function g.getCosmeticInfo(id)
-    return cosmetics.getInfo(id)
-end
+g.drawAvatar = cosmetics.drawAvatar
+g.drawPlayerAvatar = cosmetics.drawPlayerAvatar
+
+
 
 
 

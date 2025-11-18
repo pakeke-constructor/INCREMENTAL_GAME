@@ -107,6 +107,7 @@ end
 
 
 ---@param id string cosmetic-info
+---@return g.CosmeticInfo
 function cosmetics.getInfo(id)
     ensureLoaded()
     helper.assert(COSMETIC_INFO[id], "cosmetic", id, "is not defined")
