@@ -39,8 +39,9 @@ end
 
 
 
----@param x table
----@return table
+---@generic T: table
+---@param x T
+---@return T
 function helper.shallowCopy(x)
     local res = {}
     for k,v in pairs(x) do

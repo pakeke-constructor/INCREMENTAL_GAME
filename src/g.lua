@@ -27,17 +27,6 @@ function g.loadSession(path)
     local contents = assert(love.filesystem.read(path))
     local jsondata = json.decode(contents)
     currentSession = Session.deserialize(jsondata)
-
-    -- Sanitize invalid avatar
-    if not g.isCatAvatarUnlocked(currentSession.avatar.avatar) then
-        currentSession.avatar.avatar = consts.DEFAULT_CAT_AVATAR
-    end
-    if not g.isAvatarBackgroundUnlocked(currentSession.avatar.background) then
-        currentSession.avatar.background = consts.DEFAULT_BACKGROUND_AVATAR
-    end
-    if currentSession.avatar.hat and not g.isAvatarHatUnlocked(currentSession.avatar.hat) then
-        currentSession.avatar.hat = nil
-    end
 end
 
 
@@ -2156,8 +2145,6 @@ do
 ---@field public hat string? Cat hat ID
 
 
----@type string[]
-g.CAT_AVATARS = {}
 
 ---@class _CatAvatarDef
 ---@field public image string?
@@ -2168,12 +2155,14 @@ g.CAT_AVATARS = {}
 
 ---@type table<string, g.CatAvatarInfo>
 local CAT_AVATAR_INFO = {}
+---@type string[]
+local CAT_AVATAR_LIST = {} -- to have consistent iteration order
 
 ---Define new cat avatar.
 ---@param id string Cat avatar ID
 ---@param name string
 ---@param def _CatAvatarDef
-function g.defineCatAvatar(id, name, def)
+local function defineCatAvatar(id, name, def)
     helper.assert(not CAT_AVATAR_INFO[id], "cat avatar", id, "is already defined")
     def.image = def.image or id
     helper.assert(g.isImage(def.image), "image", def.image, "does not exist")
@@ -2181,18 +2170,8 @@ function g.defineCatAvatar(id, name, def)
     def.name = loc(name)
     def.type = id
     CAT_AVATAR_INFO[id] = def
-end
-
----@param id string Cat avatar ID
-function g.isCatAvatarUnlocked(id)
-    helper.assert(CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
-    return currentSession.unlockedCatAvatars:has(id)
-end
-
----@param id string Cat avatar ID
-function g.unlockCatAvatar(id)
-    helper.assert(CAT_AVATAR_INFO[id], "cat avatar", id, "is not defined")
-    currentSession.unlockedCatAvatars:add(id)
+    -- Unlock all by default
+    CAT_AVATAR_LIST[#CAT_AVATAR_LIST+1] = id
 end
 
 ---@param id string Cat avatar ID
@@ -2201,10 +2180,11 @@ function g.getCatAvatarInfo(id)
     return CAT_AVATAR_INFO[id]
 end
 
+function g.getUnlockedCats()
+    return helper.shallowCopy(CAT_AVATAR_LIST)
+end
 
 
----@type string[]
-g.AVATAR_BACKGROUNDS = {}
 
 ---@class _AvatarBackgroundDef
 ---@field public image string?
@@ -2219,11 +2199,13 @@ g.AVATAR_BACKGROUNDS = {}
 
 ---@type table<string, g.BackgroundAvatarInfo>
 local BG_AVATAR_INFO = {}
+---@type string[]
+local BG_AVATAR_LIST = {} -- to have consistent iteration order
 
 ---@param id string Avatar background ID
 ---@param name string
 ---@param def _AvatarBackgroundDef
-function g.defineAvatarBackground(id, name, def)
+local function defineAvatarBackground(id, name, def)
     helper.assert(not BG_AVATAR_INFO[id], "background avatar", id, "is already defined")
     def.image = def.image or id
     helper.assert(g.isImage(def.image), "image", def.image, "does not exist")
@@ -2234,17 +2216,8 @@ function g.defineAvatarBackground(id, name, def)
     def.name = loc(name)
 
     BG_AVATAR_INFO[id] = def
-end
-
----@param id string Avatar background ID
-function g.isAvatarBackgroundUnlocked(id)
-    return currentSession.unlockedAvatarBackgrounds:has(id)
-end
-
----@param id string Avatar background ID
-function g.unlockAvatarBackground(id)
-    helper.assert(BG_AVATAR_INFO[id], "background avatar", id, "is not defined")
-    currentSession.unlockedAvatarBackgrounds:add(id)
+    -- Unlock all by default
+    BG_AVATAR_LIST[#BG_AVATAR_LIST+1] = id
 end
 
 ---@param id string Avatar background ID
@@ -2253,10 +2226,11 @@ function g.getAvatarBackgroundInfo(id)
     return BG_AVATAR_INFO[id]
 end
 
+function g.getUnlockedBackgrounds()
+    return helper.shallowCopy(BG_AVATAR_LIST)
+end
 
 
----@type string[]
-g.AVATAR_HATS = {}
 
 
 ---@class _AvatarHatDef
@@ -2280,11 +2254,13 @@ g.AVATAR_HATS = {}
 
 ---@type table<string, g.HatAvatarInfo>
 local HAT_AVATAR_INFO = {}
+---@type string[]
+local HAT_AVATAR_LIST = {} -- to have consistent iteration order
 
 ---@param id string Avatar hat ID
 ---@param name string
 ---@param def _AvatarHatDef
-function g.defineAvatarHat(id, name, def)
+local function defineAvatarHat(id, name, def)
     helper.assert(not HAT_AVATAR_INFO[id], "background avatar", id, "is already defined")
     def.image = def.image or id
     helper.assert(g.isImage(def.image), "image", def.image, "does not exist")
@@ -2300,17 +2276,8 @@ function g.defineAvatarHat(id, name, def)
     def.name = loc(name)
 
     HAT_AVATAR_INFO[id] = def
-end
-
----@param id string Avatar hat ID
-function g.isAvatarHatUnlocked(id)
-    return currentSession.unlockedAvatarHats:has(id)
-end
-
----@param id string Avatar hat ID
-function g.unlockAvatarHat(id)
-    helper.assert(HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
-    currentSession.unlockedAvatarHats:add(id)
+    -- Unlock everything by default
+    HAT_AVATAR_LIST[#HAT_AVATAR_LIST+1] = id
 end
 
 ---@param id string Avatar hat ID
@@ -2318,6 +2285,36 @@ function g.getAvatarHatInfo(id)
     helper.assert(HAT_AVATAR_INFO[id], "hat avatar", id, "is not defined")
     return HAT_AVATAR_INFO[id]
 end
+
+function g.getUnlockedHats()
+    return helper.shallowCopy(HAT_AVATAR_LIST)
+end
+
+
+
+-- Load the avatar cosmetics
+-- TODO: Load these from Steam API instead of hardcoding.
+defineCatAvatar("cat", "Happy Cat", {
+    image = "happy_cat"
+})
+defineCatAvatar("business_cat", "Business Cat", {})
+defineCatAvatar("evil_cat", "Evil Cat", {})
+defineCatAvatar("grass_farmer_cat", "Grass Farmer Cat", {})
+defineCatAvatar("lumberjack_cat", "Lumberjack Cat", {})
+
+defineAvatarBackground("white", "White", {
+    image = "1x1",
+    upscale = consts.AVATAR_SIZE,
+})
+defineAvatarBackground("pink", "Pink", {
+    image = "1x1",
+    upscale = consts.AVATAR_SIZE,
+    color = objects.Color("#".."FFDF28B5")
+})
+
+defineAvatarHat("farmer_hat", "Farmer Hat", {
+    offsetY = 6
+})
 
 
 

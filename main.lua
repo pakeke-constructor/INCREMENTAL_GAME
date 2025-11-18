@@ -149,7 +149,6 @@ function love.load(arg)
     love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
-    g.requireFolder("src/avatars")
 
     local shouldLoad = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
     if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") and arg[1] ~= "--simulate" then
@@ -157,8 +156,6 @@ function love.load(arg)
     else
         g.newSession()
     end
-    g.unlockCatAvatar(consts.DEFAULT_CAT_AVATAR)
-    g.unlockAvatarBackground(consts.DEFAULT_BACKGROUND_AVATAR)
 
     if arg[1] == "--simulate" then
         local upg = assert(arg[2], "missing upgrade")
