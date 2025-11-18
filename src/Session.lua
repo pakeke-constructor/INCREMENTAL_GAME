@@ -74,13 +74,6 @@ function Session:init()
     self.tokenQueue = {}
 
     -- Accessory data
-    ---@type objects.Set<string>
-    self.unlockedCatAvatars = objects.Set()
-    ---@type objects.Set<string>
-    self.unlockedAvatarHats = objects.Set()
-    ---@type objects.Set<string>
-    self.unlockedAvatarBackgrounds = objects.Set()
-    ---@type g.Avatar
     self.avatar = {
         avatar = consts.DEFAULT_CAT_AVATAR,
         background = consts.DEFAULT_BACKGROUND_AVATAR,
@@ -213,9 +206,6 @@ function Session:serialize()
         prestigeLevels = plevels,
         metrics = self.metrics,
         stats = stats,
-        unlockedCatAvatars = self.unlockedCatAvatars:totable(),
-        unlockedAvatarHats = self.unlockedAvatarHats:totable(),
-        unlockedAvatarBackgrounds = self.unlockedAvatarBackgrounds:totable(),
         avatar = {
             avatar = self.avatar.avatar,
             background = self.avatar.background,
