@@ -14,7 +14,7 @@ local simulation = require("src.world.simulation")
 local harvest = FreeCameraScene()
 
 
-local LEVELUP_POPUP_FADE_IN_TIME = 0.25
+local XP_POPUP_FADE_IN_TIME = 0.25
 -- How many seconds it takes to fade in the popup
 
 
@@ -23,13 +23,13 @@ function harvest:init()
     self.allowMousePan = false
 
     self.timeTakenThisLevel = 0
-    self.levelUpPopup = nil
+    self.xpPopup = nil
     self.xpRequirement = 1 -- set every frame.
 
     self.xpBarX, self.xpBarY = 1000,0 -- where should Xp particles move to?
 
     self.timeSincePopupOpened = 0
-    self.levelUpPopup = false
+    self.xpPopup = false
 
     self.stackedTokenX = 0
     self.stackedTokenY = 0
@@ -316,7 +316,7 @@ local xpParticles = particles.newParticlesWorld({
 
 local function openPopup(self)
     -- BOOM! level up popup!
-    self.levelUpPopup = true
+    self.xpPopup = true
     self.timeSincePopupOpened = 0
     self.timeTakenThisLevel = 0
     popupParticles:clear()
@@ -325,7 +325,7 @@ end
 
 
 local function closePopup(self)
-    self.levelUpPopup = false
+    self.xpPopup = false
     self.timeSincePopupOpened = 0
     self.timeTakenThisLevel = 0
     local sn = g.getSn()
@@ -336,7 +336,7 @@ end
 
 
 
-local drawPopup, updatePopup
+local drawXpPopup, updateXPPopup
 do
 
 local COLS = {
@@ -390,11 +390,12 @@ end
 local GRADIENT_IMG = love.graphics.newImage("src/scenes/harvest_scene/gradient_background.png")
 local GOLD = objects.Color("#".."FFFAE06B")
 
-function drawPopup(self)
+---@param self HarvestScene
+function drawXpPopup(self)
     local r = Kirigami(0,0, ui.getScaledUIDimensions())
 
     -- number from 0 -> 1
-    local progress = math.min(1, self.timeSincePopupOpened / LEVELUP_POPUP_FADE_IN_TIME)
+    local progress = math.min(1, self.timeSincePopupOpened / XP_POPUP_FADE_IN_TIME)
 
     local top, mid, bot = r:splitVertical(1,8,1)
     local _,popup = mid:splitHorizontal(1,2,1)
@@ -449,7 +450,7 @@ function drawPopup(self)
         rayCount = 5,
         color = GOLD,
         --color = {0.3,1,0.7},
-        startWidth = 15,
+        startWidth = 10,
         divisions = DIVISIONS,
         growRate = 0.1,
         length = r.w * 0.7 * progress,
@@ -472,7 +473,7 @@ function drawPopup(self)
         rayCount = 3,
         color = {GOLD[1],GOLD[2],GOLD[3],0.5},
         -- color = {0.7,1,0.3},
-        startWidth = 20,
+        startWidth = 17,
         divisions = DIVISIONS,
         growRate = 0.3,
         length = r.w * 0.7 * progress,
@@ -482,7 +483,7 @@ function drawPopup(self)
         rayCount = 3,
         color = GOLD,
         -- color = {0.7,1,0.3},
-        startWidth = 12,
+        startWidth = 9,
         divisions = DIVISIONS,
         growRate = 0.3,
         length = r.w * 0.7 * progress,
@@ -490,6 +491,16 @@ function drawPopup(self)
     })
     end
 
+    godrays.drawRays(cx,cy, 2 + love.timer.getTime()*1.3, {
+        rayCount = 4,
+        color = GOLD,
+        -- color = {0.7,1,0.3},
+        startWidth = 7,
+        divisions = DIVISIONS,
+        growRate = 0.3,
+        length = r.w * 0.7 * progress,
+        fadeTo=0.3
+    })
 
     godrays.drawRays(cx,cy, love.timer.getTime()*0.7, {
         rayCount = 2,
@@ -536,7 +547,7 @@ function drawPopup(self)
 end
 
 
-function updatePopup(self, dt)
+function updateXPPopup(self, dt)
     popupParticles:update(dt)
 end
 
@@ -546,7 +557,7 @@ end
 
 
 function harvest:tokenDestroyed(tok)
-    if not self.levelUpPopup then
+    if not self.xpPopup then
         local xp = tok.maxHealth
         local mult = getXPMultiplier(self)
         local sn = g.getSn()
@@ -577,7 +588,7 @@ function harvest:draw()
 
     local world = g.getMainWorld()
 
-    if self.levelUpPopup then
+    if self.xpPopup then
         world:_enableMouseHarvester(-500,-500)
     elseif (not simulation.isSimulating()) then
         local cx,cy = self.camera:toWorld(love.mouse.getPosition())
@@ -606,8 +617,8 @@ function harvest:draw()
         xpbar=true
     })
     self:_drawActiveEffects()
-    if self.levelUpPopup then
-        drawPopup(self)
+    if self.xpPopup then
+        drawXpPopup(self)
     end
 
     ui.endUI()
@@ -620,8 +631,8 @@ function harvest:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
 
-    if self.levelUpPopup then
-        updatePopup(self, dt)
+    if self.xpPopup then
+        updateXPPopup(self, dt)
         self.timeSincePopupOpened = self.timeSincePopupOpened + dt
     else
         self.timeTakenThisLevel = self.timeTakenThisLevel + dt
@@ -629,7 +640,7 @@ function harvest:update(dt)
     xpParticles:update(dt)
 
     local sn = g.getSn()
-    if (not self.levelUpPopup) and sn.xp > sn.xpRequirement then
+    if (not self.xpPopup) and sn.xp > sn.xpRequirement then
         openPopup(self)
     end
 
