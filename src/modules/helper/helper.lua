@@ -159,6 +159,19 @@ function helper.multiplyAlpha(color, alpha)
 end
 
 
+---Wrap text in richtext with color tag
+---@param col [number, number, number]
+---@param text string
+function helper.wrapRichtextColor(col, text)
+    local a = col[4] or 1
+    if a < 1 then
+        return "{c r="..col[1].." g="..col[2].." b="..col[3].." a="..a.."}"..text.."{/c}"
+    else
+        return "{c r="..col[1].." g="..col[2].." b="..col[3].."}"..text.."{/c}"
+    end
+end
+
+
 
 ---@param text string
 ---@param font love.Font
