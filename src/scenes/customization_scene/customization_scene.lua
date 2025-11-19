@@ -86,15 +86,19 @@ local filters = {
 function custom:_drawUI()
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
-    -- Draw categories
-    local categoryBaseR = Kirigami(0, 0, CATEGORY_SIZE, CATEGORY_SIZE)
-        :attachToTopOf(r)
+    -- Compute right center cosmetic category.
+    local categoryHeight = (CATEGORY_SIZE + CATEGORY_DIVIDER) * #CATEGORIES - CATEGORY_DIVIDER
+    local allCategoryR = Kirigami(0, 0, CATEGORY_SIZE, categoryHeight)
         :attachToRightOf(r)
-        :moveRatio(-1, 1)
-        :moveUnit(-8, 64)
-    -- The one above will be used for name placement, so have separate variable for actual category loop
-    local categoryR = categoryBaseR
+        :centerY(r)
+        :moveRatio(-1, 0)
+        :moveUnit(-8, 0)
+    local categoryR = Kirigami(0, 0, CATEGORY_SIZE, CATEGORY_SIZE)
+        :attachToTopOf(allCategoryR)
+        :attachToLeftOf(allCategoryR)
+        :moveRatio(1, 1)
 
+    -- Draw categories
     for i, v in ipairs(CATEGORIES) do
         local color = CATEGORY_COLOR[i == self.activeCategory]
 
@@ -131,10 +135,8 @@ function custom:_drawUI()
 
     -- Prepare text layout for the cosmetic name
     local cosmeticNameR = Kirigami(0, 0, 32, 32)
-        :attachToLeftOf(categoryBaseR)
-        :attachToTopOf(categoryBaseR)
-        :moveRatio(0, 1)
-        :moveUnit(-8, 0)
+        :attachToLeftOf(categoryR)
+        :moveUnit(-8, 64)
 
     -- Prepare cosmetic cell
     local categoryfilter = filters[self.activeCategory]
