@@ -1,6 +1,6 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 
-local TILE_SIZE = 48
+local TILE_SIZE = 64
 
 local function init()
     g.gotoScene("map_scene")
@@ -78,7 +78,7 @@ function title:_updateAnimationTile()
     -- This double loop emulates wrapping
     for oy = -1, 1 do
         for ox = -1, 1 do
-            g.drawImage("happy_cat", catX + ox * TILE_SIZE, catY + oy * TILE_SIZE, -math.pi / 4, 1, 1)
+            g.drawImage("happy_cat", catX + ox * TILE_SIZE, catY + oy * TILE_SIZE, -math.pi / 4, 1.5)
         end
     end
 
@@ -92,8 +92,21 @@ function title:_updateAnimationTile()
     -- This double loop emulates wrapping
     for oy = -1, 1 do
         for ox = -1, 1 do
-            -- Use love.graphics.print. We don't need expensive processing of richtext.printRich.
-            love.graphics.print(text, font, tx + ox * TILE_SIZE, ty + oy * TILE_SIZE, -math.pi / 4, 1, 1, tw / 2, th / 2)
+            -- Ok the previous dual loop is for the corners of the canvas.
+            -- This one is to emulate "thick" text without {o} richtext.
+            for offx = -1, 1, 1 do
+                for offy = -1, 1, 1 do
+                    love.graphics.print(
+                        text,
+                        font,
+                        tx + ox * TILE_SIZE + offx,
+                        ty + oy * TILE_SIZE + offy,
+                        -math.pi / 4,
+                        1, 1,
+                        tw / 2, th / 2
+                    )
+                end
+            end
         end
     end
 
