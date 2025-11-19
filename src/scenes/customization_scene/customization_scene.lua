@@ -6,6 +6,7 @@ local vignette = require("src.modules.vignette.vignette")
 local COSMETIC_TILE_SIZE = 48
 local COSMETIC_PADDING = 4
 local COSMETIC_COLUMNS = 4
+local COSMETIC_ROWS = 5
 
 local CATEGORY_SIZE = 40
 local CATEGORY_DIVIDER = 8
@@ -29,6 +30,13 @@ local SELECTED_COLOR = {
     AVATAR = objects.Color("#".."FFDEBAE7"),
     BACKGROUND = objects.Color("#".."FFB1D8EA"),
     HAT = objects.Color("#".."FFEAB5B1"),
+}
+
+local SCROLLBAR_BACKGROUND = objects.Color("#".."40FFFFFF")
+local SCROLLBAR_COLOR = {
+    default = objects.Color("#".."90C9DE75"),
+    hover = objects.Color("#".."FFC9DE75"),
+    pressed = objects.Color("#".."FF83A00C")
 }
 
 ---@param categoryId integer
@@ -59,6 +67,8 @@ function custom:init()
         objects.Color("#".."FF2B6CB6")
     )
     self.activeCategory = 2
+    self.rowOffset = 0
+    self.scrollbarClicked = false
 end
 
 
@@ -83,7 +93,8 @@ local filters = {
     function(cinfo) return cinfo.type == "HAT" end, -- Hats
 }
 
-function custom:_drawUI()
+---@param mapButtonR kirigami.Region
+function custom:_drawUI(mapButtonR)
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
     -- Compute right center cosmetic category.
@@ -133,72 +144,114 @@ function custom:_drawUI()
         categoryR = categoryR:moveRatio(0, 1):moveUnit(0, CATEGORY_DIVIDER)
     end
 
-    -- Prepare text layout for the cosmetic name
-    local cosmeticNameR = Kirigami(0, 0, 32, 32)
+    -- Prepare scrollbar
+    local cellSize = COSMETIC_TILE_SIZE + COSMETIC_PADDING
+    local scrollbarHeight = cellSize * COSMETIC_ROWS
+    local scrollbarR = Kirigami(0, 0, 16, scrollbarHeight)
         :attachToLeftOf(categoryR)
-        :moveUnit(-8, 64)
+        -- Take the map button into account
+        :centerY(r:padUnit(0, mapButtonR.y + mapButtonR.h, 0, 0))
+        :moveUnit(-8, 0)
+    scrollbarR.x = math.floor(scrollbarR.x)
+    scrollbarR.y = math.floor(scrollbarR.y)
 
     -- Prepare cosmetic cell
     local categoryfilter = filters[self.activeCategory]
-    local cellSize = COSMETIC_TILE_SIZE + COSMETIC_PADDING
-    local cellR = Kirigami(0, 0, cellSize, cellSize)
-        :attachToRightOf(cosmeticNameR)
-        :attachToBottomOf(cosmeticNameR)
-        :moveRatio(-COSMETIC_COLUMNS, 0)
-        :moveUnit(0, 8)
-    local cellBaseR = cellR -- for centering the profile HUD display later
+    local baseCosmeticGridR = Kirigami(0, 0, cellSize * COSMETIC_COLUMNS, scrollbarHeight)
+        :attachToLeftOf(scrollbarR)
+        :centerY(scrollbarR)
+        :moveUnit(-8, 0)
+    local cosmeticGrid = baseCosmeticGridR:grid(COSMETIC_COLUMNS, COSMETIC_ROWS)
 
-    -- Draw cosmetic cell by category
-    -- TODO: Scrollbar or a way to display more cosmetics later.
-    local column = 0
+    -- Get cosmetic infos of unlocked cosmetics, possibly in the current category
+    -- We need to do it in 2-pass to be able to show scrollbar.
+    ---@type g.CosmeticInfo[]
+    local cosmetics = {}
     for _, v in ipairs(g.getUnlockedCosmetics()) do
         local cinfo = g.getCosmeticInfo(v)
         if categoryfilter(cinfo) then
-            column = column + 1
+            cosmetics[#cosmetics+1] = cinfo
+        end
+    end
+    local maxRowOffset = math.max(math.ceil(#cosmetics / COSMETIC_COLUMNS) - COSMETIC_ROWS, 0)
+    self.rowOffset = helper.clamp(self.rowOffset, 0, maxRowOffset)
+    local scrollCount = maxRowOffset + 1
 
-            local clickableR = cellR:padUnit(COSMETIC_PADDING)
-            local selected = isCosmeticSelected(cinfo)
+    -- Scrollbar logic
+    do
+        local scrollbarColor = SCROLLBAR_COLOR.default
+        local scrollbarSize = scrollbarR.h / scrollCount
+        local sx, sy, sw, sh = scrollbarR:get()
 
-            -- Draw  background
-            local alpha = selected and 1 or 0.1
-            love.graphics.setColor(helper.multiplyAlpha(SELECTED_COLOR[cinfo.type], alpha))
-            love.graphics.rectangle("fill", clickableR:get())
+        -- FIXME: This scrollbar click code is ugly because I don't know how to use iml.consumeDrag
+        if self.scrollbarClicked then
+            self.scrollbarClicked = love.mouse.isDown(1)
+        else
+            self.scrollbarClicked = iml.isClicked(sx, sy, sw, sh)
+        end
 
-            if iml.isHovered(clickableR:get()) then
-                love.graphics.setColor(1, 1, 1)
-                love.graphics.rectangle("line", cellR:get())
-            end
+        if self.scrollbarClicked then
+            local _, my = ui.getMouse()
+            scrollbarColor = SCROLLBAR_COLOR.pressed
+            self.rowOffset = helper.clamp(math.floor((my - sy) * scrollCount / sh), 0, maxRowOffset)
+        elseif iml.isHovered(sx, sy, sw, sh) then
+            scrollbarColor = SCROLLBAR_COLOR.hover
+        end
+        -- Draw scrollbar
+        love.graphics.setColor(SCROLLBAR_BACKGROUND)
+        love.graphics.rectangle("fill", sx, sy, sw, sh)
+        love.graphics.setColor(scrollbarColor)
+        love.graphics.rectangle("fill", sx, sy + self.rowOffset * scrollbarSize, sw, scrollbarSize)
+    end
 
-            local cx, cy = cellR:getCenter()
-            local s = cinfo.type == "BACKGROUND" and 1 or 2
-            love.graphics.setColor(cinfo.color)
-            assert(#cinfo.image > 0, cinfo.id)
-            g.drawImage(cinfo.image, cx, cy, 0, s * cinfo.upscale)
+    -- Draw cosmetic cell
+    -- TODO: Scrollbar or a way to display more cosmetics later.
+    for i = 1, #cosmeticGrid do
+        local cinfo = cosmetics[i + self.rowOffset * COSMETIC_COLUMNS]
+        if not cinfo then break end
 
-            if iml.wasJustClicked(clickableR:get()) then
-                local s = g.getSn()
-                -- Select this avatar
-                if cinfo.type == "AVATAR" then
-                    s.avatar.avatar = cinfo.id
-                elseif cinfo.type == "BACKGROUND" then
-                    s.avatar.background = cinfo.id
-                elseif cinfo.type == "HAT" then
-                    if selected then
-                        s.avatar.hat = nil
-                    else
-                        s.avatar.hat = cinfo.id
-                    end
+        local cellR = cosmeticGrid[i]
+        local clickableR = cellR:padUnit(COSMETIC_PADDING)
+        local selected = isCosmeticSelected(cinfo)
+
+        -- Draw  background
+        local alpha = selected and 1 or 0.1
+        love.graphics.setColor(helper.multiplyAlpha(SELECTED_COLOR[cinfo.type], alpha))
+        love.graphics.rectangle("fill", clickableR:get())
+
+        if iml.isHovered(clickableR:get()) then
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.rectangle("line", cellR:get())
+        end
+
+        local cx, cy = cellR:getCenter()
+        local scale = cinfo.type == "BACKGROUND" and 1 or 2
+        love.graphics.setColor(cinfo.color)
+        assert(#cinfo.image > 0, cinfo.id)
+        g.drawImage(cinfo.image, cx, cy, 0, scale * cinfo.upscale)
+
+        if iml.wasJustClicked(clickableR:get()) then
+            local s = g.getSn()
+            -- Select this avatar
+            if cinfo.type == "AVATAR" then
+                s.avatar.avatar = cinfo.id
+            elseif cinfo.type == "BACKGROUND" then
+                s.avatar.background = cinfo.id
+            elseif cinfo.type == "HAT" then
+                if selected then
+                    s.avatar.hat = nil
+                else
+                    s.avatar.hat = cinfo.id
                 end
-            end
-
-            -- Advance next cell
-            cellR = cellR:moveRatio(1, 0)
-            if column >= COSMETIC_COLUMNS then
-                column = 0
-                cellR = cellR:moveRatio(-4, 1)
             end
         end
     end
+
+    -- Prepare text layout for the cosmetic name
+    local cosmeticNameR = Kirigami(0, 0, 0, 32)
+        :attachToTopOf(baseCosmeticGridR)
+        :attachToRightOf(baseCosmeticGridR)
+        :moveUnit(0, -4)
 
     -- Draw category name and the selected cosmetic
     local textDisplay = "{o}"..CATEGORIES[self.activeCategory][1].."{/o}"
@@ -216,14 +269,14 @@ function custom:_drawUI()
     richtext.printRich(
         textDisplay,
         g.getSmallFont(32),
-        cosmeticNameR.x + cosmeticNameR.w - 1000,
+        cosmeticNameR.x - 1000,
         cosmeticNameR.y,
         1000, "right"
     )
 
     -- Draw avatar with background
     local drawBg = self.activeCategory == 1 or self.activeCategory == 3
-    local avatarX, avatarY = math.floor(cellBaseR.x / 2), math.floor(select(2, ui.getScaledUIDimensions()) / 2)
+    local avatarX, avatarY = math.floor(baseCosmeticGridR.x / 2), math.floor(select(2, ui.getScaledUIDimensions()) / 2)
     local avatarSize = consts.AVATAR_SIZE * AVATAR_SCALE
     if drawBg then
         love.graphics.setStencilMode("draw", 3)
@@ -256,10 +309,15 @@ function custom:draw()
 
     -- Draw UI
     ui.startUI()
-    self:renderMapButton()
-    self:_drawUI()
+    local mapButtonR = self:renderMapButton()
+    self:_drawUI(mapButtonR)
     g.getHUD():draw({profile = false, xpbar = false})
     ui.endUI()
+end
+
+function custom:wheelmoved(dx, dy)
+    local dir = helper.sign(dy)
+    self.rowOffset = self.rowOffset - dir
 end
 
 return custom
