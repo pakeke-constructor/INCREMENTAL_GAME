@@ -207,11 +207,9 @@ function custom:_drawUI()
 
         if cosmeticid then
             local cinfo = g.getCosmeticInfo(cosmeticid)
-            textDisplay = helper.wrapRichtextColor(
-                SELECTED_COLOR[cinfo.type],
-                -- Why this? to make the outline in effect with the wavy
-                textDisplay.."{o} - {/o}{w}{o}"..cinfo.name.."{/o}{/w}"
-            )
+            -- Why this {o} tag abomination? to make the outline in effect with the wavy
+            local coloredCosmeticName = helper.wrapRichtextColor(SELECTED_COLOR[cinfo.type], "{w}{o}"..cinfo.name.."{/o}{/w}")
+            textDisplay = textDisplay.."{o} - {/o}"..coloredCosmeticName
         end
     end
     love.graphics.setColor(1, 1, 1)
