@@ -55,18 +55,16 @@ function title:draw()
     richtext.printRich(TITLE_TEXT, titleFont, titleAreaR.x, titleAreaR.y, titleAreaR.w, "center")
 
     -- Draw buttons
-    local buttonR = Kirigami(0, 0, 144, 40)
-        :attachToBottomOf(topR)
-        :centerX(topR)
-    for _, binfo in ipairs(BUTTONS) do
-        local buttonPadR = buttonR:padUnit(4)
+    local buttonGrid = Kirigami(0, 0, 144, 40 * #BUTTONS)
+        :center(bottomR)
+        :grid(1, #BUTTONS)
+    for i, binfo in ipairs(BUTTONS) do
+        local buttonPadR = buttonGrid[i]:padUnit(4)
         love.graphics.setColor(0, 0, 0)
 
         if ui.Button(helper.wrapRichtextColor(objects.Color.BLACK, binfo[1]), BUTTON_MAIN_COL, BUTTON_BASE_COL, buttonPadR:get()) then
             binfo[2]()
         end
-
-        buttonR = buttonR:moveRatio(0, 1)
     end
 
     ui.endUI()

@@ -1,8 +1,15 @@
 local TILE_SIZE = 64
-local BACKGROUND = objects.Color("#".."FFB3F024")
+local BACKGROUND_DIAG1 = objects.Color("#".."FFCF5ED9")
+local BACKGROUND_DIAG2 = objects.Color("#".."FF1862D8")
 
 local canvas = love.graphics.newCanvas(TILE_SIZE, TILE_SIZE)
 local time = love.math.random()
+local backgroundMesh = love.graphics.newMesh({
+    {0, 0, 0, 0, unpack(BACKGROUND_DIAG1)},
+    {1, 0, 1, 0, unpack(BACKGROUND_DIAG2)},
+    {1, 1, 1, 1, unpack(BACKGROUND_DIAG1)},
+    {0, 1, 0, 1, unpack(BACKGROUND_DIAG2)},
+}, "fan", "static")
 
 local titleBackground = {}
 
@@ -60,7 +67,11 @@ function titleBackground.update(dt)
 end
 
 function titleBackground.draw()
-    love.graphics.clear(BACKGROUND)
+    love.graphics.push()
+    love.graphics.origin()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(backgroundMesh, 0, 0, 0, love.graphics.getDimensions())
+    love.graphics.pop()
 
     -- Draw canvas tiles
     local uiW, uiH = ui.getScaledUIDimensions()
