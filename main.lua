@@ -183,9 +183,9 @@ function love.update(dt)
         if idleTime >= CONSIDERED_IDLE_TIME then
             session.idletime = session.idletime + dt
         end
+        idleTime = idleTime + dt
     end
 
-    idleTime = idleTime + dt
     local sc = sceneManager.getCurrentScene()
     if sc and sc.update then
         sc:update(dt)
