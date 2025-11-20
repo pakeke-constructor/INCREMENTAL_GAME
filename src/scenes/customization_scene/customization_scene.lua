@@ -173,36 +173,20 @@ function custom:_drawUI(mapButtonR)
             cosmetics[#cosmetics+1] = cinfo
         end
     end
-    local maxRowOffset = math.max(math.ceil(#cosmetics / COSMETIC_COLUMNS) - COSMETIC_ROWS, 0)
-    self.rowOffset = helper.clamp(self.rowOffset, 0, maxRowOffset)
-    local scrollCount = maxRowOffset + 1
+    local scrollCount = math.max(math.ceil(#cosmetics / COSMETIC_COLUMNS) - COSMETIC_ROWS, 0) + 1
+    self.rowOffset = ui.Slider(
+        "custom:accessorySlider",
+        "vertical",
+        SCROLLBAR_BACKGROUND,
+        SCROLLBAR_COLOR.default,
+        SCROLLBAR_COLOR.hover,
+        SCROLLBAR_COLOR.pressed,
+        self.rowOffset + 1,
+        scrollCount,
+        1 / scrollCount,
+        scrollbarR
+    ) - 1
 
-    -- Scrollbar logic
-    do
-        local scrollbarColor = SCROLLBAR_COLOR.default
-        local scrollbarSize = scrollbarR.h / scrollCount
-        local sx, sy, sw, sh = scrollbarR:get()
-
-        -- FIXME: This scrollbar click code is ugly because I don't know how to use iml.consumeDrag
-        if self.scrollbarClicked then
-            self.scrollbarClicked = love.mouse.isDown(1)
-        else
-            self.scrollbarClicked = iml.isClicked(sx, sy, sw, sh)
-        end
-
-        if self.scrollbarClicked then
-            local _, my = ui.getMouse()
-            scrollbarColor = SCROLLBAR_COLOR.pressed
-            self.rowOffset = helper.clamp(math.floor((my - sy) * scrollCount / sh), 0, maxRowOffset)
-        elseif iml.isHovered(sx, sy, sw, sh) then
-            scrollbarColor = SCROLLBAR_COLOR.hover
-        end
-        -- Draw scrollbar
-        love.graphics.setColor(SCROLLBAR_BACKGROUND)
-        love.graphics.rectangle("fill", sx, sy, sw, sh)
-        love.graphics.setColor(scrollbarColor)
-        love.graphics.rectangle("fill", sx, sy + self.rowOffset * scrollbarSize, sw, scrollbarSize)
-    end
 
     -- Draw cosmetic cell
     -- TODO: Scrollbar or a way to display more cosmetics later.
