@@ -150,29 +150,23 @@ function love.load(arg)
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
 
-    local shouldLoad = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") and arg[1] ~= "--simulate" then
-        g.loadSession("saves/save1.json")
-    else
-        g.newSession()
-    end
-
     if arg[1] == "--simulate" then
         local upg = assert(arg[2], "missing upgrade")
         local dur = assert(tonumber(arg[3]), "invalid simulation duration")
+        g.newSession()
         simulation.setup(upg, dur)
     end
 
     if simulation.isSimulating() then
         sceneManager.gotoScene("harvest_scene")
     else
-        sceneManager.gotoScene("map_scene")
+        sceneManager.gotoScene("title_scene")
     end
 end
 
 function love.quit()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and g.getSn() and not simulation.isSimulating() then
+    if shouldSave and g.hasSession() and not simulation.isSimulating() then
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
@@ -182,11 +176,15 @@ end
 
 function love.update(dt)
     iml.setPointer(love.mouse.getPosition())
-    local session = g.getSn()
-    session:_update(dt)
-    if idleTime >= CONSIDERED_IDLE_TIME then
-        session.idletime = session.idletime + dt
+
+    if g.hasSession() then
+        local session = g.getSn()
+        session:_update(dt)
+        if idleTime >= CONSIDERED_IDLE_TIME then
+            session.idletime = session.idletime + dt
+        end
     end
+
     idleTime = idleTime + dt
     local sc = sceneManager.getCurrentScene()
     if sc and sc.update then

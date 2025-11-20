@@ -4,12 +4,19 @@ local titleBackground = require("src.titleBackground")
 local TITLE_TEXT = assert(richtext.parseRichText("{w}{o thickness=2}CaT CaT CaT CaT CaT CaT CaT CaT CaT CaT CaT{/o}{/w}"))
 
 local function init()
+    local shouldLoad = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
+    if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") and arg[1] ~= "--simulate" then
+        g.loadSession("saves/save1.json")
+    else
+        g.newSession()
+    end
+
     g.gotoScene("map_scene")
 end
 
 local BUTTONS = {
     {"Play", init},
-    {"Options", function() g.gotoScene("setting_scene") end},
+    {"Settings", function() g.gotoScene("setting_scene") end},
     {"Stats", function() end},
     {"Quit", love.event.quit},
 }

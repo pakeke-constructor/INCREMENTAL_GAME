@@ -112,7 +112,7 @@ function setting:draw()
     local titleFont = g.getBigFont(48)
     local titleTextR = Kirigami(0, 0, w, titleFont:getHeight()):center(titleR)
     love.graphics.setColor(1, 1, 1)
-    richtext.printRich("{w}{o}Settings{/o}{/w}",  titleFont, titleTextR.x, titleTextR.y, w, "center")
+    richtext.printRich("{w}{o thickness=2}Settings{/o}{/w}",  titleFont, titleTextR.x, titleTextR.y, w, "center")
 
     -- Setup settings layout
     local font = g.getSmallFont(32)
