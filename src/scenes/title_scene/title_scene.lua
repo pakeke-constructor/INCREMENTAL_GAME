@@ -1,6 +1,8 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local titleBackground = require("src.titleBackground")
 
+local TITLE_TEXT = assert(richtext.parseRichText("{w}{o thickness=2}CaT CaT CaT CaT CaT CaT CaT CaT CaT CaT CaT{/o}{/w}"))
+
 local function init()
     g.gotoScene("map_scene")
 end
@@ -38,9 +40,12 @@ function title:draw()
 
     -- Draw title text
     love.graphics.setColor(1, 1, 1)
-    local titleFont = g.getBigFont(64)
+    local titleFont = g.getBigFont(48)
     local titleAreaR = Kirigami(0, 0, r.w, titleFont:getHeight()):center(topR)
-    richtext.printRich("{w}{o thickness=4}CaT x11{/o}{/w}", titleFont, titleAreaR.x, titleAreaR.y, titleAreaR.w, "center")
+    local width, lines = titleFont:getWrap(richtext.stripEffects(TITLE_TEXT), titleAreaR.w)
+    local height = #lines * titleFont:getHeight()
+    titleAreaR = titleAreaR:set(nil, nil, width, height):center(topR)
+    richtext.printRich(TITLE_TEXT, titleFont, titleAreaR.x, titleAreaR.y, titleAreaR.w, "center")
 
     -- Draw buttons
     local buttonR = Kirigami(0, 0, 144, 40)
