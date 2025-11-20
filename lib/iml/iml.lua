@@ -460,6 +460,7 @@ end
 function iml.getPointer()
     return pointer_x, pointer_y
 end
+iml.getTransformedPointer = getTransformedPointer
 
 
 
