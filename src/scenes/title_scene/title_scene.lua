@@ -9,7 +9,7 @@ end
 
 local BUTTONS = {
     {"Play", init},
-    {"Options", function() end},
+    {"Options", function() g.gotoScene("setting_scene") end},
     {"Stats", function() end},
     {"Quit", love.event.quit},
 }
