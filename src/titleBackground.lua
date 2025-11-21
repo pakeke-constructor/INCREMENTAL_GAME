@@ -1,8 +1,7 @@
-local TILE_SIZE = 64
+local TILE_SIZE = 96
 local BACKGROUND_DIAG1 = objects.Color("#".."FFCF5ED9")
 local BACKGROUND_DIAG2 = objects.Color("#".."FF1862D8")
 
-local canvas = love.graphics.newCanvas(TILE_SIZE, TILE_SIZE)
 local time = love.math.random()
 local backgroundMesh = love.graphics.newMesh({
     {0, 0, 0, 0, unpack(BACKGROUND_DIAG1)},
@@ -16,54 +15,6 @@ local titleBackground = {}
 ---@param dt number
 function titleBackground.update(dt)
     time = (time + dt * 0.2) % 1
-
-    -- Update canvas
-    love.graphics.push("all")
-
-    love.graphics.origin()
-    love.graphics.setCanvas(canvas)
-    love.graphics.clear(1, 1, 1, 0)
-    love.graphics.setColor(1, 1, 1)
-
-    -- Draw cat
-    local catX = (1 - time) * TILE_SIZE
-    local catY = (1 - time) * TILE_SIZE
-    -- This double loop emulates wrapping
-    for oy = -1, 1 do
-        for ox = -1, 1 do
-            g.drawImage("happy_cat", catX + ox * TILE_SIZE, catY + oy * TILE_SIZE, -math.pi / 4, 1.5)
-        end
-    end
-
-    -- Draw text "CaT"
-    local text = "CaT"
-    local font = g.getSmallFont(32)
-    local tx = time * TILE_SIZE
-    local ty = (1 - time) * TILE_SIZE
-    local tw = font:getWidth(text)
-    local th = font:getHeight()
-    -- This double loop emulates wrapping
-    for oy = -1, 1 do
-        for ox = -1, 1 do
-            -- Ok the previous dual loop is for the corners of the canvas.
-            -- This one is to emulate "thick" text without {o} richtext.
-            for offx = -1, 1, 1 do
-                for offy = -1, 1, 1 do
-                    love.graphics.print(
-                        text,
-                        font,
-                        tx + ox * TILE_SIZE + offx,
-                        ty + oy * TILE_SIZE + offy,
-                        -math.pi / 4,
-                        1, 1,
-                        tw / 2, th / 2
-                    )
-                end
-            end
-        end
-    end
-
-    love.graphics.pop()
 end
 
 function titleBackground.draw()
@@ -80,10 +31,54 @@ function titleBackground.draw()
     local tileOffX = (tileW * TILE_SIZE - uiW) / 2
     local tileOffY = (tileH * TILE_SIZE - uiH) / 2
 
-    love.graphics.setColor(0, 0, 0, 0.3)
-    for y = 0, tileH - 1 do
-        for x = 0, tileW - 1 do
-            love.graphics.draw(canvas, x * TILE_SIZE - tileOffX, y * TILE_SIZE - tileOffY)
+    love.graphics.setColor(1, 1, 1, 0.5)
+
+    -- Draw cat silhouette
+    for ty = -1, tileH do
+        for tx = -1, tileW do
+            local i = (tx + ty % 2) % 2
+            local x, y
+            if i == 0 then
+                -- Bottom-left to top-right
+                x = time * TILE_SIZE
+                y = (1 - time) * TILE_SIZE
+            else
+                -- Top-right to bottom-left
+                x = (1 - time) * TILE_SIZE
+                y = time * TILE_SIZE
+            end
+            g.drawImage("cat_silhouette", tx * TILE_SIZE - tileOffX + x, ty * TILE_SIZE - tileOffY + y, -math.pi/4, 2, 2)
+        end
+    end
+
+    -- Draw cat text
+    local text = "CaT"
+    local font = g.getSmallFont(16)
+    local tw = font:getWidth(text)
+    local th = font:getHeight()
+    local j = (time + 0.5) % 1
+    for ty = -1, tileH do
+        for tx = -1, tileW do
+            local i = (tx + ty % 2) % 2
+            local x, y
+            if i == 0 then
+                -- Bottom-left to top-right
+                x = j * TILE_SIZE
+                y = (1 - j) * TILE_SIZE
+            else
+                -- Top-right to bottom-left
+                x = (1 - j) * TILE_SIZE
+                y = j * TILE_SIZE
+            end
+            love.graphics.print(
+                text,
+                font,
+                tx * TILE_SIZE - tileOffX + x,
+                ty * TILE_SIZE - tileOffY + y,
+                -math.pi / 4,
+                2, 2,
+                tw / 2, th / 2
+            )
         end
     end
 end
