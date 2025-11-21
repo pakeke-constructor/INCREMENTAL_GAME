@@ -1,13 +1,11 @@
 local TILE_SIZE = 96
-local BACKGROUND_DIAG1 = objects.Color("#".."FFCF5ED9")
-local BACKGROUND_DIAG2 = objects.Color("#".."FF1862D8")
 
 local time = love.math.random()
 local backgroundMesh = love.graphics.newMesh({
-    {0, 0, 0, 0, unpack(BACKGROUND_DIAG1)},
-    {1, 0, 1, 0, unpack(BACKGROUND_DIAG2)},
-    {1, 1, 1, 1, unpack(BACKGROUND_DIAG1)},
-    {0, 1, 0, 1, unpack(BACKGROUND_DIAG2)},
+    {0, 0, 0, 0, unpack(objects.Color("#".."FF1862D8"))},
+    {1, 0, 1, 0, unpack(objects.Color("#".."FFCF5ED9"))},
+    {1, 1, 1, 1, unpack(objects.Color("#".."FF1862D8"))},
+    {0, 1, 0, 1, unpack(objects.Color("#".."FF14A0CD"))},
 }, "fan", "static")
 
 local titleBackground = {}
