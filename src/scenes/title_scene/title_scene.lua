@@ -46,17 +46,17 @@ function title:draw()
     local topR, bottomR = r:splitVertical(1, 1)
 
     -- Draw title text
-    love.graphics.setColor(1, 1, 1)
-    local titleFont = g.getBigFont(48)
-    local titleAreaR = Kirigami(0, 0, r.w, titleFont:getHeight()):center(topR)
-    local width, lines = titleFont:getWrap(richtext.stripEffects(TITLE_TEXT), titleAreaR.w)
-    local height = #lines * titleFont:getHeight()
-    titleAreaR = titleAreaR:set(nil, nil, width, height):center(topR)
-    richtext.printRich(TITLE_TEXT, titleFont, titleAreaR.x, titleAreaR.y, titleAreaR.w, "center")
+    -- love.graphics.setColor(1, 1, 1)
+    -- local titleFont = g.getBigFont(48)
+    -- local titleAreaR = Kirigami(0, 0, r.w, titleFont:getHeight()):center(topR)
+    -- local width, lines = titleFont:getWrap(richtext.stripEffects(TITLE_TEXT), titleAreaR.w)
+    -- local height = #lines * titleFont:getHeight()
+    -- titleAreaR = titleAreaR:set(nil, nil, width, height):center(topR)
+    -- richtext.printRich(TITLE_TEXT, titleFont, titleAreaR.x, titleAreaR.y, titleAreaR.w, "center")
 
     -- Draw buttons
     local buttonGrid = Kirigami(0, 0, 144, 40 * #BUTTONS)
-        :center(bottomR)
+        :center(r)
         :grid(1, #BUTTONS)
     for i, binfo in ipairs(BUTTONS) do
         local buttonPadR = buttonGrid[i]:padUnit(4)
