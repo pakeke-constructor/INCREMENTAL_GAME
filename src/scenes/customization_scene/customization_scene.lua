@@ -33,11 +33,7 @@ local SELECTED_COLOR = {
 }
 
 local SCROLLBAR_BACKGROUND = objects.Color("#".."40FFFFFF")
-local SCROLLBAR_COLOR = {
-    default = objects.Color("#".."90C9DE75"),
-    hover = objects.Color("#".."FFC9DE75"),
-    pressed = objects.Color("#".."FF83A00C")
-}
+local SCROLLBAR_COLOR = objects.Color("#".."90C9DE75")
 
 ---@param categoryId integer
 local function getWornCosmeticId(categoryId)
@@ -173,17 +169,18 @@ function custom:_drawUI(mapButtonR)
             cosmetics[#cosmetics+1] = cinfo
         end
     end
+    -- Draw scrollbar background
+    love.graphics.setColor(SCROLLBAR_BACKGROUND)
+    love.graphics.rectangle("fill", scrollbarR:padUnit(-1):get())
+    -- Draw slider
     local scrollCount = math.max(math.ceil(#cosmetics / COSMETIC_COLUMNS) - COSMETIC_ROWS, 0) + 1
     self.rowOffset = ui.Slider(
         "custom:accessorySlider",
         "vertical",
-        SCROLLBAR_BACKGROUND,
-        SCROLLBAR_COLOR.default,
-        SCROLLBAR_COLOR.hover,
-        SCROLLBAR_COLOR.pressed,
+        SCROLLBAR_COLOR,
         self.rowOffset + 1,
         scrollCount,
-        1 / scrollCount,
+        math.max(1 / scrollCount, 0.1),
         scrollbarR
     ) - 1
 

@@ -3,9 +3,7 @@ local titleBackground = require("src.titleBackground")
 
 
 local SLIDER_BACKGROUND = objects.Color.BLACK
-local SLIDER_NORMAL = objects.Color.WHITE
-local SLIDER_HOVER = objects.Color("#".."FFC0C0C0")
-local SLIDER_PRESSED = objects.Color.GRAY
+local SLIDER_COLOR = objects.Color.WHITE
 
 
 ---@param reg kirigami.Region
@@ -73,10 +71,7 @@ local function drawVolume(value, label, labelR, sliderBaseR)
     value = ui.Slider(
         "setting:"..label,
         "horizontal",
-        objects.Color.TRANSPARENT,
-        SLIDER_NORMAL,
-        SLIDER_HOVER,
-        SLIDER_PRESSED,
+        SLIDER_COLOR,
         value + 1,
         101, -- 0 to 100 both inclusive is 101
         0.1,

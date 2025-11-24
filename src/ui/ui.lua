@@ -225,19 +225,25 @@ function ui.drawPanel(x, y, w, h)
 end
 
 
+---@param col objects.Color
+---@param val number Value multiplier for HSV
+local function multiplyHSVValue(col, val)
+	local a = select(4, col:getRGBA())
+	local h, s, v = col:getHSV()
+	local nr, ng, nb = objects.Color.HSVtoRGB(h, s, v * val)
+	return objects.Color(nr, ng, nb, a)
+end
 
 ---@param key string
 ---@param direction "horizontal"|"vertical"
----@param bgcol objects.Color
 ---@param slidercol objects.Color
----@param sliderhoveredcol objects.Color
----@param sliderpressedcol objects.Color
----@param currentsegment integer
----@param segments integer
+---@param currentsegment integer Current value of the slider (from 1 to `segments` inclusive)
+---@param segments integer Max value of the sliders (inclusive).
 ---@param slidersize number|nil (1 = max size, 0 is not valid, nil = `1 / segments`)
 ---@param reg kirigami.Region
 ---@return integer currentsegment Current segment (1 to `segments` both inclusive)
-function ui.Slider(key, direction, bgcol, slidercol, sliderhoveredcol, sliderpressedcol, currentsegment, segments, slidersize, reg)
+function ui.Slider(key, direction, slidercol, currentsegment, segments, slidersize, reg)
+	assert(currentsegment >= 1, "invalid current segment value")
 	assert(segments > 0, "invalid segment count")
 	slidersize = slidersize or (1 / segments)
 	assert(slidersize > 0 and slidersize <= 1, "invalid slider size")
@@ -246,14 +252,10 @@ function ui.Slider(key, direction, bgcol, slidercol, sliderhoveredcol, sliderpre
 	local _, _, click = iml.consumeDrag(key, x, y, w, h, 1)
 	local s = helper.clamp(currentsegment, 1, segments)
 
-	-- Draw slider background
-	love.graphics.setColor(bgcol)
-	love.graphics.rectangle("fill", x, y, w, h)
-
 	-- Select slider color and handle drags
 	local curslidercol = slidercol
 	if click then
-		curslidercol = sliderpressedcol
+		curslidercol = multiplyHSVValue(slidercol, 0.5)
 		local mx, my = iml.getTransformedPointer()
 
 		if direction == "horizontal" then
@@ -266,7 +268,7 @@ function ui.Slider(key, direction, bgcol, slidercol, sliderhoveredcol, sliderpre
 			s = helper.clamp(math.floor(pos / segmentsize), 0, segments - 1) + 1
 		end
 	elseif iml.isHovered(x, y, w, h, key) then
-		curslidercol = sliderhoveredcol
+		curslidercol = multiplyHSVValue(slidercol, 0.75)
 	end
 
 	-- Draw slider handle
