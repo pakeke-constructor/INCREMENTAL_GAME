@@ -5,7 +5,7 @@ local FSCanvas = objects.Class("fscanvas:FSCanvas")
 
 
 ---@param format love.PixelFormat?
-function FSCanvas:new(format)
+function FSCanvas:init(format)
     ---@type love.PixelFormat
     self.format = format or "normal"
     ---@type love.Texture|nil
