@@ -12,7 +12,7 @@ local titleBackground = {}
 
 ---@param dt number
 function titleBackground.update(dt)
-    time = (time + dt * 0.2) % 1
+    time = (time + dt * 0.125) % 1
 end
 
 function titleBackground.draw()
