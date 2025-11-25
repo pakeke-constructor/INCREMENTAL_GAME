@@ -2,6 +2,7 @@
 
 
 local World = require("src.world.world")
+local cosmetics = require("src.cosmetics.cosmetics")
 
 
 
@@ -74,6 +75,7 @@ function Session:init()
     self.tokenQueue = {}
 
     -- Accessory data
+    ---@type g.Avatar
     self.avatar = {
         avatar = consts.DEFAULT_CAT_AVATAR,
         background = consts.DEFAULT_BACKGROUND_AVATAR,
@@ -163,9 +165,10 @@ function Session.deserialize(data)
 
     -- Load accessory unlocks
     if data.avatar then
-        sess.avatar.avatar = data.avatar.avatar or consts.DEFAULT_CAT_AVATAR
-        sess.avatar.background = data.avatar.background or consts.DEFAULT_BACKGROUND_AVATAR
-        sess.avatar.hat = data.avatar.hat
+        local av = data.avatar
+        sess.avatar.avatar = cosmetics.isValidCosmetic(av.avatar) and av.avatar or consts.DEFAULT_CAT_AVATAR
+        sess.avatar.background = cosmetics.isValidCosmetic(av.background) and av.avatar or consts.DEFAULT_BACKGROUND_AVATAR
+        sess.avatar.hat = cosmetics.isValidCosmetic(av.hat) and av.hat or nil
     end
 
     -- Metrics

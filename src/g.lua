@@ -29,10 +29,14 @@ function g.loadSession(path)
     currentSession = Session.deserialize(jsondata)
 end
 
+function g.hasSession()
+    return not not currentSession
+end
+
 
 ---@return g.Session
 function g.getSn()
-    return assert(currentSession)
+    return assert(currentSession, "session not loaded")
 end
 
 ---@return g.World

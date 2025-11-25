@@ -5,7 +5,7 @@ local sceneManager = {}
 
 
 local currentScene, currentSceneName
-
+local lastSceneName
 
 
 local nameToScene = {--[[
@@ -40,10 +40,17 @@ function sceneManager.gotoScene(sceneName)
     if oldScene.leave then
         oldScene:leave()
     end
+    lastSceneName = currentSceneName
     currentSceneName = sceneName
     currentScene = nameToScene[sceneName]
     if currentScene.enter then
         currentScene:enter()
+    end
+end
+
+function sceneManager.gotoLastScene()
+    if lastSceneName then
+        return sceneManager.gotoScene(lastSceneName)
     end
 end
 

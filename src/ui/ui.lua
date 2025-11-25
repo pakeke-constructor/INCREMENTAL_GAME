@@ -225,6 +225,68 @@ function ui.drawPanel(x, y, w, h)
 end
 
 
+---@param col objects.Color
+---@param val number Value multiplier for HSV
+local function multiplyHSVValue(col, val)
+	local a = select(4, col:getRGBA())
+	local h, s, v = col:getHSV()
+	local nr, ng, nb = objects.Color.HSVtoRGB(h, s, v * val)
+	return objects.Color(nr, ng, nb, a)
+end
+
+---@param key string
+---@param direction "horizontal"|"vertical"
+---@param slidercol objects.Color
+---@param currentsegment integer Current value of the slider (from 1 to `segments` inclusive)
+---@param segments integer Max value of the sliders (inclusive).
+---@param slidersize number|nil (1 = max size, 0 is not valid, nil = `1 / segments`)
+---@param reg kirigami.Region
+---@return integer currentsegment Current segment (1 to `segments` both inclusive)
+function ui.Slider(key, direction, slidercol, currentsegment, segments, slidersize, reg)
+	assert(currentsegment >= 1, "invalid current segment value")
+	assert(segments > 0, "invalid segment count")
+	slidersize = slidersize or (1 / segments)
+	assert(slidersize > 0 and slidersize <= 1, "invalid slider size")
+
+	local x, y, w, h = reg:get()
+	local _, _, click = iml.consumeDrag(key, x, y, w, h, 1)
+	local s = helper.clamp(currentsegment, 1, segments)
+
+	-- Select slider color and handle drags
+	local curslidercol = slidercol
+	if click then
+		curslidercol = multiplyHSVValue(slidercol, 0.5)
+		local mx, my = iml.getTransformedPointer()
+
+		if direction == "horizontal" then
+			local pos = helper.clamp(mx - x, 0, w)
+			local segmentsize = w / segments
+			s = helper.clamp(math.floor(pos / segmentsize), 0, segments - 1) + 1
+		elseif direction == "vertical" then
+			local pos = helper.clamp(my - y, 0, h)
+			local segmentsize = h / segments
+			s = helper.clamp(math.floor(pos / segmentsize), 0, segments - 1) + 1
+		end
+	elseif iml.isHovered(x, y, w, h, key) then
+		curslidercol = multiplyHSVValue(slidercol, 0.75)
+	end
+
+	-- Draw slider handle
+	love.graphics.setColor(curslidercol)
+	if direction == "horizontal" then
+		local sliderwidth = w * slidersize
+		local slideroff = segments > 1 and ((s - 1) * (w - sliderwidth) / (segments - 1)) or 0
+		love.graphics.rectangle("fill", x + slideroff, y, w * slidersize, h)
+	elseif direction == "vertical" then
+		local sliderheight = h * slidersize
+		local slideroff = segments > 1 and ((s - 1) * (h - sliderheight) / (segments - 1)) or 0
+		love.graphics.rectangle("fill", x, y + slideroff, w, sliderheight)
+	end
+
+	return s
+end
+
+
 
 -- For UI global scaling
 do

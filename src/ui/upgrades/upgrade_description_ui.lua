@@ -72,16 +72,6 @@ end
 
 
 local STAT_UP_COLOR = objects.Color("#".."FFEF8EFC")
----@param col [number, number, number]
----@param text string
-local function wrapColor(col, text)
-    local a = col[4] or 1
-    if a < 1 then
-        return "{c r="..col[1].." g="..col[2].." b="..col[3].." a="..a.."}"..text.."{/c}"
-    else
-        return "{c r="..col[1].." g="..col[2].." b="..col[3].."}"..text.."{/c}"
-    end
-end
 
 ---@param uinfo g.UpgradeInfo
 ---@param level integer
@@ -108,12 +98,12 @@ local function getUpgradeDescription(uinfo, level, nextLevel)
             if type(formatter) == "string" then
                 value = string.format(formatter, currentValues[i])
                 if nextValues then
-                    value = value..string.format(wrapColor(STAT_UP_COLOR, " -> "..formatter), nextValues[i])
+                    value = value..string.format(helper.wrapRichtextColor(STAT_UP_COLOR, " -> "..formatter), nextValues[i])
                 end
             else
                 value = formatter(currentValues[i])
                 if nextValues then
-                    value = value..wrapColor(STAT_UP_COLOR, " -> "..formatter(nextValues[i]))
+                    value = value..helper.wrapRichtextColor(STAT_UP_COLOR, " -> "..formatter(nextValues[i]))
                 end
             end
 
@@ -429,7 +419,7 @@ function UpgradeDescription:_createPriceTagString(canAfford)
         if g.isResourceUnlocked(pt[1]) then
             col = objects.Color.WHITE
         end
-        result[#result+1] = wrapColor(col, " {"..resInfo.image.."}")
+        result[#result+1] = helper.wrapRichtextColor(col, " {"..resInfo.image.."}")
 
         local textcol
         if g.getResource(pt[1]) >= price[pt[1]] then
@@ -437,7 +427,7 @@ function UpgradeDescription:_createPriceTagString(canAfford)
         else
             textcol = g.COLORS.CANT_AFFORD
         end
-        result[#result+1] = wrapColor(helper.multiplyAlpha(textcol, alpha), g.formatNumber(price[pt[1]]))
+        result[#result+1] = helper.wrapRichtextColor(helper.multiplyAlpha(textcol, alpha), g.formatNumber(price[pt[1]]))
     end
 
     return table.concat(result).." "

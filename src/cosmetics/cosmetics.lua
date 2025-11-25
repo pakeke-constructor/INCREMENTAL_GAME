@@ -56,7 +56,7 @@ local function defineCosmetic(type, id, name, def)
     def.id      = id
     def.name    = name
 
-    def.image   = def.image   or ""
+    def.image   = def.image   or id
     def.upscale = def.upscale or 1
     def.color   = def.color   or objects.Color.WHITE
 
@@ -113,6 +113,16 @@ function cosmetics.getInfo(id)
     helper.assert(COSMETIC_INFO[id], "cosmetic", id, "is not defined")
     return COSMETIC_INFO[id]
 end
+
+
+
+---@param id string cosmetic-info
+---@return boolean
+function cosmetics.isValidCosmetic(id)
+    ensureLoaded()
+    return (not not COSMETIC_INFO[id])
+end
+
 
 
 ---@return string[]

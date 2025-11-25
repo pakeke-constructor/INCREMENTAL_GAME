@@ -1,49 +1,36 @@
 assert((...):sub(-5) ~= ".init")
 
+local FSCanvas = require("src.modules.fscanvas.fscanvas")
+
 ---@class CRT
 local crt = {}
 
----@type {[1]:love.Texture,depthstencil:love.Texture}|nil
-crt.canvas = nil
+crt.mainCanvas = FSCanvas()
+crt.depthCanvas = FSCanvas("depth24stencil8")
+crt.started = false
 crt.shader = love.graphics.newShader("src/modules/crt/crt.frag")
 crt.shader:send("CRT_CURVE_AMNT", {0.05, 0.05})
 crt.shader:send("SCAN_LINE_MULT", 625)
 crt.shader:send("SCAN_LINE_STRENGTH", 0.02)
 
 function crt.start()
+    assert(not crt.started, "crt already begin?")
     love.graphics.push("all")
-
-    -- If dimension is mismatched, rebuild canvas.
-    if crt.canvas then
-        local w, h = love.graphics.getDimensions()
-        if crt.canvas[1]:getWidth() ~= w or crt.canvas[1]:getHeight() ~= h then
-            crt.canvas[1]:release()
-            crt.canvas.depthstencil:release()
-            crt.canvas = nil
-        end
-    end
-    if not crt.canvas then
-        crt.canvas = {
-            love.graphics.newCanvas(),
-            ---@diagnostic disable-next-line: param-type-mismatch
-            depthstencil = love.graphics.newCanvas(nil, nil, {format = "stencil8"})
-        }
-        crt.canvas[1]:setFilter("linear", "linear")
-        crt.canvas.depthstencil:setFilter("linear", "linear")
-    end
-
-    love.graphics.setCanvas(crt.canvas)
+    love.graphics.setCanvas({crt.mainCanvas:get(), depthstencil = crt.depthCanvas:get()})
     love.graphics.clear(true, true, true)
+    crt.started = true
 end
 
 function crt.finish()
-    assert(crt.canvas, "crt not begin?")
+    assert(crt.started, "crt not begin?")
     love.graphics.pop()
 
     love.graphics.push("all")
     love.graphics.setShader(crt.shader)
-    love.graphics.draw(crt.canvas[1])
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.draw(crt.mainCanvas:get())
     love.graphics.pop()
+    crt.started = false
 end
 
 return crt

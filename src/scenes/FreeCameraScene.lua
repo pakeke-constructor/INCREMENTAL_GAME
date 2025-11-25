@@ -70,6 +70,8 @@ function FreeCameraScene:renderMapButton()
         g.playUISound("ui_mouse_click", 1, 0.6, 0.1)
         g.gotoScene("map_scene")
     end
+
+    return right
 end
 
 

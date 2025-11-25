@@ -181,14 +181,16 @@ definePOI("minigame", "Minigames", {
     -- TODO: Action
     action = function() end
 })
-definePOI("quest", "Quests", {
+definePOI("quest", "Town", {
     x = 252, y = 267, w = 165, h = 100,
     highlight = {"questarea_buildings"},
     tx = 327, ty = 291, tcolor = objects.Color("#".."FFB4236E"),
     -- TODO: Price
     price = {money = 7000},
     -- TODO: Action
-    action = function() end
+    action = function()
+        g.gotoScene("customization_scene")
+    end
 })
 definePOI("boss", "Challenges", {
     x = 391, y = 168, w = 98, h = 90,
