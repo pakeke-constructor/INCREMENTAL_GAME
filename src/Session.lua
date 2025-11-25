@@ -2,7 +2,7 @@
 
 
 local World = require("src.world.world")
-local UpgradeTree = require("src.upgrades.UpgradeTree")
+local Tree = require("src.upgrades.Tree")
 local cosmetics = require("src.cosmetics.cosmetics")
 
 
@@ -83,7 +83,7 @@ function Session:init()
         hat = nil,
     }
 
-    self.tree = UpgradeTree()
+    self.tree = Tree()
 
     -- reset stats:
     for k,sta in pairs(g.VALID_STATS) do
