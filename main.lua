@@ -151,8 +151,7 @@ function love.load(arg)
     g.requireFolder("src/entities")
 
     if arg[1] == "--simulate" then
-        local upg = assert(arg[2], "missing upgrade")
-        local dur = assert(tonumber(arg[3]), "invalid simulation duration")
+        error("todo")
         g.newSession()
         simulation.setup(upg, dur)
     end

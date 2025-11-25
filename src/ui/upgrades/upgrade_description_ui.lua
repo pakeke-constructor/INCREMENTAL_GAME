@@ -102,7 +102,7 @@ local function autoBuild(self, tree, upg)
     self:addLevel(g.getUpgradeLevel(uinfo), uinfo.maxLevel)
 
     -- Build price tag text.
-    local price = g.getUpgradePrice(uinfo, g.getUpgradeLevel(uinfo))
+    local price = tree:getUpgradePrice(upg)
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if price[resId] then
             self.priceText[#self.priceText+1] = {resId, g.formatNumber(price[resId])}
@@ -330,6 +330,8 @@ end
 function UpgradeDescription:draw(x, y)
     local w, h = self:getMainBoxDimensions()
     local uinfo = g.getUpgradeInfo(self.upg.id)
+    local upg = self.upg
+    local tree = self.tree
 
     -- Draw background color
     -- I'm sorry for have failed to create flexible system. These offset and sizes
@@ -360,7 +362,7 @@ function UpgradeDescription:draw(x, y)
 
     local level = g.getUpgradeLevel(uinfo)
     if level < uinfo.maxLevel then
-        local canAfford = g.canAfford(g.getUpgradePrice(uinfo))
+        local canAfford = g.canAfford(tree:getUpgradePrice(upg))
         -- Start drawing price tag
         love.graphics.setColor(1,1,1)
 
@@ -424,7 +426,7 @@ end
 ---@private
 function UpgradeDescription:_createPriceTagString(canAfford)
     local result = {}
-    local price = g.getUpgradePrice(self.uinfo, g.getUpgradeLevel(self.uinfo))
+    local price = self.tree:getUpgradePrice(self.upg)
     local alpha = canAfford and 1 or 0.75
 
     for _, pt in ipairs(self.priceText) do

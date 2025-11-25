@@ -177,6 +177,98 @@ end
 
 
 
+
+
+--- Floors a number, removing insignificant digits.
+--- Useful for adjusting prices to look a bit "nicer"
+---
+--- g.floorSignificant(12345, 1) -> 10000
+--- g.floorSignificant(12345, 2) -> 12000
+--- g.floorSignificant(12345, 3) -> 12300
+--- g.floorSignificant(12345, 4) -> 12340
+--- g.floorSignificant(12345, 5) -> 12345
+---@param value number
+---@param nsig integer
+---@return integer
+local function floorSignificant(value, nsig)
+	local zeros = math.floor(math.log10(math.max(math.abs(value), 1)))
+	local mulby = 10 ^ (1+math.max(zeros-nsig, -1))
+	return math.floor(math.floor(value / mulby) * mulby)
+end
+
+local function modifyUpgradePrice(uinfo, val, level)
+    level = level or g.getUpgradeLevel(uinfo)
+    local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
+    local mult2 = g.ask("getUpgradePriceMultiplier", uinfo, level)
+    val = floorSignificant(val*mult*mult2, 2)
+    return val
+end
+
+
+---WARNING: This incurs a table allocation.
+---@param upg g.UpgradeTree.Upgrade
+---@param level integer? Optional; defaults to the current upgrade's level.
+---@return g.Bundle
+function UpgradeTree:getUpgradePrice(upg, level)
+    local truePrice
+    level = level or self:getUpgradeLevel(upg)
+
+    local uinfo = g.getUpgradeInfo(upg.id)
+    if uinfo.getPriceOverride then
+        truePrice = uinfo:getPriceOverride(level)
+    else
+        truePrice = {}
+        for resId,val in pairs(upg.basePrice)do
+            truePrice[resId] = val
+        end
+        for _,res in ipairs(g.RESOURCE_LIST)do
+            truePrice[res] = modifyUpgradePrice(uinfo, truePrice[res] or 0, level)
+        end
+    end
+
+    return truePrice
+end
+
+
+--[[
+---@param uinfo g.UpgradeInfo
+---@param level number? Optional; defaults to the current upgrade's level.
+---@return boolean
+function g.canAffordUpgrade(uinfo, level)
+    level = level or g.getUpgradeLevel(uinfo)
+    for res,p in pairs(uinfo.price) do
+        local truePrice = modifyUpgradePrice(uinfo, p, level)
+        if truePrice > g.getResource(res) then
+            return false -- cant afford
+        end
+    end
+    return true
+end
+
+
+
+---@param uinfo g.UpgradeInfo
+---@return boolean wasPurchased
+function g.tryBuyUpgrade(uinfo)
+    local session = g.getSn()
+    local typ = uinfo.type
+    if g.getUpgradeLevel(uinfo) >= uinfo.maxLevel then
+        return false -- already max level
+    end
+    if g.canAffordUpgrade(uinfo) then
+        local price = g.getUpgradePrice(uinfo)
+        g.subtractResources(price)
+        session.upgradeLevels[typ] = (session.upgradeLevels[typ] or 0) + 1
+        return true
+    end
+    return false
+end
+
+]]
+
+
+
+
 local DIRECTIONS = {{1,0}, {-1,0}, {0,1}, {0,-1}}
 local EMPTY = {}
 

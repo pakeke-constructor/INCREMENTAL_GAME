@@ -1,10 +1,8 @@
 local simulation = {}
 
 
--- Target upgrade ID to be used as baseline
--- If this is nil, simulation is not used.
----@type string|nil
-simulation.targetUpgrade = nil
+simulation.isOn = false
+
 simulation.duration = 0
 
 simulation.lastMouseHitTime = 0
@@ -13,7 +11,7 @@ simulation.mouseY = 0
 
 
 function simulation.isSimulating()
-    return not not simulation.targetUpgrade
+    return simulation.isOn
 end
 
 
@@ -56,8 +54,11 @@ end
 local function buyAffordableUpgrades(upgId, prestige)
     local session = g.getSn()
 
+    error("TODO: fix all this shiiet.")
+    local tree = g.getUpgTree()
+
     local targLevel = 1
-    local targPrice = g.getUpgradePrice(g.getUpgradeInfo(upgId), targLevel)
+    local targPrice = tree:getUpgradePrice(upgId, targLevel)
 
     -- we use a while-loop because there are some upgrades 
     -- that reduce the price of other upgrades.
@@ -65,14 +66,11 @@ local function buyAffordableUpgrades(upgId, prestige)
     while hasPurchase do
         hasPurchase = false
 
-        local tree = g.getUpgTree()
-        error("TODO: fix this shiiet. pass a tree in from above?")
         for _, upg in ipairs(tree:getUpgrades()) do
             local id=upg.id
-            local uinfo = g.getUpgradeInfo(upg.id)
             if upgId ~= id then
-                local level = g.getUpgradeLevel(uinfo) + 1
-                local price = g.getUpgradePrice(uinfo, level)
+                local level = tree:setLevel(upg, upg.level + 1)
+                local price = tree:getUpgradePrice(upg)
 
                 -- if price <= targPrice:
                 if g.canAfford(price, targPrice) then
@@ -88,7 +86,7 @@ end
 
 ---@param upgId string
 ---@param duration number
-function simulation.setup(upgId, duration)
+function simulation.setup(tree)
     local session = g.getSn()
     local uinfo = g.getUpgradeInfo(upgId)
     simulation.targetUpgrade = upgId

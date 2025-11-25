@@ -88,7 +88,7 @@ local function getBestUpgradeAffordThreshold()
         local level = g.getUpgradeLevel(uinfo)
 
         if level > 0 and not tree:isUpgradeHidden(upg) then
-            local price = g.getUpgradePrice(uinfo, level)
+            local price = tree:getUpgradePrice(upg, level)
 
             for k, v in pairs(price) do
                 result[k] = math.max(result[k] or 0, v)
