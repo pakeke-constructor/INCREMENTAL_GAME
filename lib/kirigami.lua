@@ -329,6 +329,15 @@ end
 
 
 
+---@param multipleOf number
+---@return kirigami.Region
+function Region:shrinkToMultipleOf(multipleOf)
+    local diffw = self.w - math.floor(self.w / multipleOf) * multipleOf
+    local diffh = self.h - math.floor(self.h / multipleOf) * multipleOf
+    return self:padUnit(diffw / 2, diffh / 2)
+end
+
+
 
 --- Returns a new region that is scaled to fit certain boundaries
 ---@param width number

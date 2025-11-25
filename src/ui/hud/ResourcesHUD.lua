@@ -45,11 +45,11 @@ local PARTICLE_SPAWN_CATEGORY = {
 }
 
 local RESOURCE_HUD_BGS = {
-    {"resource_bg1", "resource_bg1_filled"},
-    {"resource_bg2", "resource_bg2_filled"},
-    {"resource_bg3", "resource_bg3_filled"},
-    {"resource_bg4", "resource_bg4_filled"},
-    {"resource_bg5", "resource_bg5_filled"},
+    money = {"resource_bg1", "resource_bg1_filled"},
+    juice = {"resource_bg2", "resource_bg2_filled"},
+    fabric = {"resource_bg3", "resource_bg3_filled"},
+    bread = {"resource_bg4", "resource_bg4_filled"},
+    fish = {"resource_bg5", "resource_bg5_filled"},
 }
 
 local EASINGS = {"sineIn", "sineOut", "sineInOut"}
@@ -155,7 +155,7 @@ end
 local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, barimagefill, noDraw)
     local bw, bh = select(3, g.getImageQuad(barimage):getViewport())
     local reg = Kirigami(x, y, bw * scale, bh * scale)
-    local iconR = helper.shrinkRegionToMultipleOf(reg:shrinkToAspectRatio(1, 1), 16)
+    local iconR = reg:shrinkToAspectRatio(1, 1):shrinkToMultipleOf(16)
         :attachToLeftOf(reg)
         :centerY(reg)
         :moveRatio(1, 0)
@@ -219,7 +219,7 @@ function Resources:drawHUD(noDraw)
     local indices = 0
     for i, resId in ipairs(g.RESOURCE_LIST) do
         if g.isResourceUnlocked(resId) then
-            local usedBarImage = RESOURCE_HUD_BGS[(i - 1) % #RESOURCE_HUD_BGS + 1]
+            local usedBarImage = RESOURCE_HUD_BGS[resId]
             local resInfo = g.getResourceInfo(resId)
 
             local icx, icy, currentFreeX = _drawResourcesMeter(
