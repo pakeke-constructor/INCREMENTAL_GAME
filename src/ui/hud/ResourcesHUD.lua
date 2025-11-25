@@ -1,7 +1,5 @@
 ---@class g.hud.Resources: objects.Class
 local Resources = objects.Class("g.hud:Resources")
-Resources._moneyFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 32, "mono")
-Resources._resourceFont = love.graphics.newFont("assets/fonts/Smart 9h.ttf", 24, "mono")
 
 ---@class g.hud._ResourceParticle
 ---@field package kind g.ResourceType
@@ -44,6 +42,14 @@ local PARTICLE_SPAWN_CATEGORY = {
         format = "money_particle_%d",
         counts = {1, 10, 100, 1000},
     },
+}
+
+local RESOURCE_HUD_BGS = {
+    {"resource_bg1", "resource_bg1_filled"},
+    {"resource_bg2", "resource_bg2_filled"},
+    {"resource_bg3", "resource_bg3_filled"},
+    {"resource_bg4", "resource_bg4_filled"},
+    {"resource_bg5", "resource_bg5_filled"},
 }
 
 local EASINGS = {"sineIn", "sineOut", "sineInOut"}
@@ -127,20 +133,9 @@ local function printTextAt(text, font, region, align, baseScale, scale)
     baseScale = baseScale or 1
     scale = scale or 1
     local x, y, w, h = region:get()
-    local maxw, lines = font:getWrap(text, w)
-
-    local th = #lines * font:getHeight()
-    local tx = x + w / 2 -- default center
-    local ty = y + h / 2
-
-    if align == "left" then
-        tx = tx - (w - maxw * baseScale) / 2
-    elseif align == "right" then
-        tx = tx + (w - maxw * baseScale) / 2
-    end
 
     local s = baseScale * scale
-    richtext.printRich(text, font, tx, ty, maxw, "left", 0, s, s, maxw / 2, th / 2)
+    richtext.printRich(text, font, x, y, w / s, align, 0, s, s)
 end
 
 ---@param x number
@@ -150,61 +145,62 @@ end
 
 ---@param self g.hud.Resources
 ---@param kind g.ResourceType
----@param reg kirigami.Region
+---@param x number
+---@param y number
 ---@param image string
 ---@param scale number
----@param bgcolor [number, number, number, number?]
----@param barcolor [number, number, number, number?]
+---@param barimage string
+---@param barimagefill string
 ---@param noDraw boolean?
-local function _drawResourcesMeter(self, kind, reg, image, scale, bgcolor, barcolor, noDraw)
-    local iconR = reg:shrinkToAspectRatio(1, 1):attachToLeftOf(reg):moveRatio(1, 0):padUnit(4)
-    local textR = reg:attachToRightOf(iconR):padUnit(4, 6)
+local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, barimagefill, noDraw)
+    local bw, bh = select(3, g.getImageQuad(barimage):getViewport())
+    local reg = Kirigami(x, y, bw * scale, bh * scale)
+    local iconR = helper.shrinkRegionToMultipleOf(reg:shrinkToAspectRatio(1, 1), 16)
+        :attachToLeftOf(reg)
+        :centerY(reg)
+        :moveRatio(1, 0)
+    local textR = reg
+        :moveUnit(iconR.w)
+        :intersection(reg)
     local t = self:_getInterpolationTime(kind)
 
     if not noDraw then
-        -- Draw resource icon
-        local icx, icy = iconR:getCenter()
-        g.drawImage(image, icx, icy, 0, 1.5 * (scale + 0.25 * (1 - t) ^ 2))
+        -- Draw bar background (unfilled)
+        love.graphics.setColor(1, 1, 1)
+        g.drawImageOffset(barimage, x, y, 0, scale, scale, 0, 0)
 
-        local lw = love.graphics.getLineWidth()
-        love.graphics.setLineWidth(2)
-
-        -- Draw meter
-        love.graphics.setColor(bgcolor)
-        love.graphics.setStencilMode("draw", 1)
-        -- Explicitly enable color mask.
-        -- We want to draw the jagged rectangle AND the stencil at same time
-        love.graphics.setColorMask(true, true, true, true)
-        ui.jaggedRectangle("fill", 8, textR:get())
-
-        -- Enter stecil test mode to just draw rectangle with stencil test active
-        local tx, ty, tw, th = textR:get()
-        love.graphics.setColor(barcolor)
-        love.graphics.setStencilMode("test", 1)
-        love.graphics.rectangle("fill", tx, ty, tw * self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1), th)
-
-        -- Disable stencil test to draw outline.
-        love.graphics.setStencilMode()
-        love.graphics.setColor(0, 0, 0)
-        ui.jaggedRectangle("line", 8, textR:get())
+        -- Draw filled bar (potentially partially filled)
+        local q = helper.cloneQuad(g.getImageQuad(barimagefill))
+        do
+            -- Compute bar width
+            local qx, qy, qw, qh = q:getViewport()
+            local mult = self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1)
+            q:setViewport(qx, qy, qw * mult, qh)
+        end
+        -- Cannot use g.drawImageOffset here because we're using different quad.
+        -- Don't worry, it's still batched though.
+        love.graphics.draw(g.getAtlas(), q, x, y, 0, scale, scale)
+        q:release()
 
         -- Draw resource value
         love.graphics.setColor(1, 1, 1)
-        local r = textR:padUnit(8, 0, 0, 0):moveUnit(0, math.sin(love.timer.getTime()*3)-2)
+        local r = textR:padUnit(4, 0, 8, 0):moveUnit(0, math.sin(love.timer.getTime()*3))
         printTextAt(
-            g.formatNumber(math.max(0,self.displayValue[kind])),
-            self._resourceFont,
+            "{o}"..g.formatNumber(math.max(0,self.displayValue[kind])).."{/o}",
+            g.getBigFont(16),
             r,
             "left",
             scale,
             1 + easeInCubic(1 - t) * 0.25
         )
 
-        love.graphics.setLineWidth(lw)
+        -- Draw resource icon
+        local icx, icy = iconR:getCenter()
+        g.drawImage(image, icx, icy, 0, scale * helper.lerp(1, 1.25, (1 - t) ^ 2))
     end
 
     local ux, uy = iconR:getCenter()
-    return ux, uy, iconR:union(textR)
+    return ux, uy, reg.x + reg.w
 end
 
 ---@param noDraw boolean?
@@ -214,52 +210,34 @@ function Resources:drawHUD(noDraw)
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
 
     -- Draw resources
-    local mainResourceR = Kirigami(0, 0, 140, 40)
-        :attachToTopOf(r)
-        :attachToLeftOf(r)
-        :moveRatio(1, 1)
-        :moveUnit(14, 10)
-    local otherBaseResourceR = Kirigami(0, 0, 80, 32):moveUnit(14, 4)
-    local prevR = nil
+    local BASE_X = 8
+    local BASE_Y = 8
     local leftPad = 0 -- For free area computation
+    local freeX = 0
 
     love.graphics.setColor(1, 1, 1)
+    local indices = 0
     for i, resId in ipairs(g.RESOURCE_LIST) do
         if g.isResourceUnlocked(resId) then
-            local targetR, scale
-            if not prevR then
-                -- its money (aka main-resource)
-                targetR = mainResourceR
-                scale = 1.5
-            else
-                -- Otherwise, treat it normally
-                targetR = otherBaseResourceR:attachToBottomOf(prevR):moveUnit(0, 4)
-                scale = 1
-                leftPad = targetR.x + targetR.w
-            end
-
+            local usedBarImage = RESOURCE_HUD_BGS[(i - 1) % #RESOURCE_HUD_BGS + 1]
             local resInfo = g.getResourceInfo(resId)
 
-            local bgCol = objects.Color(resInfo.color)
-            bgCol.value = bgCol.value/2
-            bgCol.a = bgCol.a / 3
-
-            local icx, icy, finalR = _drawResourcesMeter(
+            local icx, icy, currentFreeX = _drawResourcesMeter(
                 self,
-                resId, targetR, resInfo.image, scale,
-                bgCol, resInfo.color, noDraw
+                resId,
+                BASE_X, BASE_Y + 24 * indices,
+                resInfo.image, 1,
+                usedBarImage[1], usedBarImage[2],
+                noDraw
             )
             local pos = self.poses[resId]
             pos[1], pos[2] = icx, icy
-
-            if prevR then
-                leftPad = finalR.x + finalR.w
-            end
-            prevR = targetR
+            indices = indices + 1
+            freeX = math.max(freeX, currentFreeX)
         end
     end
 
-    self.freeArea = r:padUnit(leftPad, mainResourceR.y + mainResourceR.h, 0, 0)
+    self.freeArea = r:padUnit(freeX, 0, 0, 0)
 end
 
 function Resources:getSafeArea()
