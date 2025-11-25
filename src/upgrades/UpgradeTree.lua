@@ -25,7 +25,7 @@ FEATURES WE NEED:
 ---@class g.UpgradeTree.Upgrade
 ---@field upgradeId string
 ---@field level integer
----@field price integer
+---@field price g.Bundle
 ---@field x integer
 ---@field y integer
 ---@field isRoot boolean?
@@ -58,7 +58,6 @@ function UpgradeTree:init()
 end
 
 
----comment
 ---@param data {upgrades:g.UpgradeTree.Upgrade[], connections:[integer,integer][]}
 function UpgradeTree.deserialize(data)
     local self = UpgradeTree()
@@ -118,15 +117,16 @@ end
 ---@return g.UpgradeTree.Upgrade upg
 function UpgradeTree:get(x,y)
     local i = pair(x,y)
-    return self.upgrades[i]
+    return assert(self.upgrades[i])
 end
 
 
 ---@param upg g.UpgradeTree.Upgrade
----@param price number
+---@param price g.Bundle
 function UpgradeTree:setPrice(upg, price)
     upg.price = price
 end
+
 
 ---@param upg g.UpgradeTree.Upgrade
 ---@param level number
@@ -290,7 +290,7 @@ function UpgradeTree:put(x,y, upgradeId)
         upgradeId = upgradeId,
         x=x,
         y=y,
-        price=-1,
+        price={},
         level=0
     }
 

@@ -1103,38 +1103,6 @@ local function getTargetConnector(con, prestige)
     return nil
 end
 
----@param uinfo g.UpgradeInfo
----@param prestige integer
-local function getNeighbor(uinfo, prestige, dx,dy)
-    local upos = g.getUpgradePosition(uinfo, prestige)
-    local ux, uy = upos.x+dx, upos.y+dy
-    local h = hash(ux,uy,prestige)
-    local utype = upgradePositionsHash[h]
-    local vertical = nil -- if it's nil, inegligible for connector search
-    if dx ~= 0 and dy == 0 then
-        vertical = false
-    elseif dx == 0 and dy ~= 0 then
-        vertical = true
-    end
-
-    if utype then
-        if type(utype) == "string" then
-            return g.getUpgradeInfo(utype)
-        elseif vertical ~= nil and utype.isVertical == vertical then
-            local target = getTargetConnector(utype, prestige)
-            -- The target connector returns 2 types across each endpoints.
-            -- One of it is equal to `uinfo.type`. We want the one not equal to `uinfo.type`.
-            if target then
-                if target[1] == uinfo.type then
-                    return g.getUpgradeInfo(target[2])
-                elseif target[2] == uinfo.type then
-                    return g.getUpgradeInfo(target[1])
-                end
-            end
-        end
-    end
-    return nil
-end
 
 
 local NEIGHBORS = {
@@ -1249,41 +1217,6 @@ end
 
 
 
----@param uinfo g.UpgradeInfo
----@return boolean
-function g.isUpgradeLocked(uinfo)
-    error([[
-        todo: should we have this?
-
-        the idea is that we have some upgrades that can be 
-        purchased later on in the game,
-
-        eg. late-game upgrades.
-    ]])
-end
-
-
----@param uinfo g.UpgradeInfo
----@param prestige integer
-function g.isUpgradeDefinedInPrestige(uinfo, prestige)
-    return not not upgradePositionByPrestige[prestige][uinfo.type]
-end
-
-
-
----@param uinfo g.UpgradeInfo
----@param prestige integer
----@return {x:integer,y:integer}
-function g.getUpgradePosition(uinfo, prestige)
-    if not g.isUpgradeDefinedInPrestige(uinfo, prestige) then
-        error("upgrade '"..uinfo.type.."' not defined in prestige "..prestige)
-    end
-
-    return upgradePositionByPrestige[prestige][uinfo.type]
-end
-
-
-
 
 ---@param prestige integer
 ---@return fun():({x:integer,y:integer},string)
@@ -1301,11 +1234,6 @@ end
 ---@param uinfo g.UpgradeInfo
 ---@return boolean
 function g.isUpgradeHidden(uinfo)
-    if not g.isUpgradeDefinedInPrestige(uinfo, g.getPrestige()) then
-        -- not in prestige range... its obviously hidden
-        return true
-    end
-
     if g.getUpgradeLevel(uinfo) > 0 then
         return false -- cant be hidden if level>0
     end
