@@ -406,4 +406,22 @@ end
 end
 
 
+---@param reg kirigami.Region
+---@param multipleOf number
+function helper.shrinkRegionToMultipleOf(reg, multipleOf)
+    local diffw = reg.w - math.floor(reg.w / multipleOf) * multipleOf
+    local diffh = reg.h - math.floor(reg.h / multipleOf) * multipleOf
+    return reg:padUnit(diffw / 2, diffh / 2)
+end
+
+
+
+---@param q love.Quad
+function helper.cloneQuad(q)
+    local x, y, w, h = q:getViewport()
+    local sw, sh = q:getTextureDimensions()
+    return love.graphics.newQuad(x, y, w, h, sw, sh)
+end
+
+
 return helper

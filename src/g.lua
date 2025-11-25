@@ -593,6 +593,11 @@ g.defineResource("money", {
     startingLimit=(consts.DEV_MODE and 10000000000000) or 1000,
     color = {0.71, 0.55, 0.02},
 })
+g.defineResource("juice", {
+    image="juice",
+    limitStat="JuiceLimit",
+    color=objects.Color("#".."FF8A2E59")
+})
 g.defineResource("fabric", {
     image="fabric",
     limitStat="FabricLimit",
@@ -602,11 +607,6 @@ g.defineResource("bread", {
     image="bread",
     limitStat="BreadLimit",
     color=objects.Color("#".."FFB78652")
-})
-g.defineResource("juice", {
-    image="juice",
-    limitStat="JuiceLimit",
-    color=objects.Color("#".."FF8A2E59")
 })
 g.defineResource("fish", {
     image="fish",
@@ -632,9 +632,9 @@ end
 ---@param resId string
 function g.isResourceUnlocked(resId)
     assertValidResource(resId)
-    if g.getPrestige() == 0 and (g.getResource(resId) <= 0) then
-        return false
-    end
+    -- if g.getPrestige() == 0 and (g.getResource(resId) <= 0) then
+    --     return false
+    -- end
     return true
 end
 
