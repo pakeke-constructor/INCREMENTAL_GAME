@@ -115,6 +115,16 @@ function cosmetics.getInfo(id)
 end
 
 
+
+---@param id string cosmetic-info
+---@return boolean
+function cosmetics.isValidCosmetic(id)
+    ensureLoaded()
+    return (not not COSMETIC_INFO[id])
+end
+
+
+
 ---@return string[]
 function cosmetics.getUnlocked()
     ensureLoaded()
