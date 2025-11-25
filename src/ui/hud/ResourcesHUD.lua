@@ -155,7 +155,9 @@ end
 local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, barimagefill, noDraw)
     local bw, bh = select(3, g.getImageQuad(barimage):getViewport())
     local reg = Kirigami(x, y, bw * scale, bh * scale)
-    local iconR = reg:shrinkToAspectRatio(1, 1):shrinkToMultipleOf(16)
+    local iconR = reg
+        :shrinkToAspectRatio(1, 1)
+        :shrinkToMultipleOf(16)
         :attachToLeftOf(reg)
         :centerY(reg)
         :moveRatio(1, 0)
@@ -184,10 +186,15 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
 
         -- Draw resource value
         love.graphics.setColor(1, 1, 1)
-        local r = textR:padUnit(4, 0, 8, 0):moveUnit(0, math.sin(love.timer.getTime()*3))
+        local font = g.getBigFont(16)
+        local r = textR
+            :set(nil, nil, nil, font:getHeight())
+            :padUnit(4, 0, 8, 0)
+            :centerY(textR)
+            :moveUnit(0, math.sin(love.timer.getTime()*3) - 1)
         printTextAt(
             "{o}"..g.formatNumber(math.max(0,self.displayValue[kind])).."{/o}",
-            g.getBigFont(16),
+            font,
             r,
             "left",
             scale,
@@ -225,7 +232,7 @@ function Resources:drawHUD(noDraw)
             local icx, icy, currentFreeX = _drawResourcesMeter(
                 self,
                 resId,
-                BASE_X, BASE_Y + 24 * indices,
+                BASE_X, BASE_Y + 32 * indices,
                 resInfo.image, 1,
                 usedBarImage[1], usedBarImage[2],
                 noDraw
