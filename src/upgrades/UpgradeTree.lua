@@ -5,11 +5,11 @@ UpgradeTree structure:
 ===============================
 
 upgrades = {
-    {upgradeId="id", x=x,y=y, price=3, level=5},
-    {upgradeId="id2", x=x,y=y, price=3, level=5},},
-    {upgradeId="id3", x=x,y=y, price=3, level=5},},
+    {id="id", x=x,y=y, basePrice=3, level=5},
+    {id="id2", x=x,y=y, basePrice=3, level=5},},
+    {id="id3", x=x,y=y, basePrice=3, level=5},},
     {connector=true, x=x,y=y}, -- (UPGRADE-CONNECTOR)
-    {upgradeId="id", x=x,y=y, price=3, level=5},},
+    {id="id", x=x,y=y, basePrice=3, level=5},},
 }
 
 
@@ -23,9 +23,9 @@ FEATURES WE NEED:
 
 
 ---@class g.UpgradeTree.Upgrade
----@field upgradeId string
+---@field id string
 ---@field level integer
----@field price g.Bundle
+---@field basePrice g.Bundle
 ---@field x integer
 ---@field y integer
 ---@field isRoot boolean?
@@ -44,7 +44,7 @@ local finalizeConnections
 
 function UpgradeTree:init()
     self.upgrades = {--[[
-        [(x,y)] -> Upgrade{x,y,upgradeId,level,price}
+        [(x,y)] -> Upgrade{x,y,id,level,basePrice}
     ]]}
     self.connections = {} -- List< (x,y), (x,y) >
 
@@ -64,6 +64,7 @@ function UpgradeTree.deserialize(data)
     self.upgrades = data.upgrades
     self.connections = data.connections
     finalizeConnections(self)
+    self._distances = cal
 end
 
 
@@ -122,9 +123,9 @@ end
 
 
 ---@param upg g.UpgradeTree.Upgrade
----@param price g.Bundle
-function UpgradeTree:setPrice(upg, price)
-    upg.price = price
+---@param basePrice g.Bundle
+function UpgradeTree:setBasePrice(upg, basePrice)
+    upg.basePrice = basePrice
 end
 
 
@@ -134,11 +135,6 @@ function UpgradeTree:setLevel(upg, level)
     upg.level = level
 end
 
-
----@param upg g.UpgradeTree.Upgrade
-function UpgradeTree:markAsRoot(upg)
-    upg.isRoot = true
-end
 
 
 ---@param self g.UpgradeTree
@@ -211,24 +207,47 @@ function UpgradeTree:getNeighbors(x,y)
 end
 
 
----@param self g.UpgradeTree
----@param x1 number
----@param y1 number
----@return table<integer,integer>
-local function updateWithDijkstra(self, x1, y1)
-    assert(self.upgrades[pair(x1, y1)])
 
+---@param upg g.UpgradeTree.Upgrade
+---@return g.UpgradeTree.Upgrade[]
+function UpgradeTree:getConnectors(upg)
+    local connectors = {}
+
+    local arr = self._connectionMap[pair(upg.x,upg.y)] or EMPTY
+    for _, i in ipairs(arr) do
+        local u = self.upgrades[i] -- HACK: using self.upgrades directly
+        if u then
+            table.insert(u)
+        end
+    end
+
+    return connectors
+end
+
+
+
+
+
+
+
+---@param self g.UpgradeTree
+---@return table<integer,integer>
+local function calculateDistancesFromRoot(self)
+    --[[
+    updates the distances from root for upgrades
+    ]]
     local distances = {}
     local visited = {}
     local pqueue = {} -- Priority queue: array of {x, y, dist}
 
-    for pos, _ in pairs(self.upgrades) do
-        distances[pos] = math.huge
+    for pos, upg in pairs(self.upgrades) do
+        if upg.isRoot then
+            table.insert(pqueue, {x=upg.x, y=upg.y, dist=0})
+            distances[pos] = 0
+        else
+            distances[pos] = math.huge
+        end
     end
-
-    local startPair = pair(x1, y1)
-    distances[startPair] = 0
-    table.insert(pqueue, {x = x1, y = y1, dist = 0})
 
     local function pqInsert(x, y, dist)
         local node = {x = x, y = y, dist = dist}
@@ -277,33 +296,64 @@ local function updateWithDijkstra(self, x1, y1)
 end
 
 
+---@param upg g.UpgradeTree.Upgrade
+function UpgradeTree:markAsRoot(upg)
+    upg.isRoot = true
+    self._distances = calculateDistancesFromRoot(self)
+end
+
 
 ---@param x integer
 ---@param y integer
----@param upgradeId string
+---@param id string
 ---@return g.UpgradeTree.Upgrade
-function UpgradeTree:put(x,y, upgradeId)
+function UpgradeTree:put(x,y, id)
     -- used when generating upgrade-tree
     local i = pair(x,y)
     helper.assert(not self.upgrades[i], "Upgrade already exists here!")
+    assert(g.getUpgradeInfo(id), "Invalid upgrade id: " .. id)
     self.upgrades[i] = {
-        upgradeId = upgradeId,
+        id = id,
         x=x,
         y=y,
-        price={},
+        basePrice={},
         level=0
     }
 
-    updateWithDijkstra(self, x,y)
+    self._distances = calculateDistancesFromRoot(self)
     return self.upgrades[i]
 end
 
 
+---@param self g.UpgradeTree
+---@param upg g.UpgradeTree.Upgrade
+local function hasAnyPurchasedNeighbors(self, upg)
+    local neighs = self:getNeighbors(upg.x, upg.y)
+    for _, u in ipairs(neighs) do
+        if (u.level > 0) or (u.isRoot) then
+            return true
+        end
+    end
+    return false
+end
 
+---@param upg g.UpgradeTree.Upgrade
+function UpgradeTree:isUpgradeHidden(upg)
+    if upg.level > 0 then
+        return false -- cant be hidden if level>0
+    end
+    if upg.isRoot then
+        -- "root" upgrades are always visible
+        return false
+    end
 
-function UpgradeTree:getVisibleUpgrades()
-    local buf = {}
-    -- TODO.
+    local uinfo = g.getUpgradeInfo(upg.id)
+    if uinfo.isHidden and uinfo:isHidden() then
+        return true
+    end
+
+    local isHidden = not hasAnyPurchasedNeighbors(self, upg)
+    return isHidden
 end
 
 
@@ -319,25 +369,13 @@ function UpgradeTree:distanceFromRoot(upg)
 end
 
 
-function UpgradeTree:iterateAllUpgrades()
-    return pairs(self.upgrades)
-end
-
-
-function UpgradeTree:iterateAllConnections()
-    -- (untested)
-    local i = 1
-    return function()
-        local t = self.connections[i]
-        if not t then
-            return nil
-        end
-        local i1,i2 = t[1],t[2]
-        local upg1 = self.upgrades[i1]
-        local upg2 = self.upgrades[i2]
-        i = i + 1
-        return upg1, upg2
+---@return g.UpgradeTree.Upgrade[]
+function UpgradeTree:getUpgrades()
+    local buf = {}
+    for _,upg in pairs(self.upgrades) do
+        table.insert(buf,upg)
     end
+    return buf
 end
 
 

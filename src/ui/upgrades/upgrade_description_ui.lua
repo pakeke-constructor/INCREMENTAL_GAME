@@ -18,57 +18,6 @@ local UI_PANEL_COLOR = objects.Color("#".."FF14A0CD")
 local TITLE_BACKGROUND_GRADIENT = {UI_PANEL_COLOR, objects.Color("#".."ff191e3c")}
 local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color("#".."ff191e3c")}
 
----@param uinfo g.UpgradeInfo
-function UpgradeDescription:init(uinfo)
-    self.font = g.getSmallFont(16)
-    self.largeFont = g.getSmallFont(32)
-    self.titleFont = g.getBigFont(32)
-
-    self.boxWidth = 100
-
-    ---@class ui._UpgradeDescriptionElem
-    ---@field package width number|nil
-    ---@field package height number
-    ---@field package render fun(x:number,y:number,w:number,h:number)
-    ---@type ui._UpgradeDescriptionElem[]
-    self.elements = {}
-    self.uinfo = uinfo
-
-    self.priceTagPanels = {
-        [true] = n9slice.new {
-            image = g.getAtlas(),
-            padding = {PRICE_TAG_PADDING, 0},
-            quad = g.getImageQuad("pricetag_can_afford")
-        },
-        [false] = n9slice.new {
-            image = g.getAtlas(),
-            padding = {PRICE_TAG_PADDING, 0},
-            quad = g.getImageQuad("pricetag_cant_afford")
-        }
-    }
-    ---@type [g.ResourceType,string][]
-    self.priceText = {}
-    -- richText.stripEffects also strips image identifier
-    -- so it's gone when passed through Font:getWidth()
-    -- This means we have to track manually how many images it is.
-    self.priceImageCount = 0
-
-    self.titleBackgroundGradient = helper.newGradientMesh("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
-    self.backgroundGradient = helper.newGradientMesh("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
-
-    self:autoBuild(uinfo)
-end
-
-if false then
-    ---@param uinfo g.UpgradeInfo
-    ---@return ui.UpgradeDescription
-    ---@diagnostic disable-next-line: cast-local-type, missing-return
-    function UpgradeDescription(uinfo) end
-end
-
-function UpgradeDescription:getType()
-    return self.uinfo.type
-end
 
 
 local STAT_UP_COLOR = objects.Color("#".."FFEF8EFC")
@@ -115,9 +64,14 @@ local function getUpgradeDescription(uinfo, level, nextLevel)
 end
 
 
+
+
 ---Create upgrade description automatically.
----@param uinfo g.UpgradeInfo
-function UpgradeDescription:autoBuild(uinfo)
+---@param self ui.UpgradeDescription
+---@param tree g.UpgradeTree
+---@param upg g.UpgradeTree.Upgrade
+local function autoBuild(self, tree, upg)
+    local uinfo = self.uinfo
     local isTokenUpgrade = uinfo.kind == "TOKEN"
     if isTokenUpgrade then
         local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
@@ -156,6 +110,65 @@ function UpgradeDescription:autoBuild(uinfo)
         end
     end
 end
+
+
+---@param tree g.UpgradeTree
+---@param upg g.UpgradeTree.Upgrade
+function UpgradeDescription:init(tree, upg)
+    self.font = g.getSmallFont(16)
+    self.largeFont = g.getSmallFont(32)
+    self.titleFont = g.getBigFont(32)
+
+    self.boxWidth = 100
+
+    ---@class ui._UpgradeDescriptionElem
+    ---@field package width number|nil
+    ---@field package height number
+    ---@field package render fun(x:number,y:number,w:number,h:number)
+    ---@type ui._UpgradeDescriptionElem[]
+    self.elements = {}
+
+    self.tree = tree
+    self.upg = upg
+    self.uinfo = assert(g.getUpgradeInfo(upg.id))
+
+    self.priceTagPanels = {
+        [true] = n9slice.new {
+            image = g.getAtlas(),
+            padding = {PRICE_TAG_PADDING, 0},
+            quad = g.getImageQuad("pricetag_can_afford")
+        },
+        [false] = n9slice.new {
+            image = g.getAtlas(),
+            padding = {PRICE_TAG_PADDING, 0},
+            quad = g.getImageQuad("pricetag_cant_afford")
+        }
+    }
+    ---@type [g.ResourceType,string][]
+    self.priceText = {}
+    -- richText.stripEffects also strips image identifier
+    -- so it's gone when passed through Font:getWidth()
+    -- This means we have to track manually how many images it is.
+    self.priceImageCount = 0
+
+    self.titleBackgroundGradient = helper.newGradientMesh("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
+    self.backgroundGradient = helper.newGradientMesh("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
+
+    autoBuild(self, tree, upg)
+end
+
+if false then
+    ---@param uinfo g.UpgradeInfo
+    ---@return ui.UpgradeDescription
+    ---@diagnostic disable-next-line: cast-local-type, missing-return
+    function UpgradeDescription(uinfo) end
+end
+
+---@return g.UpgradeTree.Upgrade
+function UpgradeDescription:getUpgrade()
+    return self.upg
+end
+
 
 
 ---@param text string
@@ -316,6 +329,7 @@ end
 ---@param y number
 function UpgradeDescription:draw(x, y)
     local w, h = self:getMainBoxDimensions()
+    local uinfo = g.getUpgradeInfo(self.upg.id)
 
     -- Draw background color
     -- I'm sorry for have failed to create flexible system. These offset and sizes
@@ -344,9 +358,9 @@ function UpgradeDescription:draw(x, y)
         yoff = yoff + elem.height
     end
 
-    local level = g.getUpgradeLevel(self.uinfo)
-    if level < self.uinfo.maxLevel then
-        local canAfford = g.canAfford(g.getUpgradePrice(self.uinfo))
+    local level = g.getUpgradeLevel(uinfo)
+    if level < uinfo.maxLevel then
+        local canAfford = g.canAfford(g.getUpgradePrice(uinfo))
         -- Start drawing price tag
         love.graphics.setColor(1,1,1)
 

@@ -2,6 +2,7 @@
 
 
 local World = require("src.world.world")
+local UpgradeTree = require("src.upgrades.UpgradeTree")
 local cosmetics = require("src.cosmetics.cosmetics")
 
 
@@ -81,6 +82,8 @@ function Session:init()
         background = consts.DEFAULT_BACKGROUND_AVATAR,
         hat = nil,
     }
+
+    self.tree = UpgradeTree()
 
     -- reset stats:
     for k,sta in pairs(g.VALID_STATS) do
@@ -210,7 +213,8 @@ function Session:serialize()
             avatar = self.avatar.avatar,
             background = self.avatar.background,
             hat = self.avatar.hat
-        }
+        },
+        tree = self.tree:serialize()
     }
 end
 

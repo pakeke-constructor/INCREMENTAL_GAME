@@ -65,17 +65,19 @@ local function buyAffordableUpgrades(upgId, prestige)
     while hasPurchase do
         hasPurchase = false
 
-        for _, uid in g.iterateUpgradeTree(prestige) do
-            local uinfo = g.getUpgradeInfo(uid)
-            if upgId ~= uid then
+        local tree = g.getUpgTree()
+        error("TODO: fix this shiiet. pass a tree in from above?")
+        for _, upg in ipairs(tree:getUpgrades()) do
+            local id=upg.id
+            local uinfo = g.getUpgradeInfo(upg.id)
+            if upgId ~= id then
                 local level = g.getUpgradeLevel(uinfo) + 1
                 local price = g.getUpgradePrice(uinfo, level)
 
                 -- if price <= targPrice:
                 if g.canAfford(price, targPrice) then
                     hasPurchase = true
-                    print("BUY: ", uid, level)
-                    session.upgradeLevels[uid] = level
+                    session.upgradeLevels[id] = level
                 end
             end
         end

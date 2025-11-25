@@ -39,6 +39,11 @@ function g.getSn()
     return assert(currentSession, "session not loaded")
 end
 
+---@return g.UpgradeTree
+function g.getUpgTree()
+    return currentSession.tree
+end
+
 ---@return g.World
 function g.getMainWorld()
     return currentSession.mainWorld
@@ -495,7 +500,6 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field kind g.UpgradeKind
 ---@field tokenType string? (only for kind == "TOKEN")
 ---@field maxLevel integer?
----@field startingUpgrade boolean? starting-upgrades will be visible at the start, no matter what.
 ---@field image string?
 ---@field priceScaling number?
 ---@field description string?
@@ -1218,18 +1222,6 @@ end
 
 
 
----@param prestige integer
----@return fun():({x:integer,y:integer},string)
-function g.iterateUpgradeTree(prestige)
-    return coroutine.wrap(function()
-        for k, v in pairs(upgradePositionByPrestige[prestige]) do
-            coroutine.yield(v, k)
-        end
-    end)
-end
-
-
-
 
 ---@param uinfo g.UpgradeInfo
 ---@return boolean
@@ -1320,7 +1312,7 @@ end
 local function modifyUpgradePrice(uinfo, val, level)
     level = level or g.getUpgradeLevel(uinfo)
     local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
-    local mult2 = g.ask("getUpgradePriceMultiplier")
+    local mult2 = g.ask("getUpgradePriceMultiplier", uinfo, level)
     val = floorSignificant(val*mult*mult2, 2)
     return val
 end

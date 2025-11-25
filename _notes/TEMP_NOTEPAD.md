@@ -5,12 +5,6 @@
 
 
 
----@param prestige integer
----@return fun():({x:integer,y:integer},string)
-function g.iterateUpgradeTree(prestige)
-end
-
-
 
 
 ---@param uinfo g.UpgradeInfo
