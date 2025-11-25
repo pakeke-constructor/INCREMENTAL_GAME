@@ -1,7 +1,7 @@
 
 --[[
 
-UpgradeTree structure:
+Upgrade Tree structure:
 ===============================
 
 upgrades = {
@@ -22,7 +22,7 @@ FEATURES WE NEED:
 ]]
 
 
----@class g.UpgradeTree.Upgrade
+---@class g.Tree.Upgrade
 ---@field id string
 ---@field level integer
 ---@field basePrice g.Bundle
@@ -32,17 +32,17 @@ FEATURES WE NEED:
 local Upgrade = {}
 
 
----@class g.UpgradeTree: objects.Class
----@field upgrades table<integer, g.UpgradeTree.Upgrade>
+---@class g.Tree: objects.Class
+---@field upgrades table<integer, g.Tree.Upgrade>
 ---@field connections [integer, integer][]
 ---@field _connectionMap table<integer, table<integer, true>>
 ---@field _distances table<integer, integer>
-local UpgradeTree = objects.Class("g:UpgradeTree")
+local Tree = objects.Class("g:Tree")
 
 
 local finalizeConnections
 
-function UpgradeTree:init()
+function Tree:init()
     self.upgrades = {--[[
         [(x,y)] -> Upgrade{x,y,id,level,basePrice}
     ]]}
@@ -58,9 +58,9 @@ function UpgradeTree:init()
 end
 
 
----@param data {upgrades:g.UpgradeTree.Upgrade[], connections:[integer,integer][]}
-function UpgradeTree.deserialize(data)
-    local self = UpgradeTree()
+---@param data {upgrades:g.Tree.Upgrade[], connections:[integer,integer][]}
+function Tree.deserialize(data)
+    local self = Tree()
     self.upgrades = data.upgrades
     self.connections = data.connections
     finalizeConnections(self)
@@ -68,7 +68,7 @@ function UpgradeTree.deserialize(data)
 end
 
 
-function UpgradeTree:serialize()
+function Tree:serialize()
     return {
         upgrades = self.upgrades,
         connections = self.connections
@@ -115,29 +115,29 @@ end
 
 ---@param x integer
 ---@param y integer
----@return g.UpgradeTree.Upgrade upg
-function UpgradeTree:get(x,y)
+---@return g.Tree.Upgrade upg
+function Tree:get(x,y)
     local i = pair(x,y)
     return assert(self.upgrades[i])
 end
 
 
----@param upg g.UpgradeTree.Upgrade
+---@param upg g.Tree.Upgrade
 ---@param basePrice g.Bundle
-function UpgradeTree:setBasePrice(upg, basePrice)
+function Tree:setBasePrice(upg, basePrice)
     upg.basePrice = basePrice
 end
 
 
----@param upg g.UpgradeTree.Upgrade
+---@param upg g.Tree.Upgrade
 ---@param level number
-function UpgradeTree:setLevel(upg, level)
+function Tree:setLevel(upg, level)
     upg.level = level
 end
 
 
 
----@param self g.UpgradeTree
+---@param self g.Tree
 ---@param i1 integer
 ---@param i2 integer
 local function updateEdge(self, i1,i2)
@@ -155,7 +155,7 @@ end
 
 
 
----@param self g.UpgradeTree
+---@param self g.Tree
 function finalizeConnections(self)
     for tabl in ipairs(self.connections) do
         local i1, i2 = tabl[1],tabl[2]
@@ -167,7 +167,7 @@ end
 
 ---@param upg1 any
 ---@param upg2 any
-function UpgradeTree:addConnection(upg1, upg2)
+function Tree:addConnection(upg1, upg2)
     local i1 = pair(upg1.x,upg1.y)
     local i2 = pair(upg2.x,upg2.y)
 
@@ -206,10 +206,10 @@ end
 
 
 ---WARNING: This incurs a table allocation.
----@param upg g.UpgradeTree.Upgrade
+---@param upg g.Tree.Upgrade
 ---@param level integer? Optional; defaults to the current upgrade's level.
 ---@return g.Bundle
-function UpgradeTree:getUpgradePrice(upg, level)
+function Tree:getUpgradePrice(upg, level)
     local truePrice
     level = level or self:getUpgradeLevel(upg)
 
@@ -274,8 +274,8 @@ local EMPTY = {}
 
 ---@param x number
 ---@param y number
----@return g.UpgradeTree.Upgrade[]
-function UpgradeTree:getNeighbors(x,y)
+---@return g.Tree.Upgrade[]
+function Tree:getNeighbors(x,y)
     local neighbors = {}
 
     for _, dir in ipairs(DIRECTIONS) do
@@ -300,9 +300,9 @@ end
 
 
 
----@param upg g.UpgradeTree.Upgrade
----@return g.UpgradeTree.Upgrade[]
-function UpgradeTree:getConnectors(upg)
+---@param upg g.Tree.Upgrade
+---@return g.Tree.Upgrade[]
+function Tree:getConnectors(upg)
     local connectors = {}
 
     local arr = self._connectionMap[pair(upg.x,upg.y)] or EMPTY
@@ -322,7 +322,7 @@ end
 
 
 
----@param self g.UpgradeTree
+---@param self g.Tree
 ---@return table<integer,integer>
 local function calculateDistancesFromRoot(self)
     --[[
@@ -388,8 +388,8 @@ local function calculateDistancesFromRoot(self)
 end
 
 
----@param upg g.UpgradeTree.Upgrade
-function UpgradeTree:markAsRoot(upg)
+---@param upg g.Tree.Upgrade
+function Tree:markAsRoot(upg)
     upg.isRoot = true
     self._distances = calculateDistancesFromRoot(self)
 end
@@ -398,8 +398,8 @@ end
 ---@param x integer
 ---@param y integer
 ---@param id string
----@return g.UpgradeTree.Upgrade
-function UpgradeTree:put(x,y, id)
+---@return g.Tree.Upgrade
+function Tree:put(x,y, id)
     -- used when generating upgrade-tree
     local i = pair(x,y)
     helper.assert(not self.upgrades[i], "Upgrade already exists here!")
@@ -417,8 +417,8 @@ function UpgradeTree:put(x,y, id)
 end
 
 
----@param self g.UpgradeTree
----@param upg g.UpgradeTree.Upgrade
+---@param self g.Tree
+---@param upg g.Tree.Upgrade
 local function hasAnyPurchasedNeighbors(self, upg)
     local neighs = self:getNeighbors(upg.x, upg.y)
     for _, u in ipairs(neighs) do
@@ -429,8 +429,8 @@ local function hasAnyPurchasedNeighbors(self, upg)
     return false
 end
 
----@param upg g.UpgradeTree.Upgrade
-function UpgradeTree:isUpgradeHidden(upg)
+---@param upg g.Tree.Upgrade
+function Tree:isUpgradeHidden(upg)
     if upg.level > 0 then
         return false -- cant be hidden if level>0
     end
@@ -449,8 +449,8 @@ function UpgradeTree:isUpgradeHidden(upg)
 end
 
 
----@param upg g.UpgradeTree.Upgrade
-function UpgradeTree:distanceFromRoot(upg)
+---@param upg g.Tree.Upgrade
+function Tree:distanceFromRoot(upg)
     -- gets the distance from the root upgrade
     -- (manhattan distance)
     if upg.isRoot then
@@ -461,8 +461,8 @@ function UpgradeTree:distanceFromRoot(upg)
 end
 
 
----@return g.UpgradeTree.Upgrade[]
-function UpgradeTree:getUpgrades()
+---@return g.Tree.Upgrade[]
+function Tree:getUpgrades()
     local buf = {}
     for _,upg in pairs(self.upgrades) do
         table.insert(buf,upg)
@@ -471,4 +471,4 @@ function UpgradeTree:getUpgrades()
 end
 
 
-return UpgradeTree
+return Tree

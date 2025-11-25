@@ -26,8 +26,8 @@ end
 
 
 ---Draws connector.
----@param upg1 g.UpgradeTree.Upgrade
----@param upg2 g.UpgradeTree.Upgrade
+---@param upg1 g.Tree.Upgrade
+---@param upg2 g.Tree.Upgrade
 local function drawConnector(upg1, upg2)
     local x1,y1 = getUpgradeCoords(upg1.x, upg1.y)
     local x2,y2 = getUpgradeCoords(upg2.x, upg2.y)

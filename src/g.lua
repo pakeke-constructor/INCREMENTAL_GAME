@@ -39,7 +39,7 @@ function g.getSn()
     return assert(currentSession, "session not loaded")
 end
 
----@return g.UpgradeTree
+---@return g.Tree
 function g.getUpgTree()
     return currentSession.tree
 end
@@ -940,7 +940,7 @@ end
 
 
 
-local UpgradeTree = require("src.upgrades.UpgradeTree")
+local Tree = require("src.upgrades.Tree")
 
 --------------------------------------------------
 -- Upgrades.

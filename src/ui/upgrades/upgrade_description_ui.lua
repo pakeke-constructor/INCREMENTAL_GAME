@@ -68,8 +68,8 @@ end
 
 ---Create upgrade description automatically.
 ---@param self ui.UpgradeDescription
----@param tree g.UpgradeTree
----@param upg g.UpgradeTree.Upgrade
+---@param tree g.Tree
+---@param upg g.Tree.Upgrade
 local function autoBuild(self, tree, upg)
     local uinfo = self.uinfo
     local isTokenUpgrade = uinfo.kind == "TOKEN"
@@ -112,8 +112,8 @@ local function autoBuild(self, tree, upg)
 end
 
 
----@param tree g.UpgradeTree
----@param upg g.UpgradeTree.Upgrade
+---@param tree g.Tree
+---@param upg g.Tree.Upgrade
 function UpgradeDescription:init(tree, upg)
     self.font = g.getSmallFont(16)
     self.largeFont = g.getSmallFont(32)
@@ -164,7 +164,7 @@ if false then
     function UpgradeDescription(uinfo) end
 end
 
----@return g.UpgradeTree.Upgrade
+---@return g.Tree.Upgrade
 function UpgradeDescription:getUpgrade()
     return self.upg
 end
