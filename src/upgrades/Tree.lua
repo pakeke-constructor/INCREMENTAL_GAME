@@ -105,14 +105,14 @@ end
 
 ---@param upg g.Tree.Upgrade
 ---@param basePrice g.Bundle
-function Tree:setBasePrice(upg, basePrice)
+function Tree:setUpgradeBasePrice(upg, basePrice)
     upg.basePrice = basePrice
 end
 
 
 ---@param upg g.Tree.Upgrade
 ---@param level number
-function Tree:setLevel(upg, level)
+function Tree:setUpgradeLevel(upg, level)
     upg.level = level
 end
 
@@ -192,7 +192,7 @@ end
 ---@return g.Bundle
 function Tree:getUpgradePrice(upg, level)
     local truePrice
-    level = level or self:getUpgradeLevel(upg)
+    level = level or upg.level
 
     local uinfo = g.getUpgradeInfo(upg.id)
     if uinfo.getPriceOverride then
@@ -211,13 +211,14 @@ function Tree:getUpgradePrice(upg, level)
 end
 
 
---[[
----@param uinfo g.UpgradeInfo
----@param level number? Optional; defaults to the current upgrade's level.
+--- This is MUCH more efficient than 
+---@param upg g.Tree.Upgrade
+---@param level number? Optional; defaults to the current upg's level.
 ---@return boolean
-function g.canAffordUpgrade(uinfo, level)
-    level = level or g.getUpgradeLevel(uinfo)
-    for res,p in pairs(uinfo.price) do
+function Tree:canAffordUpgrade(upg, level)
+    local uinfo = g.getUpgradeInfo(upg.id)
+    level = level or upg.level
+    for res,p in pairs(upg.basePrice) do
         local truePrice = modifyUpgradePrice(uinfo, p, level)
         if truePrice > g.getResource(res) then
             return false -- cant afford
@@ -227,6 +228,7 @@ function g.canAffordUpgrade(uinfo, level)
 end
 
 
+--[[
 
 ---@param uinfo g.UpgradeInfo
 ---@return boolean wasPurchased
@@ -236,7 +238,7 @@ function g.tryBuyUpgrade(uinfo)
     if g.getUpgradeLevel(uinfo) >= uinfo.maxLevel then
         return false -- already max level
     end
-    if g.canAffordUpgrade(uinfo) then
+    if self:canAffordUpgrade(upg) then
         local price = g.getUpgradePrice(uinfo)
         g.subtractResources(price)
         session.upgradeLevels[typ] = (session.upgradeLevels[typ] or 0) + 1

@@ -25,53 +25,22 @@ local lg = love.graphics
 local godrays = require("src.modules.godrays.godrays")
 
 
-
-
----@param uinfo g.UpgradeInfo
----@param level number
----@param color objects.Color
-local function adjustColor(uinfo, level, color)
-    -- if locked: fully-gray (saturation=0)
-    local isLocked = false
-    if isLocked then
-        -- hasnt been purchased.
-        color.s = 0
-        color.l = color.l/2
-        return
-    end
-
-    if not g.canAffordUpgrade(uinfo) then
-        -- make it red.
-        local lerped = objects.Color.lerp(color, g.COLORS.CANT_AFFORD,0.8)
-        color:setRGBA(lerped:getRGBA())
-    end
-end
-
-
----@param x number
-local function triangleWave(x)
-    return 2 * math.min(x, 1 - x)
-end
-
----@param x number
-local function easeInOutSine(x)
-    return -(math.cos(math.pi * x) - 1) / 2;
-end
-
 local RAY_COLOR = objects.Color("#".."FFF2E46C")
 
----@param uinfo g.UpgradeInfo
+---@param tree g.Tree
+---@param upg g.Tree.Upgrade
 ---@param level integer
 ---@param cx number
 ---@param cy number
 ---@return boolean isHovered
 ---@return boolean wasJustClicked
 ---@return boolean wasJustHovered
-local function upgradeBoxUI(uinfo, level, cx, cy)
+local function upgradeBoxUI(tree, upg, level, cx, cy)
     local time = love.timer.getTime()
+    local uinfo = g.getUpgradeInfo(upg.id)
 
     local hasBought = level > 0
-    local canAfford = level < uinfo.maxLevel and g.canAffordUpgrade(uinfo, level + 1)
+    local canAfford = level < uinfo.maxLevel and tree:canAffordUpgrade(upg, level+1)
 
     ------------------------------
     -- define background and frame

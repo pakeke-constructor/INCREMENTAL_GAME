@@ -154,7 +154,7 @@ local function drawUpgradeBoxes()
 
             -- Then draw upgrade box
             local x, y = getUpgradeCoords(upg.x, upg.y)
-            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(uinfo, level, x,y)
+            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y)
             if isHovered then
                 hoveredUpgrade = uinfo
             end

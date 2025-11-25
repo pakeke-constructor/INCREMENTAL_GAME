@@ -69,7 +69,7 @@ local function buyAffordableUpgrades(upgId, prestige)
         for _, upg in ipairs(tree:getUpgrades()) do
             local id=upg.id
             if upgId ~= id then
-                local level = tree:setLevel(upg, upg.level + 1)
+                local level = tree:setUpgradeLevel(upg, upg.level + 1)
                 local price = tree:getUpgradePrice(upg)
 
                 -- if price <= targPrice:
