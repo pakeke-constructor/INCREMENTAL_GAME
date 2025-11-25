@@ -40,7 +40,6 @@ local Upgrade = {}
 local Tree = objects.Class("g:Tree")
 
 
-local finalizeConnections
 
 function Tree:init()
     self.upgrades = {--[[
@@ -55,24 +54,6 @@ function Tree:init()
     self._distances = {--[[
         [(x,y)] -> distanceFromRoot
     ]]}
-end
-
-
----@param data {upgrades:g.Tree.Upgrade[], connections:[integer,integer][]}
-function Tree.deserialize(data)
-    local self = Tree()
-    self.upgrades = data.upgrades
-    self.connections = data.connections
-    finalizeConnections(self)
-    self._distances = cal
-end
-
-
-function Tree:serialize()
-    return {
-        upgrades = self.upgrades,
-        connections = self.connections
-    }
 end
 
 
@@ -156,7 +137,7 @@ end
 
 
 ---@param self g.Tree
-function finalizeConnections(self)
+local function finalizeConnections(self)
     for tabl in ipairs(self.connections) do
         local i1, i2 = tabl[1],tabl[2]
         updateEdge(self, i1,i2)
@@ -320,8 +301,6 @@ end
 
 
 
-
-
 ---@param self g.Tree
 ---@return table<integer,integer>
 local function calculateDistancesFromRoot(self)
@@ -386,6 +365,8 @@ local function calculateDistancesFromRoot(self)
 
     return distances
 end
+
+
 
 
 ---@param upg g.Tree.Upgrade
@@ -469,6 +450,29 @@ function Tree:getUpgrades()
     end
     return buf
 end
+
+
+
+
+
+---@param data {upgrades:g.Tree.Upgrade[], connections:[integer,integer][]}
+function Tree.deserialize(data)
+    local self = Tree()
+    self.upgrades = data.upgrades
+    self.connections = data.connections
+    finalizeConnections(self)
+    self._distances = calculateDistancesFromRoot(self)
+end
+
+
+function Tree:serialize()
+    return {
+        upgrades = self.upgrades,
+        connections = self.connections
+    }
+end
+
+
 
 
 return Tree
