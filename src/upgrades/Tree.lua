@@ -228,12 +228,12 @@ function Tree:canAffordUpgrade(upg, level)
 end
 
 
---[[
 
----@param uinfo g.UpgradeInfo
+---@param upg g.Tree.Upgrade
 ---@return boolean wasPurchased
-function g.tryBuyUpgrade(uinfo)
+function Tree:tryBuyUpgrade(upg)
     local session = g.getSn()
+    local uinfo = g.getUpgradeInfo(upg.id)
     local typ = uinfo.type
     if g.getUpgradeLevel(uinfo) >= uinfo.maxLevel then
         return false -- already max level
@@ -247,7 +247,6 @@ function g.tryBuyUpgrade(uinfo)
     return false
 end
 
-]]
 
 
 

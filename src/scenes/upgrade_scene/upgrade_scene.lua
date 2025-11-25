@@ -54,21 +54,21 @@ end
 
 
 
----@return g.UpgradeInfo|nil
-local function getCheapestUpgrade()
+---@param tree g.Tree
+---@return g.Tree.Upgrade?
+local function getCheapestUpgrade(tree)
     local bestPrice = 0xfffffffffffff
     local bestUpgrade = nil
 
-    local tree = g.getUpgTree()
     for _, upg in ipairs(tree:getUpgrades()) do
         local uinfo = g.getUpgradeInfo(upg.id)
         local lv = upg.level
 
         if (not tree:isUpgradeHidden(upg)) and (lv < uinfo.maxLevel) then
-            local price = tree:getUpgradePrice(uinfo)
+            local price = tree:getUpgradePrice(upg)
             if price.money < bestPrice then
                 bestPrice = price.money
-                bestUpgrade = uinfo
+                bestUpgrade = upg
             end
         end
     end
@@ -163,7 +163,7 @@ local function drawUpgradeBoxes()
             end
             if wasJustClicked then
                 g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
-                g.tryBuyUpgrade(uinfo)
+                tree:tryBuyUpgrade(upg)
                 hoveredUpgrade=nil
             end
         end
@@ -245,17 +245,18 @@ end
 
 
 function upgscene:keypressed(k)
+    local tree = g.getUpgTree()
     if consts.DEV_MODE then
         -- upgrades for dev
         if k == "u" then
-            local u = getCheapestUpgrade()
-            local _ = u and g.tryBuyUpgrade(u)
+            local u = getCheapestUpgrade(tree)
+            local _ = u and tree:tryBuyUpgrade(u)
         end
 
         if k == "u" and love.keyboard.isDown("lshift")then
             for i=1,20 do
-                local u = getCheapestUpgrade()
-                local _ = u and g.tryBuyUpgrade(u)
+                local u = getCheapestUpgrade(tree)
+                local _ = u and tree:tryBuyUpgrade(u)
             end
         end
     end
