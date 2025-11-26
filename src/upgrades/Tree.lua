@@ -229,6 +229,12 @@ end
 function Tree:canAffordUpgrade(upg, level)
     local uinfo = g.getUpgradeInfo(upg.id)
     level = level or upg.level
+
+    if uinfo.getPriceOverride then
+        local price = uinfo:getPriceOverride(level)
+        return g.canAfford(price)
+    end
+
     for res,p in pairs(upg.basePrice) do
         local truePrice = modifyUpgradePrice(uinfo, p, level)
         if truePrice > g.getResource(res) then
@@ -248,6 +254,7 @@ function Tree:tryBuyUpgrade(upg)
         return false -- already max level
     end
     if self:canAffordUpgrade(upg) then
+        print("OK!")
         local price = self:getUpgradePrice(upg)
         g.subtractResources(price)
         self:setUpgradeLevel(upg, upg.level + 1)
