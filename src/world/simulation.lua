@@ -97,59 +97,58 @@ function simulation.update()
         return true
     end
 
+    local st = assert(simulation.state)
     local world = g.getMainWorld()
-    local tstart = love.timer.getTime()
+    local startTime = love.timer.getTime()
+    local dt = 1/SIMULATION_FPS
 
     while true do
-        local dt = 1/SIMULATION_FPS
-        local tsessupdate = love.timer.getTime()
         local sn = g.getSn()
         sn:_update(dt)
 
         -- Harvest area may reset the XP on level up, so have this to reduce
         -- the inaccuracies of the result
-        local dxp = sn.xp < simulation.state.lastExp and sn.xp or (sn.xp - simulation.state.lastExp)
-        simulation.state.xp = simulation.state.xp + dxp
-        simulation.state.lastExp = sn.xp
-        simulation.state.time = simulation.state.time + dt
+        local dxp = sn.xp < st.lastExp and sn.xp or (sn.xp - st.lastExp)
+        st.xp = st.xp + dxp
+        st.lastExp = sn.xp
+        st.time = st.time + dt
 
-        if simulation.state.time >= simulation.state.duration then
+        if st.time >= st.duration then
             local currentResource = g.getResources()
             local earnedResource = {
-                money = currentResource.money - simulation.state.startResource.money,
-                fabric = currentResource.fabric - simulation.state.startResource.fabric,
-                bread = currentResource.bread - simulation.state.startResource.bread,
-                juice = currentResource.juice - simulation.state.startResource.juice,
-                fish = currentResource.fish - simulation.state.startResource.fish,
+                money = currentResource.money - st.startResource.money,
+                fabric = currentResource.fabric - st.startResource.fabric,
+                bread = currentResource.bread - st.startResource.bread,
+                juice = currentResource.juice - st.startResource.juice,
+                fish = currentResource.fish - st.startResource.fish,
             }
 
             -- Done
             simulation.result = {
                 resource = earnedResource,
                 rps = {
-                    money = earnedResource.money / simulation.state.time,
-                    fabric = earnedResource.fabric / simulation.state.time,
-                    bread = earnedResource.bread / simulation.state.time,
-                    juice = earnedResource.juice / simulation.state.time,
-                    fish = earnedResource.fish / simulation.state.time,
+                    money = earnedResource.money / st.time,
+                    fabric = earnedResource.fabric / st.time,
+                    bread = earnedResource.bread / st.time,
+                    juice = earnedResource.juice / st.time,
+                    fish = earnedResource.fish / st.time,
                 },
-                duration = simulation.state.time,
-                xp = simulation.state.xp,
-                xpps = simulation.state.xp / simulation.state.time
+                duration = st.time,
+                xp = st.xp,
+                xpps = st.xp / st.time
             }
             simulation.state = nil
             return true
         end
 
-        if simulation.state.time - simulation.state.lastMouseHitTime > 0.3 then
-            simulation.state.lastMouseHitTime = simulation.state.time
-            simulation.state.mouse[1], simulation.state.mouse[2] = getBestMousePositionInWorld()
+        if st.time - st.lastMouseHitTime > 0.3 then
+            st.lastMouseHitTime = st.time
+            st.mouse[1], st.mouse[2] = getBestMousePositionInWorld()
         end
 
-        world:_enableMouseHarvester(simulation.state.mouse[1], simulation.state.mouse[2])
+        world:_enableMouseHarvester(st.mouse[1], st.mouse[2])
 
-        local dtsessupdate = love.timer.getTime() - tsessupdate
-        if (love.timer.getTime() - tstart + dtsessupdate) >= SIMULATION_TIME_BUDGET then
+        if (love.timer.getTime() - startTime) >= SIMULATION_TIME_BUDGET then
             -- Simulation incomplete
             return false
         end
