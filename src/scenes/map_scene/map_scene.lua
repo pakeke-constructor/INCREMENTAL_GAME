@@ -354,7 +354,7 @@ function map:draw()
 
     -- Draw clouds
     for _, clid in ipairs(cloudsOrder) do
-        if not isUnlocked(clid) then
+        if (not (POI[clid] and isUnlocked(clid))) then
             local cloud = clouds[clid]
             local yoff = computeOffsetBySeed(t, cloud.seed)
             g.drawImageOffset(cloud.image, cloud.x, cloud.y + yoff, 0, 1, 1, 0, 0)
