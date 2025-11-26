@@ -108,10 +108,10 @@ end
 
 ---@param x integer
 ---@param y integer
----@return g.Tree.Upgrade upg
+---@return g.Tree.Upgrade upg?
 function Tree:get(x,y)
     local i = pair(x,y)
-    return assert(self.upgrades[i])
+    return (self.upgrades[i])
 end
 
 
@@ -549,11 +549,27 @@ function Tree:finalize()
 end
 
 
+local function keysToNumber(t)
+    local new = {}
+    for k, v in pairs(t) do
+        new[tonumber(k)] = v
+    end
+    return new
+end
+
+local function keysToString(t)
+    local new = {}
+    for k, v in pairs(t) do
+        new[tostring(k)] = v
+    end
+    return new
+end
+
 
 ---@param data {upgrades:g.Tree.Upgrade[], connections:[integer,integer][]}
 function Tree.deserialize(data)
     local self = Tree()
-    self.upgrades = data.upgrades
+    self.upgrades = keysToNumber(data.upgrades)
     self.connections = data.connections
     self:finalize()
 end
@@ -561,7 +577,7 @@ end
 
 function Tree:serialize()
     return {
-        upgrades = self.upgrades,
+        upgrades = keysToString(self.upgrades),
         connections = self.connections
     }
 end
