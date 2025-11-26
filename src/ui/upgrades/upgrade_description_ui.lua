@@ -93,13 +93,13 @@ local function autoBuild(self, tree, upg)
     end
 
     if uinfo.description then
-        local level = g.getUpgradeLevel(uinfo)
+        local level = upg.level
         local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
         self:addSpacer(8)
         self:addText(realDesc)
     end
 
-    self:addLevel(g.getUpgradeLevel(uinfo), uinfo.maxLevel)
+    self:addLevel(upg.level, uinfo.maxLevel)
 
     -- Build price tag text.
     local price = tree:getUpgradePrice(upg)
@@ -360,7 +360,7 @@ function UpgradeDescription:draw(x, y)
         yoff = yoff + elem.height
     end
 
-    local level = g.getUpgradeLevel(uinfo)
+    local level = upg.level
     if level < uinfo.maxLevel then
         local canAfford = g.canAfford(tree:getUpgradePrice(upg))
         -- Start drawing price tag
@@ -399,7 +399,7 @@ end
 function UpgradeDescription:getDimensions()
     local width, height = self:getMainBoxDimensions()
     local ptagW, ptagH = 0, -PRICE_TAG_OFFSET
-    if g.getUpgradeLevel(self.uinfo) < self.uinfo.maxLevel then
+    if self.upg.level < self.uinfo.maxLevel then
         ptagW, ptagH = self:_getPriceTagDimensions(true)
     end
     return math.max(width, ptagW), height + ptagH + PRICE_TAG_OFFSET

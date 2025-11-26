@@ -118,7 +118,8 @@ function g.call(ev, arg1, ...)
         arg1[ev](arg1, ...)
     end
 
-    callUpgrades(ev, arg1, ...)
+    local tree = g.getUpgTree()
+    tree:callUpgrades(ev, arg1, ...)
     callEffects(ev, arg1, ...)
 
     sceneManager = sceneManager or require("src.scenes.sceneManager")
@@ -164,7 +165,8 @@ function g.ask(q, arg1, ...)
         val = reducer(arg1[q](arg1, ...), val)
     end
 
-    val = reducer(val, askUpgrades(q, arg1, ...))
+    local tree = g.getUpgTree()
+    val = reducer(val, tree:askUpgrades(q, arg1, ...))
     return reducer(val, askEffects(q, arg1, ...))
 end
 
@@ -994,33 +996,7 @@ local upgradeInfos = {--[[
     [upgradeId] -> Table (contains all info)
 ]]}
 
-local upgradePositionsHash = {--[[
-    hash(x,y,prestige) -> upgrade type
-]]}
----@cast upgradePositionsHash {[integer]: (string|_dev.Connector)?}
 
----The mapping is `positions: {x:integer,y:integer} = t[prestige][upgradename]`
----@type table<integer, table<string, _dev.UpgradePosition>>
-local upgradePositionByPrestige = {}
-
----@param x integer
----@param y integer
----@param p integer
----@param t any
-local function ensureEmpty(x, y, p, t)
-    local h = hash(x, y, p)
-    if upgradePositionsHash[h] then
-        error(string.format(
-            "prestige %d position %dx%d trying to put '%s' on '%s'",
-            p,
-            x,
-            y,
-            t,
-            tostring(upgradePositionsHash[h])
-        ))
-    end
-    return h
-end
 
 -- Load prestiges
 do
@@ -1032,21 +1008,6 @@ do
             ---@type _g.UpgradePrestigeData
             local r = json.decode((assert(love.filesystem.read(p))))
 
-            for utype, upos in pairs(r.upgrades) do
-                local h = ensureEmpty(upos.x, upos.y, i, utype)
-                upgradePositionsHash[h] = utype
-            end
-
-            for _, cpos in ipairs(r.connectors) do
-                for j = 0, cpos.length - 1 do
-                    local dx = cpos.isVertical and 0 or j
-                    local dy = cpos.isVertical and j or 0
-                    local h = ensureEmpty(cpos.x + dx, cpos.y + dy, i, "connector")
-                    upgradePositionsHash[h] = cpos
-                end
-            end
-
-            upgradePositionByPrestige[i] = r.upgrades
         else
             break
         end
@@ -1079,51 +1040,6 @@ end
 
 
 
-
-
-
----@param con _dev.Connector
----@param prestige integer
----@return [string, string]|nil
-local function getTargetConnector(con, prestige)
-    local h1, h2 = nil, nil
-    if con.isVertical then
-        -- Check utype on top and bottom
-        h1 = hash(con.x, con.y - 1, prestige)
-        h2 = hash(con.x, con.y + con.length, prestige)
-    else
-        -- Check utype on left and right
-        h1 = hash(con.x - 1, con.y, prestige)
-        h2 = hash(con.x + con.length, con.y, prestige)
-    end
-
-    local utype1 = upgradePositionsHash[h1]
-    local utype2 = upgradePositionsHash[h2]
-
-    if type(utype1) == "string" and type(utype2) == "string" then
-        return {utype1, utype2}
-    end
-
-    return nil
-end
-
-
-
-local NEIGHBORS = {
-    {1,0},{-1,0},{0,1},{0,-1}
-}
-
-local function hasAnyPurchasedNeighbors(uinfo)
-    -- checks if any of `uinfo`s neighbors have been purchased (level>1)
-    local prestige = g.getPrestige()
-    for _,c in ipairs(NEIGHBORS) do
-        local a = getNeighbor(uinfo, prestige, c[1],c[2])
-        if a and g.getUpgradeLevel(a) > 0 then
-            return true
-        end
-    end
-    return false
-end
 
 
 local function niceAssert(bool, str, val)
@@ -1194,13 +1110,9 @@ function g.defineUpgrade(id, name, def)
     -- Cache questions and events this upgrade can handle
     for key, func in pairs(def) do
         if type(func) == "function"  then
-            if g.getQuestionInfo(key) then
-                if not questionCache[key] then questionCache[key] = {} end
-                table.insert(questionCache[key], id)
-            elseif g.isEvent(key) then
-                if not eventCache[key] then eventCache[key] = {} end
-                table.insert(eventCache[key], id)
-            elseif (not SPECIAL_FUNCTIONS[key]) then
+            local ok = g.getQuestionInfo(key) or g.isEvent(key)
+            local ok2 = SPECIAL_FUNCTIONS[key]
+            if not (ok or ok2) then
                 error("Not a question, event, or special-function: "..tostring(key))
             end
         end
@@ -1217,173 +1129,6 @@ function g.getUpgradeInfo(upgradeId)
     end
     return uinfo
 end
-
-
-
-
-
-
----@param uinfo g.UpgradeInfo
----@return boolean
-function g.isUpgradeHidden(uinfo)
-    if g.getUpgradeLevel(uinfo) > 0 then
-        return false -- cant be hidden if level>0
-    end
-    if uinfo.isHidden and uinfo:isHidden() then
-        return true
-    end
-
-    if uinfo.startingUpgrade then
-        return false
-    end
-
-    local isHidden = not hasAnyPurchasedNeighbors(uinfo)
-    return isHidden
-end
-
-
-
----Retireves list of upgrade connectors adjacent to the upgrade.
----
----TODO: Not sure if this should be in g. but upgrade_scene needs it.
----@param uinfo g.UpgradeInfo
----@param prestige integer
----@param makeArtifical boolean? Set to true to generate connector directly adjacent to an upgrade (for rendering purpose)
-function g.getUpgradeConnectors(uinfo, prestige, makeArtifical)
-    local pos = g.getUpgradePosition(uinfo, prestige)
-    local selfHidden = g.isUpgradeHidden(uinfo)
-    ---@type _dev.Connector[]
-    local result = {}
-    for _, d in ipairs(NEIGHBORS) do
-        local h = hash(pos.x + d[1], pos.y + d[2], prestige)
-        local isVertical = d[1] == 0 and d[2] ~= 0
-        local con = upgradePositionsHash[h]
-
-        if con then
-            local t = type(con)
-            if t == "string" and makeArtifical then
-                -- Another upgrade
-                local hidden = g.isUpgradeHidden(g.getUpgradeInfo(con))
-                if not (hidden or selfHidden) then
-                    -- Generate artifical connector
-                    result[#result+1] = {
-                        isVertical = isVertical,
-                        x = pos.x + math.max(d[1], 0),
-                        y = pos.y + math.max(d[2], 0),
-                        length = 0
-                    }
-                end
-            elseif t == "table" and con.isVertical == isVertical then
-                -- Also make sure none of the connector target is hidden
-                local target = getTargetConnector(con, prestige)
-                if target then
-                    local hidden1 = g.isUpgradeHidden(g.getUpgradeInfo(target[1]))
-                    local hidden2 = g.isUpgradeHidden(g.getUpgradeInfo(target[2]))
-                    if not (hidden1 or hidden2) then
-                        result[#result+1] = con
-                    end
-                end
-            end
-        end
-    end
-
-    return result
-end
-
-
-
---- Floors a number, removing insignificant digits.
---- Useful for adjusting prices to look a bit "nicer"
----
---- g.floorSignificant(12345, 1) -> 10000
---- g.floorSignificant(12345, 2) -> 12000
---- g.floorSignificant(12345, 3) -> 12300
---- g.floorSignificant(12345, 4) -> 12340
---- g.floorSignificant(12345, 5) -> 12345
----@param value number
----@param nsig integer
----@return integer
-local function floorSignificant(value, nsig)
-	local zeros = math.floor(math.log10(math.max(math.abs(value), 1)))
-	local mulby = 10 ^ (1+math.max(zeros-nsig, -1))
-	return math.floor(math.floor(value / mulby) * mulby)
-end
-
-local function modifyUpgradePrice(uinfo, val, level)
-    level = level or g.getUpgradeLevel(uinfo)
-    local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
-    local mult2 = g.ask("getUpgradePriceMultiplier", uinfo, level)
-    val = floorSignificant(val*mult*mult2, 2)
-    return val
-end
-
-
----WARNING: This incurs a table allocation.
----@param uinfo g.UpgradeInfo
----@param level integer? Optional; defaults to the current upgrade's level.
----@return g.Bundle
-function g.getUpgradePrice(uinfo, level)
-    local truePrice
-    level = level or g.getUpgradeLevel(uinfo)
-
-    if uinfo.getPriceOverride then
-        truePrice = uinfo:getPriceOverride(level)
-    else
-        truePrice = {
-            money = 10
-        }
-        for _,res in ipairs(g.RESOURCE_LIST)do
-            truePrice[res] = modifyUpgradePrice(uinfo, truePrice[res] or 0, level)
-        end
-    end
-
-    return truePrice
-end
-
-
----@param uinfo g.UpgradeInfo
----@param level number? Optional; defaults to the current upgrade's level.
----@return boolean
-function g.canAffordUpgrade(uinfo, level)
-    level = level or g.getUpgradeLevel(uinfo)
-    for res,p in pairs(uinfo.price) do
-        local truePrice = modifyUpgradePrice(uinfo, p, level)
-        if truePrice > g.getResource(res) then
-            return false -- cant afford
-        end
-    end
-    return true
-end
-
-
-
----@param uinfo g.UpgradeInfo
----@return boolean wasPurchased
-function g.tryBuyUpgrade(uinfo)
-    local session = g.getSn()
-    local typ = uinfo.type
-    if g.getUpgradeLevel(uinfo) >= uinfo.maxLevel then
-        return false -- already max level
-    end
-    if g.canAffordUpgrade(uinfo) then
-        local price = g.getUpgradePrice(uinfo)
-        g.subtractResources(price)
-        session.upgradeLevels[typ] = (session.upgradeLevels[typ] or 0) + 1
-        return true
-    end
-    return false
-end
-
-
-
----@param uinfo g.UpgradeInfo
----@return number
-function g.getUpgradeLevel(uinfo)
-    local session = g.getSn()
-    assert(upgradeInfos[uinfo.type], "Invalid upgrade")
-    return (session.upgradeLevels[uinfo.type] or 0)
-end
-
 
 
 function askUpgrades(question, ...)

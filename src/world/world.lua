@@ -566,9 +566,11 @@ function World:_update(dt)
         updateToken(tok,dt)
     end
 
-    for _, upgradeId in ipairs(g.UPGRADE_LIST) do
+    local tree = g.getUpgTree()
+    for _, upg in ipairs(tree:getUpgrades()) do
+        local upgradeId = upg.id
+        local ulevel = upg.level
         local uinfo = g.getUpgradeInfo(upgradeId)
-        local ulevel = g.getUpgradeLevel(uinfo)
 
         if uinfo.spawnEntity then
             local ecount = 0

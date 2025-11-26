@@ -85,7 +85,7 @@ local function getBestUpgradeAffordThreshold()
     local tree = g.getUpgTree()
     for _, upg in ipairs(tree:getUpgrades()) do
         local uinfo = g.getUpgradeInfo(upg.id)
-        local level = g.getUpgradeLevel(uinfo)
+        local level = upg.level
 
         if level > 0 and not tree:isUpgradeHidden(upg) then
             local price = tree:getUpgradePrice(upg, level)
@@ -137,6 +137,7 @@ local function drawUpgradeBoxes()
 
     local tree = g.getUpgTree()
     local upgrades = tree:getUpgrades()
+    print("LEN: ", #upgrades)
     for _, upg in ipairs(upgrades) do
         local uinfo = g.getUpgradeInfo(upg.id)
         if not tree:isUpgradeHidden(upg) then
@@ -150,7 +151,7 @@ local function drawUpgradeBoxes()
     for _, upg in ipairs(upgrades) do
         local uinfo = g.getUpgradeInfo(upg.id)
         if not tree:isUpgradeHidden(upg) then
-            local level = g.getUpgradeLevel(uinfo)
+            local level = upg.level
 
             -- Then draw upgrade box
             local x, y = getUpgradeCoords(upg.x, upg.y)

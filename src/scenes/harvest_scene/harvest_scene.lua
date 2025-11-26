@@ -640,7 +640,7 @@ function harvest:update(dt)
     xpParticles:update(dt)
 
     local sn = g.getSn()
-    if (not self.xpPopup) and sn.xp > sn.xpRequirement then
+    if (not self.xpPopup) and sn.xp >= sn.xpRequirement then
         openPopup(self)
     end
 

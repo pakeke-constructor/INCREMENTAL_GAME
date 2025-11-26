@@ -40,6 +40,11 @@ local Upgrade = {}
 local Tree = objects.Class("g:Tree")
 
 
+if false then
+    ---@return g.Tree
+    function Tree() end ---@diagnostic disable-line: cast-local-type, missing-return
+end
+
 
 function Tree:init()
     self.upgrades = {--[[
@@ -53,6 +58,13 @@ function Tree:init()
     ]]}
     self._distances = {--[[
         [(x,y)] -> distanceFromRoot
+    ]]}
+
+    self._questionCache = {--[[
+        question -> {upg1, upg2, upg3 ...}
+    ]]}
+    self._eventCache = {--[[
+        event -> {upg1, upg2, upg3 ...}
     ]]}
 end
 
@@ -135,9 +147,9 @@ local function updateEdge(self, i1,i2)
 end
 
 
-
 ---@param self g.Tree
 local function finalizeConnections(self)
+    self._connectionMap = {}
     for tabl in ipairs(self.connections) do
         local i1, i2 = tabl[1],tabl[2]
         updateEdge(self, i1,i2)
@@ -178,7 +190,6 @@ local function floorSignificant(value, nsig)
 end
 
 local function modifyUpgradePrice(uinfo, val, level)
-    level = level or g.getUpgradeLevel(uinfo)
     local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
     local mult2 = g.ask("getUpgradePriceMultiplier", uinfo, level)
     val = floorSignificant(val*mult*mult2, 2)
@@ -235,11 +246,11 @@ function Tree:tryBuyUpgrade(upg)
     local session = g.getSn()
     local uinfo = g.getUpgradeInfo(upg.id)
     local typ = uinfo.type
-    if g.getUpgradeLevel(uinfo) >= uinfo.maxLevel then
+    if upg.level >= uinfo.maxLevel then
         return false -- already max level
     end
     if self:canAffordUpgrade(upg) then
-        local price = g.getUpgradePrice(uinfo)
+        local price = self:getUpgradePrice(upg)
         g.subtractResources(price)
         session.upgradeLevels[typ] = (session.upgradeLevels[typ] or 0) + 1
         return true
@@ -370,6 +381,25 @@ end
 
 
 
+---@param self g.Tree
+---@param upg g.Tree.Upgrade
+local function finalizeBusCacheForUpgrade(self, upg)
+    local uinfo = g.getUpgradeInfo(upg.id)
+
+    for key, func in pairs(uinfo) do
+        if type(func) == "function"  then
+            if g.getQuestionInfo(key) then
+                if not self._questionCache[key] then self._questionCache[key] = objects.Set() end
+                self._questionCache[key]:add(upg)
+            elseif g.isEvent(key) then
+                if not self._eventCache[key] then self._eventCache[key] = objects.Set() end
+                self._eventCache[key]:add(upg)
+            end
+        end
+    end
+end
+
+
 ---@param upg g.Tree.Upgrade
 function Tree:markAsRoot(upg)
     upg.isRoot = true
@@ -386,14 +416,16 @@ function Tree:put(x,y, id)
     local i = pair(x,y)
     helper.assert(not self.upgrades[i], "Upgrade already exists here!")
     assert(g.getUpgradeInfo(id), "Invalid upgrade id: " .. id)
-    self.upgrades[i] = {
+    local upg = {
         id = id,
         x=x,
         y=y,
         basePrice={},
         level=0
     }
+    self.upgrades[i] = upg
 
+    finalizeBusCacheForUpgrade(self, upg)
     self._distances = calculateDistancesFromRoot(self)
     return self.upgrades[i]
 end
@@ -454,6 +486,68 @@ end
 
 
 
+---@param question string
+---@param ... unknown
+---@return any
+function Tree:askUpgrades(question, ...)
+    local questionInfo = g.getQuestionInfo(question)
+    local reducer = questionInfo.reducer
+    local defaultValue = questionInfo.defaultValue
+
+    local result = defaultValue
+
+    ---@type g.Tree.Upgrade[]
+    local upgs = self._questionCache[question]
+    if not upgs then return end
+
+    for _, upg in ipairs(upgs) do
+        local level = upg.level
+        if level and level > 0 then
+            local uinfo = g.getUpgradeInfo(upg.id)
+            local answerFunc = uinfo[question]
+            if answerFunc then
+                local answer = answerFunc(uinfo, level, ...) or defaultValue
+                result = reducer(answer, result)
+            end
+        end
+    end
+
+    return result
+end
+
+
+
+---@param event string
+---@param ... unknown
+---@return nil
+function Tree:callUpgrades(event, ...)
+    ---@type g.Tree.Upgrade[]
+    local upgs = self._eventCache[event]
+    if not upgs then return end
+
+    for _, upg in ipairs(upgs) do
+        local level = upg.level
+        if level and level > 0 then
+            local uinfo = g.getUpgradeInfo(upg.id)
+            local eventFunc = uinfo[event]
+            if eventFunc then
+                eventFunc(uinfo, level, ...)
+            end
+        end
+    end
+end
+
+
+
+
+function Tree:finalize()
+    self._distances = calculateDistancesFromRoot(self)
+    finalizeConnections(self)
+    for _,upg in ipairs(self:getUpgrades()) do
+        finalizeBusCacheForUpgrade(self, upg)
+    end
+end
+
 
 
 ---@param data {upgrades:g.Tree.Upgrade[], connections:[integer,integer][]}
@@ -461,8 +555,7 @@ function Tree.deserialize(data)
     local self = Tree()
     self.upgrades = data.upgrades
     self.connections = data.connections
-    finalizeConnections(self)
-    self._distances = calculateDistancesFromRoot(self)
+    self:finalize()
 end
 
 
