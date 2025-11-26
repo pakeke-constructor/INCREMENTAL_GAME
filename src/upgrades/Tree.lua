@@ -150,7 +150,7 @@ end
 ---@param self g.Tree
 local function finalizeConnections(self)
     self._connectionMap = {}
-    for tabl in ipairs(self.connections) do
+    for _, tabl in ipairs(self.connections) do
         local i1, i2 = tabl[1],tabl[2]
         updateEdge(self, i1,i2)
     end
@@ -254,7 +254,6 @@ function Tree:tryBuyUpgrade(upg)
         return false -- already max level
     end
     if self:canAffordUpgrade(upg) then
-        print("OK!")
         local price = self:getUpgradePrice(upg)
         g.subtractResources(price)
         self:setUpgradeLevel(upg, upg.level + 1)
@@ -307,7 +306,7 @@ function Tree:getConnectors(upg)
     for _, i in ipairs(arr) do
         local u = self.upgrades[i] -- HACK: using self.upgrades directly
         if u then
-            table.insert(u)
+            table.insert(arr, u)
         end
     end
 
@@ -503,7 +502,7 @@ function Tree:askUpgrades(question, ...)
 
     ---@type g.Tree.Upgrade[]
     local upgs = self._questionCache[question]
-    if not upgs then return end
+    if not upgs then return defaultValue end
 
     for _, upg in ipairs(upgs) do
         local level = upg.level

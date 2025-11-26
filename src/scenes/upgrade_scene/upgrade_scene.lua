@@ -34,8 +34,11 @@ local function drawConnector(upg1, upg2)
     local x1,y1 = getUpgradeCoords(upg1.x, upg1.y)
     local x2,y2 = getUpgradeCoords(upg2.x, upg2.y)
 
+    local lw=love.graphics.getLineWidth()
+    love.graphics.setLineWidth(8)
     love.graphics.setColor(g.COLORS.UPGRADE_CONNECTOR)
     love.graphics.line(x1,y1,x2,y2)
+    love.graphics.setLineWidth(lw)
 end
 
 
@@ -143,7 +146,7 @@ local function drawUpgradeBoxes()
         local uinfo = g.getUpgradeInfo(upg.id)
         if not tree:isUpgradeHidden(upg) then
             -- Draw connector first
-            for _, upg2 in ipairs(tree:getConnectors(upg)) do
+            for _, upg2 in ipairs(tree:getNeighbors(upg.x,upg.y)) do
                 drawConnector(upg, upg2)
             end
         end
