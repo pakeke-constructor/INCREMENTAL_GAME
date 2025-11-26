@@ -52,10 +52,6 @@ function Session:init()
         end
     end
 
-    self.upgradeLevels = {--[[
-        [upgradeId] -> level
-    ]]}
-
     self.prestigeLevels = {--[[
         [prestigeId] -> prestigeLevel
     ]]} --[[@as table<integer,integer>]]
@@ -157,13 +153,6 @@ function Session.deserialize(data)
         sess.resources[resId] = tonumber(data.resources[resId]) or 0
     end
 
-    -- Load upgrade levels
-    for utype, v in pairs(data.upgradeLevels) do
-        if pcall(g.getUpgradeInfo, utype) then
-            sess.upgradeLevels[utype] = assert(tonumber(v))
-        end
-    end
-
     -- Load prestige levels
     -- Stored prestige ID is 1-based but we want 0-based
     for pid, v in ipairs(data.prestigeLevels) do
@@ -221,7 +210,6 @@ function Session:serialize()
         playtime = self.playtime,
         idletime = self.idletime,
         resources = self.resources,
-        upgradeLevels = self.upgradeLevels,
         prestigeLevels = plevels,
         metrics = self.metrics,
         stats = stats,
