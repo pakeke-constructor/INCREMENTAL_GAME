@@ -188,6 +188,11 @@ function Session.deserialize(data)
         g.stats[k] = helper.assert(tonumber(data.stats[k] or sta.startingValue), "invalid stat value", k)
     end
 
+    -- Upgrade trees
+    if data.tree then
+        sess.tree = Tree.deserialize(data.tree)
+    end
+
     -- Unlocked map POIs
     if data.unlockedPOI then
         for _, v in ipairs(data.unlockedPOI) do
