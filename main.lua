@@ -143,6 +143,7 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local wasaSimulating = false
 
 function love.load(arg)
     assert(love.filesystem.createDirectory("saves"))
@@ -161,6 +162,7 @@ function love.load(arg)
         -- This simulates 10 minutes of playtime.
         -- If your machine is fast enough, this should finish in less than 10 seconds.
         simulation.start(600)
+        wasaSimulating = true
     end
 
     if simulation.isSimulating() then
@@ -172,7 +174,7 @@ end
 
 function love.quit()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and g.hasSession() and not simulation.isSimulating() then
+    if shouldSave and g.hasSession() and not wasaSimulating then
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
