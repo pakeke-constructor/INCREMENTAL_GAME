@@ -143,6 +143,7 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local wasaSimulating = false
 
 function love.load(arg)
     assert(love.filesystem.createDirectory("saves"))
@@ -151,9 +152,17 @@ function love.load(arg)
     g.requireFolder("src/entities")
 
     if arg[1] == "--simulate" then
-        error("todo")
-        g.newSession()
-        simulation.setup(upg, dur)
+        -- TODO: Setup procgen tree instead of simulating current save
+        -- We simulate current save for now to test the API
+        if love.filesystem.getInfo("saves/save1.json", "file") then
+            g.loadSession("saves/save1.json")
+        else
+            g.newSession()
+        end
+        -- This simulates 10 minutes of playtime.
+        -- If your machine is fast enough, this should finish in less than 10 seconds.
+        simulation.start(600)
+        wasaSimulating = true
     end
 
     if simulation.isSimulating() then
@@ -165,7 +174,7 @@ end
 
 function love.quit()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and g.hasSession() and not simulation.isSimulating() then
+    if shouldSave and g.hasSession() and not wasaSimulating then
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
@@ -176,7 +185,17 @@ end
 function love.update(dt)
     iml.setPointer(love.mouse.getPosition())
 
-    if g.hasSession() then
+    if simulation.isSimulating() then
+        if simulation.update() then
+            local result = simulation.getResult()
+            print("Simulation data dump")
+            print(json.encode(result))
+
+            -- TODO: We could be doing multiple simulations one after each other.
+            -- But for now, let's quit after it's done.
+            love.event.quit()
+        end
+    elseif g.hasSession() then
         local session = g.getSn()
         session:_update(dt)
         if idleTime >= CONSIDERED_IDLE_TIME then

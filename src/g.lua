@@ -39,6 +39,10 @@ function g.getSn()
     return assert(currentSession, "session not loaded")
 end
 
+function g.getWorldTime()
+    return currentSession.worldTime
+end
+
 ---@return g.Tree
 function g.getUpgTree()
     return currentSession.tree

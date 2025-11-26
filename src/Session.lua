@@ -31,6 +31,7 @@ just provide the raw data, keep it simple.
 ]]
 
 function Session:init()
+    self.worldTime = 0.
     self.prestige = 0
     self.playtime = 0
     self.idletime = 0
@@ -132,6 +133,7 @@ function Session:_update(dt)
         local mult = g.ask(t.multQuestion)
         g.stats[stat] = mod*mult
     end
+    self.worldTime = self.worldTime + dt
     self.playtime = self.playtime + dt
     self.mainWorld:_update(dt)
 
