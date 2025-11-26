@@ -176,7 +176,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         do
             -- Compute bar width
             local qx, qy, qw, qh = q:getViewport()
-            local mult = self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1)
+            local mult = helper.clamp(self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1), 0, 1)
             q:setViewport(qx, qy, qw * mult, qh)
         end
         -- Cannot use g.drawImageOffset here because we're using different quad.

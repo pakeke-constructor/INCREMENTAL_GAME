@@ -125,7 +125,7 @@ local function bundleGreaterOrEqual(b1, b2)
 end
 
 
----@return g.UpgradeInfo? hoveredUpgrade
+---@return g.Tree.Upgrade? hoveredUpgrade
 local function drawUpgradeBoxes()
     --[[
     NOTE: there is a hard-assumption that all
@@ -156,7 +156,7 @@ local function drawUpgradeBoxes()
             local x, y = getUpgradeCoords(upg.x, upg.y)
             local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y)
             if isHovered then
-                hoveredUpgrade = uinfo
+                hoveredUpgrade = upg
             end
             if wasJustHovered then
                 g.playUISound("ui_tick", 1,1)
@@ -216,8 +216,8 @@ function upgscene:draw()
     g.getHUD():draw({profile = false})
 
     if hoveredUpgrade then
-        if not self.upgradeDescription or self.upgradeDescription:getUpgrade() ~= hoveredUpgrade.type then
-            self.upgradeDescription = UpgradeDescription(hoveredUpgrade)
+        if not self.upgradeDescription or self.upgradeDescription:getUpgrade() ~= hoveredUpgrade then
+            self.upgradeDescription = UpgradeDescription(g.getUpgTree(), hoveredUpgrade)
         end
 
         local r = Kirigami(0, 0, ui.getScaledUIDimensions())

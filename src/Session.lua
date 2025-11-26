@@ -39,7 +39,7 @@ function Session:init()
     -- xp is basically just token-health.
     -- eg.  Harvest token with 5 health ==> earn +5 xp
     self.xpRequirement = 1
-    self.xp = 0 
+    self.xp = 0
     -- (only increments when player is INSIDE harvest-scene)
 
     self.level = 0 -- when xp > xpRequirement, level up!

@@ -243,16 +243,14 @@ end
 ---@param upg g.Tree.Upgrade
 ---@return boolean wasPurchased
 function Tree:tryBuyUpgrade(upg)
-    local session = g.getSn()
     local uinfo = g.getUpgradeInfo(upg.id)
-    local typ = uinfo.type
     if upg.level >= uinfo.maxLevel then
         return false -- already max level
     end
     if self:canAffordUpgrade(upg) then
         local price = self:getUpgradePrice(upg)
         g.subtractResources(price)
-        session.upgradeLevels[typ] = (session.upgradeLevels[typ] or 0) + 1
+        self:setUpgradeLevel(upg, upg.level + 1)
         return true
     end
     return false

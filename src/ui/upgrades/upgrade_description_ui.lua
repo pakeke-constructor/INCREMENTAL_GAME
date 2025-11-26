@@ -158,10 +158,11 @@ function UpgradeDescription:init(tree, upg)
 end
 
 if false then
-    ---@param uinfo g.UpgradeInfo
+    ---@param tree g.Tree
+    ---@param upg g.Tree.Upgrade
     ---@return ui.UpgradeDescription
     ---@diagnostic disable-next-line: cast-local-type, missing-return
-    function UpgradeDescription(uinfo) end
+    function UpgradeDescription(tree, upg) end
 end
 
 ---@return g.Tree.Upgrade

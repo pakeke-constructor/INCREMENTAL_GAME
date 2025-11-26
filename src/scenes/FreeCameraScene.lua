@@ -145,12 +145,6 @@ function FreeCameraScene:defaultKeyreleased(k)
     if consts.DEV_MODE then
         if k == "f1" then
             g.gotoScene("dev_scene")
-        elseif k == "f2" then
-            -- TODO: Remove this once fishing are is accessible through map.
-            g.gotoScene("fishing_scene")
-        elseif k == "f3" then
-            -- TODO: Remove this. This is only temporary.
-            g.gotoScene("customization_scene")
         end
     end
 end
