@@ -142,10 +142,19 @@ local function definePOI(id, name, def)
 
     if def.price then
         assert(clouds[id], "cloud info must exist for this POI")
-    else
-        preUnlockedPOIs:add(id)
     end
 end
+
+---@param poiId string
+---@return boolean
+local function isUnlocked(poiId)
+    local def = assert(POI[poiId])
+    if not def.price then
+        return true -- no price => unlocked
+    end
+    return g.getSn().unlockedPOI:has(poiId)
+end
+
 
 definePOI("harvest", "Harvest", {
     x = 197, y = 156, w = 144, h = 98,
@@ -345,7 +354,7 @@ function map:draw()
 
     -- Draw clouds
     for _, clid in ipairs(cloudsOrder) do
-        if not unlockedPOIs:has(clid) then
+        if not isUnlocked(clid) then
             local cloud = clouds[clid]
             local yoff = computeOffsetBySeed(t, cloud.seed)
             g.drawImageOffset(cloud.image, cloud.x, cloud.y + yoff, 0, 1, 1, 0, 0)
@@ -358,7 +367,7 @@ function map:draw()
         if consts.DEV_MODE and love.keyboard.isDown("space") then
             ui.debugRegion(Kirigami(poi.x, poi.y, poi.w, poi.h))
         end
-        if unlockedPOIs:has(poi.type) then
+        if isUnlocked(poi.type) then
             if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
                 drawPOIText(poi)
             end
@@ -423,12 +432,6 @@ end
 
 function map:update(dt)
     self:updateCamera(dt)
-
-    -- Ensure the pre-unlocked POIs are unlocked.
-    local unlockedPOI = g.getSn().unlockedPOI
-    for _, poi in ipairs(preUnlockedPOIs) do
-        unlockedPOI:add(poi)
-    end
 
     -- Update transition data
     if self.transitionTarget then
