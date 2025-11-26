@@ -577,6 +577,7 @@ function Tree.deserialize(data)
     self.upgrades = keysToNumber(data.upgrades)
     self.connections = data.connections
     self:finalize()
+    return self
 end
 
 

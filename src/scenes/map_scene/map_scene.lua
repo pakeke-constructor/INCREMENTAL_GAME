@@ -130,7 +130,7 @@ end)
 
 ---@type table<string, _POI>
 local POI = {}
-local unlockedPOIs = objects.Set()
+local preUnlockedPOIs = objects.Set()
 ---@param id string
 ---@param name string
 ---@param def _POI.Def
@@ -143,7 +143,7 @@ local function definePOI(id, name, def)
     if def.price then
         assert(clouds[id], "cloud info must exist for this POI")
     else
-        unlockedPOIs:add(id)
+        preUnlockedPOIs:add(id)
     end
 end
 
@@ -311,6 +311,8 @@ function map:draw()
     clampCameraToMap(self.camera,0,0,mapW,mapH,self.transitionTarget)
     self:setCamera()
 
+    local unlockedPOIs = g.getSn().unlockedPOI
+
     lg.setColor(1,1,1)
     local t = love.timer.getTime()
     local i = (math.floor(t) % #mapAnim) + 1
@@ -421,6 +423,12 @@ end
 
 function map:update(dt)
     self:updateCamera(dt)
+
+    -- Ensure the pre-unlocked POIs are unlocked.
+    local unlockedPOI = g.getSn().unlockedPOI
+    for _, poi in ipairs(preUnlockedPOIs) do
+        unlockedPOI:add(poi)
+    end
 
     -- Update transition data
     if self.transitionTarget then
