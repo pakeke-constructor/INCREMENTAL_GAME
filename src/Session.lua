@@ -86,6 +86,8 @@ function Session:init()
 
     self.tree = Tree()
 
+    self.unlockedPOI = objects.Set()
+
     -- reset stats:
     for k,sta in pairs(g.VALID_STATS) do
         g.stats[k] = sta.startingValue
@@ -186,6 +188,13 @@ function Session.deserialize(data)
         g.stats[k] = helper.assert(tonumber(data.stats[k] or sta.startingValue), "invalid stat value", k)
     end
 
+    -- Unlocked map POIs
+    if data.unlockedPOI then
+        for _, v in ipairs(data.unlockedPOI) do
+            sess.unlockedPOI:add(v)
+        end
+    end
+
     return sess
 end
 
@@ -216,7 +225,8 @@ function Session:serialize()
             background = self.avatar.background,
             hat = self.avatar.hat
         },
-        tree = self.tree:serialize()
+        tree = self.tree:serialize(),
+        unlockedPOI = self.unlockedPOI:totable()
     }
 end
 
