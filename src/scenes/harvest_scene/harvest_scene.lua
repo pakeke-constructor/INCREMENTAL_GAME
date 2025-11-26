@@ -687,10 +687,6 @@ function harvest:update(dt)
 
     -- Update cloud
     cloudService.update(dt, self.camera)
-
-    if simulation.isSimulating() then
-        simulation.update(dt)
-    end
 end
 
 
