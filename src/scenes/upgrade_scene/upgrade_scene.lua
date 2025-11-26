@@ -1,6 +1,8 @@
 
 local UpgradeDescription = require("src.ui.upgrades.upgrade_description_ui")
 
+local newDevTree = require("src.upgrades.dev_tree")
+
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
@@ -258,6 +260,10 @@ function upgscene:keypressed(k)
                 local u = getCheapestUpgrade(tree)
                 local _ = u and tree:tryBuyUpgrade(u)
             end
+        end
+
+        if k == "1" then
+            g.getSn().tree = newDevTree()
         end
     end
 end

@@ -1,7 +1,7 @@
 
 local Tree = require("src.upgrades.Tree")
 
-local function getDevTree()
+local function newDevTree()
     local tree = Tree()
 
     local W = math.floor(math.sqrt(#g.UPGRADE_LIST))
@@ -17,5 +17,5 @@ local function getDevTree()
 end
 
 
-return getDevTree
+return newDevTree
 
