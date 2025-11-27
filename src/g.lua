@@ -381,6 +381,7 @@ end
 g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
 g.walkDirectory("src/entities", loadImage)
+g.walkDirectory("src/scythes", loadImage)
 
 -- Set this to true to dump the atlas
 if false then
@@ -466,7 +467,7 @@ g.stats = {}
 
 -- SSTATS 
 -- (if you ever want to quickly search the name of stats, search "sstats")
-g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
+g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
@@ -1619,12 +1620,17 @@ function g.damageToken(tok, dmg)
 end
 
 
+function g.getHitDuration()
+    return consts.MAX_HIT_DURATION + (3 / g.stats.HitSpeed) ^ 0.9
+end
+
+
 --- checks if a token is being hit
 ---@param tok g.Token
 ---@return boolean
 function g.isBeingHit(tok)
     local time = tok.timeSinceHitStart
-    return time <= g.stats.HitDuration
+    return time <= g.getHitDuration()
 end
 
 ---@param tok g.Token
@@ -1850,6 +1856,51 @@ end
 
 g.walkDirectory("assets/sfx", loadSound)
 
+
+end
+
+
+
+-------------
+-- Scythes --
+-------------
+do
+
+---@class _ScytheDefinition
+---@field public image string?
+
+---@class g.Scythe: _ScytheDefinition
+---@field public type string
+---@field public image string
+---@field public name string
+
+
+
+---@type table<string, g.Scythe>
+local SCYTHES = {}
+
+---Define new scythe
+---@param id string
+---@param name string
+---@param def _ScytheDefinition
+function g.defineScythe(id, name, def)
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "invalid image", def.image)
+
+    ---@cast def g.Scythe
+    def.type = id
+    def.name = loc(name)
+    SCYTHES[id] = def
+end
+
+---@param id string
+function g.getScytheInfo(id)
+    return (helper.assert(SCYTHES[id], "invalid scythe", id))
+end
+
+function g.getCurrentScythe()
+    return consts.DEFAULT_SCYTHE
+end
 
 end
 
