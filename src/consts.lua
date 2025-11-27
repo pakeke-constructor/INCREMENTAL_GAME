@@ -24,6 +24,8 @@ local consts = {
 
     DEFAULT_UPGRADE_MAX_LEVEL = 10,
 
+    MAX_HIT_DURATION = 0.125,
+
     TEST = true,
 
     LAGGED_HEALTHBAR_DURATION = 0.3, -- the "healtbar lag" on tokens, (purely visual effect)

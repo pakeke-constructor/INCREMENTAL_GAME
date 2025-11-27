@@ -109,7 +109,7 @@ end
 
 
 local function getSwingTime()
-    return g.stats.HitDuration * 0.75
+    return g.getHitDuration() * 0.75
 end
 
 local function getAxeSwingTime()

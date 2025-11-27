@@ -468,6 +468,7 @@ g.stats = {}
 -- SSTATS 
 -- (if you ever want to quickly search the name of stats, search "sstats")
 g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
+g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 
@@ -1620,12 +1621,18 @@ function g.damageToken(tok, dmg)
 end
 
 
+function g.getHitDuration()
+    -- TODO: QBus on hit speed stats.
+    return consts.MAX_HIT_DURATION + (3 / g.stats.HitSpeed) ^ 0.9
+end
+
+
 --- checks if a token is being hit
 ---@param tok g.Token
 ---@return boolean
 function g.isBeingHit(tok)
     local time = tok.timeSinceHitStart
-    return time <= g.stats.HitDuration
+    return time <= g.getHitDuration()
 end
 
 ---@param tok g.Token
