@@ -150,6 +150,7 @@ function love.load(arg)
     love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
+    g.requireFolder("src/scythes")
 
     if arg[1] == "--simulate" then
         -- TODO: Setup procgen tree instead of simulating current save

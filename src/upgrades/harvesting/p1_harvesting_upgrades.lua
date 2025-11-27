@@ -36,9 +36,9 @@ defUpgrade("hit_speed", "Hit Speed", {
     end,
     description = "+%{1}% hit speed",
 
-    getHitDurationMultiplier = function(self,level)
+    getHitSpeedMultiplier = function(self,level)
         local a=self:getValues(level)
-        return 1/(1+(a/100))
+        return 1 + a / 100
     end
 })
 

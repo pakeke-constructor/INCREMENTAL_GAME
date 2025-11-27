@@ -24,6 +24,8 @@ local consts = {
 
     DEFAULT_UPGRADE_MAX_LEVEL = 10,
 
+    MAX_HIT_DURATION = 0.125,
+
     TEST = true,
 
     LAGGED_HEALTHBAR_DURATION = 0.3, -- the "healtbar lag" on tokens, (purely visual effect)
@@ -32,7 +34,8 @@ local consts = {
 
     AVATAR_SIZE = 24, -- Size of the avatar with background
     DEFAULT_CAT_AVATAR = "cat",
-    DEFAULT_BACKGROUND_AVATAR = "white"
+    DEFAULT_BACKGROUND_AVATAR = "white",
+    DEFAULT_SCYTHE = "scythe",
 }
 
 

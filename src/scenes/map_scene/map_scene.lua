@@ -130,7 +130,6 @@ end)
 
 ---@type table<string, _POI>
 local POI = {}
-local preUnlockedPOIs = objects.Set()
 ---@param id string
 ---@param name string
 ---@param def _POI.Def
@@ -332,10 +331,8 @@ function map:draw()
     end
 
     -- Draw POI outline only.
-    for _, poiType in ipairs(unlockedPOIs) do
-        local poi = POI[poiType]
-
-        if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
+    for poiType, poi in pairs(POI) do
+        if isUnlocked(poiType) and iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
             lg.setColor(1, 1, 1, 1)
 
             for _, buildingId in ipairs(poi.highlight) do
