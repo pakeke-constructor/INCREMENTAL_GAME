@@ -1,77 +1,34 @@
 
-import requests
-import time
 
-def scrape_top_posts(subreddit, limit=100, sleep=1):
-    posts = []
-    after = None
-    
-    while len(posts) < limit:
-        time.sleep(sleep)
-        url = f"https://www.reddit.com/r/{subreddit}/top.json"
-        params = {'limit': min(100, limit - len(posts)), 't': 'all'}
-        if after:
-            params['after'] = after
+from playwright.sync_api import sync_playwright
+
+def crawl_subreddit(subreddit_name):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False, slow_mo=500)
+        page = browser.new_page()
         
-        response = requests.get(url, params=params, headers={'User-Agent': 'Scraper'})
-        data = response.json()
+        page.goto(f"https://old.reddit.com/r/{subreddit_name}")
+        page.wait_for_selector('.thing')
         
-        children = data['data']['children']
-        if not children:
-            break
+        posts = []
+        for post in page.query_selector_all('.thing'):
+            comments = post.query_selector('.comments')
+            if comments and 'comment' in comments.text_content().lower():
+                link = comments.get_attribute('href')
+                title = post.query_selector('.title a')
+                if link and title:
+                    posts.append({
+                        'title': title.text_content(),
+                        'link': f"https://old.reddit.com{link}" if link.startswith('/') else link
+                    })
+                    print(f"{title.text_content()}\n{posts[-1]['link']}\n")
         
-        for child in children:
-            p = child['data']
-            posts.append({
-                'title': p['title'],
-                'upvotes': p['ups'],
-                'url': p['url'],
-                'permalink': f"https://www.reddit.com{p['permalink']}"
-            })
-        
-        after = data['data']['after']
-        if not after:
-            break
-    
-    return posts
+        browser.close()
+        return posts
 
 
-def get_comments(url, sleep=1):
-    r = requests.get(url, headers={'User-Agent': 'script'})
-    data = r.json()
-    comments = []
-    
-    def extract(items):
-        for item in items:
-            if item['kind'] == 't1':
-                c = item['data']
-                comments.append({'author': c['author'], 'body': c['body']})
-                if c.get('replies'):
-                    extract(c['replies']['data']['children'])
-    
-    extract(data[1]['data']['children'])
-    return comments
+if __name__ == "__main__":
+    subreddit = input("Subreddit: ").strip() or "python"
+    crawl_subreddit(subreddit)
 
 
-
-
-def scrape_incremental_sentiment():
-    subreddit = "incremental_games"
-    posts = scrape_top_posts(subreddit, limit=10)
-
-    time.sleep(1)
-
-    for i, post in enumerate(posts[:10], 1):
-        upvotes = post["upvotes"]
-        title = post["title"]
-        url = post["url"]
-
-        all_comments = get_comments(url + ".json", sleep=2)
-        for c in all_comments:
-            print(f"{c['author']}: {c['body']}\n")
-
-        print("COMMENTS DONE DONE!")
-
-
-
-scrape_incremental_sentiment()
