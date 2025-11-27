@@ -952,7 +952,6 @@ end
 
 
 
-local Tree = require("src.upgrades.Tree")
 
 --------------------------------------------------
 -- Upgrades.
