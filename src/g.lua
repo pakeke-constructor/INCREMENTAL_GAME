@@ -382,6 +382,12 @@ g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
 g.walkDirectory("src/entities", loadImage)
 
+-- Set this to true to dump the atlas
+if false then
+    local atlasImageData = love.graphics.readbackTexture(atlas:getTexture())
+    atlasImageData:encode("png", "texture_atlas_dump.png")
+end
+
 end
 
 
