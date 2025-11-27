@@ -157,7 +157,7 @@ local function drawTokenHealthBar(tok)
     local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
     t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
     local laggedW = HP_BAR_W * helper.lerp(tok.laggedHealth, tok.health, t) / tok.maxHealth
-    love.graphics.setColor(1,1-t,1-t,1)
+    love.graphics.setColor(1,1,1,1)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, laggedW, HP_BAR_H)
     -- Draw health
     love.graphics.setColor(1,0,0,1)
