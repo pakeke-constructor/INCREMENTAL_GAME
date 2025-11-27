@@ -12,7 +12,7 @@ local function newAtlas(w, h, maxSprites)
     maxSprites = maxSprites or 15000
     w = w or 2048
     h = h or 2048
-    local image = lg.newTexture(w, h, {dpiscale = 1})--lg.newImage(love.image.newImageData(w,h))
+    local image = lg.newTexture(w, h, {canvas = true, dpiscale = 1})--lg.newImage(love.image.newImageData(w,h))
 
     return setmetatable({
         width = w, height = h,
@@ -62,6 +62,7 @@ function Atlas:useBatch(bool)
 end
 
 
+---@param imageData love.ImageData
 local function getSize(imageData)
     return imageData:getWidth(), imageData:getHeight()
 end
@@ -70,7 +71,7 @@ end
 
 local function getXY(self, width, height)
     -- gets the x,y position of where the new quad should sit in the atlas.
-    local obj = self.binpack:insert(width+1, height+1)
+    local obj = self.binpack:insert(width, height)
     if not obj then
         return nil
     end
@@ -80,33 +81,48 @@ end
 
 
 
+---@param imageData love.ImageData
 local function addToAtlas(self, imageData)
     local width, height = getSize(imageData)
-    local x, y = getXY(self, width, height)
+    -- +2 for the padded 1px quad on all sides.
+    local x, y = getXY(self, width + 2, height + 2)
     if not x then
         return nil -- texture atlas ran out of space!
     end
-    -- ImageData w/ Image:replacePixels
-    self.image:replacePixels(imageData, nil, 1, x, y)
+
+    -- Start adding to texture atlas.
+    lg.push("all")
+    lg.reset()
+    lg.setCanvas(self.image)
+    lg.setBlendMode("none")
+    -- Make temporary Image object out of ImageData
+    local image = lg.newImage(imageData, {dpiscale = 1})
+    image:setFilter("nearest", "nearest")
+    image:setWrap("clamp", "clamp")
+    -- Make padded quad
+    local q = lg.newQuad(-1, -1, width + 1, height + 1, width, height)
+    -- Add to atlas
+    lg.draw(image, q, x, y)
     lg.pop()
-    return lg.newQuad(x, y, width, height, self.width, self.height)
+
+    image:release()
+    q:release()
+
+    return lg.newQuad(x + 1, y + 1, width, height, self.width, self.height)
 end
 
 
 
----@param imageData any
+---@param imageData love.ImageData|string
 ---@return love.Quad?
 function Atlas:add(imageData)
-    lg.push("all")
-    lg.reset()
-
     -- Is path:
     if type(imageData) == "string" then
         local path = self.image
-        imageData = lg.newImageData(path)
+        imageData = love.image.newImageData(path)
     end
 
-    assert(imageData:type("ImageData"))
+    assert(imageData:typeOf("ImageData"))
     return addToAtlas(self, imageData)
 end
 
