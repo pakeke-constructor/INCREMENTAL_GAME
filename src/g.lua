@@ -1855,6 +1855,55 @@ end
 
 
 
+-------------
+-- Scythes --
+-------------
+do
+
+---@class _ScytheDefinition
+---@field public image string?
+---@field public baseDamage number
+---@field public baseSpeed number
+
+---@class g.Scythe: _ScytheDefinition
+---@field public type string
+---@field public image string
+---@field public name string
+
+
+
+---@type table<string, g.Scythe>
+local SCYTHES = {}
+
+---Define new scythe
+---@param id string
+---@param name string
+---@param def _ScytheDefinition
+function g.defineScythe(id, name, def)
+    assert(def.baseDamage, "missing baseDamage")
+    assert(def.baseSpeed, "missing baseSpeed")
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "invalid image", def.image)
+
+    ---@cast def g.Scythe
+    def.type = id
+    def.name = loc(name)
+    SCYTHES[id] = def
+end
+
+---@param id string
+function g.getScytheInfo(id)
+    return (helper.assert(SCYTHES[id], "invalid scythe", id))
+end
+
+function g.getCurrentScythe()
+    return consts.DEFAULT_SCYTHE
+end
+
+end
+
+
+
 ---@param particleName string
 ---@param x number
 ---@param y number
