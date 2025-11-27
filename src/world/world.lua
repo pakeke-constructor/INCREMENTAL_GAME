@@ -245,7 +245,8 @@ local function drawAxe(tok)
     local t2 = helper.EASINGS.sineInOut(helper.clamp(helper.remap(t, 0.6, 1.2, 0, 1), 0, 1))
     local flip = 2 * math.floor(tok.id % 2) - 1
     local rot = helper.lerp(0.7, 0.1, t2)
-    g.drawImageOffset("scythe", tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
+    local scythe = g.getScytheInfo(g.getCurrentScythe()).image
+    g.drawImageOffset(scythe, tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
 end
 
 ---@param tok g.Token

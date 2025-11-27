@@ -381,6 +381,7 @@ end
 g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
 g.walkDirectory("src/entities", loadImage)
+g.walkDirectory("src/scythes", loadImage)
 
 -- Set this to true to dump the atlas
 if false then
@@ -1862,8 +1863,6 @@ do
 
 ---@class _ScytheDefinition
 ---@field public image string?
----@field public baseDamage number
----@field public baseSpeed number
 
 ---@class g.Scythe: _ScytheDefinition
 ---@field public type string
@@ -1880,8 +1879,6 @@ local SCYTHES = {}
 ---@param name string
 ---@param def _ScytheDefinition
 function g.defineScythe(id, name, def)
-    assert(def.baseDamage, "missing baseDamage")
-    assert(def.baseSpeed, "missing baseSpeed")
     def.image = def.image or id
     helper.assert(g.isImage(def.image), "invalid image", def.image)
 
