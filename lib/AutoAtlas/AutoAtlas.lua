@@ -105,9 +105,11 @@ local function addToAtlas(self, imageData)
     lg.draw(image, q, x, y)
     lg.pop()
 
+    -- Release the temp image object.
     image:release()
     q:release()
 
+    -- Return unpadded quad.
     return lg.newQuad(x + 1, y + 1, width, height, self.width, self.height)
 end
 
