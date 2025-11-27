@@ -905,6 +905,7 @@ function g.grantEffect(id, duration)
 end
 
 ---@param id string
+---@return g.EffectInfo
 function g.getEffectInfo(id)
     local effInfo = EFFECT_INFOS[id]
     if not effInfo then
@@ -1139,51 +1140,6 @@ function g.getUpgradeInfo(upgradeId)
     end
     return uinfo
 end
-
-
-function askUpgrades(question, ...)
-    local questionInfo = g.getQuestionInfo(question)
-    local reducer = questionInfo.reducer
-    local defaultValue = questionInfo.defaultValue
-    local upgradeIds = questionCache[question]
-
-    local result = defaultValue
-
-    if not upgradeIds then return result end
-
-    for _, upgradeId in ipairs(upgradeIds) do
-        local uinfo = g.getUpgradeInfo(upgradeId)
-        local level = g.getUpgradeLevel(uinfo)
-        if level > 0 then
-            local answerFunc = uinfo[question]
-            if answerFunc then
-                local answer = answerFunc(uinfo, level, ...) or defaultValue
-                result = reducer(answer, result)
-            end
-        end
-    end
-
-    return result
-end
-
-
-function callUpgrades(event, ...)
-    local upgradeIds = eventCache[event]
-    if not upgradeIds then return end
-
-    for _, id in ipairs(upgradeIds) do
-        local uinfo = g.getUpgradeInfo(id)
-        local level = g.getUpgradeLevel(uinfo)
-        if level and level > 0 then
-            local eventFunc = uinfo[event]
-            if eventFunc then
-                eventFunc(uinfo, level, ...)
-            end
-        end
-    end
-end
-
-
 
 
 end
