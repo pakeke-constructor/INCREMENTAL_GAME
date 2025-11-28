@@ -1068,17 +1068,6 @@ end
 
 
 
-local questionCache = {} -- [questionName] -> {upgradeId1, upgradeId2, ...}
-
-local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
-
-
--- some upgrades lie across multiple ranges.
--- EG `wood` is purchasable at prestige-0 AND prestige-1. {lower=0, upper=1}
--- And some upgrades are valid across ALL prestiges. {lower=0, upper=INFINITY}
-
-
-
 
 -- a list of "special" functions that upgrades use,
 -- that ARENT q-bus or ev-bus. (eg ignore them)
