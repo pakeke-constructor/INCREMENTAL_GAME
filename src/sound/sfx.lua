@@ -28,7 +28,7 @@ function sfx.defineSound(name, path)
     sourcePool[name] = {mainSource}
 end
 
-function sfx.updateState()
+function sfx.update()
     table.clear(hadPlayedThisFrame)
 end
 

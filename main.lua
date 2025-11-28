@@ -186,7 +186,7 @@ end
 
 
 function love.update(dt)
-    sfx.updateState()
+    sfx.update()
     iml.setPointer(love.mouse.getPosition())
 
     if simulation.isSimulating() then
