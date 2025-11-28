@@ -16,8 +16,22 @@ local harvest = FreeCameraScene()
 local XP_POPUP_FADE_IN_TIME = 0.25
 -- How many seconds it takes to fade into the popup
 
-local UPGRADE_POPUP_FADE_IN_TIME = 0.15
+local UPGRADE_POPUP_FADE_IN_TIME = 0.25
 -- How many seconds it takes to fade into the popup
+
+
+local CLOSE = loc("{o}CLOSE{/o}",{}, {
+    context = "As in a back/close button in UI, going back to what the player was doing just before this popup"
+})
+
+local GOTO_UPGRADES = loc("{o}GO TO UPGRADES!{/o}",{}, {
+    context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
+})
+
+local NEW_UPGRADES_AVAILABLE = loc("{wavy freq=0.5}{rainbow}{outline}New Upgrades Available!{/outline}{/rainbow}{/wavy}",{}, {
+    context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
+})
+
 
 
 
@@ -450,18 +464,30 @@ local function drawUpgradePopup(self)
 
     lg.setColor(1,1,1)
     richtext.printRichContained(
-        "{wavy freq=0.5}{rainbow}{outline}New Upgrades Available!{/outline}{/rainbow}{/wavy}",
+        NEW_UPGRADES_AVAILABLE,
         g.getSmallFont(16),
         title:padRatio(0,0.2,0,0.2):get()
     )
 
     -- draw GOTO UPGRADES
-    if button(gotoUpgrades:padRatio(0.1), "{o}GO TO UPGRADES{/o}") then
+    if button(gotoUpgrades:padRatio(0.1), GOTO_UPGRADES) then
         g.gotoScene("upgrade_scene")
     end
 
+    -- draw silli cats
+    do
+    local cat1 = Kirigami(0,0,64,64):center(gotoUpgrades):attachToLeftOf(gotoUpgrades)
+    local x1,y1 = cat1:getCenter()
+    local sc = progress * 4
+    local dy = 20*math.sin(love.timer.getTime()*3)
+    g.drawImage("happy_cat", x1,y1+dy, 0, sc,sc)
+    local cat2 = Kirigami(0,0,64,64):centerY(gotoUpgrades):attachToRightOf(gotoUpgrades)
+    local x2,y2 = cat2:getCenter()
+    g.drawImage("happy_cat", x2,y2+dy, 0, sc*-1,sc)
+    end
+
     -- draw GOTO UPGRADES
-    if button(stayHarvest:padRatio(0.6,0.5,0.6,0.5), "{o}BACK{/o}") then
+    if button(stayHarvest:padRatio(0.6,0.5,0.6,0.5), CLOSE) then
         closeUpgradePopup(self)
     end
 end
