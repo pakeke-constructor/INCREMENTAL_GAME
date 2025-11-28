@@ -3,12 +3,6 @@ local simulation = require("src.world.simulation")
 
 
 local MAX_SOURCE_POOL = 4
-local VALID_EXTENSIONS = {
-    wav = true,
-    mp3 = true,
-    ogg = true,
-    flac = true
-}
 
 
 ---@class _sfx
@@ -29,19 +23,11 @@ function sfx.setVolume(vol)
     sfxVolume = helper.clamp(math.floor(vol + 0.5), 0, 100)
 end
 
-function sfx.defineSound(path)
-    local pathrev = path:reverse()
-    local ext = pathrev:sub(1, (pathrev:find(".", 1, true) or 1) - 1):reverse():lower()
-
-    if VALID_EXTENSIONS[ext] then
-        local basename = pathrev:sub(1, pathrev:find("/", 1, true)-1):reverse()
-
-        if #basename > 0 then
-            local name = basename:sub(1, -#ext - 2)
-            local mainSource = love.audio.newSource(path, "static")
-            sourcePool[name] = {mainSource}
-        end
-    end
+---@param name string
+---@param path string
+function sfx.defineSound(name, path)
+    local mainSource = love.audio.newSource(path, "static")
+    sourcePool[name] = {mainSource}
 end
 
 function sfx.updateState()
@@ -75,7 +61,7 @@ local function getSourceFromPool(name)
     return nil
 end
 
----@param scene string|nil Only play if scene is equal to this (or nil to always play)
+---@param scene string|nil Only play if scene is equal to this (or `nil` to always play)
 ---@param soundname string
 ---@param pitch number?
 ---@param volume number?

@@ -12,6 +12,8 @@ local rewards = require("src.rewards.rewards")
 
 
 
+local sfx = require("src.sound.sfx")
+
 ---@class g
 local g = {}
 
@@ -1677,62 +1679,6 @@ end
 -- g.playUISound
 do
 
-local MAX_SOURCE_POOL = 4
----@type table<string, love.Source[]>
-local sourcePool = {} -- first source always the one to clone
-
----@param name string
-local function getSourceFromPool(name)
-    local sources = sourcePool[name]
-    if not sources then
-        error("invalid sound '"..name.."'")
-    end
-
-    -- Linear search won't be expensive as long as source pool is low
-    for _, s in ipairs(sources) do
-        if not s:isPlaying() then
-            s:stop()
-            return s
-        end
-    end
-
-    if #sources < MAX_SOURCE_POOL then
-        -- first source always the one to clone
-        local s = sources[1]:clone()
-        sources[#sources+1] = s
-        s:stop()
-        return s
-    end
-
-    return nil
-end
-
----@param soundname string
----@param pitch number? (defaults to 1)
----@param volume number? (defaults to 1)
----@param pitchVar number? (pitch variance, default 0)
----@param volumeVar number? (volume variance, default 0)
-local function playSound(soundname, pitch, volume, pitchVar, volumeVar)
-    local s = getSourceFromPool(soundname)
-    if not s then
-        return false
-    end
-
-    local dv = (volumeVar or 0) * (love.math.random()-0.5)*2
-    local dp = (pitchVar or 0) * (love.math.random()-0.5)*2
-
-    pitch = (pitch or 1) + dp
-    volume = math.max((volume or 1) + dv, 0)
-    if pitch <= 0 then
-        error("invalid pitch "..pitch)
-    end
-
-    s:setPitch(pitch)
-    s:setVolume(volume)
-    s:play()
-    return true
-end
-
 
 ---@param soundname string
 ---@param pitch number? (defaults to 1)
@@ -1740,13 +1686,7 @@ end
 ---@param pitchVar number? (pitch variance, default 0)
 ---@param volumeVar number? (volume variance, default 0)
 function g.playWorldSound(soundname, pitch, volume, pitchVar, volumeVar)
-    -- HACK: checks harvest-scene is active!!!
-    -- Maybe do a cleaner way? ... i guess we keep it like this until we run into problems. 
-    sceneManager = sceneManager or require("src.scenes.sceneManager")
-    local sc = sceneManager.getCurrentScene()
-    if sc and sc.name == "harvest_scene" then
-        playSound(soundname, pitch, volume, pitchVar, volumeVar)
-    end
+    return sfx.play("harvest_scene", soundname, pitch, volume, pitchVar, volumeVar)
 end
 
 
@@ -1756,7 +1696,7 @@ end
 ---@param pitchVar number? (pitch variance, default 0)
 ---@param volumeVar number? (volume variance, default 0)
 function g.playUISound(soundname, pitch, volume, pitchVar, volumeVar)
-    playSound(soundname, pitch, volume, pitchVar, volumeVar)
+    return sfx.play(nil, soundname, pitch, volume, pitchVar, volumeVar)
 end
 
 
@@ -1791,8 +1731,7 @@ local function loadSound(path)
 
         if #basename > 0 then
             local name = basename:sub(1, -#ext - 2)
-            local mainSource = love.audio.newSource(path, "static")
-            sourcePool[name] = {mainSource}
+            sfx.defineSound(name, path)
         end
     end
 end
