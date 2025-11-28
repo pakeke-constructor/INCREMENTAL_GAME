@@ -1083,6 +1083,9 @@ function g.defineUpgrade(id, name, def)
 
     def.type = id
 
+    if id == "thick_grass" then
+        print("HERE.")
+    end
     assert(not upgradeInfos[id], "Redefined upgrade!")
     upgradeInfos[id] = def
 
@@ -1185,6 +1188,8 @@ function g.defineToken(tokType, name, tabl)
     assert(not tabl.type, ".type is a reserved field!")
     assert(tabl.maxHealth, "Tokens need .maxHealth")
     assert(tabl.resources, "Tokens need .resources")
+    assert(not tokenDefinitions[tokType], "Duplicate token definition!")
+
     if tabl.category and not g.CATEGORIES[tabl.category] then
         error("invalid category '"..tabl.category.."'")
     end

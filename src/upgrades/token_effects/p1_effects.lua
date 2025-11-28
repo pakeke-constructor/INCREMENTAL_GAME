@@ -10,8 +10,9 @@ local function defTokenEffect(id, name, typedef)
 end
 
 
+--[[
 
-defTokenEffect("thick_grass", "Thick Grass", {
+defTokenEffect("thicker_grass", "Thicker Grass", {
     effect = {
         description = loc"Grass tokens yield 2x more resources",
 
@@ -45,3 +46,6 @@ defTokenEffect("happy_cat", "Happy Cat", {
         resources = {}
     }
 })
+
+]]
+

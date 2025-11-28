@@ -145,7 +145,7 @@ defUpgrade("critical_damage", "Critical Damage", {
 
 
 
-defUpgrade("bomb", "Bomb", {
+defUpgrade("bomb_rain", "Bomb Rain", {
     description = "Every second, %{1} chance of spawning Bomb token.",
     getValues = function(uinfo, level)
         return level
