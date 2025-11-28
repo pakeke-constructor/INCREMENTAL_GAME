@@ -439,14 +439,22 @@ end
 
 
 ---@param uinfo g.UpgradeInfo
----@param level integer?
-function Tree:addUnboundUpgrade(uinfo, level)
+function Tree:addOrUpgradeUnboundUpgrade(uinfo)
+    assert(uinfo and uinfo.type)
+    for _,upg in ipairs(self:getUnboundUpgrades()) do
+        if upg.id == uinfo.type then
+            -- there's already a unbound upgrade of this type:
+            self:setUpgradeLevel(upg, upg.level + 1)
+            return
+        end
+    end
+
     local upg = {
         id = uinfo.type,
         x=0,
         y=0,
         basePrice={},
-        level=level or 1,
+        level=1,
         isUnbound=true
     }
 

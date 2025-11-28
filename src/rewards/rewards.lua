@@ -48,13 +48,14 @@ local rewards = {}
 ---@field upgradeId string? The id of a permanent reward
 ---
 ---@field token g.TokenInfo? only for token-rewards
+---@field tokenCount integer? only for token-rewards
 ---
 ---@field resources g.Bundle? only for resource-rewards
 ---
 ---@field effect g.EffectInfo? only for effect-rewards
 ---@field effectDuration number? (also effect-rewards)
 ---
----@field stackedToken g.TokenInfo? (also effect-rewards)
+---@field stackedToken g.TokenInfo? gives a stacked-token reward immediately
 ---@field stackedTokenCount number?
 ---
 ---@field icon string
@@ -132,8 +133,10 @@ function rewards.selectReward(rew)
             local sx,sy = w/2 + love.math.random(-100,100), h/2 + love.math.random(-100,100)
             g.stackToken(rew.stackedToken.type, sx,sy)
         end
-    else
-
+    elseif rew.upgradeId then
+        local uinfo = g.getUpgradeInfo(rew.upgradeId)
+        local tree = g.getUpgTree()
+        tree:addOrUpgradeUnboundUpgrade(uinfo)
     end
 end
 
