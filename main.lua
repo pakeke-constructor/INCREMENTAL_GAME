@@ -151,6 +151,7 @@ function love.load(arg)
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
     g.requireFolder("src/scythes")
+    sceneManager.loadScenes()
 
     if arg[1] == "--simulate" then
         -- TODO: Setup procgen tree instead of simulating current save
