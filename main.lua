@@ -143,6 +143,7 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local sfx = require("src.sound.sfx")
 local wasaSimulating = false
 
 function love.load(arg)
@@ -185,6 +186,7 @@ end
 
 
 function love.update(dt)
+    sfx.updateState()
     iml.setPointer(love.mouse.getPosition())
 
     if simulation.isSimulating() then
