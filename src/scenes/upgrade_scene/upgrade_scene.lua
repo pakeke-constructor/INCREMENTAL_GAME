@@ -65,7 +65,7 @@ local function getCheapestUpgrade(tree)
     local bestPrice = 0xfffffffffffff
     local bestUpgrade = nil
 
-    for _, upg in ipairs(tree:getUpgrades()) do
+    for _, upg in ipairs(tree:getUpgradesOnTree()) do
         local uinfo = g.getUpgradeInfo(upg.id)
         local lv = upg.level
 
@@ -88,7 +88,7 @@ local function getBestUpgradeAffordThreshold()
     local result = {}
 
     local tree = g.getUpgTree()
-    for _, upg in ipairs(tree:getUpgrades()) do
+    for _, upg in ipairs(tree:getUpgradesOnTree()) do
         local uinfo = g.getUpgradeInfo(upg.id)
         local level = upg.level
 
@@ -141,7 +141,7 @@ local function drawUpgradeBoxes()
     local prestige = g.getPrestige()
 
     local tree = g.getUpgTree()
-    local upgrades = tree:getUpgrades()
+    local upgrades = tree:getUpgradesOnTree()
     for _, upg in ipairs(upgrades) do
         local uinfo = g.getUpgradeInfo(upg.id)
         if not tree:isUpgradeHidden(upg) then

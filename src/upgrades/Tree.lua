@@ -408,16 +408,10 @@ local function finalizeBusCacheForUpgrade(self, upg)
 end
 
 
----@param upg g.Tree.Upgrade
-function Tree:markAsRoot(upg)
-    upg.isRoot = true
-    self._distances = calculateDistancesFromRoot(self)
-end
-
-
 ---@param x integer
 ---@param y integer
 ---@param uinfo g.UpgradeInfo
+---@param isRoot boolean?
 ---@return g.Tree.Upgrade
 function Tree:put(x,y, uinfo, isRoot)
     -- used when generating upgrade-tree
@@ -431,7 +425,8 @@ function Tree:put(x,y, uinfo, isRoot)
         x=x,
         y=y,
         basePrice={},
-        level=0
+        level=0,
+        isRoot = isRoot
     }
     self.upgrades[i] = upg
 
@@ -506,9 +501,9 @@ function Tree:distanceFromRoot(upg)
 end
 
 
---- gets ALL upgrades, (even headless ones)
+--- gets ALL upgrades, (even unbound ones)
 ---@return g.Tree.Upgrade[]
-function Tree:getUpgrades()
+function Tree:getAllUpgrades()
     local buf = {}
     for _,upg in pairs(self.upgrades) do
         table.insert(buf,upg)
@@ -518,6 +513,31 @@ function Tree:getUpgrades()
     end
     return buf
 end
+
+
+--- gets upgrades on the tree
+---@return g.Tree.Upgrade[]
+function Tree:getUpgradesOnTree()
+    local buf = {}
+    for _,upg in pairs(self.upgrades) do
+        table.insert(buf,upg)
+    end
+    return buf
+end
+
+
+--- gets upgrades that are unbound (ie not on the tree, but still active)
+---@return g.Tree.Upgrade[]
+function Tree:getUnboundUpgrades()
+    local buf = {}
+    for _,upg in ipairs(self.unboundUpgrades) do
+        table.insert(buf,upg)
+    end
+    return buf
+end
+
+
+
 
 
 
@@ -578,7 +598,7 @@ end
 function Tree:finalize()
     self._distances = calculateDistancesFromRoot(self)
     finalizeConnections(self)
-    for _,upg in ipairs(self:getUpgrades()) do
+    for _,upg in ipairs(self:getAllUpgrades()) do
         finalizeBusCacheForUpgrade(self, upg)
     end
 end

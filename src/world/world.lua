@@ -568,7 +568,7 @@ function World:_update(dt)
     end
 
     local tree = g.getUpgTree()
-    for _, upg in ipairs(tree:getUpgrades()) do
+    for _, upg in ipairs(tree:getAllUpgrades()) do
         local upgradeId = upg.id
         local ulevel = upg.level
         local uinfo = g.getUpgradeInfo(upgradeId)
