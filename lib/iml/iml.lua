@@ -9,7 +9,7 @@ local iml = {}
 ---@alias iml._Panel {x:number, y:number, w:number,h:number, key:any, transform?: love.Transform}
 ---@alias iml._FrameState { hoveredPanel: iml._Panel?, transformStack: love.Transform[], transform: love.Transform}
 
----@alias iml._Click {original_x:number, original_y:number, total_dx:number,total_dy:number, last_frame_dx:number,last_frame_dy:number, panel_key:any? }
+---@alias iml._Click {original_x:number, original_y:number, total_dx:number,total_dy:number, last_frame_dx:number,last_frame_dy:number, panel_key:any?, is_drag:boolean? }
 
 
 ---@type iml._Panel?
@@ -68,6 +68,9 @@ local last_pointer_y = 0
 ---@return boolean
 local function isClick(cl)
     -- if it moves less than X distance, its a click
+    if cl.is_drag then
+        return false
+    end
     return math.sqrt(cl.total_dx*cl.total_dx + cl.total_dy*cl.total_dy) < iml.CLICK_MOVE_THRESHOLD
 end
 
@@ -394,6 +397,12 @@ function iml.endFrame()
             end
         else
             hoverChangedLastFrame = true
+        end
+    end
+
+    for _button,cl in pairs(currentClicks) do
+        if not isClick(cl) then
+            cl.is_drag = true
         end
     end
 
