@@ -143,6 +143,7 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local sfx = require("src.sound.sfx")
 local wasaSimulating = false
 
 function love.load(arg)
@@ -151,6 +152,7 @@ function love.load(arg)
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
     g.requireFolder("src/scythes")
+    sceneManager.loadScenes()
 
     if arg[1] == "--simulate" then
         -- TODO: Setup procgen tree instead of simulating current save
@@ -184,6 +186,7 @@ end
 
 
 function love.update(dt)
+    sfx.update()
     iml.setPointer(love.mouse.getPosition())
 
     if simulation.isSimulating() then
