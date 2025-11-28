@@ -71,7 +71,7 @@ return function(text)
         {0.60, 0.20, 0.80, 1.0},  -- Violet
     }
     local function rainbowEffect(args, char)
-        local i = math.floor(char.start/2 - love.timer.getTime())
+        local i = math.floor(char.start/3 - love.timer.getTime()/2)
         local index = (i % (#rainbow))+1
         char:setColor(rainbow[index])
     end
