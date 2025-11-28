@@ -67,10 +67,11 @@ local last_pointer_y = 0
 ---@param cl iml._Click
 ---@return boolean
 local function isClick(cl)
-    -- if it moves less than X distance, its a click
     if cl.is_drag then
+        -- once its a drag; its *always* a drag
         return false
     end
+    -- Otherwise, if it moves less than X distance, its a click
     return math.sqrt(cl.total_dx*cl.total_dx + cl.total_dy*cl.total_dy) < iml.CLICK_MOVE_THRESHOLD
 end
 
