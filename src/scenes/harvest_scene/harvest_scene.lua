@@ -199,6 +199,10 @@ end
 ---@param tok g.Token
 ---@param bundle g.Bundle
 function harvest:tokenEarnedResources(tok, bundle)
+    if g.isBeingSimulated() then
+        return
+    end
+
     local normX, normY = self.camera:getTransform():transformPoint(tok.x, tok.y)
     local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(normX,normY)
     local rhud = g.getHUD().resourceHUD
@@ -563,11 +567,13 @@ function harvest:tokenDestroyed(tok)
         sn.xp = sn.xp + xp*mult
     end
 
-    local x,y = self.camera:getTransform():transformPoint(tok.x,tok.y)
-    local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(x,y)
-    local SPD = 600
-    local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
-    xpParticles:spawnParticle(uiX,uiY, vx,vy)
+    if not g.isBeingSimulated() then
+        local x,y = self.camera:getTransform():transformPoint(tok.x,tok.y)
+        local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(x,y)
+        local SPD = 600
+        local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
+        xpParticles:spawnParticle(uiX,uiY, vx,vy)
+    end
 end
 
 
@@ -595,9 +601,11 @@ function harvest:draw()
     end
 
     -- Draw clouds
-    cloudService.drawShadow()
-    love.graphics.setColor(1, 1, 1, 0.67)
-    cloudService.draw()
+    if not g.isBeingSimulated() then
+        cloudService.drawShadow()
+        love.graphics.setColor(1, 1, 1, 0.67)
+        cloudService.draw()
+    end
 
     world:_draw()
 
@@ -639,7 +647,7 @@ function harvest:update(dt)
     xpParticles:update(dt)
 
     local sn = g.getSn()
-    if (not self.xpPopup) and sn.xp >= sn.xpRequirement then
+    if (not self.xpPopup) and sn.xp >= sn.xpRequirement and not g.isBeingSimulated() then
         openPopup(self)
     end
 
@@ -685,7 +693,9 @@ function harvest:update(dt)
     end
 
     -- Update cloud
-    cloudService.update(dt, self.camera)
+    if not g.isBeingSimulated() then
+        cloudService.update(dt, self.camera)
+    end
 end
 
 

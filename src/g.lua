@@ -1798,6 +1798,7 @@ end
 ---@param y number
 ---@param amount integer?
 function g.spawnParticle(particleName, x, y, amount)
+    if g.isBeingSimulated() then return end
     return currentSession.mainWorld.particles:spawnParticles(particleName, x, y, amount)
 end
 
