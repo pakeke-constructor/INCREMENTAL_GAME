@@ -23,13 +23,15 @@ function harvest:init()
     self.allowMousePan = false
 
     self.timeTakenThisLevel = 0
-    self.xpPopup = nil
     self.xpRequirement = 1 -- set every frame.
 
     self.xpBarX, self.xpBarY = 1000,0 -- where should Xp particles move to?
 
-    self.timeSincePopupOpened = 0
+    self.timeSinceXpPopupOpened = 0
     self.xpPopup = false
+
+    self.timeSinceUpgradePopupOpened = 0
+    self.upgradePopup = false
 
     self.stackedTokenX = 0
     self.stackedTokenY = 0
@@ -245,6 +247,23 @@ end
 
 
 
+---@param self HarvestScene
+local function openUpgradePopup(self)
+    self.upgradePopup=true
+    self.timeSinceUpgradePopupOpened = 0
+end
+
+
+---@param self HarvestScene
+local function closeUpgradePopup(self)
+    self.upgradePopup=false
+    self.timeSinceUpgradePopupOpened = 0
+end
+
+
+
+
+
 local popupParticles = particles.newParticlesWorld({
     gravity = 100,
     extraFields = {
@@ -314,23 +333,42 @@ local xpParticles = particles.newParticlesWorld({
 
 
 
-local function openPopup(self)
+
+local function openXpPopup(self)
     -- BOOM! level up popup!
     self.xpPopup = true
-    self.timeSincePopupOpened = 0
+    self.timeSinceXpPopupOpened = 0
     self.timeTakenThisLevel = 0
     popupParticles:clear()
 end
 
 
 
-local function closePopup(self)
+
+---@return boolean
+local function canAffordAnyUpgrades()
+    local tree = g.getUpgTree()
+    for _, upg in ipairs(tree:getUpgradesOnTree()) do
+        if tree:canAffordUpgrade(upg) then
+            return true
+        end
+    end
+    return false
+end
+
+
+local function closeXpPopup(self)
     self.xpPopup = false
-    self.timeSincePopupOpened = 0
+    self.timeSinceXpPopupOpened = 0
     self.timeTakenThisLevel = 0
     local sn = g.getSn()
     sn.xp = 0
     sn.level = sn.level + 1
+
+    if canAffordAnyUpgrades() then
+        -- prompt player to go to upgrade-scene
+        openUpgradePopup(self)
+    end
 end
 
 
@@ -395,7 +433,7 @@ function drawXpPopup(self)
     local r = Kirigami(0,0, ui.getScaledUIDimensions())
 
     -- number from 0 -> 1
-    local progress = math.min(1, self.timeSincePopupOpened / XP_POPUP_FADE_IN_TIME)
+    local progress = math.min(1, self.timeSinceXpPopupOpened / XP_POPUP_FADE_IN_TIME)
 
     local top, mid, bot = r:splitVertical(1,8,1)
     local _,popup = mid:splitHorizontal(1,2,1)
@@ -542,7 +580,7 @@ function drawXpPopup(self)
     end
 
     if iml.wasJustClicked(popup:get()) then
-        closePopup(self)
+        closeXpPopup(self)
     end
 end
 
@@ -633,7 +671,7 @@ function harvest:update(dt)
 
     if self.xpPopup then
         updateXPPopup(self, dt)
-        self.timeSincePopupOpened = self.timeSincePopupOpened + dt
+        self.timeSinceXpPopupOpened = self.timeSinceXpPopupOpened + dt
     else
         self.timeTakenThisLevel = self.timeTakenThisLevel + dt
     end
@@ -641,7 +679,7 @@ function harvest:update(dt)
 
     local sn = g.getSn()
     if (not self.xpPopup) and sn.xp >= sn.xpRequirement then
-        openPopup(self)
+        openXpPopup(self)
     end
 
     local worldW, worldH = g.getWorldDimensions()
