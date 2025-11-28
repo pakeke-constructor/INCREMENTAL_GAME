@@ -20,6 +20,17 @@ HOW TO ACHIEVE:
 
 
 REWARD TYPES:
+- TEMPORARY REWARDS (resource-bundle, stacked-token, etc)
+- PERMANENT REWARDS (permanent token, permanent upgrade)
+
+When the player chooses between rewards, they either choose between
+- 3 permanent rewards
+- OR, 3 instant rewards.
+DON'T MIX THEM!!! Or else balancing is a nightmare,
+and players will always choose the permanent ones.
+
+
+IDEAS:
 - COMMON: +Resource bundle
 - COMMON: Simple permanent stat increase
 - COMMON: Grants temporary effect (g.grantEffect)
@@ -31,10 +42,6 @@ REWARD TYPES:
 - UNIQUE: One-time upgrades, like "get new scythe!"
 
 
-
-API?
-HOW SHOULD WE DO THE UI?
-- 
 
 
 ]]
