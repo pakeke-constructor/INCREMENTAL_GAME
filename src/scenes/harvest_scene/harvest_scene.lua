@@ -14,7 +14,10 @@ local harvest = FreeCameraScene()
 
 
 local XP_POPUP_FADE_IN_TIME = 0.25
--- How many seconds it takes to fade in the popup
+-- How many seconds it takes to fade into the popup
+
+local UPGRADE_POPUP_FADE_IN_TIME = 0.15
+-- How many seconds it takes to fade into the popup
 
 
 
@@ -250,22 +253,6 @@ end
 
 
 
----@param self HarvestScene
-local function openUpgradePopup(self)
-    self.upgradePopup=true
-    self.timeSinceUpgradePopupOpened = 0
-end
-
-
----@param self HarvestScene
-local function closeUpgradePopup(self)
-    self.upgradePopup=false
-    self.timeSinceUpgradePopupOpened = 0
-end
-
-
-
-
 
 local popupParticles = particles.newParticlesWorld({
     gravity = 100,
@@ -291,160 +278,13 @@ local popupParticles = particles.newParticlesWorld({
 })
 
 
-local xpParticles = particles.newParticlesWorld({
-    gravity = 0,
-    updateParticle = function (p, dt)
-        local ACCELLERATION = 400
-        local TARG_VEL = 400
-        local w,h = ui.getScaledUIDimensions()
-        local hud = g.getHUD()
-        local targX,targY = hud.profileHUD:getXPBarStartPos()
-        local vx,vy = p.vx,p.vy
-        local dx, dy = (targX-p.x), (targY-p.y)
-        local mag = ((dx*dx + dy*dy) ^ 0.5)
-        local lifetime = p.lifetime
-        if mag > 0 then
-            local targVel = TARG_VEL * (1+lifetime)
-            local tvx = (dx/mag)*targVel
-            local tvy = (dy/mag)*targVel
-            p.vx = (0.96 * vx + (dx/mag)*ACCELLERATION*dt) + 0.04*tvx
-            p.vy = (0.96 * vy + (dy/mag)*ACCELLERATION*dt) + 0.04*tvy
-        end
-    end,
-    drawParticle = function(p)
-        local id = p.id
-        local sx,sy = 1,1
-        local i = id%8
-        local img
-        if i<3 then
-            img = "xp_packet_small_2"
-        elseif i<6 then
-            img = "xp_packet_small_1"
-        elseif i==6 then
-            img = "xp_packet_big_1"
-        elseif i==7 then
-            img = "xp_packet_big_2"
-        end
-        local rot = 0--love.timer.getTime()*10 + id*1.77
-        local x,y = p.x,p.y
-        g.drawImage(img, x,y, rot, sx,sy)
-    end,
-    getParticleDuration = function(p)
-        return 1.8
-    end
-})
-
-
-
-
-local function openXpPopup(self)
-    -- BOOM! level up popup!
-    self.xpPopup = true
-    self.timeSinceXpPopupOpened = 0
-    self.timeTakenThisLevel = 0
-    popupParticles:clear()
-end
-
-
-
-
----@return boolean
-local function canAffordAnyUpgrades()
-    local tree = g.getUpgTree()
-    for _, upg in ipairs(tree:getUpgradesOnTree()) do
-        if tree:canAffordUpgrade(upg) then
-            return true
-        end
-    end
-    return false
-end
-
-
-local function closeXpPopup(self)
-    self.xpPopup = false
-    self.timeSinceXpPopupOpened = 0
-    self.timeTakenThisLevel = 0
-    local sn = g.getSn()
-    sn.xp = 0
-    sn.level = sn.level + 1
-
-    if canAffordAnyUpgrades() then
-        -- prompt player to go to upgrade-scene
-        openUpgradePopup(self)
-    end
-end
-
-
-
-
-local drawXpPopup, updateXPPopup
-do
-
-local COLS = {
-    "#11E0D1",
-    "#27D1D9",
-    "#3FBEDC",
-    "#5CA8DF",
-    "#7991E0",
-    "#9482DE",
-    "#AD7BD9",
-    "#C178D3",
-    "#D77BCC",
-    "#EE7FC4"
-}
----@cast COLS table[]
-for i=1, #COLS do
-    local c = objects.Color(COLS[i])
-    c.a = 1
-    COLS[i] = c
-end
-for i=#COLS-1,2,-1 do
-    -- make it reflective
-    table.insert(COLS, COLS[i])
-end
-
-
-local RAINBOW = {}
-local NUM = 10
-for i=0, NUM do
-    local c = objects.Color(objects.Color.HSVtoRGB((i*360) / NUM, 0.8, 0.8))
-    table.insert(RAINBOW, c)
-end
-
-
-local RAINBOW_SCROLL_SPEED = 1
-
----@param barR kirigami.Region
----@param cols table[]
-local function drawRainbowBar(barR, cols)
-    local regions = barR:grid(#cols,1)
-    for i,r in ipairs(regions) do
-        local col_i = (i % #cols) + 1
-        lg.setColor(cols[col_i])
-        lg.rectangle("fill", r:get())
-    end
-end
-
-
-
 
 local GRADIENT_IMG = love.graphics.newImage("src/scenes/harvest_scene/gradient_background.png")
 local GOLD = objects.Color("#".."FFFAE06B")
 
----@param self HarvestScene
-function drawXpPopup(self)
-    local r = Kirigami(0,0, ui.getScaledUIDimensions())
-
-    -- number from 0 -> 1
-    local progress = math.min(1, self.timeSinceXpPopupOpened / XP_POPUP_FADE_IN_TIME)
-
-    local top, mid, bot = r:splitVertical(1,8,1)
-    local _,popup = mid:splitHorizontal(1,2,1)
-    popup = popup:padRatio(0.1 + (1-progress))
-
-    top = top:moveRatio(0,-(1-progress))
-    bot = bot:moveRatio(0,(1-progress))
-
+---@param progress number
+local function drawFancyBackgroundShit(progress)
+    local r = Kirigami(0,0,ui.getScaledUIDimensions())
     local cx,cy = r:getCenter()
 
     do
@@ -553,15 +393,228 @@ function drawXpPopup(self)
         length = r.w * 0.9 * progress,
         fadeTo=0.4
     })
+end
 
-    -- TODO: im not sure if these black bars look very good...
-    -- i think we need OOMPH, not a cinematic.
-    --[[
-    lg.setColor(0,0,0)
-    lg.rectangle("fill", top:get())
-    lg.rectangle("fill", bot:get())
-    ]]
-    --- yeah... idk, maybe remove this stuff ^^^^
+
+
+---@param self HarvestScene
+local function openUpgradePopup(self)
+    if not self.upgradePopup then
+        popupParticles:clear()
+        self.upgradePopup=true
+        self.timeSinceUpgradePopupOpened = 0
+    end
+end
+
+
+---@param self HarvestScene
+local function closeUpgradePopup(self)
+    if self.upgradePopup then
+        self.upgradePopup=false
+        self.timeSinceUpgradePopupOpened = 0
+    end
+end
+
+
+
+local function drawUpgradePopup(self)
+    local r = Kirigami(0,0, ui.getScaledUIDimensions())
+    local cx,cy = r:getCenter()
+
+    -- number from 0 -> 1
+    local progress = math.min(1, self.timeSinceUpgradePopupOpened / UPGRADE_POPUP_FADE_IN_TIME)
+
+    local popup = r:padRatio(0.1 + (1-progress))
+
+    drawFancyBackgroundShit(progress)
+
+    local _,_
+    local r2 = popup:padRatio(0.3)
+    local title, gotoUpgrades, stayHarvest = r2:splitVertical(1,1,1)
+    _,gotoUpgrades,_ = gotoUpgrades:splitHorizontal(1,3,1)
+    _,stayHarvest,_ = stayHarvest:splitHorizontal(1,3,1)
+
+    local col1 = objects.Color("#" .. "FF9F14F6")
+    local col2 = objects.Color("#" .. "FF3B12A4")
+
+    local function button(rrr, txt)
+        if iml.isHovered(rrr:get()) then
+            helper.gradientRect("horizontal", col1,col1, rrr:padUnit(4):get())
+        else
+            helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
+        end
+        ui.drawPanel(rrr:get())
+        richtext.printRichContained(txt, g.getSmallFont(16), rrr:padRatio(0.4,0.2):get())
+        return iml.wasJustClicked(rrr:get())
+    end
+
+    lg.setColor(1,1,1)
+    richtext.printRichContained(
+        "{wavy freq=0.5}{rainbow}{outline}New Upgrades Available!{/outline}{/rainbow}{/wavy}",
+        g.getSmallFont(16),
+        title:padRatio(0,0.2,0,0.2):get()
+    )
+
+    -- draw GOTO UPGRADES
+    if button(gotoUpgrades:padRatio(0.1), "{o}GO TO UPGRADES{/o}") then
+        g.gotoScene("upgrade_scene")
+    end
+
+    -- draw GOTO UPGRADES
+    if button(stayHarvest:padRatio(0.6,0.5,0.6,0.5), "{o}BACK{/o}") then
+        closeUpgradePopup(self)
+    end
+end
+
+
+
+local xpParticles = particles.newParticlesWorld({
+    gravity = 0,
+    updateParticle = function (p, dt)
+        local ACCELLERATION = 400
+        local TARG_VEL = 400
+        local w,h = ui.getScaledUIDimensions()
+        local hud = g.getHUD()
+        local targX,targY = hud.profileHUD:getXPBarStartPos()
+        local vx,vy = p.vx,p.vy
+        local dx, dy = (targX-p.x), (targY-p.y)
+        local mag = ((dx*dx + dy*dy) ^ 0.5)
+        local lifetime = p.lifetime
+        if mag > 0 then
+            local targVel = TARG_VEL * (1+lifetime)
+            local tvx = (dx/mag)*targVel
+            local tvy = (dy/mag)*targVel
+            p.vx = (0.96 * vx + (dx/mag)*ACCELLERATION*dt) + 0.04*tvx
+            p.vy = (0.96 * vy + (dy/mag)*ACCELLERATION*dt) + 0.04*tvy
+        end
+    end,
+    drawParticle = function(p)
+        local id = p.id
+        local sx,sy = 1,1
+        local i = id%8
+        local img
+        if i<3 then
+            img = "xp_packet_small_2"
+        elseif i<6 then
+            img = "xp_packet_small_1"
+        elseif i==6 then
+            img = "xp_packet_big_1"
+        elseif i==7 then
+            img = "xp_packet_big_2"
+        end
+        local rot = 0--love.timer.getTime()*10 + id*1.77
+        local x,y = p.x,p.y
+        g.drawImage(img, x,y, rot, sx,sy)
+    end,
+    getParticleDuration = function(p)
+        return 1.8
+    end
+})
+
+
+
+
+local function openXpPopup(self)
+    -- BOOM! level up popup!
+    self.xpPopup = true
+    self.timeSinceXpPopupOpened = 0
+    self.timeTakenThisLevel = 0
+    popupParticles:clear()
+end
+
+
+
+
+---@return boolean
+local function canAffordAnyUpgrades()
+    local tree = g.getUpgTree()
+    for _, upg in ipairs(tree:getUpgradesOnTree()) do
+        if tree:canAffordUpgrade(upg) then
+            return true
+        end
+    end
+    return false
+end
+
+
+local function closeXpPopup(self)
+    self.xpPopup = false
+    self.timeSinceXpPopupOpened = 0
+    self.timeTakenThisLevel = 0
+    local sn = g.getSn()
+    sn.xp = 0
+    sn.level = sn.level + 1
+    if canAffordAnyUpgrades() then
+        openUpgradePopup(self)
+    end
+end
+
+
+
+
+local drawXpPopup, updateXPPopup
+do
+
+local COLS = {
+    "#11E0D1",
+    "#27D1D9",
+    "#3FBEDC",
+    "#5CA8DF",
+    "#7991E0",
+    "#9482DE",
+    "#AD7BD9",
+    "#C178D3",
+    "#D77BCC",
+    "#EE7FC4"
+}
+---@cast COLS table[]
+for i=1, #COLS do
+    local c = objects.Color(COLS[i])
+    c.a = 1
+    COLS[i] = c
+end
+for i=#COLS-1,2,-1 do
+    -- make it reflective
+    table.insert(COLS, COLS[i])
+end
+
+
+local RAINBOW = {}
+local NUM = 10
+for i=0, NUM do
+    local c = objects.Color(objects.Color.HSVtoRGB((i*360) / NUM, 0.8, 0.8))
+    table.insert(RAINBOW, c)
+end
+
+
+local RAINBOW_SCROLL_SPEED = 1
+
+---@param barR kirigami.Region
+---@param cols table[]
+local function drawRainbowBar(barR, cols)
+    local regions = barR:grid(#cols,1)
+    for i,r in ipairs(regions) do
+        local col_i = (i % #cols) + 1
+        lg.setColor(cols[col_i])
+        lg.rectangle("fill", r:get())
+    end
+end
+
+
+
+
+---@param self HarvestScene
+function drawXpPopup(self)
+    local r = Kirigami(0,0, ui.getScaledUIDimensions())
+
+    -- number from 0 -> 1
+    local progress = math.min(1, self.timeSinceXpPopupOpened / XP_POPUP_FADE_IN_TIME)
+
+    local _, mid, _ = r:splitVertical(1,8,1)
+    local _,popup = mid:splitHorizontal(1,2,1)
+    popup = popup:padRatio(0.1 + (1-progress))
+
+    drawFancyBackgroundShit(progress)
 
     do
     love.graphics.setColor(1,1,1)
@@ -588,17 +641,11 @@ function drawXpPopup(self)
 end
 
 
-function updateXPPopup(self, dt)
-    popupParticles:update(dt)
-end
-
-
-
 end
 
 
 function harvest:tokenDestroyed(tok)
-    if not self.xpPopup then
+    if not (self.xpPopup or self.upgradePopup) then
         local xp = tok.maxHealth
         local mult = getXPMultiplier(self)
         local sn = g.getSn()
@@ -631,7 +678,7 @@ function harvest:draw()
 
     local world = g.getMainWorld()
 
-    if self.xpPopup then
+    if self.xpPopup or self.upgradePopup then
         world:_enableMouseHarvester(-500,-500)
     elseif not g.isBeingSimulated() then
         local cx,cy = self.camera:toWorld(love.mouse.getPosition())
@@ -664,6 +711,8 @@ function harvest:draw()
     self:_drawActiveEffects()
     if self.xpPopup then
         drawXpPopup(self)
+    elseif self.upgradePopup then
+        drawUpgradePopup(self)
     end
 
     ui.endUI()
@@ -677,8 +726,11 @@ function harvest:update(dt)
     g.getHUD():update(dt)
 
     if self.xpPopup then
-        updateXPPopup(self, dt)
+        popupParticles:update(dt)
         self.timeSinceXpPopupOpened = self.timeSinceXpPopupOpened + dt
+    elseif self.upgradePopup then
+        popupParticles:update(dt)
+        self.timeSinceUpgradePopupOpened = self.timeSinceUpgradePopupOpened + dt
     else
         self.timeTakenThisLevel = self.timeTakenThisLevel + dt
     end
@@ -759,6 +811,13 @@ function harvest:keyreleased(k)
         end
     end
 end
+
+
+
+function harvest:leave(k)
+    closeUpgradePopup(self)
+end
+
 
 
 

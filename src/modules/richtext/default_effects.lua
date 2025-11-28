@@ -61,6 +61,22 @@ return function(text)
     text.defineEffect("color", colorEffect)
     text.defineEffect("c", colorEffect)
 
+    local rainbow = {
+        {0.90, 0.10, 0.10, 1.0},  -- Red
+        {0.95, 0.55, 0.15, 1.0},  -- Orange
+        {0.95, 0.95, 0.20, 1.0},  -- Yellow
+        {0.10, 0.90, 0.10, 1.0},  -- Green
+        {0.10, 0.60, 0.90, 1.0},  -- Light Blue
+        {0.15, 0.15, 0.90, 1.0},  -- Blue
+        {0.55, 0.10, 0.90, 1.0},  -- Violet
+    }
+    local function rainbowEffect(args, char)
+        local i = math.floor(char.start/2 - love.timer.getTime())
+        local index = (i % (#rainbow))+1
+        char:setColor(rainbow[index])
+    end
+    text.defineEffect("rainbow", rainbowEffect)
+
     text.defineEffect("i", function(args, char)
         local skewness = args.skew or 1
         char:setShear(-skewness / 4, 0)
