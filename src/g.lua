@@ -534,6 +534,7 @@ local g_UpgradeDefinition = {}
 ---@field maxHealth number
 ---@field resources g.Bundle
 ---@field image string?
+---@field maxLevel integer?
 ---@field growths {stalk:string,growth:string}?
 ---@field description string?
 ---@field particles string?
@@ -1030,27 +1031,6 @@ do
     end
 end
 
----@class _UpgradeDefinitionWithoutKind: g.UpgradeDefinition
----@field public kind nil
-
----@class _TokenUpgradeDefinition
----@field public token g.TokenDefinition
----@field public upgrade _UpgradeDefinitionWithoutKind
-
-
----@param id string
----@param name string
----@param def _TokenUpgradeDefinition
-function g.defineTokenUpgrade(id, name, def)
-    def.upgrade.populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
-        tokens:add(id, level)
-    end
-
-    def.upgrade.kind = "TOKEN"
-    g.defineUpgrade(id, name, def.upgrade)
-    g.defineToken(id, name, def.token)
-end
-
 
 
 
@@ -1237,7 +1217,17 @@ function g.defineToken(tokType, name, tabl)
     tokenMts[tokType] = mt
     reverseTokMt[mt] = true
     g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
+
+    g.defineUpgrade(tokType, name, {
+        populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
+            tokens:add(tokType, level)
+        end,
+        maxLevel = tabl.maxLevel or nil,
+        kind = "TOKEN"
+    })
 end
+
+
 
 ---@param obj any
 function g.isToken(obj)

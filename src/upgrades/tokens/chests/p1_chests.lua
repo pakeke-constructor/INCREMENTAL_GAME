@@ -1,40 +1,24 @@
 
 
-g.defineTokenUpgrade("clay_pot", "Clay Pot", {
-    token = {
-        maxHealth = 3,
-        resources = {money = 20},
-    },
-    upgrade = {
-    }
+g.defineToken("clay_pot", "Clay Pot", {
+    maxHealth = 3,
+    resources = {money = 20},
 })
 
 
-g.defineTokenUpgrade("chest_small", "Small Chest", {
-    token = {
-        maxHealth = 6,
-        resources = {money = 50},
-    },
-    upgrade = {
-    }
+g.defineToken("chest_small", "Small Chest", {
+    maxHealth = 6,
+    resources = {money = 50},
 })
 
 
-g.defineTokenUpgrade("chest_big", "Big Chest", {
-    token = {
-        maxHealth = 11,
-        resources = {money = 100},
-    },
-    upgrade = {
-    }
+g.defineToken("chest_big", "Big Chest", {
+    maxHealth = 11,
+    resources = {money = 100},
 })
 
 
-g.defineTokenUpgrade("chest_golden", "Golden Chest", {
-    token = {
-        maxHealth = 20,
-        resources = {money = 100},
-    },
-    upgrade = {
-    }
+g.defineToken("chest_golden", "Golden Chest", {
+    maxHealth = 20,
+    resources = {money = 100},
 })

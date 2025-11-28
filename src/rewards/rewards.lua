@@ -47,9 +47,6 @@ local rewards = {}
 ---
 ---@field upgradeId string? The id of a permanent reward
 ---
----@field token g.TokenInfo? only for token-rewards
----@field tokenCount integer? only for token-rewards
----
 ---@field resources g.Bundle? only for resource-rewards
 ---
 ---@field effect g.EffectInfo? only for effect-rewards
@@ -68,7 +65,6 @@ local function assertRewardIsValid(rew)
     local ct = 0
     if rew.resources then ct = ct + 1 end
     if rew.effect then ct = ct + 1 end
-    if rew.token then ct = ct + 1 end
     if rew.upgradeId then ct = ct + 1 end
     if rew.stackedToken then ct = ct + 1 end
     assert(ct == 1, "Invalid reward: Rewards need to be exactly ONE type")

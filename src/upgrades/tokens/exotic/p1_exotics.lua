@@ -13,94 +13,76 @@ Blue mushroom: When destroyed, spawns a lightning-bolt!
 ]]
 
 -- TODO: Balancing
-g.defineTokenUpgrade("mushroom_blue", "Blue Mushroom", {
-    token = {
-        category = "mushroom",
-        maxHealth = 7,
-        resources = {},
-        tokenDestroyed = function(tok)
-            worldutil.spawnLightning(tok.x, tok.y, 10)
-        end
-    },
-    upgrade = {
-        description = "Spawns lightning when destroyed!",
-    }
+g.defineToken("mushroom_blue", "Blue Mushroom", {
+    category = "mushroom",
+    maxHealth = 7,
+    resources = {},
+    description = "Spawns lightning when destroyed!",
+    tokenDestroyed = function(tok)
+        worldutil.spawnLightning(tok.x, tok.y, 10)
+    end
 })
 
 
 
 
-g.defineTokenUpgrade("mushroom_red", "Red Mushroom", {
-    token = {
-        category = "mushroom",
-        maxHealth = 4,
-        resources = {},
-        tokenDestroyed = function(tok)
-            worldutil.explosion(tok.x, tok.y, 10)
-        end
-    },
-    upgrade = {
-        description = "Explodes when destroyed!",
-    }
+g.defineToken("mushroom_red", "Red Mushroom", {
+    category = "mushroom",
+    description = "Explodes when destroyed!",
+    maxHealth = 4,
+    resources = {},
+    tokenDestroyed = function(tok)
+        worldutil.explosion(tok.x, tok.y, 10)
+    end
 })
 
 
 
 
-g.defineTokenUpgrade("mushroom_green", "Green Mushroom", {
-    token = {
-        category = "mushroom",
-        maxHealth = 7,
-        resources = {},
-        tokenDestroyed = function()
-            for _=1, 6 do
-                local x,y = g.getRandomPositionForToken()
-                if x and y then
-                    local t = nil
-                    local r = love.math.random()
-                    if r < 0.4 then
-                        t = "small_grass"
-                    elseif r < 0.7 then
-                        t = "grass_blades"
-                    else
-                        t = "thick_grass"
-                    end
-                    g.spawnToken(t, x,y)
+g.defineToken("mushroom_green", "Green Mushroom", {
+    category = "mushroom",
+    maxHealth = 7,
+    resources = {},
+    description = "When destroyed, spawns 6 grass crops",
+    tokenDestroyed = function()
+        for _=1, 6 do
+            local x,y = g.getRandomPositionForToken()
+            if x and y then
+                local t = nil
+                local r = love.math.random()
+                if r < 0.4 then
+                    t = "small_grass"
+                elseif r < 0.7 then
+                    t = "grass_blades"
+                else
+                    t = "thick_grass"
                 end
+                g.spawnToken(t, x,y)
             end
         end
-    },
-    upgrade = {
-        description = "When destroyed, spawns 6 grass crops",
-    }
+    end
 })
 
 
 
 -- TODO: Balancing
-g.defineTokenUpgrade("plant_pot", "Plant Pot", {
-    token = {
-        maxHealth = 10,
-        resources = {},
-        ---@param tok g.Token
-        tokenDestroyed = function(tok)
-            g.playWorldSound("pot_smash", nil, 0.8, 0.2)
-            g.iterateTokensInArea(tok.x, tok.y, 36, function(t)
-                if t.category == "grass" then
-                    g.damageToken(t, 8)
-                end
-            end)
-        end
-    },
-    upgrade = {
-        description = "When destroyed, damages surrounding grass crops",
-    }
+g.defineToken("plant_pot", "Plant Pot", {
+    maxHealth = 10,
+    resources = {},
+    description = "When destroyed, damages surrounding grass crops",
+    ---@param tok g.Token
+    tokenDestroyed = function(tok)
+        g.playWorldSound("pot_smash", nil, 0.8, 0.2)
+        g.iterateTokensInArea(tok.x, tok.y, 36, function(t)
+            if t.category == "grass" then
+                g.damageToken(t, 8)
+            end
+        end)
+    end
 })
 
 
 
--- defineTokenUpgrade is not used because we don't want it in token pool.
--- but probably this _may_ be moved anyway.
 g.defineToken("bomb", "Bomb", {
     maxHealth = 10,
     resources = {},

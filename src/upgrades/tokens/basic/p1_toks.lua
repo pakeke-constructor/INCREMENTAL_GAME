@@ -1,123 +1,85 @@
 
 
-g.defineTokenUpgrade("grass_blades", "Grass Blades", {
-    token = {
-        particles = "grass",
-        category = "grass",
-        resources = {money = 1},
-        maxHealth = 3
-    },
-    upgrade = {
-        startingUpgrade=true,
-    }
+g.defineToken("grass_blades", "Grass Blades", {
+    particles = "grass",
+    category = "grass",
+    resources = {money = 1},
+    maxHealth = 3
 })
 
 
-g.defineTokenUpgrade("small_grass", "Small Grass", {
-    token = {
-        particles = "grass",
-        category = "grass",
-        resources = {money = 3},
-        maxHealth = 6
-    },
-    upgrade = {}
+g.defineToken("small_grass", "Small Grass", {
+    particles = "grass",
+    category = "grass",
+    resources = {money = 3},
+    maxHealth = 6
 })
 
 
-g.defineTokenUpgrade("thick_grass", "Thick Grass", {
-    token = {
-        particles = "grass",
-        category = "grass",
-        resources = {money = 6},
-        maxHealth = 8
-    },
-    upgrade = {}
+g.defineToken("thick_grass", "Thick Grass", {
+    particles = "grass",
+    category = "grass",
+    resources = {money = 6},
+    maxHealth = 8
 })
 
 
 
-g.defineTokenUpgrade("bamboo", "Bamboo", {
-    token = {
-        category = "wood",
-        resources = {money = 15},
-        maxHealth = 12
-    },
-    upgrade = {}
+g.defineToken("bamboo", "Bamboo", {
+    category = "wood",
+    resources = {money = 15},
+    maxHealth = 12
 })
 
 
 
 
 
-g.defineTokenUpgrade("stick", "Stick", {
-    token = {
-        category = "wood",
-        resources = {
-        },
-
-        maxHealth = 5
+g.defineToken("stick", "Stick", {
+    category = "wood",
+    resources = {
     },
 
-    upgrade = {}
+    maxHealth = 5
 })
 
 
-g.defineTokenUpgrade("basic_log", "Basic Log", {
-    token = {
-        category = "wood",
-        resources = {
-            money = 10,
-        },
-
-        maxHealth = 10
+g.defineToken("basic_log", "Basic Log", {
+    category = "wood",
+    resources = {
+        money = 10,
     },
 
-    upgrade = {
-    }
+    maxHealth = 10
 })
 
 
 
 do
 
-g.defineTokenUpgrade("happy_kitten", "Happy Kitten", {
-    token = {
-        category = "cat",
-        resources = {
-            money = 15,
-        },
-        maxHealth = 8
+g.defineToken("happy_kitten", "Happy Kitten", {
+    category = "cat",
+    resources = {
+        money = 15,
     },
-
-    upgrade = {
-    }
+    maxHealth = 8
 })
 
 
-g.defineTokenUpgrade("happy_cat_token", "Happy Cat", {
-    token = {
-        category = "cat",
-        resources = {
-            money = 30,
-        },
-        maxHealth = 10
+g.defineToken("happy_cat_token", "Happy Cat", {
+    category = "cat",
+    resources = {
+        money = 30,
     },
-
-    upgrade = {
-    }
+    maxHealth = 10
 })
 
-g.defineTokenUpgrade("business_cat", "Business Cat", {
-    token = {
-        category = "cat",
-        resources = {
-            money = 300,
-        },
-        maxHealth = 15
+g.defineToken("business_cat", "Business Cat", {
+    category = "cat",
+    resources = {
+        money = 300,
     },
-
-    upgrade = {
-    }
+    maxHealth = 15
 })
 
 end
