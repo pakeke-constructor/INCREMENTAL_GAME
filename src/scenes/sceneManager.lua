@@ -39,8 +39,8 @@ end
 
 function sceneManager.gotoScene(sceneName)
     assert(nameToScene[sceneName])
-    local oldScene = nameToScene[sceneName]
-    if oldScene.leave then
+    local oldScene = nameToScene[currentSceneName]
+    if oldScene and oldScene.leave then
         oldScene:leave()
     end
     lastSceneName = currentSceneName

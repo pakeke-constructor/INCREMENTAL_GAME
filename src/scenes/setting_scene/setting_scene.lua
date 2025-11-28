@@ -1,5 +1,6 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local titleBackground = require("src.titleBackground")
+local sfx = require("src.sound.sfx")
 
 
 local SLIDER_BACKGROUND = objects.Color.BLACK
@@ -47,9 +48,34 @@ end
 ---@class SettingScene: FreeCameraScene
 local setting = FreeCameraScene()
 
+-- Keep this in-sync with the setting.init
+local settingData = {
+    sfxVolume = 100,
+    bgmVolume = 50,
+}
+
 function setting:init()
-    self.effectVolume = 50
-    self.bgmVolume = 50
+    if love.filesystem.getInfo("setting.json", "file") then
+        local success, sdata = pcall(function()
+            local settingDataJSON = love.filesystem.read("setting.json")
+            local settingDataTable = json.decode(settingDataJSON)
+            return {
+                sfxVolume = assert(tonumber(settingDataTable.sfxVolume)),
+                bgmVolume = assert(tonumber(settingDataTable.bgmVolume)),
+            }
+        end)
+        if success then
+            settingData = sdata
+        end
+    end
+
+    sfx.setVolume(settingData.sfxVolume)
+    -- TODO: bgm.setVolume here
+end
+
+function setting:leave()
+    local settingDataJSON = json.encode(settingData)
+    assert(love.filesystem.write("setting.json", settingDataJSON))
 end
 
 ---@param dt number
@@ -139,9 +165,10 @@ function setting:draw()
     )
 
     -- Draw effect volume
-    self.effectVolume = drawVolume(self.effectVolume, "Effect Volume", effectVolumeLabelR, effectVolumeSliderBaseR)
+    settingData.sfxVolume = drawVolume(settingData.sfxVolume, "Effect Volume", effectVolumeLabelR, effectVolumeSliderBaseR)
+    sfx.setVolume(settingData.sfxVolume)
     -- Draw music volume
-    self.bgmVolume = drawVolume(self.bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
+    settingData.bgmVolume = drawVolume(settingData.bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
 
     -- Draw "Done" Button
     local doneButtonR = Kirigami(0, 0, 144, 40)
