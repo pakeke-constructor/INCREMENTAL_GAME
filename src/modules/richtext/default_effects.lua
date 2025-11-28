@@ -62,13 +62,13 @@ return function(text)
     text.defineEffect("c", colorEffect)
 
     local rainbow = {
-        {0.90, 0.10, 0.10, 1.0},  -- Red
-        {0.95, 0.55, 0.15, 1.0},  -- Orange
-        {0.95, 0.95, 0.20, 1.0},  -- Yellow
-        {0.10, 0.90, 0.10, 1.0},  -- Green
-        {0.10, 0.60, 0.90, 1.0},  -- Light Blue
-        {0.15, 0.15, 0.90, 1.0},  -- Blue
-        {0.55, 0.10, 0.90, 1.0},  -- Violet
+        {0.85, 0.15, 0.15, 1.0},  -- Red
+        {0.90, 0.55, 0.20, 1.0},  -- Orange
+        {0.90, 0.90, 0.30, 1.0},  -- Yellow
+        {0.20, 0.80, 0.20, 1.0},  -- Green
+        {0.20, 0.60, 0.80, 1.0},  -- Light Blue
+        {0.25, 0.25, 0.80, 1.0},  -- Blue
+        {0.60, 0.20, 0.80, 1.0},  -- Violet
     }
     local function rainbowEffect(args, char)
         local i = math.floor(char.start/2 - love.timer.getTime())
