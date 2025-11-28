@@ -605,7 +605,7 @@ end
 function Tree.deserialize(data)
     local self = Tree()
     self.upgrades = keysToNumber(data.upgrades)
-    self.unboundUpgrades = data.unboundUpgrades
+    self.unboundUpgrades = data.unboundUpgrades or {}
     self.connections = data.connections
     self:finalize()
     return self

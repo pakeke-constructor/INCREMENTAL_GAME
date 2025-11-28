@@ -174,7 +174,6 @@ function g.ask(q, arg1, ...)
 
     local tree = g.getUpgTree()
     val = reducer(val, tree:askUpgrades(q, arg1, ...))
-    val = reducer(val, rewards.askRewards(q, arg1, ...))
     return reducer(val, askEffects(q, arg1, ...))
 end
 
