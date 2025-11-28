@@ -14,6 +14,8 @@ local rewards = require("src.rewards.rewards")
 
 local sfx = require("src.sound.sfx")
 
+local simulation = require("src.world.simulation")
+
 ---@class g
 local g = {}
 
@@ -62,6 +64,8 @@ end
 function g.getPrestige()
     return currentSession.prestige
 end
+
+g.isBeingSimulated = simulation.isSimulating
 
 
 

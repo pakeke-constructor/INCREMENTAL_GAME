@@ -8,7 +8,6 @@ local cloudService = require(".cloud_service")
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
-local simulation = require("src.world.simulation")
 
 ---@class HarvestScene: FreeCameraScene
 local harvest = FreeCameraScene()
@@ -590,7 +589,7 @@ function harvest:draw()
 
     if self.xpPopup then
         world:_enableMouseHarvester(-500,-500)
-    elseif (not simulation.isSimulating()) then
+    elseif not g.isBeingSimulated() then
         local cx,cy = self.camera:toWorld(love.mouse.getPosition())
         world:_enableMouseHarvester(cx,cy)
     end

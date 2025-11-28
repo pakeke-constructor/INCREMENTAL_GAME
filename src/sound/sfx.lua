@@ -1,4 +1,3 @@
-local simulation = require("src.world.simulation")
 
 
 local MAX_SOURCE_POOL = 4
@@ -66,7 +65,7 @@ end
 ---@param pitchVar number?
 ---@param volumeVar number?
 function sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
-    if simulation.isSimulating() then
+    if g.isBeingSimulated() then
         return false
     end
 
