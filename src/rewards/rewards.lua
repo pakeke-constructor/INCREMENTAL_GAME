@@ -42,9 +42,10 @@ HOW SHOULD WE DO THE UI?
 local rewards = {}
 
 
----@alias g.Reward.Type "TOKEN"|"RESOURCE"|"STAT_BUFF"|""
 
 ---@class g.Reward
+---
+---@field upgradeId string? The id of a permanent reward
 ---
 ---@field token g.TokenInfo? only for token-rewards
 ---
@@ -55,8 +56,6 @@ local rewards = {}
 ---
 ---@field stackedToken g.TokenInfo? (also effect-rewards)
 ---@field stackedTokenCount number?
----
----@field description string?
 ---
 ---@field icon string
 local Reward = {}
@@ -69,7 +68,7 @@ local function assertRewardIsValid(rew)
     if rew.resources then ct = ct + 1 end
     if rew.effect then ct = ct + 1 end
     if rew.token then ct = ct + 1 end
-    if rew.description then ct = ct + 1 end
+    if rew.upgradeId then ct = ct + 1 end
     if rew.stackedToken then ct = ct + 1 end
     assert(ct == 1, "Invalid reward: Rewards need to be exactly ONE type")
 

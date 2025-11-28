@@ -29,12 +29,14 @@ FEATURES WE NEED:
 ---@field x integer
 ---@field y integer
 ---@field isRoot boolean?
+---@field isUnbound boolean? "unbound" upgrades exist without a position; (ie relics and stuff)
 local Upgrade = {}
 
 
 ---@class g.Tree: objects.Class
 ---@field upgrades table<integer, g.Tree.Upgrade>
 ---@field connections [integer, integer][]
+---@field unboundUpgrades g.Tree.Upgrade[]
 ---@field _connectionMap table<integer, table<integer, true>>
 ---@field _distances table<integer, integer>
 local Tree = objects.Class("g:Tree")
@@ -51,6 +53,8 @@ function Tree:init()
         [(x,y)] -> Upgrade{x,y,id,level,basePrice}
     ]]}
     self.connections = {} -- List< (x,y), (x,y) >
+
+    self.unboundUpgrades = {} -- g.Tree.Upgrade[]
 
     self._connectionMap = {--[[
         -- for efficient indexing:
@@ -413,13 +417,15 @@ end
 
 ---@param x integer
 ---@param y integer
----@param id string
+---@param uinfo g.UpgradeInfo
 ---@return g.Tree.Upgrade
-function Tree:put(x,y, id)
+function Tree:put(x,y, uinfo, isRoot)
     -- used when generating upgrade-tree
     local i = pair(x,y)
+    local id = uinfo.type
     helper.assert(not self.upgrades[i], "Upgrade already exists here!")
     assert(g.getUpgradeInfo(id), "Invalid upgrade id: " .. id)
+
     local upg = {
         id = id,
         x=x,
@@ -433,6 +439,27 @@ function Tree:put(x,y, id)
     self._distances = calculateDistancesFromRoot(self)
     return self.upgrades[i]
 end
+
+
+
+
+---@param uinfo g.UpgradeInfo
+---@param level integer?
+function Tree:addUnboundUpgrade(uinfo, level)
+    local upg = {
+        id = uinfo.type,
+        x=0,
+        y=0,
+        basePrice={},
+        level=level or 1,
+        isUnbound=true
+    }
+
+    table.insert(self.unboundUpgrades, upg)
+    finalizeBusCacheForUpgrade(self, upg)
+end
+
+
 
 
 ---@param self g.Tree
@@ -479,10 +506,14 @@ function Tree:distanceFromRoot(upg)
 end
 
 
+--- gets ALL upgrades, (even headless ones)
 ---@return g.Tree.Upgrade[]
 function Tree:getUpgrades()
     local buf = {}
     for _,upg in pairs(self.upgrades) do
+        table.insert(buf,upg)
+    end
+    for _,upg in ipairs(self.unboundUpgrades) do
         table.insert(buf,upg)
     end
     return buf
@@ -570,10 +601,11 @@ local function keysToString(t)
 end
 
 
----@param data {upgrades:g.Tree.Upgrade[], connections:[integer,integer][]}
+---@param data {upgrades:g.Tree.Upgrade[], connections:[integer,integer][], unboundUpgrades:g.Tree.Upgrade[]}
 function Tree.deserialize(data)
     local self = Tree()
     self.upgrades = keysToNumber(data.upgrades)
+    self.unboundUpgrades = data.unboundUpgrades
     self.connections = data.connections
     self:finalize()
     return self
@@ -583,7 +615,8 @@ end
 function Tree:serialize()
     return {
         upgrades = keysToString(self.upgrades),
-        connections = self.connections
+        connections = self.connections,
+        unboundUpgrades = self.unboundUpgrades
     }
 end
 

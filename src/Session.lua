@@ -52,10 +52,6 @@ function Session:init()
         end
     end
 
-    self.prestigeLevels = {--[[
-        [prestigeId] -> prestigeLevel
-    ]]} --[[@as table<integer,integer>]]
-
     self.mainWorld = World()
 
     -- metrics are running-totals of stuff.
@@ -153,12 +149,6 @@ function Session.deserialize(data)
         sess.resources[resId] = tonumber(data.resources[resId]) or 0
     end
 
-    -- Load prestige levels
-    -- Stored prestige ID is 1-based but we want 0-based
-    for pid, v in ipairs(data.prestigeLevels) do
-        sess.prestigeLevels[pid - 1] = assert(tonumber(v))
-    end
-
     -- Load accessory unlocks
     if data.avatar then
         local av = data.avatar
@@ -193,12 +183,6 @@ function Session.deserialize(data)
 end
 
 function Session:serialize()
-    -- Convert prestige level indices to 1-based
-    local plevels = {}
-    for i = 0, #self.prestigeLevels do
-        plevels[i + 1] = self.prestigeLevels[i]
-    end
-
     -- Save stats
     local stats = {}
     for k in pairs(g.VALID_STATS) do
@@ -210,7 +194,6 @@ function Session:serialize()
         playtime = self.playtime,
         idletime = self.idletime,
         resources = self.resources,
-        prestigeLevels = plevels,
         metrics = self.metrics,
         stats = stats,
         avatar = {
