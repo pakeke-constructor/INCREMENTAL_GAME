@@ -15,7 +15,7 @@ local map = FreeCameraScene()
 -- fade in is half the duration and fade out is half of it too.
 local TRANSITION_DURATION = 1
 -- Target transition scale.
-local TRANSITION_SCALE = 4
+local TRANSITION_SCALE = 5
 
 
 ---@class (exact) _MapBuilding
@@ -284,7 +284,7 @@ local function clampCameraToMap(camera, mapX, mapY, mapW, mapH, ttgt)
     local transitionScale = 1
     if ttgt then
         local t = 1 - math.abs(1 - helper.clamp(ttgt.time / ttgt.duration, 0, 1) * 2)
-        transitionT = helper.EASINGS.sineOut(t)
+        transitionT = t--helper.EASINGS.sineOut(t)
         posX = helper.lerp(posX, ttgt.x, transitionT)
         posY = helper.lerp(posY, ttgt.y, transitionT)
         transitionScale = helper.lerp(1, TRANSITION_SCALE, transitionT)
