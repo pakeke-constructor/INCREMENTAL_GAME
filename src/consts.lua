@@ -10,7 +10,9 @@ local consts = {
 
     TARGET_TIME_PER_LEVEL_UP = 25,
 
-    ATLAS_SIZE = 1024,
+    ATLAS_SIZE = 2048,
+
+    MAX_PLAYING_SOURCES = 14,
 
     UPGRADE_IMAGE_SIZE = 28,
     UPGRADE_GRID_SPACING = 8, -- spaced 8 units apart

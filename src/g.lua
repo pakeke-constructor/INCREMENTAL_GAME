@@ -1688,6 +1688,9 @@ do
 ---@param pitchVar number? (pitch variance, default 0)
 ---@param volumeVar number? (volume variance, default 0)
 function g.playWorldSound(soundname, pitch, volume, pitchVar, volumeVar)
+    if love.audio.getActiveSourceCount() > consts.MAX_PLAYING_SOURCES then
+        return false
+    end
     if select(2, sceneManager.getCurrentScene()) == "harvest_scene" then
         return sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
     end
