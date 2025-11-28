@@ -106,7 +106,7 @@ end
 function worldutil.spawnLightning(x,y, damage, radius)
     g.spawnEntity("lightning_animation", x,y)
     g.playWorldSound("lightning_foreground",0.9,0.7,0.3,0)
-    radius = radius or 40
+    radius = radius or 8
     g.iterateTokensInArea(x,y, radius, function(tok)
         g.damageToken(tok,damage)
     end)
