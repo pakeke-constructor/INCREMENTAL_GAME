@@ -85,11 +85,10 @@ end
 
 
 
-local sceneManager
+local sceneManager = require("src.scenes.sceneManager")
 
 ---@param scName string
 function g.gotoScene(scName)
-    sceneManager = sceneManager or require("src.scenes.sceneManager")
     sceneManager.gotoScene(scName)
 end
 
@@ -131,7 +130,6 @@ function g.call(ev, arg1, ...)
     tree:callUpgrades(ev, arg1, ...)
     callEffects(ev, arg1, ...)
 
-    sceneManager = sceneManager or require("src.scenes.sceneManager")
     local sc = sceneManager.getCurrentScene()
     if sc and sc[ev] then
         sc[ev](sc, arg1, ...)
@@ -1686,7 +1684,10 @@ do
 ---@param pitchVar number? (pitch variance, default 0)
 ---@param volumeVar number? (volume variance, default 0)
 function g.playWorldSound(soundname, pitch, volume, pitchVar, volumeVar)
-    return sfx.play("harvest_scene", soundname, pitch, volume, pitchVar, volumeVar)
+    if select(2, sceneManager.getCurrentScene()) == "harvest_scene" then
+        return sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
+    end
+    return false
 end
 
 
@@ -1696,7 +1697,7 @@ end
 ---@param pitchVar number? (pitch variance, default 0)
 ---@param volumeVar number? (volume variance, default 0)
 function g.playUISound(soundname, pitch, volume, pitchVar, volumeVar)
-    return sfx.play(nil, soundname, pitch, volume, pitchVar, volumeVar)
+    return sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
 end
 
 

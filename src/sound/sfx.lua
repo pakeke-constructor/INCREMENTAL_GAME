@@ -1,4 +1,3 @@
-local sceneManager = require("src.scenes.sceneManager")
 local simulation = require("src.world.simulation")
 
 
@@ -61,18 +60,13 @@ local function getSourceFromPool(name)
     return nil
 end
 
----@param scene string|nil Only play if scene is equal to this (or `nil` to always play)
 ---@param soundname string
 ---@param pitch number?
 ---@param volume number?
 ---@param pitchVar number?
 ---@param volumeVar number?
-function sfx.play(scene, soundname, pitch, volume, pitchVar, volumeVar)
+function sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
     if simulation.isSimulating() then
-        return false
-    end
-
-    if scene and select(2, sceneManager.getCurrentScene()) ~= scene then
         return false
     end
 
