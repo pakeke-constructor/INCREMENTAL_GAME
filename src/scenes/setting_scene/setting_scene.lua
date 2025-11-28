@@ -152,14 +152,24 @@ function setting:draw()
         :attachToBottomOf(musicVolumeLabelR)
         :centerX(musicVolumeLabelR)
         :moveUnit(0, 8)
-    -- TODO: Language (I don't know how to create dropdown with iml)
+    -- Language. Let's just make it a button that shows fullscreen panel later.
+    local languageLabelR = Kirigami(0, 0, 240, font:getHeight())
+        :centerX(titleTextR)
+        :attachToBottomOf(musicVolumeSliderBaseR)
+        :moveUnit(0, 8)
+    local languageButtonR = Kirigami(0, 0, 144, 32)
+        :attachToBottomOf(languageLabelR)
+        :centerX(languageLabelR)
+        :moveUnit(0, 8)
 
     -- Centerize layout in place
     makeInCenterInplace(contentR,
         effectVolumeLabelR,
         effectVolumeSliderBaseR,
         musicVolumeLabelR,
-        musicVolumeSliderBaseR
+        musicVolumeSliderBaseR,
+        languageLabelR,
+        languageButtonR
     )
 
     -- Draw effect volume
@@ -167,6 +177,25 @@ function setting:draw()
     sfx.setVolume(settingData.sfxVolume)
     -- Draw music volume
     settingData.bgmVolume = drawVolume(settingData.bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
+    -- Draw language button
+    love.graphics.setColor(1, 1, 1)
+    -- TODO: localize
+    richtext.printRich(
+        "{o}Language{/o}",
+        g.getSmallFont(32),
+        languageLabelR.x,
+        languageLabelR.y,
+        languageLabelR.w,
+        "center"
+    )
+    if ui.Button(
+        helper.wrapRichtextColor(objects.Color.BLACK, love.system.getPreferredLocales()[1]),
+        objects.Color.WHITE,
+        objects.Color.GRAY,
+        languageButtonR:get()
+    ) then
+        print("TODO language panel")
+    end
 
     -- Draw "Done" Button
     local doneButtonR = Kirigami(0, 0, 144, 40)
