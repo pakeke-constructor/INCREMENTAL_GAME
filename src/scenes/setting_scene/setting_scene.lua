@@ -1,4 +1,6 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+local sceneManager = require("src.scenes.sceneManager")
+
 local titleBackground = require("src.titleBackground")
 local sfx = require("src.sound.sfx")
 
@@ -116,10 +118,6 @@ local function drawVolume(value, label, labelR, sliderBaseR)
 end
 
 function setting:draw()
-    -- FIXME: This sucks. This should NEVER be done. Either fix scene manager or do something else
-    -- This was done because cyclic require ugh.
-    local sceneManager = require("src.scenes.sceneManager")
-
     ui.startUI()
 
     titleBackground.draw()
