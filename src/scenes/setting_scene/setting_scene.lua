@@ -73,6 +73,15 @@ function setting:init()
 
     sfx.setVolume(settingData.sfxVolume)
     -- TODO: bgm.setVolume here
+
+    -- TODO: Wire this up to settings once we have proper localization
+    self.languages = love.system.getPreferredLocales()
+    if #self.languages == 0 then
+        -- Ensure there's at least one option
+        self.languages[#self.languages+1] = "en_US"
+    end
+    self.languageIndex = 1
+    self.showLanguagePopup = false
 end
 
 function setting:leave()
@@ -189,12 +198,12 @@ function setting:draw()
         "center"
     )
     if ui.Button(
-        helper.wrapRichtextColor(objects.Color.BLACK, love.system.getPreferredLocales()[1]),
+        helper.wrapRichtextColor(objects.Color.BLACK, self.languages[self.languageIndex]),
         objects.Color.WHITE,
         objects.Color.GRAY,
         languageButtonR:get()
     ) then
-        print("TODO language panel")
+        self.showLanguagePopup = true
     end
 
     -- Draw "Done" Button
@@ -211,7 +220,55 @@ function setting:draw()
         sceneManager.gotoLastScene()
     end
 
+    if self.showLanguagePopup then
+        self:_drawLanguageSelector()
+    end
+
     ui.endUI()
+end
+
+function setting:_drawLanguageSelector()
+    local SELECTION_BUTTON_SIZE = 40
+    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local panelR = r
+        :padRatio(0.1)
+        :shrinkToMultipleOf(SELECTION_BUTTON_SIZE)
+        :center(r)
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("fill", panelR:get())
+    iml.isHovered(r:get()) -- Dummy panel to prevent input propagation to bottom
+
+    local grid = panelR:grid(1, math.floor(panelR.h / SELECTION_BUTTON_SIZE))
+
+    -- TODO: Slider
+    local font = g.getSmallFont(32)
+    for i, lang in ipairs(self.languages) do
+        local buttonR = grid[i]:padUnit(4)
+        local textR = buttonR
+            :set(nil, nil, nil, font:getHeight())
+            :centerY(buttonR)
+
+        -- Draw button
+        if iml.wasJustClicked(buttonR:get()) then
+            self.languageIndex = i
+            self.showLanguagePopup = false
+            break
+        elseif iml.isHovered(buttonR:get()) then
+            love.graphics.setColor(0, 0, 0, 0.2)
+            love.graphics.rectangle("fill", buttonR:get())
+        end
+
+        -- Add outline for current language selection
+        if i == self.languageIndex then
+            love.graphics.setColor(0, 0, 0)
+            love.graphics.rectangle("line", buttonR:get())
+        end
+
+        -- Button text
+            love.graphics.setColor(1, 1, 1)
+        richtext.printRich("{o}"..lang.."{/o}", font, textR.x, textR.y, textR.w, "center")
+    end
 end
 
 return setting
