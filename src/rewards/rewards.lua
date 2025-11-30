@@ -75,6 +75,7 @@ local function generateResourceReward()
         end
     end
     local res = helper.randomChoice(buf)
+
 end
 
 

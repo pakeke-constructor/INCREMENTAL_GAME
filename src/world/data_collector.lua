@@ -1,11 +1,11 @@
 
----@class g.DataCollection: objects.Class
-local DataCollection = objects.Class("g:DataCollection")
+---@class g.DataCollector: objects.Class
+local DataCollector = objects.Class("g:DataCollector")
 
 local table_new = require("table.new")
 
 ---@param count integer
-function DataCollection:init(count, startValue)
+function DataCollector:init(count, startValue)
     assert(count > 1)
     self.pointer = 0
     ---@type number[]
@@ -18,23 +18,23 @@ end
 if false then
     ---@param count integer
     ---@param startValue number
-    ---@return g.DataCollection
+    ---@return g.DataCollector
     ---@diagnostic disable-next-line: cast-local-type, missing-return
-    function DataCollection(count, startValue) end
+    function DataCollector(count, startValue) end
 end
 
 ---@param value number
-function DataCollection:setAndIncrementPointer(value)
+function DataCollector:setAndIncrementPointer(value)
     self.buffer[self.pointer + 1] = value
     self.pointer = (self.pointer + 1) % #self.buffer
 end
 
-function DataCollection:getPrevious()
+function DataCollector:getPrevious()
     return self.buffer[(self.pointer - 1) % #self.buffer + 1]
 end
 
 ---@return number
-function DataCollection:sumdiff()
+function DataCollector:sumdiff()
     local result = 0
 
     for i = 1, #self.buffer - 1 do
@@ -46,8 +46,8 @@ function DataCollection:sumdiff()
     return result
 end
 
-function DataCollection:avgdiff()
+function DataCollector:avgdiff()
     return self:sumdiff() / (#self.buffer - 1)
 end
 
-return DataCollection
+return DataCollector
