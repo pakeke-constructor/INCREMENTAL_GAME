@@ -64,7 +64,7 @@ end
 
 
 ---Randomly picks an item from the list.
----If you don't need weighted pick, consider using `helper.choice` instead.
+---If you don't need weighted pick, consider using `helper.randomChoice` instead.
 ---@generic T
 ---@param itemsAndWeights {[1]:T,[2]:number}[] List of items and its weights.
 ---@param rng love.RandomGenerator? Random number generator to use.
@@ -99,7 +99,7 @@ end
 ---@param tab T[] Table to pick elements of.
 ---@param rng (fun(max:integer):integer)? Function that returns random integer from 1 to `max` both inclusive.
 ---@return T
-function helper.choice(tab, rng)
+function helper.randomChoice(tab, rng)
     rng = rng or love.math.random
     return tab[rng(#tab)]
 end

@@ -451,11 +451,14 @@ local function drawUpgradePopup(self)
     local col1 = objects.Color("#" .. "FF9F14F6")
     local col2 = objects.Color("#" .. "FF3B12A4")
 
-    local function button(rrr, txt)
+    local red1 = objects.Color("#" .. "FFE61414")
+    local red2 = objects.Color("#" .. "FF910B54")
+
+    local function button(rrr, txt, c1,c2)
         if iml.isHovered(rrr:get()) then
-            helper.gradientRect("horizontal", col1,col1, rrr:padUnit(4):get())
+            helper.gradientRect("horizontal", c1,c1, rrr:padUnit(4):get())
         else
-            helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
+            helper.gradientRect("horizontal", c1,c2, rrr:padUnit(4):get())
         end
         ui.drawPanel(rrr:get())
         richtext.printRichContained(txt, g.getSmallFont(16), rrr:padRatio(0.4,0.2):get())
@@ -470,7 +473,7 @@ local function drawUpgradePopup(self)
     )
 
     -- draw GOTO UPGRADES
-    if button(gotoUpgrades:padRatio(0.1), GOTO_UPGRADES) then
+    if button(gotoUpgrades:padRatio(0.1), GOTO_UPGRADES, col1,col2) then
         g.gotoScene("upgrade_scene")
     end
 
@@ -487,7 +490,7 @@ local function drawUpgradePopup(self)
     end
 
     -- draw GOTO UPGRADES
-    if button(stayHarvest:padRatio(0.6,0.5,0.6,0.5), CLOSE) then
+    if button(stayHarvest:padRatio(0.6,0.5,0.6,0.5), CLOSE, red1,red2) then
         closeUpgradePopup(self)
     end
 end
@@ -824,12 +827,12 @@ function harvest:keyreleased(k)
         if k=="1" then
             worldutil.spawnLightning(100,100,10)
         elseif k=="2" then
-            local tok = helper.choice(g.TOKEN_LIST)
+            local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do
                 g.stackToken(tok, 100, 100)
             end
         elseif k=="3" then
-            local eff = helper.choice(g.EFFECT_LIST)
+            local eff = helper.randomChoice(g.EFFECT_LIST)
             g.grantEffect(eff, 10)
         elseif k=="4" then
             local sn=g.getSn()
