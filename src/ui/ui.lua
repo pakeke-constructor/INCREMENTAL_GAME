@@ -56,6 +56,11 @@ function ui.CustomButton(drawLabel, col1, col2, region)
 	else
 		helper.gradientRect("horizontal", col1,col2, region:padUnit(4):get())
 	end
+
+	if iml.wasJustHovered(region:get()) then
+		g.playUISound("ui_tick", 1.6,0.35, 0,0)
+	end
+
 	ui.drawPanel(region:get())
 	drawLabel(region:padRatio(0.4,0.2):get())
 	return iml.wasJustClicked(region:get())
