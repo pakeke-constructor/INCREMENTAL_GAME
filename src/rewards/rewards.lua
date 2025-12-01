@@ -67,19 +67,9 @@ local Reward = {}
 
 
 
-local function generateResourceReward()
-    local buf = {}
-    for _, resId in ipairs(g.RESOURCE_LIST) do
-        if g.isResourceUnlocked(resId) then
-            table.insert(buf, resId)
-        end
-    end
-    local res = helper.randomChoice(buf)
-
-end
-
 
 ---@param rew g.Reward
+---@return g.Reward
 local function assertRewardIsValid(rew)
     local ct = 0
     if rew.resources then ct = ct + 1 end
@@ -96,7 +86,38 @@ local function assertRewardIsValid(rew)
     end
 
     assert(rew.icon)
+    return rew
 end
+
+
+
+---@return g.Reward
+local function generateResourceReward()
+    local buf = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        if g.isResourceUnlocked(resId) then
+            table.insert(buf, resId)
+        end
+    end
+    local resId = helper.randomChoice(buf)
+    local rps = g.getResourcesPerSecond(resId)
+    local SECONDS = love.math.random(15,40)
+
+    local resources = {}
+    resources[resId] = tonumber(g.formatNumber(rps*SECONDS))
+    return assertRewardIsValid({
+        icon = g.getResourceInfo(resId).image,
+        resources = resources
+    })
+end
+
+
+
+---@return g.Reward
+local function generatePotionReward()
+end
+
+
 
 
 function rewards.generateRandomRewards()

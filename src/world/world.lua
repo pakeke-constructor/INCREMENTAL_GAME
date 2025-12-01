@@ -329,6 +329,13 @@ local function sortOrder(a, b)
 end
 
 
+---@param x number
+---@param y number
+---@return number
+local function hash(x, y)
+    return (x + 499) * 499500 + (y + 499) * 500
+end
+
 function World:_draw()
     -- local w,h = g.getWorldDimensions()
     -- love.graphics.setColor(0,0,0)
@@ -399,7 +406,7 @@ function World:_draw()
             -- Draw decoration
             -- Why we do this hash you ask? So we can place random decoration
             -- in respect to tile X and tile Y.
-            local hashpos = g.hashPos(x, y, 0)
+            local hashpos = (x+499)*hash(x, y)
             hashpos = helper.hashInteger(hashpos) % 65536
             if hashpos / 65535 <= 0.1 then
                 local noise = helper.hashInteger(hashpos) % 65536

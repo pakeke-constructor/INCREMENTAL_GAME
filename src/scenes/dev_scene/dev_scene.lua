@@ -18,6 +18,11 @@ local function regionFromText(font, width, text)
 end
 
 
+local hashPos = function(x,y)
+    return x * 5000 + y
+end
+
+
 ---------------------
 -- Resource Mod scene
 ---------------------
@@ -153,7 +158,7 @@ local function loadAllUpgrades()
 
         -- Iterate upgrades
         for utype, upos in pairs(r.upgrades) do
-            local h = g.hashPos(upos.x, upos.y, prestige)
+            local h = hashPos(upos.x, upos.y, prestige)
             if hashmap[h] then
                 error(string.format(
                     "prestige %d position %dx%d trying to put '%s' occupied by '%s'",
@@ -189,7 +194,7 @@ local function loadAllUpgrades()
                 local dx = cpos.isVertical and 0 or i
                 local dy = cpos.isVertical and i or 0
                 local ctype = setmetatable(cpos, _dev_Connector)
-                local h = g.hashPos(cpos.x + dx, cpos.y + dy, prestige)
+                local h = hashPos(cpos.x + dx, cpos.y + dy, prestige)
                 if hashmap[h] then
                     error(string.format(
                         "prestige %d position %dx%d trying to put '%s' on '%s'",
@@ -353,9 +358,9 @@ local function canAttachConnector(pos1, pos2, prestige)
     for i = 1, math.max(dx, dy) - 1 do
         local inmap
         if isVertical then
-            inmap = upgradeHashmap[g.hashPos(startX, startY + i, prestige)]
+            inmap = upgradeHashmap[hashPos(startX, startY + i, prestige)]
         else
-            inmap = upgradeHashmap[g.hashPos(startX + i, startY, prestige)]
+            inmap = upgradeHashmap[hashPos(startX + i, startY, prestige)]
         end
 
         if inmap then
@@ -395,7 +400,7 @@ local function addUpgradeConnector(x, y, length, isVertical)
     for i = 0, length do
         local dx = isVertical and 0 or i
         local dy = isVertical and i or 0
-        upgradeHashmap[g.hashPos(x + dx, y + dy, currentPrestige)] = result
+        upgradeHashmap[hashPos(x + dx, y + dy, currentPrestige)] = result
     end
     table.insert(upgradeConnectors[currentPrestige + 1], result)
     isUpgradeDataModified = true
@@ -420,7 +425,7 @@ local function removeUpgradeConnector(con)
     for i = 0, con.length - 1 do
         local dx = con.isVertical and 0 or i
         local dy = con.isVertical and i or 0
-        upgradeHashmap[g.hashPos(con.x + dx, con.y + dy, currentPrestige)] = nil
+        upgradeHashmap[hashPos(con.x + dx, con.y + dy, currentPrestige)] = nil
     end
 
     isUpgradeDataModified = true
@@ -434,7 +439,7 @@ local function getConnectorAround(x, y)
     local result = {}
     for _, d in ipairs(NEIGHBORS) do
         local vert = d[2] ~= 0
-        local h = g.hashPos(x + d[1], y + d[2], currentPrestige)
+        local h = hashPos(x + d[1], y + d[2], currentPrestige)
         local inmap = upgradeHashmap[h]
 
         if inmap and type(inmap) ~= "string" and inmap.isVertical == vert then
@@ -517,21 +522,21 @@ local function spawnUpgrade(utype, x, y)
         -- Search in + pattern
         local r = 1
         local tx, ty = x, y
-        if upgradeHashmap[g.hashPos(tx, ty, currentPrestige)] then
+        if upgradeHashmap[hashPos(tx, ty, currentPrestige)] then
             while true do
-                if not upgradeHashmap[g.hashPos(x + r, y, currentPrestige)] then
+                if not upgradeHashmap[hashPos(x + r, y, currentPrestige)] then
                     tx = x + r
                     break
                 end
-                if not upgradeHashmap[g.hashPos(x - r, y, currentPrestige)] then
+                if not upgradeHashmap[hashPos(x - r, y, currentPrestige)] then
                     tx = x - r
                     break
                 end
-                if not upgradeHashmap[g.hashPos(x, y + r, currentPrestige)] then
+                if not upgradeHashmap[hashPos(x, y + r, currentPrestige)] then
                     ty = y + r
                     break
                 end
-                if not upgradeHashmap[g.hashPos(x, y - r, currentPrestige)] then
+                if not upgradeHashmap[hashPos(x, y - r, currentPrestige)] then
                     ty = y - r
                     break
                 end
@@ -541,7 +546,7 @@ local function spawnUpgrade(utype, x, y)
 
         ---@type _dev.UpgradePosition
         upos = {x = tx, y = ty}
-        upgradeHashmap[g.hashPos(tx, ty, currentPrestige)] = utype
+        upgradeHashmap[hashPos(tx, ty, currentPrestige)] = utype
         upgradePosList[currentPrestige + 1][utype] = upos
         isUpgradeDataModified = true
     end
@@ -698,7 +703,7 @@ end
 ---@param prestige integer
 ---@return boolean
 local function canMoveUpgradeTo(x, y, prestige)
-    local h = g.hashPos(x, y, prestige)
+    local h = hashPos(x, y, prestige)
     return not upgradeHashmap[h]
 end
 
@@ -716,8 +721,8 @@ end
 ---@param y integer
 ---@param prestige integer
 local function moveUpgradeTo(upos, x, y, prestige)
-    local hold = g.hashPos(upos.x, upos.y, currentPrestige)
-    local hnew = g.hashPos(x, y, prestige)
+    local hold = hashPos(upos.x, upos.y, currentPrestige)
+    local hnew = hashPos(x, y, prestige)
     local utype = assert(upgradeHashmap[hold])
     upgradeHashmap[hold] = nil
     upgradeHashmap[hnew] = utype
@@ -1031,7 +1036,7 @@ function dev:keyreleased(k)
             if k == "escape" or k == "return" then
                 lastUpgradeSelected = nil
             elseif k == "delete" then
-                local h = g.hashPos(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, currentPrestige)
+                local h = hashPos(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y, currentPrestige)
                 -- Remove connectors
                 for _, con in ipairs(getConnectorAround(lastUpgradeSelected.pos.x, lastUpgradeSelected.pos.y)) do
                     removeUpgradeConnector(con)
