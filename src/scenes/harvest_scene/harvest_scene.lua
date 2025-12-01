@@ -4,6 +4,7 @@ local lg=love.graphics
 local particles = require("src.modules.particles.particles")
 local cloudService = require(".cloud_service")
 
+local rewards = require("src.rewards.rewards")
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
@@ -46,6 +47,7 @@ function harvest:init()
 
     self.timeSinceXpPopupOpened = 0
     self.xpPopup = false
+    self.xpRewards = {}
 
     self.timeSinceUpgradePopupOpened = 0
     self.upgradePopup = false
@@ -550,6 +552,7 @@ local function openXpPopup(self)
     self.xpPopup = true
     self.timeSinceXpPopupOpened = 0
     self.timeTakenThisLevel = 0
+    self.xpRewards = rewards.generateRandomRewards()
     popupParticles:clear()
 end
 
@@ -649,21 +652,24 @@ function drawXpPopup(self)
 
     do
     love.graphics.setColor(1,1,1)
-    local a,b,c = popup:splitVertical(1,1,1)
+    local regions = {popup:splitVertical(1,1,1)}
     local p = 0.2
 
-    local function draw(rrr)
+    local function drawReward(i)
+        local rrr = regions[i]
+        local rew = self.xpRewards[i]
         rrr = rrr:padRatio(p)
         local col1 = objects.Color("#" .. "FF9F14F6")
         local col2 = objects.Color("#" .. "FF3B12A4")
         helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
         ui.drawPanel(rrr:get())
-        richtext.printRichContained("{c r=0 g=0 b=0}option-1", g.getSmallFont(16), rrr:get())
+        rewards.drawRewardDescription(rew, rrr)
     end
 
-    draw(a)
-    draw(b)
-    draw(c)
+    for i=1, 3 do
+        drawReward(i)
+    end
+
     end
 
     if iml.wasJustClicked(popup:get()) then

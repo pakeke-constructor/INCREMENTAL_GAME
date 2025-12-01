@@ -357,6 +357,24 @@ function g.drawImageOffset(imageName, x,y, r, sx,sy, ox,oy, kx,ky)
     atlas:draw(quad, x, y, r, sx, sy, (ox or 0.5) * w, (oy or 0.5) * h, kx, ky)
 end
 
+---@param imageName string
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function g.drawImageContained(imageName, x,y, w,h)
+    local quad = g.getImageQuad(imageName)
+    local _,_,qw,qh = quad:getViewport()
+    local scaleX = w / qw
+    local scaleY = h / qh
+    local scale = math.min(scaleX, scaleY)
+    local scaledW = qw * scale
+    local scaledH = qh * scale
+    local centerX = x + (w - scaledW) / 2
+    local centerY = y + (h - scaledH) / 2
+    atlas:draw(quad, centerX, centerY, 0, scale, scale, 0, 0)
+end
+
 
 ---@param imageName any
 ---@return boolean

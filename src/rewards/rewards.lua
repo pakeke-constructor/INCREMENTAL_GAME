@@ -41,10 +41,10 @@ IDEAS:
 - RARE: Permanent New Token
 - UNIQUE: One-time upgrades, like "get new scythe!"
 
-
-
-
 ]]
+
+
+local lg=love.graphics
 
 local rewards = {}
 
@@ -126,9 +126,11 @@ end
 function generatePotionReward()
     local r = love.math.random()
     local potionId = helper.randomChoice(statPots)
+    local einfo = g.getEffectInfo(potionId)
     return {
-        effect = g.getEffectInfo(potionId),
-        effectDuration = 20 + math.random(-5, 5)
+        effect = einfo,
+        effectDuration = 20 + love.math.random(-5, 5),
+        icon = einfo.image
     }
 end
 
@@ -137,6 +139,7 @@ end
 
 
 
+---@return g.Reward[]
 function rewards.generateRandomRewards()
     -- generates 3 random rewards to choose from
     local sn=g.getSn()
@@ -147,6 +150,9 @@ function rewards.generateRandomRewards()
     end
 
     local rewardList = {
+        generateResourceReward(),
+        generateResourceReward(),
+        generateResourceReward(),
         -- resource-reward
         -- effect-reward
         -- OTHER-reward
@@ -157,16 +163,43 @@ end
 
 
 
+local GIVE_EFFECT = interp("Grants a temporary buff:\n%{str}", {
+    context = "As in, instantly applying a potion effect or a positive status effect. Try to keep simple/concise."
+})
+
 
 ---@param rew g.Reward
----@param x any
----@param y any
----@param w any
----@param h any
-function rewards.drawRewardDescription(rew, x,y,w,h)
+---@param r kirigami.Region
+function rewards.drawRewardDescription(rew, r)
     -- used for reward-selection,
     -- AND used for reward-UI on HUD
+    local font = g.getSmallFont(16)
+    local icon, main = r:splitHorizontal(r.h, r.w-r.h)
 
+    -- draw icon:
+    local cx,cy = icon:getCenter()
+    lg.setColor(1,1,1)
+    lg.rectangle("fill", icon:padRatio(0.1):get())
+    g.drawImageContained(rew.icon, icon:padRatio(0.2):get())
+
+    main = main:padRatio(0.3)
+    if rew.resources then
+        local resTxt = ""
+        for resId,v in pairs(rew.resources) do
+            resTxt = resTxt .. "+" .. tostring(v) .. " {" ..resId.. " scale=0.7}"
+        end
+        richtext.printRichContainedNoWrap(resTxt, font, main:get())
+    elseif rew.effect then
+        richtext.printRichContained(GIVE_EFFECT({
+            str = rew.effect.description
+        }), font, main:get())
+    elseif rew.stackedToken then
+        
+    elseif rew.upgradeId then
+        
+    else
+        richtext.printRichContained("{o}ERROR. WTF? Tell Oli", font, r:get())
+    end
 end
 
 
