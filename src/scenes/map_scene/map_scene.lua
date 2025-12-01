@@ -300,7 +300,6 @@ end
 
 
 
-
 ---@param poi _POI
 ---@param x number?
 ---@param y number?
@@ -419,6 +418,31 @@ function map:draw()
     self:resetCamera()
 
     vignette.draw()
+
+    do
+    -- fade to/from black:
+
+    -- TODO: REPLACE THIS WITH CLOUDS ZOOMING IN/OUT
+    -- TODO: REPLACE THIS WITH CLOUDS ZOOMING IN/OUT
+    -- TODO: REPLACE THIS WITH CLOUDS ZOOMING IN/OUT
+    local ttgt = self.transitionTarget
+    if ttgt then
+        local val = 0
+        local tt = (ttgt.time/ttgt.duration)
+        if ttgt.action == nil then
+            -- its zooming out! invert it:
+            val = 1 - helper.clamp(tt, 0, 1)
+        else
+            val = helper.EASINGS.sineOut(helper.clamp(tt, 0, 1))
+        end
+
+        if val > 0 then
+            local ww,hh = love.graphics.getDimensions()
+            print(val)
+            lg.circle("line", ww/2,hh/2, 800*(1-val))
+        end
+    end
+    end
 
     ui.startUI()
     ui.endUI()
