@@ -389,6 +389,7 @@ g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
 g.walkDirectory("src/entities", loadImage)
 g.walkDirectory("src/scythes", loadImage)
+g.walkDirectory("src/potions", loadImage)
 
 -- Set this to true to dump the atlas
 if false then
@@ -1214,6 +1215,7 @@ function g.defineToken(tokType, name, tabl)
     g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
 
     g.defineUpgrade(tokType, name, {
+        image = tabl.image,
         populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
             tokens:add(tokType, level)
         end,

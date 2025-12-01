@@ -151,6 +151,7 @@ function love.load(arg)
     love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
+    g.requireFolder("src/potions")
     g.requireFolder("src/scythes")
     sceneManager.loadScenes()
 

@@ -5,8 +5,6 @@
 ---@param name string
 ---@param typedef {token:g.TokenDefinition, effect:g.EffectDefinition}
 local function defTokenEffect(id, name, typedef)
-    g.defineToken(id, name, typedef.token)
-    g.defineEffect(id, name, typedef.effect)
 end
 
 
