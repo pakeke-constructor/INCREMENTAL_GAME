@@ -1,5 +1,8 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+local sceneManager = require("src.scenes.sceneManager")
+
 local titleBackground = require("src.titleBackground")
+local sfx = require("src.sound.sfx")
 
 
 local SLIDER_BACKGROUND = objects.Color.BLACK
@@ -47,9 +50,43 @@ end
 ---@class SettingScene: FreeCameraScene
 local setting = FreeCameraScene()
 
+-- Keep this in-sync with the setting.init
+local settingData = {
+    sfxVolume = 100,
+    bgmVolume = 50,
+}
+
 function setting:init()
-    self.effectVolume = 50
-    self.bgmVolume = 50
+    if love.filesystem.getInfo("setting.json", "file") then
+        local success, sdata = pcall(function()
+            local settingDataJSON = love.filesystem.read("setting.json")
+            local settingDataTable = json.decode(settingDataJSON)
+            return {
+                sfxVolume = assert(tonumber(settingDataTable.sfxVolume)),
+                bgmVolume = assert(tonumber(settingDataTable.bgmVolume)),
+            }
+        end)
+        if success then
+            settingData = sdata
+        end
+    end
+
+    sfx.setVolume(settingData.sfxVolume)
+    -- TODO: bgm.setVolume here
+
+    -- TODO: Wire this up to settings once we have proper localization
+    self.languages = love.system.getPreferredLocales()
+    if #self.languages == 0 then
+        -- Ensure there's at least one option
+        self.languages[#self.languages+1] = "en_US"
+    end
+    self.languageIndex = 1
+    self.showLanguagePopup = false
+end
+
+function setting:leave()
+    local settingDataJSON = json.encode(settingData)
+    assert(love.filesystem.write("setting.json", settingDataJSON))
 end
 
 ---@param dt number
@@ -90,10 +127,6 @@ local function drawVolume(value, label, labelR, sliderBaseR)
 end
 
 function setting:draw()
-    -- FIXME: This sucks. This should NEVER be done. Either fix scene manager or do something else
-    -- This was done because cyclic require ugh.
-    local sceneManager = require("src.scenes.sceneManager")
-
     ui.startUI()
 
     titleBackground.draw()
@@ -128,20 +161,48 @@ function setting:draw()
         :attachToBottomOf(musicVolumeLabelR)
         :centerX(musicVolumeLabelR)
         :moveUnit(0, 8)
-    -- TODO: Language (I don't know how to create dropdown with iml)
+    -- Language. Let's just make it a button that shows fullscreen panel later.
+    local languageLabelR = Kirigami(0, 0, 240, font:getHeight())
+        :centerX(titleTextR)
+        :attachToBottomOf(musicVolumeSliderBaseR)
+        :moveUnit(0, 8)
+    local languageButtonR = Kirigami(0, 0, 144, 32)
+        :attachToBottomOf(languageLabelR)
+        :centerX(languageLabelR)
+        :moveUnit(0, 8)
 
     -- Centerize layout in place
     makeInCenterInplace(contentR,
         effectVolumeLabelR,
         effectVolumeSliderBaseR,
         musicVolumeLabelR,
-        musicVolumeSliderBaseR
+        musicVolumeSliderBaseR,
+        languageLabelR,
+        languageButtonR
     )
 
     -- Draw effect volume
-    self.effectVolume = drawVolume(self.effectVolume, "Effect Volume", effectVolumeLabelR, effectVolumeSliderBaseR)
+    settingData.sfxVolume = drawVolume(settingData.sfxVolume, "Effect Volume", effectVolumeLabelR, effectVolumeSliderBaseR)
+    sfx.setVolume(settingData.sfxVolume)
     -- Draw music volume
-    self.bgmVolume = drawVolume(self.bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
+    settingData.bgmVolume = drawVolume(settingData.bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
+    -- Draw language button
+    love.graphics.setColor(1, 1, 1)
+    -- TODO: localize
+    richtext.printRich(
+        "{o}Language{/o}",
+        g.getSmallFont(32),
+        languageLabelR.x,
+        languageLabelR.y,
+        languageLabelR.w,
+        "center"
+    )
+    if ui.DefaultButton(
+        helper.wrapRichtextColor(objects.Color.BLACK, self.languages[self.languageIndex]),
+        languageButtonR
+    ) then
+        self.showLanguagePopup = true
+    end
 
     -- Draw "Done" Button
     local doneButtonR = Kirigami(0, 0, 144, 40)
@@ -157,7 +218,55 @@ function setting:draw()
         sceneManager.gotoLastScene()
     end
 
+    if self.showLanguagePopup then
+        self:_drawLanguageSelector()
+    end
+
     ui.endUI()
+end
+
+function setting:_drawLanguageSelector()
+    local SELECTION_BUTTON_SIZE = 40
+    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local panelR = r
+        :padRatio(0.1)
+        :shrinkToMultipleOf(SELECTION_BUTTON_SIZE)
+        :center(r)
+
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("fill", panelR:get())
+    iml.isHovered(r:get()) -- Dummy panel to prevent input propagation to bottom
+
+    local grid = panelR:grid(1, math.floor(panelR.h / SELECTION_BUTTON_SIZE))
+
+    -- TODO: Slider
+    local font = g.getSmallFont(32)
+    for i, lang in ipairs(self.languages) do
+        local buttonR = grid[i]:padUnit(4)
+        local textR = buttonR
+            :set(nil, nil, nil, font:getHeight())
+            :centerY(buttonR)
+
+        -- Draw button
+        if iml.wasJustClicked(buttonR:get()) then
+            self.languageIndex = i
+            self.showLanguagePopup = false
+            break
+        elseif iml.isHovered(buttonR:get()) then
+            love.graphics.setColor(0, 0, 0, 0.2)
+            love.graphics.rectangle("fill", buttonR:get())
+        end
+
+        -- Add outline for current language selection
+        if i == self.languageIndex then
+            love.graphics.setColor(0, 0, 0)
+            love.graphics.rectangle("line", buttonR:get())
+        end
+
+        -- Button text
+        love.graphics.setColor(1, 1, 1)
+        richtext.printRich("{o}"..lang.."{/o}", font, textR.x, textR.y, textR.w, "center")
+    end
 end
 
 return setting

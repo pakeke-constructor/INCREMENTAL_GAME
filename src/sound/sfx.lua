@@ -12,10 +12,6 @@ local sourcePool = {} -- first source always the one to clone
 ---@type table<string, boolean?>
 local hadPlayedThisFrame = {}
 
-function sfx.getVolume()
-    return sfxVolume
-end
-
 ---@param vol integer
 function sfx.setVolume(vol)
     sfxVolume = helper.clamp(math.floor(vol + 0.5), 0, 100)
