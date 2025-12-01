@@ -67,6 +67,18 @@ local Reward = {}
 
 
 
+local function generateResourceReward()
+    local buf = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        if g.isResourceUnlocked(resId) then
+            table.insert(buf, resId)
+        end
+    end
+    local res = helper.randomChoice(buf)
+
+end
+
+
 ---@param rew g.Reward
 local function assertRewardIsValid(rew)
     local ct = 0

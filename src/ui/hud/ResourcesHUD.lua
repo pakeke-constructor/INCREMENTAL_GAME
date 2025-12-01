@@ -314,11 +314,11 @@ local function _spawnParticleImpl(self, kind, tier, x, y, amount)
         amount = amount,
         image = string.format(category.format, tier),
         rot = love.math.random() * (2*math.pi),
-        spawnEasing = helper.EASINGS[helper.choice(EASINGS)],
+        spawnEasing = helper.EASINGS[helper.randomChoice(EASINGS)],
         x = x,
         y = y,
-        xEasing = helper.EASINGS[helper.choice(EASINGS)],
-        yEasing = helper.EASINGS[helper.choice(EASINGS)],
+        xEasing = helper.EASINGS[helper.randomChoice(EASINGS)],
+        yEasing = helper.EASINGS[helper.randomChoice(EASINGS)],
         time = -RANDOM_DELAY * love.math.random() - BEFOREHUD_TIME,
         tohudTime = lifetime
     }

@@ -9,7 +9,18 @@ local iml = {}
 ---@alias iml._Panel {x:number, y:number, w:number,h:number, key:any, transform?: love.Transform}
 ---@alias iml._FrameState { hoveredPanel: iml._Panel?, transformStack: love.Transform[], transform: love.Transform}
 
----@alias iml._Click {original_x:number, original_y:number, total_dx:number,total_dy:number, last_frame_dx:number,last_frame_dy:number, panel_key:any?, is_drag:boolean? }
+
+---@class iml._Click
+---@field original_x number
+---@field original_y number
+---@field total_dx number (drag distance).
+---@field total_dy number (drag distance).
+---@field last_frame_dx number
+---@field last_frame_dy number
+---@field panel_key any? The key or identifier of the panel that was clicked
+---@field is_drag boolean?
+local iml_Click
+
 
 
 ---@type iml._Panel?
@@ -326,9 +337,25 @@ function iml.wasJustClicked(x,y,w,h, button, key)
 end
 
 
+---@param x number
+---@param y number
+---@return number
+---@return number
+local function inverseTransform(x,y)
+    assert(frameState and x and y, "?")
+    return frameState.transform:inverseTransformPoint(x,y)
+end
+
+
+
+---@class iml.Drag
+---@field originalX number
+---@field originalY number
+local iml_Drag
+
 ---@param key any
 ---@param button integer
----@return number?, number?, iml._Click?
+---@return iml.Drag?
 function iml.consumeDrag(key, x,y,w,h, button)
     assertIsFrame()
     iml.panel(x,y,w,h, key)
@@ -337,10 +364,18 @@ function iml.consumeDrag(key, x,y,w,h, button)
     local cl = currentClicks[button]
     if cl and (cl.panel_key == key) and (not isClick(cl)) then
         -- its dragging this element!
-        local dx, dy = cl.last_frame_dx, cl.last_frame_dy
         cl.last_frame_dx = 0
         cl.last_frame_dy = 0
-        return dx,dy, cl
+        local startX,startY = inverseTransform(cl.original_x, cl.original_y)
+        local endX,endY = getTransformedPointer()
+        local dx,dy = endX-startX, endY-startY
+        return {
+            startX = startX,
+            startY = startY,
+            endX = endX,
+            endY = endY,
+            dx = dx, dy=dy
+        }
     end
 end
 

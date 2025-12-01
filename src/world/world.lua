@@ -7,7 +7,7 @@ The world is a container for tokens and entities.
 ]]
 
 local ParticleService = require(".particle.ParticleService")
-local DataCollection = require(".data_collection")
+local DataCollector = require(".data_collector")
 local table_clear = require("table.clear")
 
 ---@class g.World: objects.Class
@@ -43,7 +43,7 @@ function World:init()
     self.particles = ParticleService()
     self.timer = 0 -- For per second update
 
-    ---@type table<g.ResourceType, g.DataCollection>
+    ---@type table<g.ResourceType, g.DataCollector>
     self.dataCollectors = nil
     -- We can't create the collectors yet because session isnt loaded.
 
@@ -487,7 +487,7 @@ local function updateResourceDataCollection(self)
 
         for _, resId in ipairs(g.RESOURCE_LIST) do
             local startValue = g.getResource(resId)
-            self.dataCollectors[resId] = DataCollection(60, startValue)
+            self.dataCollectors[resId] = DataCollector(60, startValue)
         end
     end
 
