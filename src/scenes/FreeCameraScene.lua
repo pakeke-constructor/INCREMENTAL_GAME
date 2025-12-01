@@ -66,7 +66,7 @@ function FreeCameraScene:renderMapButton()
     local MAIN=objects.Color.WHITE
     local BASE=objects.Color.GRAY
     -- TEMPORARY CODE
-    if ui.Button("{o}MAP", MAIN,BASE, right:get()) then
+    if ui.Button("{o}MAP", MAIN,BASE, right) then
         g.playUISound("ui_mouse_click", 1, 0.6, 0.1)
         g.gotoScene("map_scene")
     end

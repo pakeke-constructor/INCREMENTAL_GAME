@@ -20,8 +20,8 @@ local BUTTONS = {
     {"Stats", function() end},
     {"Quit", love.event.quit},
 }
-local BUTTON_BASE_COL = objects.Color.GRAY
-local BUTTON_MAIN_COL = objects.Color.WHITE
+local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
+local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
 
 ---@class TitleScene: FreeCameraScene
 local title = FreeCameraScene()
@@ -62,7 +62,7 @@ function title:draw()
         local buttonPadR = buttonGrid[i]:padUnit(4)
         love.graphics.setColor(0, 0, 0)
 
-        if ui.Button(helper.wrapRichtextColor(objects.Color.BLACK, binfo[1]), BUTTON_MAIN_COL, BUTTON_BASE_COL, buttonPadR:get()) then
+        if ui.Button(helper.wrapRichtextColor(objects.Color.WHITE, binfo[1]), BUTTON_MAIN_COL, BUTTON_BASE_COL, buttonPadR) then
             binfo[2]()
         end
     end

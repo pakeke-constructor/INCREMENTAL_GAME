@@ -185,7 +185,7 @@ function fishing:drawUI()
         end
 
     elseif self.mainCat.state == "idle" then
-        if ui.Button(CAST_ROD, W1,W2, castR:get()) then
+        if ui.Button(CAST_ROD, W1,W2, castR) then
             local cx,cy = helper.randomInRegion(self.world.castArea:get())
             self.mainCat:cast(cx,cy)
         end
@@ -212,7 +212,7 @@ function fishing:drawUI()
         local function hireFisherCat(x,y,w,h)
             upgradeWidget(HIRE_FISHERCAT, price, sn.fisherCatCount,MAX_FISHERCATS, x,y,w,h)
         end
-        if ui.CustomButton(hireFisherCat, W1,W2, hireFishercatR:get()) then
+        if ui.CustomButton(hireFisherCat, W1,W2, hireFishercatR) then
             if g.trySubtractResources({money = price}) then
                 sn.fisherCatCount = math.min(sn.fisherCatCount + 1, MAX_FISHERCATS)
             end
