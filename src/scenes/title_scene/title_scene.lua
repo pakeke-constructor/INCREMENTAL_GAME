@@ -40,7 +40,7 @@ local SECONDARY_BUTTONS = {
 }
 
 local text = {
-    play = "{w amp=0.5 freq=0.7}"..loc("Play").."{/w}"
+    play = "{w amp=0.5 freq=0.7}{o thickness=0.5}"..loc("Play").."{/o}{/w}"
 }
 
 ---@class TitleScene: FreeCameraScene
@@ -83,7 +83,7 @@ function title:draw()
     local maxButtonR = Kirigami(0, 0, ui.getScaledUIDimensions(), buttonHeights)
         :center(r)
 
-    -- Draw buttons
+    -- Prep button layouts
     local playButtonR = Kirigami(0, 0, unpack(PRIMARY_BUTTON_SIZE))
         :centerX(maxButtonR)
         :attachToTopOf(maxButtonR)
@@ -93,8 +93,32 @@ function title:draw()
         :centerX(playButtonR)
         :grid(1, #SECONDARY_BUTTONS)
 
-    if ui.Button(text.play, PLAYB_BASE_COL, PLAYB_MAIN_COL, playButtonR:padUnit(BUTTON_PAD)) then
-        init()
+    -- Draw play button
+    do
+        local cx,cy = playButtonR:getCenter()
+        local t = love.timer.getTime()
+        godrays.drawRays(cx,cy, t, {
+            rayCount = 6,
+            divisions=30,
+            color = objects.Color.GOLD:clone():multiply(objects.Color({1,1,1,0.5})),
+            startWidth=10,
+            length=200,
+            fadeTo=0,
+            growRate=2.6,
+        })
+        godrays.drawRays(cx,cy, t*-1, {
+            rayCount = 5,
+            divisions=30,
+            color = objects.Color.YELLOW:clone():multiply(objects.Color({1,1,1,0.6})),
+            startWidth=10,
+            length=300,
+            fadeTo=0,
+            growRate=2.6,
+        })
+
+        if ui.Button(text.play, PLAYB_BASE_COL, PLAYB_MAIN_COL, playButtonR:padUnit(BUTTON_PAD)) then
+            init()
+        end
     end
 
     for i, binfo in ipairs(SECONDARY_BUTTONS) do
