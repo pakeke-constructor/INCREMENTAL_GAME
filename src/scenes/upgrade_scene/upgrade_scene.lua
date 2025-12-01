@@ -251,7 +251,9 @@ end
 
 function upgscene:keypressed(k)
     local tree = g.getUpgTree()
-    if consts.DEV_MODE then
+    if k == "tab" then
+        g.gotoSceneViaMap("harvest_scene")
+    elseif consts.DEV_MODE then
         -- upgrades for dev
         if k == "u" then
             local u = getCheapestUpgrade(tree)
