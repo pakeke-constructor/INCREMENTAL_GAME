@@ -24,11 +24,12 @@ local CLOSE = loc("{o}CLOSE{/o}",{}, {
     context = "As in a back/close button in UI, going back to what the player was doing just before this popup"
 })
 
-local GOTO_UPGRADES = loc("{o}GO TO UPGRADES!{/o}",{}, {
+local GOTO_UPGRADES = loc("{o}{rainbow}GO TO UPGRADES!{/rainbow}{/o}",{}, {
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
 })
 
-local NEW_UPGRADES_AVAILABLE = loc("{wavy freq=0.5}{rainbow}{outline}New Upgrades Available!{/outline}{/rainbow}{/wavy}",{}, {
+--local NEW_UPGRADES_AVAILABLE = loc("{wavy freq=0.5}{rainbow}{outline}New Upgrades Available!{/outline}{/rainbow}{/wavy}",{}, {
+local NEW_UPGRADES_AVAILABLE = loc("{outline}New Upgrades Available!{/outline}",{}, {
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
 })
 
@@ -469,7 +470,7 @@ local function drawUpgradePopup(self)
     richtext.printRichContained(
         NEW_UPGRADES_AVAILABLE,
         g.getSmallFont(16),
-        title:padRatio(0,0.2,0,0.2):get()
+        title:padRatio(0.5):padRatio(0,0.2,0,0.2):get()
     )
 
     -- draw GOTO UPGRADES
