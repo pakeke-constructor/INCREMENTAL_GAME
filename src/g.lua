@@ -670,6 +670,15 @@ function g.getResourceInfo(resId)
 end
 
 
+---@param resId string
+---@return number resourcesPerSecond
+function g.getResourcesPerSecond(resId)
+    assertValidResource(resId)
+    local world = g.getSn().mainWorld
+    return world.resourcesPerSecond[resId]
+end
+
+
 
 ---@param a g.Bundle
 ---@param b g.Bundle

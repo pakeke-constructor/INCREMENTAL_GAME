@@ -535,6 +535,11 @@ function World:_update(dt)
         elist:flush()
     end
 
+    self.resourcesPerSecond = {}
+    for resId, collector in pairs(self.dataCollectors) do
+        self.resourcesPerSecond[resId] = collector:avgdiff()
+    end
+
     -- update TokenPool
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
@@ -681,19 +686,6 @@ function World:_update(dt)
     self:_updateDamageNumbers(dt)
 end
 
-
-
-
----@return table<g.ResourceType, number>
-function World:_getResourcesPerSecond()
-    local result = {}
-
-    for resId, collector in pairs(self.dataCollectors) do
-        result[resId] = collector:avgdiff()
-    end
-
-    return result
-end
 
 
 
