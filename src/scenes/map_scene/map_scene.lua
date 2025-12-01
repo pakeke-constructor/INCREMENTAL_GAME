@@ -499,7 +499,6 @@ map.keyreleased = map.defaultKeyreleased
 
 ---@param name string
 function map:queueDestinationScene(name)
-    print(name, self.queuedTransitionTargetScene)
     self.queuedTransitionTargetScene = name
 end
 

@@ -476,7 +476,7 @@ local function drawUpgradePopup(self)
 
     -- draw GOTO UPGRADES
     if button(gotoUpgrades:padRatio(0.1), GOTO_UPGRADES, col1,col2) then
-        g.gotoScene("upgrade_scene")
+        g.gotoSceneViaMap("upgrade_scene")
     end
 
     -- draw silli cats

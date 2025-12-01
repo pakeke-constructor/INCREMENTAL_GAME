@@ -98,6 +98,8 @@ end
 
 ---@param scName string
 function g.gotoSceneViaMap(scName)
+    local _,curName = sceneManager.getCurrentScene()
+    assert(curName ~= "map_scene", "Already in map! (this will break stuff.)")
     g.gotoScene("map_scene")
     if scName ~= "map_scene" then
         local mapScene, sceneName = sceneManager.getCurrentScene()
