@@ -825,7 +825,9 @@ harvest.mousemoved = harvest.defaultMousemoved
 
 function harvest:keyreleased(k)
     self:defaultKeyreleased(k)
-    if consts.DEV_MODE then
+    if k == "tab" then
+        g.gotoSceneViaMap("upgrade_scene")
+    elseif consts.DEV_MODE then
         if k=="1" then
             worldutil.spawnLightning(100,100,10)
         elseif k=="2" then

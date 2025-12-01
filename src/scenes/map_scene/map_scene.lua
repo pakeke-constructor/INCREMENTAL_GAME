@@ -113,6 +113,7 @@ end)
 
 
 ---@class (exact) _POI.Def
+---@field public scene string
 ---@field public x integer
 ---@field public y integer
 ---@field public w integer
@@ -122,7 +123,6 @@ end)
 ---@field public ty number text position
 ---@field public tcolor objects.Color Outline text color (actual text color always white)
 ---@field public price g.Bundle?
----@field public action function
 
 ---@class (exact) _POI: _POI.Def
 ---@field public type string
@@ -130,6 +130,8 @@ end)
 
 ---@type table<string, _POI>
 local POI = {}
+---@type table<string, string>
+local sceneNamePOIMap = {}
 ---@param id string
 ---@param name string
 ---@param def _POI.Def
@@ -142,6 +144,8 @@ local function definePOI(id, name, def)
     if def.price then
         assert(clouds[id], "cloud info must exist for this POI")
     end
+
+    sceneNamePOIMap[def.scene] = id
 end
 
 ---@param poiId string
@@ -156,58 +160,49 @@ end
 
 
 definePOI("harvest", "Harvest", {
+    scene = "harvest_scene",
     x = 197, y = 156, w = 144, h = 98,
     highlight = {"harvestarea_windmill", "harvestarea_house", "harvestarea_platform"},
     tx = 262, ty = 169, tcolor = objects.Color("#".."FF0FA569"),
-    action = function()
-        g.gotoScene("harvest_scene")
-    end
 })
 definePOI("upgrade", "Upgrade", {
+    scene = "upgrade_scene",
     x = 106, y = 94, w = 91, h = 104,
     highlight = {"upgradearea_dome", "upgradearea_plasmahut"},
     tx = 152, ty = 132, tcolor = objects.Color("#".."FF41D7D7"),
-    action = function()
-        g.gotoScene("upgrade_scene")
-    end
 })
 definePOI("fishing", "Fish", {
+    scene = "fishing_scene",
     x = 236, y = 82, w = 142, h = 74,
     highlight = {"fishingarea_buildings", "fishingarea_dock"},
     tx = 323, ty = 100, tcolor = objects.Color("#".."FF14A0CD"),
     price = {money = 5000},
-    action = function()
-        g.gotoScene("fishing_scene")
-    end
 })
 definePOI("minigame", "Minigames", {
+    -- TODO: scene
+    scene = "",
     x = 121, y = 246, w = 109, h = 93,
     highlight = {"carnivalarea_attractions"},
     tx = 188, ty = 277, tcolor = objects.Color("#".."FFE65AE6"),
     -- TODO: Price
     price = {money = 1000},
-    -- TODO: Action
-    action = function() end
 })
 definePOI("quest", "Town", {
+    scene = "customization_scene",
     x = 252, y = 267, w = 165, h = 100,
     highlight = {"questarea_buildings"},
     tx = 327, ty = 291, tcolor = objects.Color("#".."FFB4236E"),
     -- TODO: Price
     price = {money = 7000},
-    -- TODO: Action
-    action = function()
-        g.gotoScene("customization_scene")
-    end
 })
 definePOI("boss", "Challenges", {
+    -- TODO: scene
+    scene = "",
     x = 391, y = 168, w = 98, h = 90,
     highlight = {"bossarea_statue"},
     tx = 441, ty = 175, tcolor = objects.Color("#".."FF7891A5"),
     -- TODO: Price
     price = {money = 10000},
-    -- TODO: Action
-    action = function() end
 })
 
 
@@ -260,6 +255,8 @@ function map:init()
     self.allowMousePan = false
     ---@type _MapTransitionTarget|nil
     self.transitionTarget = nil
+    ---@type string|nil
+    self.queuedTransitionTargetScene = nil
 end
 
 
@@ -308,6 +305,20 @@ local function drawPOIText(poi, x, y)
     local text = string.format("{o thickness=2 r=%.2f g=%.2f b=%.2f}%s{/o}", r, g, b, poi.name)
 
     richtext.printRich(text, _G.g.getBigFont(32), x or poi.tx, y or poi.ty, 1000, "center", 0, 1, 1, 500, 16)
+end
+
+
+local function dummy() end
+---@param poi _POI
+local function makePOIAction(poi)
+    local action = dummy
+    if poi.scene ~= "" then
+        function action()
+            return g.gotoScene(poi.scene)
+        end
+    end
+
+    return action
 end
 
 
@@ -373,7 +384,7 @@ function map:draw()
                     time = 0,
                     x = poi.x + poi.w / 2,
                     y = poi.y + poi.h / 2,
-                    action = poi.action,
+                    action = makePOIAction(poi),
                     duration = TRANSITION_DURATION
                 }
             end
@@ -461,8 +472,19 @@ function map:update(dt)
             self.transitionTarget.action()
             self.transitionTarget.action = nil
         elseif self.transitionTarget.time >= self.transitionTarget.duration then
-            -- TODO: Don't set this to nil when we chain transition later.
-            self.transitionTarget = nil
+            if self.queuedTransitionTargetScene then
+                local poi = helper.assert(POI[sceneNamePOIMap[self.queuedTransitionTargetScene]], "invalid scene", self.queuedTransitionTargetScene)
+                self.transitionTarget = {
+                    time = 0,
+                    x = poi.x + poi.w / 2,
+                    y = poi.y + poi.h / 2,
+                    action = makePOIAction(poi),
+                    duration = TRANSITION_DURATION
+                }
+                self.queuedTransitionTargetScene = nil
+            else
+                self.transitionTarget = nil
+            end
         end
     end
 end
@@ -473,6 +495,13 @@ function map.wheelmoved() end -- disable zooming
 map.mousemoved = map.defaultMousemoved
 map.keyreleased = map.defaultKeyreleased
 
+
+
+---@param name string
+function map:queueDestinationScene(name)
+    print(name, self.queuedTransitionTargetScene)
+    self.queuedTransitionTargetScene = name
+end
 
 
 

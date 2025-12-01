@@ -96,6 +96,16 @@ function g.gotoScene(scName)
     sceneManager.gotoScene(scName)
 end
 
+---@param scName string
+function g.gotoSceneViaMap(scName)
+    g.gotoScene("map_scene")
+    if scName ~= "map_scene" then
+        local mapScene, sceneName = sceneManager.getCurrentScene()
+        assert(sceneName == "map_scene")
+        mapScene:queueDestinationScene(scName)
+    end
+end
+
 
 
 
