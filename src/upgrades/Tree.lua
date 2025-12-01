@@ -636,6 +636,7 @@ function Tree.deserialize(data)
     self.upgrades = keysToNumber(data.upgrades)
     for hash,upg in pairs(self.upgrades) do
         if not g.isValidUpgrade(upg.id) then
+            log.error("UHOH!!! Unknown upgrade, deleting: ", upg.id)
             self.upgrades[hash] = nil
         end
     end
