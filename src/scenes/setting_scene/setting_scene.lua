@@ -197,11 +197,9 @@ function setting:draw()
         languageLabelR.w,
         "center"
     )
-    if ui.Button(
+    if ui.DefaultButton(
         helper.wrapRichtextColor(objects.Color.BLACK, self.languages[self.languageIndex]),
-        objects.Color.WHITE,
-        objects.Color.GRAY,
-        languageButtonR:get()
+        languageButtonR
     ) then
         self.showLanguagePopup = true
     end
@@ -266,7 +264,7 @@ function setting:_drawLanguageSelector()
         end
 
         -- Button text
-            love.graphics.setColor(1, 1, 1)
+        love.graphics.setColor(1, 1, 1)
         richtext.printRich("{o}"..lang.."{/o}", font, textR.x, textR.y, textR.w, "center")
     end
 end
