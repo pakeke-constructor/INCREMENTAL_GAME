@@ -13,8 +13,9 @@ local RANDOM_TEXT = {
 local CAT_IMAGE = "happy_cat"
 local CAT_SIZE = 64
 local JUMP_DURATION = 0.4
-local JUMP_HEIGHT = 64
+local JUMP_HEIGHT = 48
 local SQUISH_DURATION = 0.3
+local RANDOM_ACTION_DURATION = {3, 10}
 
 
 ---f(0) = 0; f(1) = 0; f(0.5) = 1;
@@ -30,6 +31,7 @@ function InteractiveCat:init(flip)
     self.textDisplayDuration = 0.
     self.jumpDuration = 0.
     self.squishDuration = 0.
+    self.nextRandomAction = helper.lerp(RANDOM_ACTION_DURATION[1], RANDOM_ACTION_DURATION[2], love.math.random())
 
     self.drawFunc = function(x, y, w, h)
         local oy = JUMP_HEIGHT * quadraticJump(self.jumpDuration / JUMP_DURATION)
@@ -49,18 +51,20 @@ end
 function InteractiveCat:_onClick()
     self.squishDuration = 0
     self.jumpDuration = 0
+    self.nextRandomAction = helper.lerp(RANDOM_ACTION_DURATION[1], RANDOM_ACTION_DURATION[2], love.math.random())
 
     -- Cat is clicked. Pick either from jumping or squish
     -- TODO: Play meow SFX
     if love.math.random() >= 0.5 then
         -- Squish
         self.squishDuration = SQUISH_DURATION
-        self.text = helper.randomChoice(RANDOM_TEXT)
-        self.textDisplayDuration = 1
     else
         -- Jump
         self.jumpDuration = JUMP_DURATION
     end
+
+    self.text = helper.randomChoice(RANDOM_TEXT)
+    self.textDisplayDuration = 2
 end
 
 ---@param dt number
@@ -68,6 +72,11 @@ function InteractiveCat:update(dt)
     self.textDisplayDuration = math.max(self.textDisplayDuration - dt, 0)
     self.jumpDuration = math.max(self.jumpDuration - dt, 0)
     self.squishDuration = math.max(self.squishDuration - dt, 0)
+    self.nextRandomAction = self.nextRandomAction - dt
+
+    if self.nextRandomAction <= 0 then
+        self:_onClick()
+    end
 end
 
 ---@param r kirigami.Region
