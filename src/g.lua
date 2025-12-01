@@ -1808,6 +1808,10 @@ end
 
 
 g.COLORS = {
+
+    BUTTON_FADE_1 = objects.Color("#" .. "FF9F14F6"),
+    BUTTON_FADE_2 = objects.Color("#" .. "FF3B12A4"),
+
     UPGRADE_KINDS = {
         HARVESTING = objects.Color("#" .. "FFCB8B14"),
         TOKEN = objects.Color("#" .. "FF1479CB"),

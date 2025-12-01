@@ -30,16 +30,16 @@ local function drawResourceType(r, resId)
 
     local W1,W2 = objects.Color.WHITE, objects.Color({0.8,0.8,0.84})
 
-    if ui.Button("{o}MAX "..resId, W1,W2, b1:padUnit(4):get()) then
+    if ui.Button("{o}MAX "..resId, W1,W2, b1:padUnit(4)) then
         g.addResource(resId, limit)
     end
-    if ui.Button("{o}+10% "..resId, W1,W2, b2:padUnit(4):get()) then
+    if ui.Button("{o}+10% "..resId, W1,W2, b2:padUnit(4)) then
         g.addResource(resId, math.floor(limit/10+0.5))
     end
-    if ui.Button("{o}-10% ".. resId, W1,W2, b3:padUnit(4):get()) then
+    if ui.Button("{o}-10% ".. resId, W1,W2, b3:padUnit(4)) then
         g.addResource(resId, -math.floor(limit/10+0.5))
     end
-    if ui.Button("{o}ZERO "..resId, W1,W2, b4:padUnit(4):get()) then
+    if ui.Button("{o}ZERO "..resId, W1,W2, b4:padUnit(4)) then
         g.addResource(resId, -limit)
     end
 end

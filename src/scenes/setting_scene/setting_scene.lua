@@ -152,7 +152,7 @@ function setting:draw()
         helper.wrapRichtextColor(objects.Color.BLACK, "Done"),
         objects.Color.WHITE,
         objects.Color.GRAY,
-        doneButtonR:get()
+        doneButtonR
     ) then
         sceneManager.gotoLastScene()
     end

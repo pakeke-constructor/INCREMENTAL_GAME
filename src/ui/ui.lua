@@ -13,67 +13,52 @@ ui.upgradeDescriptionUI = require(".upgrades.upgrade_description_ui")
 
 
 do
-local CLICK_BUTTON = 1
 
----@param richText string
----@param mainCol objects.Color
----@param baseCol objects.Color
----@param x number
----@param y number
----@param w number
----@param h number
-function ui.Button(richText, mainCol, baseCol, x,y,w,h)
+
+---@param richTxt string
+---@param col1 number[]|objects.ColorObject
+---@param col2 number[]|objects.ColorObject
+---@param region kirigami.Region
+---@return boolean
+function ui.Button(richTxt, col1,col2, region)
 	return ui.CustomButton(function (xx,yy,ww,hh)
 		local font = g.getSmallFont(16)
-    	richtext.printRichContained(richText, font, xx,yy,ww,hh)
-	end, mainCol,baseCol, x,y,w,h)
+    	richtext.printRichContained(richTxt, font, xx,yy,ww,hh)
+	end, col1,col2, region)
 end
 
 
 
+---@param richTxt string
+---@param region kirigami.Region
+---@return boolean
+function ui.DefaultButton(richTxt, region)
+	local c = g.COLORS
+	return ui.CustomButton(function (xx,yy,ww,hh)
+		local font = g.getSmallFont(16)
+    	richtext.printRichContained(richTxt, font, xx,yy,ww,hh)
+	end, c.BUTTON_FADE_1, c.BUTTON_FADE_2, region)
+end
+
+
+
+
 ---@param drawLabel fun(x:number,y:number,w:number,h:number)
----@param mainCol objects.Color
----@param baseCol objects.Color
----@param x number
----@param y number
----@param w number
----@param h number
-function ui.CustomButton(drawLabel, mainCol,baseCol, x,y,w,h)
+---@param col1 objects.Color
+---@param col2 objects.Color
+---@param region kirigami.Region
+function ui.CustomButton(drawLabel, col1, col2, region)
 	ui.assertUIStarted()
 
-	local dh = math.floor(h/10)
-	local rounding = 8
-
-	-- draw button base:
-    lg.setColor(1,1,1)
-	local multCol = objects.Color.WHITE
-    if iml.isHovered(x,y,w,h) then
-        multCol = objects.Color(0.8,0.8,0.8)
-    end
-	lg.setColor(baseCol * multCol)
-    ui.jaggedRectangle("fill", rounding, x,y+dh,w,h-dh)
-
-	-- draw main button part:
-	local dy = 0
-	if iml.isClicked(x,y,w,h, CLICK_BUTTON) then
-		dy = dh
+	love.graphics.setColor(1,1,1)
+	if iml.isHovered(region:get()) then
+		helper.gradientRect("horizontal", col1,col1, region:padUnit(4):get())
+	else
+		helper.gradientRect("horizontal", col1,col2, region:padUnit(4):get())
 	end
-	lg.setColor(mainCol * multCol)
-    ui.jaggedRectangle("fill", rounding, x,y+dy,w,h-dh)
-
-	-- draw "main label"
-    lg.setColor(multCol)
-	local r = Kirigami(x,y+dy,w,h-dh):padRatio(0.3)
-    drawLabel(r:get())
-
-	-- draw outline/border
-	lg.setColor(0,0,0)
-	local lw = lg.getLineWidth()
-	lg.setLineWidth(2)
-	ui.jaggedRectangle("line", rounding, x,y+dy,w,h-dy)
-	lg.setLineWidth(lw)
-
-    return iml.wasJustClicked(x,y,w,h, CLICK_BUTTON)
+	ui.drawPanel(region:get())
+	drawLabel(region:padRatio(0.4,0.2):get())
+	return iml.wasJustClicked(region:get())
 end
 
 
