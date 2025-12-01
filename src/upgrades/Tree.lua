@@ -632,7 +632,14 @@ end
 ---@param data {upgrades:g.Tree.Upgrade[], connections:[integer,integer][], unboundUpgrades:g.Tree.Upgrade[]}
 function Tree.deserialize(data)
     local self = Tree()
+
     self.upgrades = keysToNumber(data.upgrades)
+    for hash,upg in pairs(self.upgrades) do
+        if not g.isValidUpgrade(upg.id) then
+            self.upgrades[hash] = nil
+        end
+    end
+
     self.unboundUpgrades = data.unboundUpgrades or {}
     self.connections = data.connections
     self:finalize()

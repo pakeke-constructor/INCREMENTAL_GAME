@@ -1097,6 +1097,16 @@ function g.getUpgradeInfo(upgradeId)
 end
 
 
+---@param upgradeId string
+---@return boolean
+function g.isValidUpgrade(upgradeId)
+    local uinfo = upgradeInfos[upgradeId]
+    return not not uinfo
+end
+
+
+
+
 end
 
 

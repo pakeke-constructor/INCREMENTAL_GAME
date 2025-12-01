@@ -73,14 +73,5 @@ g.defineToken("happy_cat_token", "Happy Cat", {
     },
     maxHealth = 10
 })
-
-g.defineToken("business_cat", "Business Cat", {
-    category = "cat",
-    resources = {
-        money = 300,
-    },
-    maxHealth = 15
-})
-
 end
 

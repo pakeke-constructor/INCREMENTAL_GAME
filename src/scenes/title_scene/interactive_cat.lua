@@ -2,14 +2,11 @@
 local InteractiveCat = objects.Class("title:InteractiveCat")
 
 local RANDOM_TEXT = {
-    loc"Meow!",
-    loc"Woof, Wo- oh wait.",
-    loc"Join our cat Discord server below!",
-    loc"Wishlist our game on Steam!", -- TODO: Remove once we release the game
-    loc"PAT PAT PAT",
-    loc("CAT "..("CAT"):rep(10, " ")),
-    loc"{fish} FISH! {fish} FISH! {fish}",
+    loc"Meow",
+    loc"Meow, Meow",
+    loc"Meow Meow.",
 }
+
 local CAT_IMAGE = "happy_cat"
 local CAT_SIZE = 64
 local JUMP_DURATION = 0.4
@@ -24,28 +21,29 @@ local function quadraticJump(x)
     return 4 * (x - x * x)
 end
 
----@param flip boolean
-function InteractiveCat:init(flip)
-    self.flip = not not flip
+
+---@alias _title.InteractiveCat.Args {flip: boolean?, image:string?}
+
+---@param args _title.InteractiveCat.Args
+function InteractiveCat:init(args)
+    self.flip = not not args.flip
+    self.image = args.image
+    if not args.image then
+        self.image = "happy_cat"
+    end
+    assert(g.getImageQuad(self.image))
     self.text = ""
     self.textDisplayDuration = 0.
     self.jumpDuration = 0.
     self.squishDuration = 0.
     self.nextRandomAction = helper.lerp(RANDOM_ACTION_DURATION[1], RANDOM_ACTION_DURATION[2], love.math.random())
-
-    self.drawFunc = function(x, y, w, h)
-        local oy = JUMP_HEIGHT * quadraticJump(self.jumpDuration / JUMP_DURATION)
-        local sy = (1 - self.squishDuration / SQUISH_DURATION * 0.3)
-        local _, _, iw, ih = g.getImageQuad(CAT_IMAGE):getViewport()
-        g.drawImageOffset(CAT_IMAGE, x, y - oy, 0, w / iw, sy * h / ih, 0, 0)
-    end
 end
 
 if false then
-    ---@param flip boolean
+    ---@param args _title.InteractiveCat.Args
     ---@return _title.InteractiveCat
     ---@diagnostic disable-next-line: cast-local-type, missing-return
-    function InteractiveCat(flip) end
+    function InteractiveCat(args) end
 end
 
 function InteractiveCat:_onClick()
@@ -92,7 +90,8 @@ function InteractiveCat:draw(r)
         local sy = (1 - quadraticJump(self.squishDuration / SQUISH_DURATION) * 0.3)
         local sx = self.flip and -1 or 1
         local _, _, iw, ih = g.getImageQuad(CAT_IMAGE):getViewport()
-        g.drawImageOffset(CAT_IMAGE, catR.x + catR.w / 2, catR.y + catR.h - offy, 0, sx * catR.w / iw, sy * catR.h / ih, 0.5, 1)
+        local rot = math.sin(love.timer.getTime()/2) / 8
+        g.drawImageOffset(CAT_IMAGE, catR.x + catR.w / 2, catR.y + catR.h - offy, rot, sx * catR.w / iw, sy * catR.h / ih, 0.5, 1)
     end
 
     if iml.wasJustClicked(catR:get()) then

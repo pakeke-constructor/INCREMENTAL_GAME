@@ -1,7 +1,7 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local sceneManager = require("src.scenes.sceneManager")
 
-local titleBackground = require("src.titleBackground")
+local titleBackground = require("src.scenes.titleBackground")
 local sfx = require("src.sound.sfx")
 
 

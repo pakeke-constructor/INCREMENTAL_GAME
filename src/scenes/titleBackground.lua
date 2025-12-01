@@ -29,7 +29,7 @@ function titleBackground.draw()
     local tileOffX = (tileW * TILE_SIZE - uiW) / 2
     local tileOffY = (tileH * TILE_SIZE - uiH) / 2
 
-    love.graphics.setColor(1, 1, 1, 0.5)
+    love.graphics.setColor(1, 1, 1, 0.3)
 
     -- Draw cat silhouette
     for ty = -1, tileH do

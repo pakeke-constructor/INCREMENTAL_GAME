@@ -1,8 +1,8 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
-local titleBackground = require("src.titleBackground")
+local titleBackground = require("src.scenes.titleBackground")
 local InteractiveCat = require(".interactive_cat")
 
-local TITLE_TEXT = assert(richtext.parseRichText("{w}{o thickness=2}CaT CaT CaT CaT CaT CaT CaT CaT CaT CaT CaT{/o}{/w}"))
+local TITLE_TEXT = assert(richtext.parseRichText("{w}{o thickness=2}CAT CAT CAT CAT CAT CAT CAT CAT CAT CAT CAT{/o}{/w}"))
 
 local function init()
     local shouldLoad = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
@@ -18,9 +18,9 @@ end
 local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
 local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
 local PLAYB_BASE_COL = objects.Color("#" .. "FFE0AC35")
-local PLAYB_MAIN_COL = objects.Color("#" .. "FF5E4200")
+local PLAYB_MAIN_COL = objects.Color("#" .. "FFD78F0A")
 local DISCORD_BASE_COL = objects.Color("#" .. "FF9C91FF")
-local DISCORD_MAIN_COL = objects.Color("#" .. "FF0F0943")
+local DISCORD_MAIN_COL = objects.Color("#" .. "FF2C1CC0")
 local SECONDARY_BUTTONS = {
     {
         loc"Settings",
@@ -53,8 +53,8 @@ local title = FreeCameraScene()
 
 function title:init()
     self.progress = 0
-    self.catLeft = InteractiveCat(false)
-    self.catRight = InteractiveCat(true)
+    self.catLeft = InteractiveCat({flip=false})
+    self.catRight = InteractiveCat({flip=true})
 end
 
 ---@param dt number
@@ -118,19 +118,41 @@ function title:draw()
     do
         local cx,cy = playButtonR:getCenter()
         local t = love.timer.getTime()
+
+        godrays.drawRays(cx,cy, t/2.5, {
+            rayCount = 3,
+            divisions=30,
+            color = objects.Color.GOLD,
+            startWidth=8,
+            length=600,
+            fadeTo=0,
+            growRate=0.6,
+        })
+
+        godrays.drawRays(cx,cy, -t/1.5, {
+            rayCount = 5,
+            divisions=30,
+            color = objects.Color.GOLD,
+            startWidth=9,
+            length=150,
+            fadeTo=0,
+            growRate=1.6,
+        })
+
         godrays.drawRays(cx,cy, t, {
             rayCount = 6,
             divisions=30,
-            color = objects.Color.GOLD:clone():multiply(objects.Color({1,1,1,0.5})),
+            color = objects.Color.GOLD,
             startWidth=10,
             length=200,
             fadeTo=0,
             growRate=2.6,
         })
+
         godrays.drawRays(cx,cy, t*-1, {
             rayCount = 5,
             divisions=30,
-            color = objects.Color.YELLOW:clone():multiply(objects.Color({1,1,1,0.6})),
+            color = objects.Color.YELLOW,
             startWidth=10,
             length=300,
             fadeTo=0,
@@ -152,8 +174,11 @@ function title:draw()
     end
 
     -- Draw cats
-    self.catLeft:draw(iCatLeftR)
-    self.catRight:draw(iCatRightR)
+    do
+    local t = love.timer.getTime()
+    self.catLeft:draw(iCatLeftR:moveUnit(0,10*math.sin(t)))
+    self.catRight:draw(iCatRightR:moveUnit(0,10*math.cos(t)))
+    end
 
     -- Draw other buttons
     -- TODO: Remove this once we release our game

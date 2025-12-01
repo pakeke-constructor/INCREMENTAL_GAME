@@ -86,7 +86,7 @@ local function ensureLoaded()
     })
     defineCosmetic("AVATAR", "business_cat", "Business Cat", {})
     defineCosmetic("AVATAR", "evil_cat", "Evil Cat", {})
-    defineCosmetic("AVATAR", "grass_farmer_cat", "Grass Farmer Cat", {})
+    defineCosmetic("AVATAR", "farmer_cat", "Grass Farmer Cat", {})
     defineCosmetic("AVATAR", "lumberjack_cat", "Lumberjack Cat", {})
 
     defineCosmetic("BACKGROUND", "white", "White", {
