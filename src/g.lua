@@ -675,7 +675,7 @@ end
 function g.getResourcesPerSecond(resId)
     assertValidResource(resId)
     local world = g.getSn().mainWorld
-    return world.resourcesPerSecond[resId]
+    return world.resourcesPerSecond[resId] or 0
 end
 
 

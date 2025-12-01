@@ -536,7 +536,7 @@ function World:_update(dt)
     end
 
     self.resourcesPerSecond = {}
-    for resId, collector in pairs(self.dataCollectors) do
+    for resId, collector in pairs(self.dataCollectors or {}) do
         self.resourcesPerSecond[resId] = collector:avgdiff()
     end
 
