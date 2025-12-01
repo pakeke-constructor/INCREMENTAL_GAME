@@ -19,6 +19,8 @@ local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
 local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
 local PLAYB_BASE_COL = objects.Color("#" .. "FFE0AC35")
 local PLAYB_MAIN_COL = objects.Color("#" .. "FF5E4200")
+local DISCORD_BASE_COL = objects.Color("#" .. "FF9C91FF")
+local DISCORD_MAIN_COL = objects.Color("#" .. "FF0F0943")
 local SECONDARY_BUTTONS = {
     {
         loc"Settings",
@@ -41,7 +43,9 @@ local SECONDARY_BUTTONS = {
 }
 
 local text = {
-    play = "{w amp=0.5 freq=0.7}{o thickness=0.5}"..loc("Play").."{/o}{/w}"
+    play = "{w amp=0.5 freq=0.7}{o thickness=0.5}"..loc("Play").."{/o}{/w}",
+    wishlist = "{o thickness=0.75}"..loc("Wishlist!").."{/o}",
+    discord = "{o thickness=0.75}"..loc("Discord").."{/o}",
 }
 
 ---@class TitleScene: FreeCameraScene
@@ -97,6 +101,16 @@ function title:draw()
         :attachToBottomOf(playButtonR)
         :centerX(playButtonR)
         :grid(1, #SECONDARY_BUTTONS)
+    local wishlistButtonR = Kirigami(0, 0, 80, 24)
+        :attachToLeftOf(r)
+        :attachToBottomOf(r)
+        :moveRatio(1, -1)
+        :moveUnit(4, -4)
+    local discordButtonR = Kirigami(0, 0, 80, 24)
+        :attachToLeftOf(r)
+        :attachToTopOf(wishlistButtonR)
+        :moveRatio(1, 0)
+        :moveUnit(4, -4)
     local catWidths = (maxButtonR.w - PRIMARY_BUTTON_SIZE[1])
     local iCatLeftR, _, iCatRightR = maxButtonR:splitHorizontal(catWidths, PRIMARY_BUTTON_SIZE[1], catWidths)
 
@@ -130,9 +144,9 @@ function title:draw()
 
     for i, binfo in ipairs(SECONDARY_BUTTONS) do
         local buttonPadR = secondaryButtonGrid[i]:padUnit(4)
-        love.graphics.setColor(0, 0, 0)
+        love.graphics.setColor(1, 1, 1)
 
-        if ui.Button(helper.wrapRichtextColor(objects.Color.WHITE, binfo[1]), binfo[2], binfo[3], buttonPadR) then
+        if ui.Button("{o thickness=0.5}"..binfo[1].."{/o}", binfo[2], binfo[3], buttonPadR) then
             binfo[4]()
         end
     end
@@ -140,6 +154,15 @@ function title:draw()
     -- Draw cats
     self.catLeft:draw(iCatLeftR)
     self.catRight:draw(iCatRightR)
+
+    -- Draw other buttons
+    -- TODO: Remove this once we release our game
+    if ui.Button(text.wishlist, objects.Color.GREEN, objects.Color.BLACK, wishlistButtonR) then
+        print("TODO Steam link")
+    end
+    if ui.Button(text.discord, DISCORD_BASE_COL, DISCORD_MAIN_COL, discordButtonR) then
+        print("TODO Discord link")
+    end
 
     ui.endUI()
 end
