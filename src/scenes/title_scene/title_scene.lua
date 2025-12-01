@@ -1,5 +1,6 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local titleBackground = require("src.titleBackground")
+local InteractiveCat = require(".interactive_cat")
 
 local TITLE_TEXT = assert(richtext.parseRichText("{w}{o thickness=2}CaT CaT CaT CaT CaT CaT CaT CaT CaT CaT CaT{/o}{/w}"))
 
@@ -48,12 +49,16 @@ local title = FreeCameraScene()
 
 function title:init()
     self.progress = 0
+    self.catLeft = InteractiveCat(false)
+    self.catRight = InteractiveCat(true)
 end
 
 ---@param dt number
 function title:update(dt)
     self.progress = (self.progress + dt * 0.2) % 1
     titleBackground.update(dt)
+    self.catLeft:update(dt)
+    self.catRight:update(dt)
 end
 
 local PRIMARY_BUTTON_SIZE = {200, 80}
@@ -92,6 +97,8 @@ function title:draw()
         :attachToBottomOf(playButtonR)
         :centerX(playButtonR)
         :grid(1, #SECONDARY_BUTTONS)
+    local catWidths = (maxButtonR.w - PRIMARY_BUTTON_SIZE[1])
+    local iCatLeftR, _, iCatRightR = maxButtonR:splitHorizontal(catWidths, PRIMARY_BUTTON_SIZE[1], catWidths)
 
     -- Draw play button
     do
@@ -129,6 +136,10 @@ function title:draw()
             binfo[4]()
         end
     end
+
+    -- Draw cats
+    self.catLeft:draw(iCatLeftR)
+    self.catRight:draw(iCatRightR)
 
     ui.endUI()
 end
