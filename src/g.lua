@@ -982,39 +982,6 @@ end
 --------------------------------------------------
 do
 
--- Dont ask me how this hash/unhash shit works, i vibecoded it.
--- (And YES, i tested it thoroughly)
--- just make sure args are in range.
-local MAX_VAL = 500
-
----@param x integer (-499 to 499)
----@param y integer (-499 to 499)
----@param prestige integer (0 to 499)
----@return integer
-local function hash(x, y, prestige)
-    -- M_X = 499500 (999 * 500)
-    -- M_Y = 500
-    -- Offset = 499
-    assert(prestige>=0,"prestige must be positive")
-    return (x + 499) * 499500 + (y + 499) * 500 + prestige
-end
-g.hashPos = hash
-
----@param h integer
----@return integer x, integer y, integer prestige
-local function unhash(h)
-    -- M_X = 499500, S_Y = 999, M_Y = 500, Offset = 499
-    local p = h % 500
-    local r = math.floor(h/500)
-    local y = r % 999 - 499
-    local x = math.floor(r/999) - 499
-    return x, y, p
-end
-
-
-local function assertSmallEnough(x)
-    assert(math.abs(x) < MAX_VAL, "Needs to be less than " .. MAX_VAL .. " for hashing to work correctly!")
-end
 
 ---@type string[]
 g.UPGRADE_LIST = {}
