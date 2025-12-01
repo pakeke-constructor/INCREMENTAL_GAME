@@ -152,7 +152,7 @@ function rewards.generateRandomRewards()
     local rewardList = {
         generateResourceReward(),
         generateResourceReward(),
-        generateResourceReward(),
+        generatePotionReward(),
         -- resource-reward
         -- effect-reward
         -- OTHER-reward
@@ -163,8 +163,8 @@ end
 
 
 
-local GIVE_EFFECT = interp("Grants a temporary buff:\n%{str}", {
-    context = "As in, instantly applying a potion effect or a positive status effect. Try to keep simple/concise."
+local GIVE_EFFECT = interp("{o}Grants {c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!{/o}", {
+    context = "A temporary potion effect / positive status effect. Example: 'Grants +2 Damage for 15 seconds!'"
 })
 
 
@@ -188,10 +188,12 @@ function rewards.drawRewardDescription(rew, r)
         for resId,v in pairs(rew.resources) do
             resTxt = resTxt .. "+" .. tostring(v) .. " {" ..resId.. " scale=0.7}"
         end
+        resTxt = "{o}" .. resTxt .. "{/o}"
         richtext.printRichContainedNoWrap(resTxt, font, main:get())
     elseif rew.effect then
         richtext.printRichContained(GIVE_EFFECT({
-            str = rew.effect.description
+            str = rew.effect.description,
+            seconds = rew.effectDuration
         }), font, main:get())
     elseif rew.stackedToken then
         

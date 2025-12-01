@@ -28,7 +28,7 @@ local function defStatPotion(i, id, stat, name, amount)
     local key = tostring("get" .. stat .. "Modifier")
     ---@cast key string
 
-    local effectDescription = interp("+%{amount} " .. stat)
+    local effectDescription = interp("+%{amount} " .. name)
 
     g.defineEffect(newId, realName, {
         image = image,

@@ -8,8 +8,6 @@ local reducers = require("src.modules.reducers")
 local Session = require("src.Session")
 local HUD = require("src.ui.hud.hud")
 
-local rewards = require("src.rewards.rewards")
-
 
 
 local sfx = require("src.sound.sfx")
