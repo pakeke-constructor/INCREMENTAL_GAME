@@ -1,5 +1,7 @@
 
 
+local statPotions = {}
+
 
 local count = {}
 
@@ -8,8 +10,8 @@ local count = {}
 ---@param name string
 ---@param stat string
 ---@param amount number
-local function defStatPotion(id, stat, name, amount)
-    local newId = id .. "_" .. tostring(amount)
+local function defStatPotion(i, id, stat, name, amount)
+    local newId = id .. "_" .. tostring(i)
     local image = id .. "_potion"
 
     local ct = (count[id] or 1)
@@ -42,14 +44,19 @@ local function defStatPotion(id, stat, name, amount)
 end
 
 
-for val=4, 8, 2 do
-    defStatPotion("hit_speed", "HitSpeed", "Hit Speed", val)
+
+local hitspds = {4, 6, 8}
+for i = 1, #hitspds do
+    defStatPotion(i, "hit_speed", "HitSpeed", "Hit Speed", hitspds[i])
 end
 
-for val=2, 4 do
-    defStatPotion("hit_damage", "HitDamage", "Damage", val)
+local dmgs = {2, 3, 4}
+for i = 1, #dmgs do
+    defStatPotion(i, "hit_damage", "HitDamage", "Damage", dmgs[i])
 end
 
-for val=40,80,20 do
-    defStatPotion("harvest_area", "HarvestArea", "Area", val)
+local areas = {40, 60, 80}
+for i = 1, #areas do
+    defStatPotion(i, "harvest_area", "HarvestArea", "Area", areas[i])
 end
+

@@ -113,8 +113,25 @@ end
 
 
 
+local generatePotionReward
+do
+local statPots = {}
+for i=1,3 do
+    table.insert(statPots, "hit_speed_" .. i)
+    table.insert(statPots, "hit_damage_" .. i)
+    table.insert(statPots, "harvest_area_" .. i)
+end
+
 ---@return g.Reward
-local function generatePotionReward()
+function generatePotionReward()
+    local r = love.math.random()
+    local potionId = helper.randomChoice(statPots)
+    return {
+        effect = g.getEffectInfo(potionId),
+        effectDuration = 20 + math.random(-5, 5)
+    }
+end
+
 end
 
 
