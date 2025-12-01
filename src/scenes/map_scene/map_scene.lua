@@ -438,7 +438,6 @@ function map:draw()
 
         if val > 0 then
             local ww,hh = love.graphics.getDimensions()
-            print(val)
             lg.circle("line", ww/2,hh/2, 800*(1-val))
         end
     end

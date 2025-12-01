@@ -548,7 +548,7 @@ local g_UpgradeDefinition = {}
 ---@field update (fun(tok: g.Token, dt:number))?
 ---@field drawBelow (fun(tok: g.Token))?
 --- below this line are events (via g.call)
----@field drawToken (fun(tok: g.Token))?
+---@field drawToken (fun(tok: g.Token, x:number,y:number, rot:number?,sx:number?,sy:number?,kx:number?,ky:number?))?
 ---@field tokenHit (fun(tok: g.Token))?
 ---@field tokenDestroyed (fun(tok: g.Token))?
 ---@field tokenDamaged (fun(tok: g.Token, dmg:number))?
@@ -1064,9 +1064,6 @@ function g.defineUpgrade(id, name, def)
 
     def.type = id
 
-    if id == "thick_grass" then
-        print("HERE.")
-    end
     assert(not upgradeInfos[id], "Redefined upgrade!")
     upgradeInfos[id] = def
 
@@ -1241,6 +1238,22 @@ function g.getTokenInfo(tokType)
 end
 
 
+function g.drawTokenIcon(tokType, x,y, rot,sx,sy, kx,ky)
+    love.graphics.setColor(1,1,1)
+    local tinfo = g.getTokenInfo(tokType)
+    if tinfo.image then
+        g.drawImage(tinfo.image, x, y, rot, sx, sy, kx,ky)
+    end
+
+    if tinfo.growths then
+        local stalkInfo = g.getStalkInfo(tinfo.growths.stalk)
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.drawImage(tinfo.growths.growth, x + pos.x, y + pos.y, rot, sx, sy, kx, ky)
+        end
+    end
+end
+
+
 local DEFAULT_MIN_SPACING = 12
 
 ---@param world g.World
@@ -1395,7 +1408,7 @@ end
 ---@field timeSinceHit number Time since `tryHitToken` actually hits the token.
 ---@field timeSinceDamaged number
 ---@field timeAlive number
----@field draw (fun(self:g.Token))?
+---@field drawToken (fun(tok: g.Token, x:number,y:number, rot:number?,sx:number?,sy:number?,kx:number?,ky:number?))?
 ---@field slimed boolean?
 ---@field ___destroyed boolean?
 local g_Token = {}

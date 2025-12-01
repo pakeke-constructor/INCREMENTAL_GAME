@@ -19,7 +19,7 @@ local function defStatPotion(id, stat, name, amount)
 
     g.defineToken(newId, realName, {
         image = image,
-        maxHealth = 10,
+        maxHealth = 15,
         resources = {},
     })
 
@@ -52,8 +52,4 @@ end
 
 for val=40,80,20 do
     defStatPotion("harvest_area", "HarvestArea", "Area", val)
-end
-
-for k,v in pairs(count)do
-    print(k,v)
 end

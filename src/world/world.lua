@@ -277,8 +277,8 @@ local function drawToken(tok)
     end
 
     love.graphics.setColor(1,1,1)
-    if tok.draw then
-        tok:draw()
+    if tok.drawToken then
+        tok:drawToken(tok.x, tok.y, rot, sx, sy, kx,ky)
     end
 
     if tok.slimed then
