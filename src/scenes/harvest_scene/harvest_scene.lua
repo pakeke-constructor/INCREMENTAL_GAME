@@ -341,8 +341,9 @@ local function drawFancyBackgroundShit(progress)
     lg.setLineWidth(lw)
     end
 
+    local time = love.timer.getTime()/2
     local DIVISIONS = 120
-    godrays.drawRays(cx,cy, love.timer.getTime()*1.3, {
+    godrays.drawRays(cx,cy, time*1.3, {
         rayCount = 5,
         color = GOLD,
         --color = {0.3,1,0.7},
@@ -353,7 +354,7 @@ local function drawFancyBackgroundShit(progress)
         fadeTo=0.3
     })
 
-    godrays.drawRays(cx,cy, love.timer.getTime()*-1.2, {
+    godrays.drawRays(cx,cy, time*-1.2, {
         rayCount = 3,
         color = GOLD,
         startWidth = 7,
@@ -365,7 +366,7 @@ local function drawFancyBackgroundShit(progress)
 
     do
     local spd=-0.7
-    godrays.drawRays(cx,cy, love.timer.getTime()*spd, {
+    godrays.drawRays(cx,cy, time*spd, {
         rayCount = 3,
         color = {GOLD[1],GOLD[2],GOLD[3],0.5},
         -- color = {0.7,1,0.3},
@@ -375,7 +376,7 @@ local function drawFancyBackgroundShit(progress)
         length = r.w * 0.7 * progress,
         fadeTo=0.3
     })
-    godrays.drawRays(cx,cy, love.timer.getTime()*spd, {
+    godrays.drawRays(cx,cy, time*spd, {
         rayCount = 3,
         color = GOLD,
         -- color = {0.7,1,0.3},
@@ -387,7 +388,7 @@ local function drawFancyBackgroundShit(progress)
     })
     end
 
-    godrays.drawRays(cx,cy, 2 + love.timer.getTime()*1.3, {
+    godrays.drawRays(cx,cy, 2 + time*1.3, {
         rayCount = 4,
         color = GOLD,
         -- color = {0.7,1,0.3},
@@ -398,7 +399,7 @@ local function drawFancyBackgroundShit(progress)
         fadeTo=0.3
     })
 
-    godrays.drawRays(cx,cy, love.timer.getTime()*0.7, {
+    godrays.drawRays(cx,cy, time*0.7, {
         rayCount = 2,
         color = GOLD,
         -- color = {0.1,0.1,0.9},

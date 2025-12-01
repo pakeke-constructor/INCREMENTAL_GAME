@@ -117,7 +117,7 @@ function title:draw()
     -- Draw play button
     do
         local cx,cy = playButtonR:getCenter()
-        local t = love.timer.getTime()
+        local t = love.timer.getTime()/2
 
         godrays.drawRays(cx,cy, t/2.5, {
             rayCount = 3,

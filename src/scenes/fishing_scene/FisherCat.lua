@@ -105,6 +105,7 @@ function FisherCat:draw()
         local bobY = self.bobberY + 3*math.sin(love.timer.getTime()*5 + self.randomId/377.34)
 
         love.graphics.setColor(1,1,1,0.5)
+        love.graphics.setLineWidth(1)
         love.graphics.line(self.x+16,self.y-15, self.bobberX,bobY)
         love.graphics.setColor(1,1,1)
         g.drawImage("fishing_cat_bobber", self.bobberX, bobY)

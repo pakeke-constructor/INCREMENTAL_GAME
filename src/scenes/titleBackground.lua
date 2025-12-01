@@ -8,6 +8,13 @@ local backgroundMesh = love.graphics.newMesh({
     {0, 1, 0, 1, unpack(objects.Color("#".."FF14A0CD"))},
 }, "fan", "static")
 
+
+-- hmm, what ones the best?
+-- local CAT = loc("CaT")
+-- local CAT = loc("CaT CaT")
+-- local CAT = loc("CAT")
+local CAT = loc("CAT CAT")
+
 local titleBackground = {}
 
 ---@param dt number
@@ -50,7 +57,7 @@ function titleBackground.draw()
     end
 
     -- Draw cat text
-    local text = "CaT"
+    local text = CAT
     local font = g.getSmallFont(16)
     local tw = font:getWidth(text)
     local th = font:getHeight()
