@@ -250,7 +250,10 @@ function rewards.drawRewardDescription(rew, r)
     -- draw icon:
     lg.setColor(1,1,1)
     lg.rectangle("fill", icon:padRatio(0.1):get())
-    g.drawImageContained(rew.icon, icon:padRatio(0.4):get())
+    do
+    local x,y,w,h = icon:padRatio(0.4):get()
+    g.drawImageContained(rew.icon, x,y,w,h, math.sin(love.timer.getTime())/14)
+    end
 
     main = main:padRatio(0.3)
     if rew.resources then
@@ -273,10 +276,11 @@ function rewards.drawRewardDescription(rew, r)
         local a,b = main:splitVertical(1,1)
         richtext.printRichContained(STACKED_TOKEN, font, a:get())
         local tokImg = rew.stackedToken.image
-        local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
+        -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
+        local txt = ("{o}=> %d {%s}{/o}"):format(rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
         richtext.printRichContainedNoWrap(txt, font, b:get())
     elseif rew.upgradeId then
-        
+        richtext.printRichContained(txt, font, b:get())
     else
         -- this shit doesnt need to be translated
         richtext.printRichContained("{o}ERROR. WTF? TELL OLI!{/o}", font, r:get())

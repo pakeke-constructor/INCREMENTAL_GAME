@@ -20,49 +20,6 @@ local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color(
 
 
 
-local STAT_UP_COLOR = objects.Color("#".."FFEF8EFC")
-
----@param uinfo g.UpgradeInfo
----@param level integer
----@param nextLevel boolean? (Display next level values?)
-local function getUpgradeDescription(uinfo, level, nextLevel)
-    if not uinfo.description then
-        return ""
-    end
-
-    local displayValue = {}
-
-    if uinfo.getValues then
-        local currentValues = {uinfo:getValues(level)}
-        local nextValues = nil
-        if nextLevel then
-            nextValues = {uinfo:getValues(level + 1)}
-            assert(#currentValues == #nextValues)
-        end
-
-        for i = 1, #currentValues do
-            local formatter = uinfo.valueFormatter[i] or "%.14g"
-            local value
-
-            if type(formatter) == "string" then
-                value = string.format(formatter, currentValues[i])
-                if nextValues then
-                    value = value..string.format(helper.wrapRichtextColor(STAT_UP_COLOR, " -> "..formatter), nextValues[i])
-                end
-            else
-                value = formatter(currentValues[i])
-                if nextValues then
-                    value = value..helper.wrapRichtextColor(STAT_UP_COLOR, " -> "..formatter(nextValues[i]))
-                end
-            end
-
-            displayValue[tostring(i)] = value
-        end
-    end
-
-    return uinfo.description(displayValue)
-end
-
 
 
 
@@ -94,7 +51,7 @@ local function autoBuild(self, tree, upg)
 
     if uinfo.description then
         local level = upg.level
-        local realDesc = getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
+        local realDesc = g.getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
         self:addSpacer(8)
         self:addText(realDesc)
     end

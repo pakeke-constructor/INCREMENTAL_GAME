@@ -360,7 +360,8 @@ end
 ---@param y number
 ---@param w number
 ---@param h number
-function g.drawImageContained(imageName, x,y, w,h)
+---@param rot number?
+function g.drawImageContained(imageName, x,y, w,h, rot)
     local quad = g.getImageQuad(imageName)
     local _,_,qw,qh = quad:getViewport()
     local scaleX = w / qw
@@ -370,7 +371,7 @@ function g.drawImageContained(imageName, x,y, w,h)
     local scaledH = qh * scale
     local centerX = x + (w - scaledW) / 2
     local centerY = y + (h - scaledH) / 2
-    atlas:draw(quad, centerX, centerY, 0, scale, scale, 0, 0)
+    atlas:draw(quad, centerX, centerY, rot or 0, scale, scale, 0, 0)
 end
 
 
@@ -1132,6 +1133,44 @@ function g.isValidUpgrade(upgradeId)
     return not not uinfo
 end
 
+
+
+local STAT_UP_COLOR = objects.Color("#".."FFEF8EFC")
+
+---@param uinfo g.UpgradeInfo
+---@param level integer
+---@param nextLevel boolean? (Display next level values?)
+function g.getUpgradeDescription(uinfo, level, nextLevel)
+    if not uinfo.description then
+        return ""
+    end
+    local displayValue = {}
+    if uinfo.getValues then
+        local currentValues = {uinfo:getValues(level)}
+        local nextValues = nil
+        if nextLevel then
+            nextValues = {uinfo:getValues(level + 1)}
+            assert(#currentValues == #nextValues)
+        end
+        for i = 1, #currentValues do
+            local formatter = uinfo.valueFormatter[i] or "%.14g"
+            local value
+            if type(formatter) == "string" then
+                value = string.format(formatter, currentValues[i])
+                if nextValues then
+                    value = value..string.format(helper.wrapRichtextColor(STAT_UP_COLOR, " -> "..formatter), nextValues[i])
+                end
+            else
+                value = formatter(currentValues[i])
+                if nextValues then
+                    value = value..helper.wrapRichtextColor(STAT_UP_COLOR, " -> "..formatter(nextValues[i]))
+                end
+            end
+            displayValue[tostring(i)] = value
+        end
+    end
+    return uinfo.description(displayValue)
+end
 
 
 
