@@ -137,6 +137,24 @@ end
 end
 
 
+local generateStackedTokenReward
+
+---@return g.Reward
+function generateStackedTokenReward()
+    local r = love.math.random()
+    local lv = g.getSn().level
+    if  r < 0.1 then
+        if lv>9 then
+            return {stackedToken="slime_token", stackedTokenCount=6}
+        else
+
+        end
+    end
+    return {
+    }
+end
+
+
 
 
 ---@return g.Reward[]

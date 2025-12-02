@@ -109,20 +109,21 @@ class Args:
     input: collections.abc.Sequence[str]
 
 
-def main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--input-merged", help="Where to store the merged input (optional)", default=None)
-    parser.add_argument("--palette", help="Where to store the generated palette (optional)", default=None)
-    parser.add_argument("--input-palette", help="What palette to use (optional)", default=None)
-    parser.add_argument(
-        "--colorspace", help="Which colorspace to use?", choices=["rgb", "oklab"], type=str.lower, default="rgb"
-    )
-    parser.add_argument(
-        "--ncolors", help="How many colors in the palette? Ignored if --input-palette is used", type=int, default=64
-    )
-    parser.add_argument("output_merged", help="Where to store the quantized merged output")
-    parser.add_argument("input", nargs="+", help="Input image files")
-    args = parser.parse_args(namespace=Args())
+def main(args=None):
+    if not args:
+        parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        parser.add_argument("--input-merged", help="Where to store the merged input (optional)", default=None)
+        parser.add_argument("--palette", help="Where to store the generated palette (optional)", default=None)
+        parser.add_argument("--input-palette", help="What palette to use (optional)", default=None)
+        parser.add_argument(
+            "--colorspace", help="Which colorspace to use?", choices=["rgb", "oklab"], type=str.lower, default="rgb"
+        )
+        parser.add_argument(
+            "--ncolors", help="How many colors in the palette? Ignored if --input-palette is used", type=int, default=64
+        )
+        parser.add_argument("output_merged", help="Where to store the quantized merged output")
+        parser.add_argument("input", nargs="+", help="Input image files")
+        args = parser.parse_args(namespace=Args())
 
     input_merged = stack_images(*args.input)
     if args.input_merged:
@@ -170,6 +171,23 @@ def main():
     quantized_pil.save(args.output_merged)
 
 
+
+def run_with_args():
+    a = Args()
+    a.input_merged = None
+    a.input_palette = "palette_1.png"
+    a.palette = "palette_1.png"
+    a.colorspace = "oklab"
+    a.ncolors = 64
+    a.output_merged = "output_merged.png"
+    a.input = [
+        "input1.png", "input2.png", "input3.png", "input4.png",
+        "input5.png", "input6.png", "input7.png"
+    ]
+    main(a)
+
+
 if __name__ == "__main__":
     main()
+    # run_with_args()
 

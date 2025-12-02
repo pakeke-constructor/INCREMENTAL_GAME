@@ -20,7 +20,7 @@ g.defineToken("slime_token", "Slime", {
     category = "slime",
     description = "When destroyed, covers surrounding crops in slime!",
     resources = {money = 0},
-    maxHealth = 7,
+    maxHealth = 4,
     maxLevel=3,
     tokenDestroyed = function(tok)
         local MAX_TOKENS_TO_SLIME = 5
