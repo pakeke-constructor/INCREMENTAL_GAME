@@ -61,6 +61,7 @@ local rewards = {}
 ---
 ---@field stackedToken g.TokenInfo? gives a stacked-token reward immediately
 ---@field stackedTokenCount number?
+---@field stackedTokenSpawnFunc fun(tok:g.Token)?
 ---
 ---@field icon string
 local Reward = {}
@@ -138,22 +139,58 @@ end
 
 
 local generateStackedTokenReward
+-- https://youtu.be/dQw4w9WgXcQ?si=7ZmxRrDo3EFVD9gi
+do
 
+
+---@param resId string
 ---@return g.Reward
-function generateStackedTokenReward()
-    local r = love.math.random()
-    local lv = g.getSn().level
-    if  r < 0.1 then
-        if lv>9 then
-            return {stackedToken="slime_token", stackedTokenCount=6}
-        else
-
-        end
-    end
+local function generateStacked(resId)
+    local rps = g.getResourcesPerSecond(resId)
+    local resAmount = math.max(rps, 1)*3
     return {
+        ---@param tok g.Token
+        stackedTokenSpawnFunc = function(tok)
+            tok.resources = {
+                [resId] = resAmount
+            }
+        end,
+        stackedToken = g.getTokenInfo("chest_"..resId),
+        stackedTokenCount = math.floor(math.random(8, 20) / 2) * 2,
+        icon = "chest_"..resId
     }
 end
 
+---@return g.Reward
+function generateStackedTokenReward()
+    local lv = g.getSn().level
+    if love.math.random() < 0.08 and lv>9 then
+        return {stackedToken="slime_token", stackedTokenCount=math.random(6,9)}
+    end
+
+    -- IDEA: spawn stackedToken bombs here?
+
+    -- IDEA: stackedToken mushrooms?
+
+    -- IDEALLY, it should be stuff that is scaling-agnostic
+
+    if love.math.random() < 0.4 then
+        return generateStacked("money")
+    end
+
+    local r = love.math.random()
+    if r < 0.25 then
+        return generateStacked("fish")
+    elseif r < 0.5 then
+        return generateStacked("bread")
+    elseif r < 0.75 then
+        return generateStacked("juice")
+    else
+        return generateStacked("fabric")
+    end
+end
+
+end
 
 
 
@@ -169,7 +206,7 @@ function rewards.generateRandomRewards()
 
     local rewardList = {
         generateResourceReward(),
-        generateResourceReward(),
+        generateStackedTokenReward(),
         generatePotionReward(),
         -- resource-reward
         -- effect-reward

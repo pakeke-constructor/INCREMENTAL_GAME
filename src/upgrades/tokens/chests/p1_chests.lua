@@ -25,6 +25,16 @@ g.defineToken("chest_golden", "Golden Chest", {
 
 
 
+--[[
+
+All of these chests are special;
+their `resources` tables are SUPPOSED to be adjusted!
+
+]]
+g.defineToken("chest_money", "Money Chest", {
+    maxHealth = 7,
+    resources = {money = 10},
+})
 g.defineToken("chest_fish", "Fishy Chest", {
     maxHealth = 7,
     resources = {fish = 10},

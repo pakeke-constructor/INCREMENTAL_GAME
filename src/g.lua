@@ -1262,7 +1262,7 @@ end
 ---@param tokType string
 function g.getTokenInfo(tokType)
     if not tokenDefinitions[tokType] then
-        error("token '"..tokType.."' does not exist")
+        error("token '"..tostring(tokType).."' does not exist")
     end
     return tokenDefinitions[tokType]
 end
@@ -1677,6 +1677,7 @@ local MAX_QUEUED_TOKENS = 100
 ---@param screenY number?
 ---@param onSpawn fun(tok:g.Token)?
 function g.stackToken(tokenId, screenX,screenY, onSpawn)
+    assert(g.getTokenInfo(tokenId))
     currentSession.tokenQueue[#currentSession.tokenQueue+1] = {
         tokenId = tokenId,
         onSpawn = onSpawn
