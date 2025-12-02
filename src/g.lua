@@ -506,7 +506,7 @@ g.stats = {}
 -- SSTATS 
 -- (if you ever want to quickly search the name of stats, search "sstats")
 g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
-g.stats.HitDamage = g.defineStat("HitDamage", 2)
+g.stats.HitDamage = g.defineStat("HitDamage", 3)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 1) -- rad/s
 
