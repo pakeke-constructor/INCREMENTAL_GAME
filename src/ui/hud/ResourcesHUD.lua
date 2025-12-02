@@ -173,10 +173,11 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
 
         -- Draw filled bar (potentially partially filled)
         local q = helper.cloneQuad(g.getImageQuad(barimagefill))
+        local fillVal = self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1)
         do
             -- Compute bar width
             local qx, qy, qw, qh = q:getViewport()
-            local mult = helper.clamp(self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1), 0, 1)
+            local mult = helper.clamp(fillVal, 0, 1)
             q:setViewport(qx, qy, qw * mult, qh)
         end
         -- Cannot use g.drawImageOffset here because we're using different quad.
@@ -192,8 +193,14 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
             :padUnit(4, 0, 8, 0)
             :centerY(textR)
             :moveUnit(0, math.sin(love.timer.getTime()*3) - 1)
+
+        local richtxt = "{o}"..g.formatNumber(math.max(0,self.displayValue[kind])).."{/o}"
+        local isFull = fillVal >= 1
+        if isFull then
+            richtxt = helper.wrapRichtextColor({1,0.2,0.2}, richtxt)
+        end
         printTextAt(
-            "{o}"..g.formatNumber(math.max(0,self.displayValue[kind])).."{/o}",
+            richtxt,
             font,
             r,
             "left",
