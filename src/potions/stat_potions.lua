@@ -1,7 +1,5 @@
 
 
-local statPotions = {}
-
 
 local count = {}
 
@@ -18,12 +16,6 @@ local function defStatPotion(i, id, stat, name, amount)
     count[id] = ct + 1
 
     local realName = name .. " ("..ct..")"
-
-    g.defineToken(newId, realName, {
-        image = image,
-        maxHealth = 15,
-        resources = {},
-    })
 
     local key = tostring("get" .. stat .. "Modifier")
     ---@cast key string

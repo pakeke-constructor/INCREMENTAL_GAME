@@ -25,7 +25,6 @@ local function makeFarmerCatUpdate(targetCategory)
         -- Update positions
         worldutil.updateLikeDVD(self, dt)
         worldutil.updateWaddleAnimation(self, self.dirX,self.dirY)
-        self.sx = -self.sx
 
         -- Try harvest
         g.iterateTokensInArea(self.x, self.y, self.radius + consts.HARVEST_AREA_LEEWAY, tokenHitter)

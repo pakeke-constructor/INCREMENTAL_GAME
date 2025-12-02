@@ -351,7 +351,7 @@ local function drawIndividualClouds(t, oy, clearRadius, cloudRadius, cloudSpacin
             local y = math.sin(angle) * cdist + helper.lerp(-4, 4, hash / 65535)
 
             hash = helper.hashInteger(hash + 12345) % 65536
-            local r = cloudRadius + oy + i + helper.lerp(-4, 4, hash / 65535)
+            local r = cloudRadius + oy + i + helper.lerp(-10, 20, hash / 65535)
 
             love.graphics.circle("fill", x + cx, y + cy + oy, r)
             cloudCount = cloudCount + 1
@@ -483,11 +483,6 @@ function map:draw()
 
     ui.startUI()
     do
-    -- fade to/from black:
-
-    -- TODO: REPLACE THIS WITH CLOUDS ZOOMING IN/OUT
-    -- TODO: REPLACE THIS WITH CLOUDS ZOOMING IN/OUT
-    -- TODO: REPLACE THIS WITH CLOUDS ZOOMING IN/OUT
     local ttgt = self.transitionTarget
     if ttgt then
         local val = 0

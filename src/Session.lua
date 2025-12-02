@@ -65,7 +65,7 @@ function Session:init()
     self.fisherCatCount = 0
 
     -- Tokens that are queued for spawning in harvest area
-    ---@type string[]
+    ---@type {tokenId:string, onSpawn: function?}[]
     self.tokenQueue = {}
 
     -- Accessory data

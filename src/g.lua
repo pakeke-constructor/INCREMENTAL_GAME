@@ -1675,8 +1675,12 @@ local MAX_QUEUED_TOKENS = 100
 ---@param tokenId string
 ---@param screenX number?
 ---@param screenY number?
-function g.stackToken(tokenId, screenX,screenY)
-    currentSession.tokenQueue[#currentSession.tokenQueue+1] = tokenId
+---@param onSpawn fun(tok:g.Token)?
+function g.stackToken(tokenId, screenX,screenY, onSpawn)
+    currentSession.tokenQueue[#currentSession.tokenQueue+1] = {
+        tokenId = tokenId,
+        onSpawn = onSpawn
+    }
 
     while #currentSession.tokenQueue > MAX_QUEUED_TOKENS do
         g.popStackedToken()
@@ -1687,15 +1691,38 @@ function g.stackToken(tokenId, screenX,screenY)
     end
 end
 
+
+---@param duration number
+---@param effectInfo g.EffectInfo
+---@param screenX number?
+---@param screenY number?
+function g.stackPotionToken(duration, effectInfo, screenX, screenY)
+    g.stackToken("abstract_potion_token", screenX, screenY, function (tok)
+        -- HACKY HACKY: Injecting shit here.
+        tok.image = effectInfo.image
+
+        ---@diagnostic disable-next-line
+        tok._effect = effectInfo.type
+        ---@diagnostic disable-next-line
+        tok._effectDuration = duration
+    end)
+end
+
+
 ---@return string?
+---@return fun(tok:g.Token)? onSpawn
 function g.peekStackedToken()
-    return currentSession.tokenQueue[1]
+    local tabl = currentSession.tokenQueue[1]
+    if tabl then
+        return tabl.tokenId, tabl.onSpawn
+    end
 end
 
 ---@return string
 function g.popStackedToken()
     assert(#currentSession.tokenQueue > 0, "token queue is empty")
-    return table.remove(currentSession.tokenQueue, 1)
+    local popped = table.remove(currentSession.tokenQueue, 1)
+    return popped.tokenId
 end
 
 

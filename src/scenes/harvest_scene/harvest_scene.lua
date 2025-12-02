@@ -811,10 +811,11 @@ function harvest:update(dt)
     self.camera:setPos(worldW / 2, worldH / 2)
 
     -- Pull stack token
-    local stkTok = g.peekStackedToken()
-    if stkTok then
-        -- If there's no token, prepare new one.
+    local stkTok,onSpawn = g.peekStackedToken()
+    if stkTok and (not isAnyPopupOpen(self)) then
+        -- dont pull tokens when popups are open.
         if self.stackedTokenLerpTime == -1 then
+            -- If there's no token, prepare new one.
             self:_resetStackTokenAnim()
         end
 
@@ -823,12 +824,14 @@ function harvest:update(dt)
 
         if t >= 1 then
             assert(g.popStackedToken() == stkTok)
-            g.spawnToken(stkTok, self.stackedTokenX, self.stackedTokenY)
+            local tok = g.spawnToken(stkTok, self.stackedTokenX, self.stackedTokenY)
+            if tok and onSpawn then
+                onSpawn(tok)
+            end
             self:_resetStackTokenAnim()
         end
     else
         -- Just in case when the stack token was in progress
-        -- then it's gone.
         self.stackedTokenLerpTime = -1
     end
 

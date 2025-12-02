@@ -223,7 +223,8 @@ function rewards.selectReward(rew)
         g.addResources(rew.resources)
     elseif rew.effect then
         assert(rew.effectDuration)
-        g.grantEffect(rew.effect.type, rew.effectDuration)
+        local einfo = g.getEffectInfo(rew.effect.type)
+        g.stackPotionToken(rew.effectDuration, einfo)
     elseif rew.stackedToken then
         for _=1, rew.stackedTokenCount do
             local w,h = ui.getScaledUIDimensions()
