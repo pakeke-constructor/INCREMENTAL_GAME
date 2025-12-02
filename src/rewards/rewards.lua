@@ -100,13 +100,14 @@ local function generateResourceReward()
         end
     end
     local resId = helper.randomChoice(buf)
-    local rps = g.getResourcesPerSecond(resId)
-    local SECONDS = love.math.random(15,40)
+    local rps = math.max(1, g.getResourcesPerSecond(resId))
+    local seconds = math.floor(love.math.random(15,40) / 5) * 5
 
     local resources = {}
-    resources[resId] = tonumber(g.formatNumber(rps*SECONDS))
+    print("RES: ", resId, rps, seconds)
+    resources[resId] = tonumber(g.formatNumber(rps*seconds))
     return assertRewardIsValid({
-        icon = g.getResourceInfo(resId).image,
+        icon = "resource_bundle_reward",
         resources = resources
     })
 end
@@ -163,9 +164,15 @@ end
 
 
 
+local POTION = loc("{wavy amp=0.3 f=2}{o}POTION!{/o}{/wavy}")
 local GIVE_EFFECT = interp("{o}Grants {c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!{/o}", {
     context = "A temporary potion effect / positive status effect. Example: 'Grants +2 Damage for 15 seconds!'"
 })
+
+local RESOURCE_BUNDLE = loc("{wavy amp=0.3 f=2}{o}Free resources:{/o}{/wavy}", {}, {
+    context = "A bundle of free resources"
+})
+
 
 
 ---@param rew g.Reward
@@ -177,10 +184,9 @@ function rewards.drawRewardDescription(rew, r)
     local icon, main = r:splitHorizontal(r.h, r.w-r.h)
 
     -- draw icon:
-    local cx,cy = icon:getCenter()
     lg.setColor(1,1,1)
     lg.rectangle("fill", icon:padRatio(0.1):get())
-    g.drawImageContained(rew.icon, icon:padRatio(0.2):get())
+    g.drawImageContained(rew.icon, icon:padRatio(0.4):get())
 
     main = main:padRatio(0.3)
     if rew.resources then
@@ -189,12 +195,16 @@ function rewards.drawRewardDescription(rew, r)
             resTxt = resTxt .. "+" .. tostring(v) .. " {" ..resId.. " scale=0.7}"
         end
         resTxt = "{o}" .. resTxt .. "{/o}"
-        richtext.printRichContainedNoWrap(resTxt, font, main:get())
+        local a,b = main:splitVertical(1,1)
+        richtext.printRichContainedNoWrap(RESOURCE_BUNDLE, font, a:get())
+        richtext.printRichContainedNoWrap(resTxt, font, b:get())
     elseif rew.effect then
+        local a,b = main:splitVertical(1,1)
+        richtext.printRichContained(POTION, font, a:get())
         richtext.printRichContained(GIVE_EFFECT({
             str = rew.effect.description,
             seconds = rew.effectDuration
-        }), font, main:get())
+        }), font, b:get())
     elseif rew.stackedToken then
         
     elseif rew.upgradeId then
