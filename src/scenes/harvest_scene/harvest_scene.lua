@@ -286,7 +286,8 @@ local popupParticles = particles.newParticlesWorld({
         else
             img = "xp_packet_big_2"
         end
-        --sx = math.sin(love.timer.getTime()*10 + id*1.77)
+        img = "money"
+        sx = math.sin(love.timer.getTime()*10 + id*1.77)
         g.drawImage(img, p.x,p.y, rot, sx,sy)
     end,
     getParticleDuration = function(p)
@@ -320,7 +321,7 @@ local function drawFancyBackgroundShit(progress)
         if love.math.random()<0.5 then
             a = a+math.pi
         end
-        local mag = 280 + math.random()*60
+        local mag = 180 + math.random()*30
         local vx = math.cos(a) * mag
         local vy = math.sin(a) * mag
         popupParticles:spawnParticle(cx,cy, vx,vy)

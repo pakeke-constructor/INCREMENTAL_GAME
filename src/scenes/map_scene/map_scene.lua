@@ -15,7 +15,7 @@ local map = FreeCameraScene()
 -- fade in is half the duration and fade out is half of it too.
 local TRANSITION_DURATION = 1
 -- Target transition scale.
-local TRANSITION_SCALE = 5
+local TRANSITION_SCALE = 4
 
 
 ---@class (exact) _MapBuilding
@@ -366,7 +366,7 @@ end
 local function drawCloudTransition(t, clearRadius, cloudRadius, cloudSpacing)
     cloudSpacing = cloudSpacing or cloudRadius
     love.graphics.setColor(1, 0.55, 0.78, 1)
-    drawIndividualClouds(t, 3, clearRadius, cloudRadius, cloudSpacing)
+    drawIndividualClouds(t, 9, clearRadius, cloudRadius, cloudSpacing)
     love.graphics.setColor(1, 1, 1)
     drawIndividualClouds(t, 0, clearRadius, cloudRadius, cloudSpacing)
 end
