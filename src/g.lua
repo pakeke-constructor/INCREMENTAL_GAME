@@ -1467,6 +1467,10 @@ function g.defineEntity(type, etype)
     assert(etype.x == nil, "x is reserved field")
     assert(etype.y == nil, "y is reserved field")
     assert(etype.type == nil, "type is reserved field")
+    if etype.hitToken then
+        assert(etype.hitToken.radius, "missing radius")
+        assert(etype.hitToken.collision, "missing collision function")
+    end
     etype.type = type
     local mt = {__index=etype}
     ENTITY_DEFS[type] = mt
