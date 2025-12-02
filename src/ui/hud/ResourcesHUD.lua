@@ -84,6 +84,15 @@ function Resources:init()
         juice = PARTICLE_HUD_VISUAL_ATTENTION_DURATION,
     }
 
+    -- Used for slight rotating animation
+    self.rotationDirection = {
+        money = 1,
+        fabric = 1,
+        bread = 1,
+        fish = 1,
+        juice = 1
+    }
+
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
 end
 
@@ -107,6 +116,7 @@ function Resources:update(dt)
             -- particle hit!
             table.remove(self.particles, i)
             self.timeSinceChanged[p.kind] = 0
+            self.rotationDirection[p.kind] = -self.rotationDirection[p.kind]
         end
     end
 
@@ -210,7 +220,8 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
 
         -- Draw resource icon
         local icx, icy = iconR:getCenter()
-        g.drawImage(image, icx, icy, 0, scale * helper.lerp(1, 1.25, (1 - t) ^ 2))
+        local rot = helper.lerp(self.rotationDirection[kind] * 0.2, 0, t)
+        g.drawImage(image, icx, icy, rot, scale * helper.lerp(1, 1.25, (1 - t) ^ 2))
     end
 
     local ux, uy = iconR:getCenter()
