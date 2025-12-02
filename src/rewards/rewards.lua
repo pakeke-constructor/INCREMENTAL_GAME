@@ -104,7 +104,6 @@ local function generateResourceReward()
     local seconds = math.floor(love.math.random(15,40) / 5) * 5
 
     local resources = {}
-    print("RES: ", resId, rps, seconds)
     resources[resId] = tonumber(g.formatNumber(rps*seconds))
     return assertRewardIsValid({
         icon = "resource_bundle_reward",
