@@ -97,8 +97,8 @@ end
 
 
 
----@return g.Reward
-local function generateResourceReward()
+---@return string
+local function getRandomUnlockedResource()
     local buf = {}
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if g.isResourceUnlocked(resId) then
@@ -106,6 +106,14 @@ local function generateResourceReward()
         end
     end
     local resId = helper.randomChoice(buf)
+    return resId
+end
+
+
+
+---@return g.Reward
+local function generateResourceReward()
+    local resId = getRandomUnlockedResource()
     local rps = math.max(1, g.getResourcesPerSecond(resId))
     local seconds = math.floor(love.math.random(15,40) / 5) * 5
 
@@ -185,16 +193,7 @@ function generateStackedTokenReward()
         return generateStacked("money")
     end
 
-    local r = love.math.random()
-    if r < 0.25 then
-        return generateStacked("fish")
-    elseif r < 0.5 then
-        return generateStacked("bread")
-    elseif r < 0.75 then
-        return generateStacked("juice")
-    else
-        return generateStacked("fabric")
-    end
+    return generateStacked(getRandomUnlockedResource())
 end
 
 end
@@ -212,17 +211,29 @@ function rewards.generateRandomRewards()
     end
 
     local rewardList = {
-        generateResourceReward(),
+        -- generateResourceReward(),
         generateStackedTokenReward(),
         generatePotionReward(),
+        {
+            upgradeId = "more_damage",
+            icon = "more_damage"
+        }
         -- resource-reward
         -- effect-reward
         -- OTHER-reward
     }
+
+    for _,rew in ipairs(rewardList) do
+        assertRewardIsValid(rew)
+    end
     helper.shuffle(rewardList)
     return rewardList
 end
 
+
+
+
+local PERMANENT_UPGRADE = loc("{wavy amp=0.3 f=2}{o}PERMANENT UPGRADE:{/o}{/wavy}")
 
 
 local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff to harvest:{/o}{/wavy}")
@@ -246,13 +257,22 @@ function rewards.drawRewardDescription(rew, r)
     -- AND used for reward-UI on HUD
     local font = g.getSmallFont(16)
     local icon, main = r:splitHorizontal(r.h, r.w-r.h)
+    local time = love.timer.getTime()
 
     -- draw icon:
     lg.setColor(1,1,1)
     lg.rectangle("fill", icon:padRatio(0.1):get())
     do
-    local x,y,w,h = icon:padRatio(0.4):get()
-    g.drawImageContained(rew.icon, x,y,w,h, math.sin(love.timer.getTime())/14)
+    if rew.stackedToken then
+        local txt
+        icon, txt = icon:splitHorizontal(1,1)
+        local x,y,w,h = icon:get()
+        g.drawImageContained(rew.icon, x,y,w,h, math.sin(time)/14)
+        richtext.printRichContained("{o}x"..tostring(rew.stackedTokenCount), font, txt:moveUnit(0,math.sin(time)*4):get())
+    else
+        local x,y,w,h = icon:padRatio(0.4):get()
+        g.drawImageContained(rew.icon, x,y,w,h, math.sin(time)/14)
+    end
     end
 
     main = main:padRatio(0.3)
@@ -266,21 +286,25 @@ function rewards.drawRewardDescription(rew, r)
         richtext.printRichContainedNoWrap(RESOURCE_BUNDLE, font, a:get())
         richtext.printRichContainedNoWrap(resTxt, font, b:get())
     elseif rew.effect then
-        local a,b = main:splitVertical(1,1)
+        local a,b = main:splitVertical(1,2)
         richtext.printRichContained(POTION, font, a:get())
         richtext.printRichContained(GIVE_EFFECT({
             str = rew.effect.description,
             seconds = rew.effectDuration
         }), font, b:get())
     elseif rew.stackedToken then
-        local a,b = main:splitVertical(1,1)
+        local a,b = main:splitVertical(1,2)
         richtext.printRichContained(STACKED_TOKEN, font, a:get())
-        local tokImg = rew.stackedToken.image
         -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
-        local txt = ("{o}=> %d {%s}{/o}"):format(rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
+        local txt = ("{o}+%d {%s}{/o}"):format(rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
         richtext.printRichContainedNoWrap(txt, font, b:get())
     elseif rew.upgradeId then
-        richtext.printRichContained(txt, font, b:get())
+        local a,b = main:splitVertical(1,2)
+        richtext.printRichContained(PERMANENT_UPGRADE, font, a:get())
+        local uinfo = g.getUpgradeInfo(rew.upgradeId)
+        local txt = g.getUpgradeDescription(uinfo, 1, false)
+        local effect = "{wavy amp=0.3 f=2}{o}{c r=0.9 g=0.7 b=0.5}"
+        richtext.printRichContained(effect.. txt, font, b:get())
     else
         -- this shit doesnt need to be translated
         richtext.printRichContained("{o}ERROR. WTF? TELL OLI!{/o}", font, r:get())
