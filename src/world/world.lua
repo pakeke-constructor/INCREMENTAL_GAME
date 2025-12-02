@@ -40,6 +40,8 @@ function World:init()
     self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
     ]]})
+    ---@type table<g.Entity, number?>
+    self.entitiesToCooldownTime = setmetatable({}, {__mode = "k"})
 
     self.particles = ParticleService()
     self.timer = 0 -- For per second update
@@ -514,6 +516,29 @@ local function updateResourceDataCollection(self)
 end
 
 
+
+---@param x number
+---@param y number
+---@param toks g.Token[]
+---@return g.Token
+local function selectNearestToken(x, y, toks)
+    local currentDist = math.huge
+    local index = 0
+
+    for i, v in ipairs(toks) do
+        local dist = helper.magnitude(v.x - x, v.y - y)
+
+        if dist < currentDist then
+            currentDist = dist
+            index = i
+        end
+    end
+
+    assert(index > 0, "token list is empty")
+    return toks[index]
+end
+
+
 ---@return fun(table: table<string, integer>, index?: string):string
 ---@return integer
 function World:iterateTokenPool()
@@ -636,12 +661,35 @@ function World:_update(dt)
 
     self.entities:flush() -- flush one more time in case entities are removed
 
+    -- These entity table and function is for singular token collision
+    -- Define the function on outer loop for optimization reasons.
+    ---@type g.Token[]
+    local collidedTokens = {}
+    ---@param tok g.Token
+    local function collectCollidedTokens(tok)
+        collidedTokens[#collidedTokens+1] = tok
+        return true
+    end
+
     ---@type table<integer, table<string, g.Entity[]>>
     local orbitRingStack = {}
     for _, e in ipairs(self.entities) do
         ---@cast e g.Entity
         if e.update then
             e:update(dt)
+        end
+
+        if e.hitToken then
+            local cooldown = math.max((self.entitiesToCooldownTime[e] or 0) - dt, 0)
+            if cooldown <= 0 then
+                self.tokenPartition:query(e.x, e.y, collectCollidedTokens, e.hitToken.radius)
+
+                if #collidedTokens > 0 then
+                    local tok = selectNearestToken(e.x, e.y, collidedTokens)
+                    e.hitToken.collision(e, tok)
+                    self.entitiesToCooldownTime[e] = e.hitToken.cooldown or 1
+                end
+            end
         end
 
         -- For orbit rings, we'll update their position

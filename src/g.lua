@@ -1451,6 +1451,7 @@ do
 ---@field perSecondUpdate (fun(e:g.Entity))?
 ---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?
+---@field hitToken {radius:number,collision:fun(self:g.Entity,tok:g.Token),cooldown:number?}?
 local Entity = {}
 
 
