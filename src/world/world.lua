@@ -702,10 +702,10 @@ function World:_update(dt)
             local mx = assert(self.mouseX)
             local my = assert(self.mouseY)
             local dir = (ringIndex % 2) * 2 - 1
-            local rot = self.orbitAngle + dir * i * 2 * math.pi / #entsToBeUpdated
-            local dist = g.stats.HarvestArea + (i - 0.5) * consts.ORBIT_RING_DISTANCE
-            e.x = mx + math.sin(rot) * dist
-            e.y = my + math.cos(rot) * dist
+            local rot = self.orbitAngle + i * 2 * math.pi / #entsToBeUpdated
+            local dist = g.stats.HarvestArea + (ringIndex - 0.5) * consts.ORBIT_RING_DISTANCE
+            e.x = mx + math.sin(rot * dir) * dist
+            e.y = my + math.cos(rot * dir) * dist
         end
     end
 
