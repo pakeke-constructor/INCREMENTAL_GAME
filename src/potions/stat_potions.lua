@@ -37,7 +37,7 @@ end
 
 
 
-local hitspds = {4, 6, 8}
+local hitspds = {6, 8, 10}
 for i = 1, #hitspds do
     defStatPotion(i, "hit_speed", "HitSpeed", "Hit Speed", hitspds[i])
 end
