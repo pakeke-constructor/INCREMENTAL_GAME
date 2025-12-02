@@ -14,6 +14,7 @@ local cosmetics = require("src.cosmetics.cosmetics")
 ---@field mainWorld g.World
 ---@field metrics table<string, number>
 ---@field stats table<string, number>
+---@field tokenQueue {tokenId:string, onSpawn: function?}[]
 local Session = objects.Class("g:Session")
 
 

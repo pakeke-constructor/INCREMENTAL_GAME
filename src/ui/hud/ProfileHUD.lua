@@ -142,7 +142,8 @@ function Profile:draw(noDraw, drawXPBar)
         ---@type table<string, integer>
         local tokens = {}
         local countByToken = {}
-        for _, tok in ipairs(g.getSn().tokenQueue) do
+        for _, tabl in ipairs(g.getSn().tokenQueue) do
+            local tok = tabl.tokenId
             if countByToken[tok] then
                 countByToken[tok] = countByToken[tok] + 1
             elseif #tokens < MAX_NUMBER_OF_TOKEN_TYPES then

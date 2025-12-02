@@ -61,6 +61,8 @@ local rewards = {}
 ---
 ---@field stackedToken g.TokenInfo? gives a stacked-token reward immediately
 ---@field stackedTokenCount number?
+---@field stackedTokenResource string?
+---@field stackedTokenResourceAmount number?
 ---@field stackedTokenSpawnFunc fun(tok:g.Token)?
 ---
 ---@field icon string
@@ -83,6 +85,9 @@ local function assertRewardIsValid(rew)
         assert(rew.effectDuration, "Effects need a duration")
     end
     if rew.stackedToken then
+        assert(rew.stackedTokenCount, "stackedToken rewards need a count")
+        assert(rew.stackedTokenResource, "need a resource")
+        assert(rew.stackedTokenResourceAmount, "need resourceAmount")
         assert(rew.stackedTokenCount, "stackedToken rewards need a count")
     end
 
@@ -148,7 +153,7 @@ do
 local function generateStacked(resId)
     local rps = g.getResourcesPerSecond(resId)
     local resAmount = math.max(rps, 1)*3
-    return {
+    return assertRewardIsValid{
         ---@param tok g.Token
         stackedTokenSpawnFunc = function(tok)
             tok.resources = {
@@ -157,6 +162,8 @@ local function generateStacked(resId)
         end,
         stackedToken = g.getTokenInfo("chest_"..resId),
         stackedTokenCount = math.floor(math.random(8, 20) / 2) * 2,
+        stackedTokenResourceAmount = resAmount,
+        stackedTokenResource = resId,
         icon = "chest_"..resId
     }
 end
@@ -218,6 +225,9 @@ end
 
 
 
+local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff to harvest:{/o}{/wavy}")
+
+
 local POTION = loc("{wavy amp=0.3 f=2}{o}POTION!{/o}{/wavy}")
 local GIVE_EFFECT = interp("{o}Grants {c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!{/o}", {
     context = "A temporary potion effect / positive status effect. Example: 'Grants +2 Damage for 15 seconds!'"
@@ -260,11 +270,16 @@ function rewards.drawRewardDescription(rew, r)
             seconds = rew.effectDuration
         }), font, b:get())
     elseif rew.stackedToken then
-        
+        local a,b = main:splitVertical(1,1)
+        richtext.printRichContained(STACKED_TOKEN, font, a:get())
+        local tokImg = rew.stackedToken.image
+        local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
+        richtext.printRichContainedNoWrap(txt, font, b:get())
     elseif rew.upgradeId then
         
     else
-        richtext.printRichContained("{o}ERROR. WTF? Tell Oli", font, r:get())
+        -- this shit doesnt need to be translated
+        richtext.printRichContained("{o}ERROR. WTF? TELL OLI!{/o}", font, r:get())
     end
 end
 
