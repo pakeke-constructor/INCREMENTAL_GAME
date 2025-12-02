@@ -35,6 +35,7 @@ function World:init()
     self.tokenPartition = objects.Partition(20)
 
     self.mouseX, self.mouseY = nil,nil
+    self.orbitAngle = 0
 
     self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
@@ -629,10 +630,32 @@ function World:_update(dt)
 
     self.entities:flush() -- flush one more time in case entities are removed
 
+    ---@type table<integer, table<string, g.Entity[]>>
+    local orbitRingStack = {}
     for _, e in ipairs(self.entities) do
         ---@cast e g.Entity
         if e.update then
             e:update(dt)
+        end
+
+        -- For orbit rings, we'll update their position
+        -- but we need to do it in multiple passes.
+        -- Also only add to list if mouse harvester is enabled.
+        if self.mouseX and e.orbitRing then
+            local ringIndex = math.floor(e.orbitRing)
+            local ring = orbitRingStack[ringIndex]
+            if not ring then
+                ring = {}
+                orbitRingStack[ringIndex] = ring
+            end
+
+            local ents = ring[e.type]
+            if not ents then
+                ents = {}
+                ring[e.type] = ents
+            end
+
+            ents[#ents+1] = e
         end
 
         if e.lifetime then
@@ -640,6 +663,49 @@ function World:_update(dt)
             if e.lifetime <= 0 then
                 self.entities:removeBuffered(e)
             end
+        end
+    end
+
+    -- Update orbit ring positions (this has multiple pass for each ring)
+    self.orbitAngle = (self.orbitAngle + g.stats.OrbitSpeed * dt) % (2 * math.pi)
+    for ringIndex, ring in pairs(orbitRingStack) do
+        ---@type string[]
+        local etypes = {}
+        local count = 0
+
+        -- Pass 1: Get etypes and total entities
+        for k, v in pairs(ring) do
+            etypes[#etypes+1] = k
+            count = count + #v
+        end
+
+        ---@type g.Entity[]
+        local entsToBeUpdated = {}
+        -- Pass 2: Pop each type in round-robin fashion
+        repeat
+            local noMorePops = true
+            for _, etype in ipairs(etypes) do
+                -- Ideally we want to pop etype from etypes if it's 0 but
+                -- that feels like an unnecessary optimization.
+                if #ring[etype] > 0 then
+                    noMorePops = false
+                    entsToBeUpdated[#entsToBeUpdated+1] = table.remove(ring[etype])
+                end
+            end
+        until noMorePops
+
+        -- Pass 3: Update the entity positions
+        for i, e in ipairs(entsToBeUpdated) do
+            -- Note: This always has non-nil `self.mouseX` and `self.mouseY`
+            -- because entities are queued to orbitRingStack only if mouse
+            -- harvester is enabled in the first place.
+            local mx = assert(self.mouseX)
+            local my = assert(self.mouseY)
+            local dir = (ringIndex % 2) * 2 - 1
+            local rot = self.orbitAngle + i * 2 * math.pi / #entsToBeUpdated
+            local dist = g.stats.HarvestArea + (ringIndex - 0.5) * consts.ORBIT_RING_DISTANCE
+            e.x = mx + math.sin(rot * dir) * dist
+            e.y = my + math.cos(rot * dir) * dist
         end
     end
 
