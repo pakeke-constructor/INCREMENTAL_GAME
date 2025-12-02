@@ -738,7 +738,7 @@ function harvest:draw()
 
     -- Draw clouds
     if not g.isBeingSimulated() then
-        cloudService.drawShadow()
+        --cloudService.drawShadow()
         love.graphics.setColor(1, 1, 1, 1)
         cloudService.draw()
     end
