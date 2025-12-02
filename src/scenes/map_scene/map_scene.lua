@@ -322,6 +322,57 @@ local function makePOIAction(poi)
 end
 
 
+
+---@param t number
+---@param oy number
+---@param clearRadius number
+---@param cloudRadius number
+---@param cloudSpacing number
+local function drawIndividualClouds(t, oy, clearRadius, cloudRadius, cloudSpacing)
+    local w, h = ui.getScaledUIDimensions()
+    local cx, cy = w / 2, h / 2
+    local ncircles = math.ceil(math.pi * (clearRadius + cloudSpacing) / cloudSpacing)
+    local centerRadius = helper.magnitude(cx + 4, cy + 4) + cloudRadius
+    local rdist = centerRadius + cloudRadius * 2
+    local nrings = rdist / cloudSpacing
+    local targetRadius = helper.lerp(centerRadius, clearRadius, t)
+
+    local cloudCount = 0
+    for i = 0, nrings - 1 do
+        local cdist = targetRadius + i * cloudSpacing
+        local ioff = i % 2 / 2
+        for j = 0, ncircles do
+            local angle = (j + ioff) * 2 * math.pi / ncircles
+
+            local hash = helper.hashInteger(cloudCount + 12345) % 65536
+            local x = math.cos(angle) * cdist + helper.lerp(-4, 4, hash / 65535)
+
+            hash = helper.hashInteger(hash + 12345) % 65536
+            local y = math.sin(angle) * cdist + helper.lerp(-4, 4, hash / 65535)
+
+            hash = helper.hashInteger(hash + 12345) % 65536
+            local r = cloudRadius + oy + i + helper.lerp(-4, 4, hash / 65535)
+
+            love.graphics.circle("fill", x + cx, y + cy + oy, r)
+            cloudCount = cloudCount + 1
+        end
+    end
+end
+
+---@param t number 0 = no clouds, 1 = fully covered
+---@param clearRadius number Radius that it shouldn't have clouds on
+---@param cloudRadius number Size of each individual cloud
+---@param cloudSpacing number? Spacing of each individual cloud (default to `cloudRadius`)
+local function drawCloudTransition(t, clearRadius, cloudRadius, cloudSpacing)
+    cloudSpacing = cloudSpacing or cloudRadius
+    love.graphics.setColor(1, 0.55, 0.78, 1)
+    drawIndividualClouds(t, 3, clearRadius, cloudRadius, cloudSpacing)
+    love.graphics.setColor(1, 1, 1)
+    drawIndividualClouds(t, 0, clearRadius, cloudRadius, cloudSpacing)
+end
+
+
+
 function map:draw()
     lg.clear(MAP_BACKGROUND)
 
@@ -430,6 +481,7 @@ function map:draw()
 
     vignette.draw()
 
+    ui.startUI()
     do
     -- fade to/from black:
 
@@ -439,22 +491,19 @@ function map:draw()
     local ttgt = self.transitionTarget
     if ttgt then
         local val = 0
-        local tt = (ttgt.time/ttgt.duration)
-        if ttgt.action == nil then
-            -- its zooming out! invert it:
-            val = 1 - helper.clamp(tt, 0, 1)
+        if ttgt.action then
+            val = helper.remap(ttgt.time, 0, ttgt.duration / 2, 0, 1)
         else
-            val = helper.EASINGS.sineOut(helper.clamp(tt, 0, 1))
+            -- its zooming out! invert it:
+            val = helper.remap(ttgt.time, ttgt.duration / 2, ttgt.duration, 1, 0)
         end
+        val = helper.EASINGS.sineInOut(helper.clamp(val, 0, 1))
 
         if val > 0 then
-            local ww,hh = love.graphics.getDimensions()
-            lg.circle("line", ww/2,hh/2, 800*(1-val))
+            drawCloudTransition(val, 160, 14)
         end
     end
     end
-
-    ui.startUI()
     ui.endUI()
 end
 
