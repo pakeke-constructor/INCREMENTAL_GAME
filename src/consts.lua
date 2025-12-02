@@ -38,6 +38,8 @@ local consts = {
     DEFAULT_CAT_AVATAR = "cat",
     DEFAULT_BACKGROUND_AVATAR = "white",
     DEFAULT_SCYTHE = "scythe",
+
+    ORBIT_RING_DISTANCE = 20 -- Radius of each orbit ring.
 }
 
 

@@ -507,6 +507,7 @@ g.stats = {}
 g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
 g.stats.HitDamage = g.defineStat("HitDamage", 1)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
+g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 5) -- rad/s
 
 -- World stat
 g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 25)
@@ -1345,6 +1346,7 @@ do
 ---@field ox number?
 ---@field oy number?
 ---@field rot number?
+---@field orbitRing integer?
 ---@field image string?
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
