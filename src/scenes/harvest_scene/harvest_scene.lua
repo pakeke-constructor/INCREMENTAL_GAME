@@ -654,6 +654,7 @@ function drawXpPopup(self)
     love.graphics.setColor(1,1,1)
     local regions = {popup:splitVertical(1,1,1)}
     local p = 0.2
+    local rewardClaimed = false
 
     local function drawReward(i)
         local rrr = regions[i]
@@ -661,19 +662,26 @@ function drawXpPopup(self)
         rrr = rrr:padRatio(p)
         local col1 = objects.Color("#" .. "FF9F14F6")
         local col2 = objects.Color("#" .. "FF3B12A4")
+        if iml.isHovered(rrr:get()) then
+            col2 = col1
+        end
         helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
         ui.drawPanel(rrr:get())
         rewards.drawRewardDescription(rew, rrr)
+        if iml.wasJustClicked(rrr:get()) and (not rewardClaimed) then
+            rewardClaimed = true
+            rewards.selectReward(rew)
+        end
     end
 
     for i=1, 3 do
         drawReward(i)
     end
 
+    if rewardClaimed then
+        closeXpPopup(self)
     end
 
-    if iml.wasJustClicked(popup:get()) then
-        closeXpPopup(self)
     end
 end
 
@@ -699,6 +707,12 @@ function harvest:tokenDestroyed(tok)
 end
 
 
+---@param self HarvestScene
+local function isAnyPopupOpen(self)
+    return self.xpPopup or self.upgradePopup
+end
+
+
 function harvest:draw()
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
@@ -715,7 +729,7 @@ function harvest:draw()
 
     local world = g.getMainWorld()
 
-    if self.xpPopup or self.upgradePopup then
+    if isAnyPopupOpen(self) then
         world:_enableMouseHarvester(-500,-500)
     elseif not g.isBeingSimulated() then
         local cx,cy = self.camera:toWorld(love.mouse.getPosition())
@@ -754,7 +768,6 @@ function harvest:draw()
 
     ui.endUI()
 end
-
 
 
 
