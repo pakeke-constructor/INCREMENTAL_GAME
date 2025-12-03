@@ -171,7 +171,6 @@ defUpgrade("bomb_rain", "Bomb Rain", {
 
 
 defUpgrade("spinning_knife", "Spinning Knife", {
-    image = "knife",
     description = "Spawn %{1} spinning knife orbiting the harvest area!",
     maxLevel = 5,
 

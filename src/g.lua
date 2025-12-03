@@ -1242,7 +1242,7 @@ local STALKS = {}
 
 ---@class g.StalkDefinition
 ---@field public image string?
----@field public growthpos {x: number, y: number}[]
+---@field public growthpos {x: number, y: number}[] Position coordinate is in pixels, relative to stalk center
 
 ---@param id string
 ---@param def g.StalkDefinition

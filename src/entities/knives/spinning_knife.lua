@@ -1,5 +1,5 @@
 g.defineEntity("spinning_knife", {
-    image = "knife",
+    image = "spinning_knife",
     orbitRing = 1,
     update = function(ent, dt)
         ent.rot = (ent.rot or 0) + dt
