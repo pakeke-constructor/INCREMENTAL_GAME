@@ -1242,7 +1242,7 @@ local STALKS = {}
 
 ---@class g.StalkDefinition
 ---@field public image string?
----@field public growthpos {x: number, y: number}[]
+---@field public growthpos {x: number, y: number}[] Position coordinate is in pixels, relative to stalk center
 
 ---@param id string
 ---@param def g.StalkDefinition
@@ -1451,6 +1451,7 @@ do
 ---@field perSecondUpdate (fun(e:g.Entity))?
 ---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?
+---@field hitToken {radius:number,collision:fun(self:g.Entity,tok:g.Token),cooldown:number?}?
 local Entity = {}
 
 
@@ -1466,6 +1467,10 @@ function g.defineEntity(type, etype)
     assert(etype.x == nil, "x is reserved field")
     assert(etype.y == nil, "y is reserved field")
     assert(etype.type == nil, "type is reserved field")
+    if etype.hitToken then
+        assert(etype.hitToken.radius, "missing radius")
+        assert(etype.hitToken.collision, "missing collision function")
+    end
     etype.type = type
     local mt = {__index=etype}
     ENTITY_DEFS[type] = mt
@@ -1491,6 +1496,10 @@ function g.spawnEntity(ename, x,y, ...)
         id = currentId,
         x=x,y=y, type=ename
     }, mt)
+
+    if ent.hitToken then
+        ent.hitToken = helper.shallowCopy(ent.hitToken)
+    end
 
     if ent.init then
         ent:init(...)
