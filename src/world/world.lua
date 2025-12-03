@@ -328,10 +328,6 @@ local function drawEntity(e)
         love.graphics.setColor(1, 1, 1)
         e:draw()
     end
-
-    if e.hitToken then
-        love.graphics.circle("line", e.x, e.y, e.hitToken.radius)
-    end
 end
 
 
