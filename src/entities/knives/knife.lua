@@ -14,8 +14,8 @@ local KnifeEntity = {
     }
 }
 
-function KnifeEntity:init()
-    local rot = helper.lerp(0, 2 * math.pi, love.math.random())
+function KnifeEntity:init(rot)
+    rot = rot or helper.lerp(0, 2 * math.pi, love.math.random())
     self.rot = rot + ROT_OFFSET
     self.vx = math.cos(rot) * SPEED
     self.vy = math.sin(rot) * SPEED
