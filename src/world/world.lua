@@ -669,7 +669,9 @@ function World:_update(dt)
     local collidedTokens = {}
     ---@param tok g.Token
     local function collectCollidedTokens(tok)
-        collidedTokens[#collidedTokens+1] = tok
+        if not tok.___destroyed then
+            collidedTokens[#collidedTokens+1] = tok
+        end
         return false
     end
 
