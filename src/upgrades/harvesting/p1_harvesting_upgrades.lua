@@ -186,3 +186,19 @@ defUpgrade("spinning_knife", "Spinning Knife", {
         return g.spawnEntity("spinning_knife", 0, 0)
     end
 })
+
+defUpgrade("thorns", "Thorns", {
+    description = "When a crop is harvested, %{1} chance for it to shoot out a knife projectile!",
+
+    getValues = function(uinfo, level)
+        return level * 2
+    end,
+    valueFormatter = {"%d%%"},
+    tokenDestroyed = function(uinfo, level, tok)
+        local chance = uinfo:getValues(level) / 100
+        if love.math.random() <= chance then
+            -- Spawn knife
+            g.spawnEntity("knife", tok.x, tok.y)
+        end
+    end
+})
