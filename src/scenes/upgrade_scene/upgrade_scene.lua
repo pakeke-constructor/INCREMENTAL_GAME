@@ -270,7 +270,20 @@ function upgscene:keypressed(k)
         end
 
         if k == "1" then
-            g.getSn().tree = newDevTree()
+            local session = g.getSn()
+            local oldTree = session.tree
+            local upgradeLevels = {}
+            -- Preserve upgrade levels
+            for _, upg in ipairs(oldTree:getAllUpgrades()) do
+                upgradeLevels[upg.id] = upg.level
+            end
+
+            session.tree = newDevTree()
+
+            -- Restore upgrade levels
+            for _, upg in ipairs(session.tree:getAllUpgrades()) do
+                upg.level = upgradeLevels[upg.id] or 0
+            end
         end
     end
 end
