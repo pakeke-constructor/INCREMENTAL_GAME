@@ -680,14 +680,15 @@ function World:_update(dt)
         end
 
         if e.hitToken then
-            local cooldown = math.max((self.entitiesToCooldownTime[e] or 0) - dt, 0)
+            local entCooldown = e.hitToken.cooldown or 1
+            local cooldown = math.max(math.min(self.entitiesToCooldownTime[e] or 0, entCooldown) - dt, 0)
             if cooldown <= 0 then
                 self.tokenPartition:query(e.x, e.y, collectCollidedTokens, e.hitToken.radius)
 
                 if #collidedTokens > 0 then
                     local tok = selectNearestToken(e.x, e.y, collidedTokens)
                     e.hitToken.collision(e, tok)
-                    self.entitiesToCooldownTime[e] = e.hitToken.cooldown or 1
+                    self.entitiesToCooldownTime[e] = entCooldown
                 end
             end
         end
