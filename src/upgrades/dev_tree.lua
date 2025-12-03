@@ -9,7 +9,10 @@ local function newDevTree()
     for i, upgId in ipairs(g.UPGRADE_LIST) do
         local x = (i-1) % W
         local y = math.floor((i-1) / W)
-        tree:put(x, y, g.getUpgradeInfo(upgId), true)
+        local upg = tree:put(x, y, g.getUpgradeInfo(upgId), true)
+        tree:setUpgradeBasePrice(upg, {
+            money=1
+        })
     end
 
     return tree

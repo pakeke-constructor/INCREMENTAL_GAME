@@ -61,7 +61,7 @@ local function autoBuild(self, tree, upg)
     -- Build price tag text.
     local price = tree:getUpgradePrice(upg)
     for _, resId in ipairs(g.RESOURCE_LIST) do
-        if price[resId] then
+        if price[resId] and price[resId]>0 then
             self.priceText[#self.priceText+1] = {resId, g.formatNumber(price[resId])}
             self.priceImageCount = self.priceImageCount + 1
         end
