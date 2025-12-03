@@ -1,5 +1,5 @@
 local ROT_OFFSET = math.pi / 4
-local SPEED = 50 -- units/s
+local SPEED = 200 -- units/s
 
 ---@class _KnifeEntity: g.Entity
 local KnifeEntity = {
