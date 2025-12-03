@@ -756,6 +756,58 @@ function g.multBundles(a,b)
     return result
 end
 
+---@param a g.Bundle
+---@param b g.Bundle
+---@return g.Resources
+function g.minBundle(a, b)
+    local result = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        local aVal = a[resId] or 0
+        local bVal = b[resId] or 0
+        result[resId] = math.min(aVal, bVal)
+    end
+    return result
+end
+
+---@param a g.Bundle
+---@param b g.Bundle
+---@return g.Resources
+function g.maxBundle(a, b)
+    local result = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        local aVal = a[resId] or 0
+        local bVal = b[resId] or 0
+        result[resId] = math.max(aVal, bVal)
+    end
+    return result
+end
+
+---@param cost g.Bundle The cost of the upgrade
+---@param current? g.Bundle The current resources available
+---@return number ratio A value between 0 and 1 representing affordability (1 = can fully afford)
+function g.getBundleCostRatio(cost, current)
+    current = current or g.getResources()
+
+    local totalRatio = 0
+    local resourceCount = 0
+
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        local costVal = cost[resId] or 0
+        if costVal > 0 then
+            resourceCount = resourceCount + 1
+            local currentVal = current[resId] or 0
+            local ratio = currentVal / costVal
+            -- Clamp ratio to [0, 1] so having more than needed doesn't exceed 1
+            totalRatio = totalRatio + math.min(ratio, 1)
+        end
+    end
+
+    -- If no resources required, return 1 (fully affordable)
+    if resourceCount == 0 then
+        return 1
+    end
+    return totalRatio / resourceCount
+end
 
 
 
