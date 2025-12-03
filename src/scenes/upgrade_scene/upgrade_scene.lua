@@ -155,9 +155,14 @@ local function drawUpgradeBoxes()
             local level = upg.level
 
             -- Then draw upgrade box
+            local price = tree:getUpgradePrice(upg)
             local x, y = getUpgradeCoords(upg.x, upg.y)
-            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y)
-            if isHovered then
+
+            local dontDraw = g.getBundleCostRatio(price) < 0.2
+            -- its WAYYY too expensive... just draw black square
+
+            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y, dontDraw)
+            if (not dontDraw) and isHovered then
                 hoveredUpgrade = upg
             end
             if wasJustHovered then

@@ -32,10 +32,11 @@ local RAY_COLOR = objects.Color("#".."FFF2E46C")
 ---@param level integer
 ---@param cx number
 ---@param cy number
+---@param dontDraw boolean
 ---@return boolean isHovered
 ---@return boolean wasJustClicked
 ---@return boolean wasJustHovered
-local function upgradeBoxUI(tree, upg, level, cx, cy)
+local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
     local time = love.timer.getTime()
     local uinfo = g.getUpgradeInfo(upg.id)
 
@@ -72,6 +73,18 @@ local function upgradeBoxUI(tree, upg, level, cx, cy)
     local x, y, w, h = g.getImageQuad(frame):getViewport()
     x = cx - w / 2
     y = cy - h / 2
+
+    ---------------------------------------
+    -- return early if we are drawing black
+    ---------------------------------------
+    if dontDraw then
+        lg.setColor(0,0,0)
+        if background then
+            g.drawImage(background, cx, cy)
+        end
+        g.drawImage(frame, cx, cy)
+        return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h), iml.wasJustHovered(x,y,w,h)
+    end
 
     ---------------
     -- draw godrays
