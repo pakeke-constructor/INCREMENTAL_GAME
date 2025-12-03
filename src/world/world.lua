@@ -328,6 +328,10 @@ local function drawEntity(e)
         love.graphics.setColor(1, 1, 1)
         e:draw()
     end
+
+    if e.hitToken then
+        love.graphics.circle("line", e.x, e.y, e.hitToken.radius)
+    end
 end
 
 
@@ -519,10 +523,10 @@ end
 
 ---@param x number
 ---@param y number
+---@param maxRadius number
 ---@param toks g.Token[]
----@return g.Token
-local function selectNearestToken(x, y, toks)
-    local currentDist = math.huge
+local function selectNearestToken(x, y, maxRadius, toks)
+    local currentDist = maxRadius + 0.001
     local index = 0
 
     for i, v in ipairs(toks) do
@@ -534,8 +538,10 @@ local function selectNearestToken(x, y, toks)
         end
     end
 
-    assert(index > 0, "token list is empty")
-    return toks[index]
+    if index > 0 then
+        return toks[index]
+    end
+    return nil
 end
 
 
@@ -668,7 +674,7 @@ function World:_update(dt)
     ---@param tok g.Token
     local function collectCollidedTokens(tok)
         collidedTokens[#collidedTokens+1] = tok
-        return true
+        return false
     end
 
     ---@type table<integer, table<string, g.Entity[]>>
@@ -681,14 +687,22 @@ function World:_update(dt)
 
         if e.hitToken then
             local entCooldown = e.hitToken.cooldown or 1
-            local cooldown = math.max(math.min(self.entitiesToCooldownTime[e] or 0, entCooldown) - dt, 0)
+            local cd0 = math.min(self.entitiesToCooldownTime[e] or 0, entCooldown)
+            local cooldown = math.max(cd0 - dt, 0)
+            self.entitiesToCooldownTime[e] = cooldown
+
             if cooldown <= 0 then
                 self.tokenPartition:query(e.x, e.y, collectCollidedTokens, e.hitToken.radius)
 
                 if #collidedTokens > 0 then
-                    local tok = selectNearestToken(e.x, e.y, collidedTokens)
-                    e.hitToken.collision(e, tok)
-                    self.entitiesToCooldownTime[e] = entCooldown
+                    local tok = selectNearestToken(e.x, e.y, e.hitToken.radius, collidedTokens)
+
+                    if tok then
+                        e.hitToken.collision(e, tok)
+                        self.entitiesToCooldownTime[e] = entCooldown
+                    end
+
+                    table.clear(collidedTokens)
                 end
             end
         end
