@@ -6,10 +6,11 @@ import PIL.Image
 import numpy
 import tqdm
 
+from util import find_main_lua
+
 from numpy.typing import NDArray
 
 # Configurable thing
-PARENT_ITER_DIR = 4  # How many parent iteration to find main.lua
 DRY_RUN = False  # Set to true to only list assets to be processed.
 # End of Configurable thing
 
@@ -27,19 +28,7 @@ TRANSPARENT_BLACK = numpy.array([0, 0, 0, 0], numpy.uint8)
 SCRIPT_FILE = pathlib.Path(__file__)
 
 
-# Find main.lua
-def _find_main_lua():
-    main_dir = None
-    for i in range(PARENT_ITER_DIR):
-        if (SCRIPT_FILE.parents[i] / "main.lua").is_file():
-            main_dir = SCRIPT_FILE.parents[i]
-            break
-    if main_dir is None:
-        raise RuntimeError("Cannot determine game project root")
-    return main_dir
-
-
-MAIN_DIR = _find_main_lua() if __name__ == "__main__" else SCRIPT_FILE
+MAIN_DIR = find_main_lua()
 
 
 def alpha_bleeding(image_orig: NDArray[numpy.uint8]):
