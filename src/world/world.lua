@@ -40,8 +40,9 @@ function World:init()
     self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
     ]]})
+
     ---@type table<g.Entity, number?>
-    self.entitiesToCooldownTime = setmetatable({}, {__mode = "k"})
+    self.entitiesToHitCooldown = setmetatable({}, {__mode = "k"})
 
     self.particles = ParticleService()
     self.timer = 0 -- For per second update
@@ -685,9 +686,9 @@ function World:_update(dt)
 
         if e.hitToken then
             local entCooldown = e.hitToken.cooldown or 1
-            local cd0 = math.min(self.entitiesToCooldownTime[e] or 0, entCooldown)
+            local cd0 = math.min(self.entitiesToHitCooldown[e] or 0, entCooldown)
             local cooldown = math.max(cd0 - dt, 0)
-            self.entitiesToCooldownTime[e] = cooldown
+            self.entitiesToHitCooldown[e] = cooldown
 
             if cooldown <= 0 then
                 self.tokenPartition:query(e.x, e.y, collectCollidedTokens, e.hitToken.radius)
@@ -697,7 +698,7 @@ function World:_update(dt)
 
                     if tok then
                         e.hitToken.collision(e, tok)
-                        self.entitiesToCooldownTime[e] = entCooldown
+                        self.entitiesToHitCooldown[e] = entCooldown
                     end
 
                     table.clear(collidedTokens)
