@@ -3,6 +3,7 @@
 g.defineToken("grass_blades", "Grass Blades", {
     particles = "grass",
     category = "grass",
+    shadow = "shadow_small",
     resources = {money = 1},
     maxHealth = 3
 })
@@ -20,6 +21,7 @@ g.defineToken("thick_grass", "Thick Grass", {
     particles = "grass",
     category = "grass",
     resources = {money = 6},
+    shadow = "shadow_big",
     maxHealth = 8
 })
 

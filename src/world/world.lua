@@ -250,6 +250,16 @@ local function drawAxe(tok)
     g.drawImageOffset(scythe, tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
 end
 
+
+local function drawShadow(shadow, x,y)
+    love.graphics.setColor(g.COLORS.SHADOW)
+    shadow = shadow or "shadow_medium"
+    local dy = 1
+    if shadow == "shadow_big" then dy=3 end
+    g.drawImage(shadow, x, y+dy, 0)
+end
+
+
 ---@param tok g.Token
 local function drawToken(tok)
     love.graphics.setColor(1,1,1,1)
@@ -259,8 +269,7 @@ local function drawToken(tok)
     local kx,ky = getTokShear(tok)
 
     -- shadow:
-    love.graphics.setColor(g.COLORS.SHADOW)
-    love.graphics.ellipse("fill",tok.x,tok.y+6,6,3)
+    drawShadow(tok.shadow, tok.x, tok.y)
 
     love.graphics.setColor(1,1,1)
     if tok.drawBelow then
@@ -304,10 +313,7 @@ local function drawEntity(e)
         e:drawBelow()
     end
 
-    if e.shadowRadius then
-        love.graphics.setColor(g.COLORS.SHADOW)
-        love.graphics.ellipse("fill",e.x,e.y+e.shadowRadius,e.shadowRadius,e.shadowRadius/2)
-    end
+    drawShadow(e.shadow, e.x, e.y)
 
     if e.image then
         love.graphics.setColor(1, 1, 1)

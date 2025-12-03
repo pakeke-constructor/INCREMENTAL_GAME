@@ -575,6 +575,7 @@ local g_UpgradeDefinition = {}
 ---@field description string?
 ---@field particles string?
 ---@field category g.Category?
+---@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
 ---@field init (fun(tok:g.Token))?
 ---@field update (fun(tok: g.Token, dt:number))?
 ---@field drawBelow (fun(tok: g.Token))?
@@ -1298,6 +1299,9 @@ function g.defineToken(tokType, name, tabl)
     assert(tabl.maxHealth, "Tokens need .maxHealth")
     assert(tabl.resources, "Tokens need .resources")
     assert(not tokenDefinitions[tokType], "Duplicate token definition!")
+    if tabl.shadow then
+        assert(g.getImageQuad(tabl.shadow))
+    end
 
     if tabl.category and not g.CATEGORIES[tabl.category] then
         error("invalid category '"..tabl.category.."'")
@@ -1431,7 +1435,7 @@ do
 ---@field x number
 ---@field y number
 ---@field id integer
----@field shadowRadius number?
+---@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
 ---@field sx number?
 ---@field sy number?
 ---@field ox number?
