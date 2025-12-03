@@ -1497,6 +1497,10 @@ function g.spawnEntity(ename, x,y, ...)
         x=x,y=y, type=ename
     }, mt)
 
+    if ent.hitToken then
+        ent.hitToken = helper.shallowCopy(ent.hitToken)
+    end
+
     if ent.init then
         ent:init(...)
     end
