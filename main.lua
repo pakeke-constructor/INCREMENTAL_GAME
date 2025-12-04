@@ -2,6 +2,10 @@
 local love = require("love")
 
 
+---@type love.graphics
+_G.lg=love.graphics
+
+
 -- relative-require
 do
 local stack = {""}

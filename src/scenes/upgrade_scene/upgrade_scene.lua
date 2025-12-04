@@ -11,10 +11,16 @@ local vignette = require("src.modules.vignette.vignette")
 ---@class UpgradesScene: FreeCameraScene
 local upgscene = FreeCameraScene()
 
----@type ui.UpgradeDescription|nil
-upgscene.upgradeDescription = nil
 
 
+
+function upgscene:init()
+    self.dev_editUpgrades = false
+    self.dev_revealUpgrades = false
+
+    ---@type ui.UpgradeDescription|nil
+    self.upgradeDescription = nil
+end
 
 
 
@@ -203,9 +209,7 @@ end
 
 
 function upgscene:draw()
-    local header, body = Kirigami(0,0,ui.getScaledUIDimensions()):splitVertical(1,5)
-    header = header:padRatio(0.2)
-
+    local region = Kirigami(0,0,ui.getScaledUIDimensions())
     drawBackground()
 
     love.graphics.setColor(1,1,1)
@@ -237,6 +241,20 @@ function upgscene:draw()
         self.upgradeDescription:draw(descriptionBoxR.x, descriptionBoxR.y)
     else
         self.upgradeDescription = nil
+    end
+
+    if consts.DEV_MODE then
+        local header, body,_ = region:splitVertical(1,5)
+        _,header = header:splitHorizontal(1,2,1)
+        local editButton, revealButton = header:padRatio(0.2):splitHorizontal(1,1)
+        local editTxt = self.dev_editUpgrades and "ON" or "OFF"
+        local revealTxt = self.dev_revealUpgrades and "ON" or "OFF"
+        if ui.DefaultButton(("dev:Edit (%s)"):format(editTxt), editButton:padRatio(0.3)) then
+            self.dev_editUpgrades = not self.dev_editUpgrades
+        end
+        if ui.DefaultButton(("dev:Reveal: (%s)"):format(revealTxt), revealButton:padRatio(0.3)) then
+            self.dev_revealUpgrades = not self.dev_revealUpgrades
+        end
     end
 
     ui.endUI()
