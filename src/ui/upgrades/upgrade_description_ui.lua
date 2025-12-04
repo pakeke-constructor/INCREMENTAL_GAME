@@ -27,7 +27,8 @@ local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color(
 ---@param self ui.UpgradeDescription
 ---@param tree g.Tree
 ---@param upg g.Tree.Upgrade
-local function autoBuild(self, tree, upg)
+---@param unbounded boolean
+local function autoBuild(self, tree, upg, unbounded)
     local uinfo = self.uinfo
     local isTokenUpgrade = uinfo.kind == "TOKEN"
     if isTokenUpgrade then
@@ -51,19 +52,25 @@ local function autoBuild(self, tree, upg)
 
     if uinfo.description then
         local level = upg.level
-        local realDesc = g.getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
+        local realDesc = g.getUpgradeDescription(
+            uinfo,
+            math.max(level, 1),
+            (not unbounded) and level > 0 and level < uinfo.maxLevel
+        )
         self:addSpacer(8)
         self:addText(realDesc)
     end
 
     self:addLevel(upg.level, uinfo.maxLevel)
 
-    -- Build price tag text.
-    local price = tree:getUpgradePrice(upg)
-    for _, resId in ipairs(g.RESOURCE_LIST) do
-        if price[resId] and price[resId]>0 then
-            self.priceText[#self.priceText+1] = {resId, g.formatNumber(price[resId])}
-            self.priceImageCount = self.priceImageCount + 1
+    if not unbounded then
+        -- Build price tag text.
+        local price = tree:getUpgradePrice(upg)
+        for _, resId in ipairs(g.RESOURCE_LIST) do
+            if price[resId] and price[resId]>0 then
+                self.priceText[#self.priceText+1] = {resId, g.formatNumber(price[resId])}
+                self.priceImageCount = self.priceImageCount + 1
+            end
         end
     end
 end
@@ -71,10 +78,12 @@ end
 
 ---@param tree g.Tree
 ---@param upg g.Tree.Upgrade
-function UpgradeDescription:init(tree, upg)
+---@param unbounded boolean
+function UpgradeDescription:init(tree, upg, unbounded)
     self.font = g.getSmallFont(16)
     self.largeFont = g.getSmallFont(32)
     self.titleFont = g.getBigFont(32)
+    self.unboundedUpgrade = unbounded
 
     self.boxWidth = 100
 
@@ -89,20 +98,22 @@ function UpgradeDescription:init(tree, upg)
     self.upg = upg
     self.uinfo = assert(g.getUpgradeInfo(upg.id))
 
-    self.priceTagPanels = {
-        [true] = n9slice.new {
-            image = g.getAtlas(),
-            padding = {PRICE_TAG_PADDING, 0},
-            quad = g.getImageQuad("pricetag_can_afford")
-        },
-        [false] = n9slice.new {
-            image = g.getAtlas(),
-            padding = {PRICE_TAG_PADDING, 0},
-            quad = g.getImageQuad("pricetag_cant_afford")
+    if not unbounded then
+        self.priceTagPanels = {
+            [true] = n9slice.new {
+                image = g.getAtlas(),
+                padding = {PRICE_TAG_PADDING, 0},
+                quad = g.getImageQuad("pricetag_can_afford")
+            },
+            [false] = n9slice.new {
+                image = g.getAtlas(),
+                padding = {PRICE_TAG_PADDING, 0},
+                quad = g.getImageQuad("pricetag_cant_afford")
+            }
         }
-    }
-    ---@type [g.ResourceType,string][]
-    self.priceText = {}
+        ---@type [g.ResourceType,string][]
+        self.priceText = {}
+    end
     -- richText.stripEffects also strips image identifier
     -- so it's gone when passed through Font:getWidth()
     -- This means we have to track manually how many images it is.
@@ -111,15 +122,16 @@ function UpgradeDescription:init(tree, upg)
     self.titleBackgroundGradient = helper.newGradientMesh("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
     self.backgroundGradient = helper.newGradientMesh("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
 
-    autoBuild(self, tree, upg)
+    autoBuild(self, tree, upg, unbounded)
 end
 
 if false then
     ---@param tree g.Tree
     ---@param upg g.Tree.Upgrade
+    ---@param unbounded boolean
     ---@return ui.UpgradeDescription
     ---@diagnostic disable-next-line: cast-local-type, missing-return
-    function UpgradeDescription(tree, upg) end
+    function UpgradeDescription(tree, upg, unbounded) end
 end
 
 ---@return g.Tree.Upgrade
@@ -224,12 +236,15 @@ function UpgradeDescription:addBox(w, h, render)
     end
 end
 
+local LEVEL_BOUNDED = interp("Level %{level}/%{maxLevel}", {context = "upgrade description"})
+local LEVEL_UNBOUNDED = interp("Level %{level}", {context = "upgrade description"})
 
 ---@param level integer
 ---@param maxLevel integer
 function UpgradeDescription:addLevel(level, maxLevel)
+    local texttoUse = self.unboundedUpgrade and LEVEL_UNBOUNDED or LEVEL_BOUNDED
     local col = helper.multiplyAlpha(objects.Color.WHITE, 0.4)
-    local text = loc("Level %{level}/%{maxLevel}", {level = level, maxLevel = maxLevel})
+    local text = texttoUse({level = level, maxLevel = maxLevel})
     local fw = self.font:getWidth(richtext.stripEffects(text))
     local fh = self.font:getHeight()
 
@@ -319,7 +334,7 @@ function UpgradeDescription:draw(x, y)
     end
 
     local level = upg.level
-    if level < uinfo.maxLevel then
+    if not self.unboundedUpgrade and level < uinfo.maxLevel then
         local canAfford = g.canAfford(tree:getUpgradePrice(upg))
         -- Start drawing price tag
         love.graphics.setColor(1,1,1)
@@ -356,6 +371,10 @@ end
 ---@return number
 function UpgradeDescription:getDimensions()
     local width, height = self:getMainBoxDimensions()
+    if self.unboundedUpgrade then
+        return width, height
+    end
+
     local ptagW, ptagH = 0, -PRICE_TAG_OFFSET
     if self.upg.level < self.uinfo.maxLevel then
         ptagW, ptagH = self:_getPriceTagDimensions(true)

@@ -212,6 +212,7 @@ function upgscene:draw()
 
     self:setCamera()
     local hoveredUpgrade = drawUpgradeBoxes()
+    local isBoundedUpgradeHovered = false
 
     self:resetCamera()
 
@@ -220,11 +221,59 @@ function upgscene:draw()
     ui.startUI()
     self:renderMapButton()
 
-    g.getHUD():draw({profile = false})
+    local hud = g.getHUD()
+    hud:draw({profile = false})
+
+    local unboundUpgrades = g.getUpgTree():getUnboundUpgrades()
+    if #unboundUpgrades > 0 then
+        local spacing = consts.UPGRADE_GRID_SPACING + consts.UPGRADE_IMAGE_SIZE
+        local rows = math.ceil(#unboundUpgrades / 3)
+        local grid = Kirigami(0, 0, spacing * 3, spacing * rows)
+            :attachToLeftOf(hud.resourceHUDUsableArea)
+            :attachToBottomOf(hud.resourceHUDUsableArea)
+            :moveRatio(1, 0)
+            :grid(3, rows)
+
+        for i, v in ipairs(unboundUpgrades) do
+            local uinfo = g.getUpgradeInfo(v.id)
+            local gridR = grid[i]
+            local gridPaddedR = gridR:padUnit(consts.UPGRADE_GRID_SPACING)
+            local cx, cy = gridR:getCenter()
+
+            --------------------
+            -- draw image/icon/custom shit:
+            --------------------
+            love.graphics.setColor(1,1,1)
+            g.drawImage(uinfo.image, cx, cy)
+
+            -- custom rendering:
+            if uinfo.drawUI then
+                uinfo:drawUI(v.level, gridPaddedR:get())
+            end
+
+            --------------------
+            -- draw level:
+            --------------------
+            local font = g.getBigFont(16)
+            richtext.printRich(
+                "{o thickness=1}"..tostring(v.level),
+                font,
+                math.floor(cx+consts.UPGRADE_IMAGE_SIZE/4),
+                math.floor(cy),
+                0xfffff,
+                "left"
+            )
+
+            if iml.isHovered(gridR:padUnit(consts.UPGRADE_GRID_SPACING):get()) then
+                hoveredUpgrade = v
+                isBoundedUpgradeHovered = true
+            end
+        end
+    end
 
     if hoveredUpgrade then
         if not self.upgradeDescription or self.upgradeDescription:getUpgrade() ~= hoveredUpgrade then
-            self.upgradeDescription = UpgradeDescription(g.getUpgTree(), hoveredUpgrade)
+            self.upgradeDescription = UpgradeDescription(g.getUpgTree(), hoveredUpgrade, isBoundedUpgradeHovered)
         end
 
         local r = Kirigami(0, 0, ui.getScaledUIDimensions())
