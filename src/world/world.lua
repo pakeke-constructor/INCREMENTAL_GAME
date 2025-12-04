@@ -164,7 +164,7 @@ local function drawTokenHealthBar(tok)
     love.graphics.setColor(1,1,1,1)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, laggedW, HP_BAR_H)
     -- Draw health
-    love.graphics.setColor(1,0,0,1)
+    love.graphics.setColor(0.1,0.9,0.1,1)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, realW, HP_BAR_H)
     -- Draw border
     love.graphics.setLineWidth(1)

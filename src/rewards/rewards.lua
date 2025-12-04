@@ -88,7 +88,6 @@ local function assertRewardIsValid(rew)
         assert(rew.stackedTokenCount, "stackedToken rewards need a count")
         assert(rew.stackedTokenResource, "need a resource")
         assert(rew.stackedTokenResourceAmount, "need resourceAmount")
-        assert(rew.stackedTokenCount, "stackedToken rewards need a count")
     end
 
     assert(rew.icon)
@@ -160,7 +159,7 @@ do
 ---@return g.Reward
 local function generateStacked(resId)
     local rps = g.getResourcesPerSecond(resId)
-    local resAmount = math.max(rps, 1)*3
+    local resAmount = math.max(1, 5*(math.floor(rps*3 / 5)))
     return assertRewardIsValid{
         ---@param tok g.Token
         stackedTokenSpawnFunc = function(tok)
@@ -237,6 +236,9 @@ local PERMANENT_UPGRADE = loc("{wavy amp=0.3 f=2}{o}PERMANENT UPGRADE:{/o}{/wavy
 
 
 local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff to harvest:{/o}{/wavy}")
+local STACKED_TOKEN_TOTAL = loc("{o}+%d {%s} total{/o}", {}, {
+    context = "Example usage: (+400 {gold} total), where %d=400 and %s=gold. Please keep the string formatting."
+})
 
 
 local POTION = loc("{wavy amp=0.3 f=2}{o}POTION!{/o}{/wavy}")
@@ -293,10 +295,10 @@ function rewards.drawRewardDescription(rew, r)
             seconds = rew.effectDuration
         }), font, b:get())
     elseif rew.stackedToken then
-        local a,b = main:splitVertical(1,2)
+        local a,b = main:splitVertical(2,3)
         richtext.printRichContained(STACKED_TOKEN, font, a:get())
         -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
-        local txt = ("{o}+%d {%s}{/o}"):format(rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
+        local txt = (STACKED_TOKEN_TOTAL):format(rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
         richtext.printRichContainedNoWrap(txt, font, b:get())
     elseif rew.upgradeId then
         local a,b = main:splitVertical(1,2)
