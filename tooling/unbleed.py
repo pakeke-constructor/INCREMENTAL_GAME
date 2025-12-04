@@ -28,9 +28,6 @@ TRANSPARENT_BLACK = numpy.array([0, 0, 0, 0], numpy.uint8)
 SCRIPT_FILE = pathlib.Path(__file__)
 
 
-MAIN_DIR = find_game_root()
-
-
 def alpha_bleeding(image_orig: NDArray[numpy.uint8]):
     """Modifies the image to ensure no alpha bleed when rendered with straight alpha.
 
@@ -95,6 +92,7 @@ def alpha_bleeding(image_orig: NDArray[numpy.uint8]):
 
 
 def transform_images(pathglob: str, recursive: bool = True):
+    MAIN_DIR = find_game_root()
     tobeglob = MAIN_DIR / pathglob
     files = glob.glob(str(tobeglob), recursive=recursive)
     success = 0
