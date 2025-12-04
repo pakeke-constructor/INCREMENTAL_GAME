@@ -280,14 +280,9 @@ local popupParticles = particles.newParticlesWorld({
         local id = p.id
         local sx,sy = 1,1
         local rot = 0
-        local img
-        if id%2==0 then
-            img = "xp_packet_big_1"
-        else
-            img = "xp_packet_big_2"
-        end
-        img = "money"
-        sx = math.sin(love.timer.getTime()*10 + id*1.77)
+        local img = "money"
+        local STEPS=4
+        sx = math.floor(STEPS*math.sin(love.timer.getTime()*10 + id*1.77)+0.5)/STEPS
         g.drawImage(img, p.x,p.y, rot, sx,sy)
     end,
     getParticleDuration = function(p)
