@@ -105,7 +105,7 @@ local function getRandomUnlockedResource()
         end
     end
     local resId = helper.randomChoice(buf)
-    return resId
+    return resId or "money"
 end
 
 
@@ -178,10 +178,6 @@ end
 ---@return g.Reward
 function generateStackedTokenReward()
     local lv = g.getSn().level
-    if love.math.random() < 0.08 and lv>9 then
-        return {stackedToken="slime_token", stackedTokenCount=math.random(6,9)}
-    end
-
     -- IDEA: spawn stackedToken bombs here?
 
     -- IDEA: stackedToken mushrooms?
