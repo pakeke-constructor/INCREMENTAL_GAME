@@ -8,7 +8,6 @@ local lg = love.graphics
 
 
 ui.upgradeBoxUI = require(".upgrades.upgrade_box_ui")
-ui.upgradeDescriptionUI = require(".upgrades.upgrade_description_ui")
 
 
 
