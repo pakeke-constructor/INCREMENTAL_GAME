@@ -424,4 +424,29 @@ function helper.cloneQuad(q)
 end
 
 
+---@param quad love.Quad
+---@param numDivisions number
+---@return table
+function helper.splitQuadHorizontally(quad, numDivisions)
+    local x, y, w, h = quad:getViewport()
+    local listOfQuads = {}
+    local divisionWidth = w / numDivisions
+
+    assert(w % numDivisions == 0, "Quad must be perfectly divisible!")
+
+    for i = 0, numDivisions - 1 do
+        local newQuad = lg.newQuad(
+            x + (i * divisionWidth),  -- x offset for each division
+            y,                         -- same y position
+            divisionWidth,             -- width of each slice
+            h,                         -- same height
+            g.getAtlas()               -- atlas dimensions
+        )
+        table.insert(listOfQuads, newQuad)
+    end
+    return listOfQuads
+end
+
+
+
 return helper
