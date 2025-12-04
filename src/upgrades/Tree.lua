@@ -167,6 +167,10 @@ end
 function Tree:addConnection(upg1, upg2)
     local i1 = pair(upg1.x,upg1.y)
     local i2 = pair(upg2.x,upg2.y)
+    if i1 == i2 then
+        -- wtf lol, same upgrade.
+        return
+    end
 
     table.insert(self.connections, {i1, i2})
     updateEdge(self, i1, i2)

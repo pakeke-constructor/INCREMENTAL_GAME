@@ -16,7 +16,7 @@ local upgscene = FreeCameraScene()
 
 function upgscene:init()
     self.dev_editMode = false
-    ---@type {x:number,y:number}?
+    ---@type {x:number,y:number,isAddingConnector:false}?
     self.dev_editModeSelection = nil
 
     self.dev_revealUpgrades = false
@@ -204,8 +204,18 @@ local function drawUpgradeBoxes(self)
                 end
                 lg.rectangle("line",x-size2,y-size2, size2*2,size2*2)
                 if iml.wasJustClicked(x-size2,y-size2,size2*2,size2*2) then
-                    -- SELECT.
-                    self.dev_editModeSelection = {x=gridX,y=gridY}
+                    if sel and sel.isAddingConnector then
+                        -- create connector
+                        local upg1 = tree:get(gridX,gridY)
+                        local upg2 = tree:get(sel.x,sel.y)
+                        if upg1 and upg2 then
+                            tree:addConnection(upg1, upg2)
+                        end
+                        self.dev_editModeSelection = nil
+                    else
+                        -- select new:
+                        self.dev_editModeSelection = {x=gridX,y=gridY}
+                    end
                 end
             end
         end
@@ -288,13 +298,17 @@ local function drawDevEditModeUI(self)
             end
         end
 
-        local cancelButton, _, deleteButton = bot:splitHorizontal(5,1,2)
+        local cancelButton, connectButton, deleteButton = bot:splitHorizontal(5,2,2)
         if ui.DefaultButton("Cancel", cancelButton) then
             self.dev_editModeSelection = nil
         end
 
         if ui.Button("DELETE", {0.9,0,0}, {0.6,0,0}, deleteButton) then
             tree:clear(sel.x,sel.y)
+        end
+
+        if ui.Button("CONNECT", {0.1,0.9,0.0}, {0.0,0.6,0.0}, connectButton) then
+            sel.isAddingConnector = true
         end
     end
 
