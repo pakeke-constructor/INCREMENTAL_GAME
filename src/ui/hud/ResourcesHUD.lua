@@ -260,7 +260,7 @@ end
 
 ---@param noDraw boolean?
 function Resources:drawHUD(noDraw)
-    if not g.getSn() then return end
+    if not g.hasSession() then return end
 
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
 
