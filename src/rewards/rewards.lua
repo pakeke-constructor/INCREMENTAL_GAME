@@ -137,14 +137,13 @@ end
 
 ---@return g.Reward
 function generatePotionReward()
-    local r = love.math.random()
     local potionId = helper.randomChoice(statPots)
     local einfo = g.getEffectInfo(potionId)
-    return {
+    return assertRewardIsValid({
         effect = einfo,
         effectDuration = 20 + love.math.random(-5, 5),
         icon = einfo.image
-    }
+    })
 end
 
 end
@@ -319,8 +318,8 @@ function rewards.selectReward(rew)
         g.addResources(rew.resources)
     elseif rew.effect then
         assert(rew.effectDuration)
-        local einfo = g.getEffectInfo(rew.effect.type)
-        g.stackPotionToken(rew.effectDuration, einfo)
+        g.grantEffect(rew.effect.type, rew.effectDuration)
+        -- g.stackPotionToken(rew.effectDuration, einfo)
     elseif rew.stackedToken then
         for _=1, rew.stackedTokenCount do
             local w,h = ui.getScaledUIDimensions()
