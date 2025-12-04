@@ -263,6 +263,18 @@ function upgscene:draw()
             lg.setColor(1,1,1)
             lg.rectangle("line",sidebar:get())
 
+            local regs = sidebar:grid(1,9)
+            if ui.DefaultButton("Reset all", regs[1]) then
+                -- resets all upgrades to level 0
+                
+            end
+            -- if ui.DefaultButton("Delete tree", regs[2]) then
+            --     -- Next upgrade you
+            -- end
+            lg.rectangle("fill", regs[2]:get())
+            lg.rectangle("fill", regs[3]:get())
+
+
             --[[
             TODO: put tools n shit here.
             
