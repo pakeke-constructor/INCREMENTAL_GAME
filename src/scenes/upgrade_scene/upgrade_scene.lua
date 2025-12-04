@@ -320,14 +320,10 @@ local function drawDevUI(self)
     local region = Kirigami(0,0,ui.getScaledUIDimensions())
     local header, body,_ = region:splitVertical(1,5)
     _,header = header:splitHorizontal(1,2,1)
-    local editButton, revealButton = header:padRatio(0.2):splitHorizontal(1,1)
+    local _, editButton, _ = header:padRatio(0.2):splitHorizontal(1,1,1)
     local editTxt = self.dev_editMode and "ON" or "OFF"
-    local revealTxt = self.dev_revealUpgrades and "ON" or "OFF"
-    if ui.DefaultButton(("dev:Edit (%s)"):format(editTxt), editButton:padRatio(0.3)) then
+    if ui.DefaultButton(("Edit (%s)"):format(editTxt), editButton:padRatio(0.3)) then
         self.dev_editMode = not self.dev_editMode
-    end
-    if ui.DefaultButton(("dev:Reveal: (%s)"):format(revealTxt), revealButton:padRatio(0.3)) then
-        self.dev_revealUpgrades = not self.dev_revealUpgrades
     end
 
     if self.dev_editMode then
