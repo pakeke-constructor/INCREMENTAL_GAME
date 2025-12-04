@@ -260,19 +260,18 @@ end
 
 ---@param noDraw boolean?
 function Resources:drawHUD(noDraw)
-    if not g.getSn() then return end
+    if not g.hasSession() then return 0 end
 
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
 
     -- Draw resources
-    local BASE_X = 8
-    local BASE_Y = 8
-    local leftPad = 0 -- For free area computation
+    local BASE_X = 2
+    local BASE_Y = 2
     local freeX = 0
 
     love.graphics.setColor(1, 1, 1)
     local indices = 0
-    for i, resId in ipairs(g.RESOURCE_LIST) do
+    for _, resId in ipairs(g.RESOURCE_LIST) do
         if g.isResourceUnlocked(resId) then
             local usedBarImage = RESOURCE_HUD_BGS[resId]
             local resInfo = g.getResourceInfo(resId)
@@ -293,6 +292,7 @@ function Resources:drawHUD(noDraw)
     end
 
     self.freeArea = r:padUnit(freeX, 0, 0, 0)
+    return BASE_Y + indices * 32
 end
 
 function Resources:getSafeArea()
@@ -334,7 +334,7 @@ end
 ---@param noDraw boolean?
 function Resources:draw(noDraw)
     self:drawParticles()
-    self:drawHUD(noDraw)
+    return self:drawHUD(noDraw)
 end
 
 
