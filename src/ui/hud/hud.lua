@@ -5,6 +5,8 @@ local Profile = require(".ProfileHUD")
 
 local SIDEBAR_COLOR = objects.Color("#".."FF14A0CD")
 local SIDEBAR_STRIP = objects.Color("#".."FFFF8CC8")
+-- TODO: Make this auto-computable?
+local SIDEBAR_WIDTH = 86
 
 
 
@@ -30,7 +32,7 @@ end
 ---@param dt number
 function HUD:update(dt)
     local _, h = ui.getScaledUIDimensions()
-    self.sidebar = self.sidebar:set(0, 0, 96, h)
+    self.sidebar = self.sidebar:set(0, 0, SIDEBAR_WIDTH, h)
     self.resourceHUD:update(dt)
     self.profileHUD:update(dt)
 end
@@ -48,17 +50,17 @@ function HUD:draw(show)
     love.graphics.rectangle("fill", self.sidebar.x + self.sidebar.w, 0, 2, self.sidebar.h)
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", self.sidebar.x + self.sidebar.w + 2, 0, 2, self.sidebar.h)
-    ui.debugRegion(self.sidebar)
 
     -- Draw other HUDs
     self.resourceHUD:draw(show.resource == false)
-    self.profileHUD:draw(show.profile == false, show.xpbar)
+    self.profileHUD:draw(SIDEBAR_WIDTH, show.profile == false, show.xpbar)
 end
 
 function HUD:getSafeArea()
     local w, h = ui.getScaledUIDimensions()
     local x2 = self.sidebar.x + self.sidebar.w
     return Kirigami(x2, 0, w - x2, h)
+        :intersection(self.profileHUD:getSafeArea())
 end
 
 return HUD

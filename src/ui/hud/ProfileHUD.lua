@@ -76,22 +76,27 @@ local MAX_NUMBER_OF_TOKEN_TYPES = 6
 -- no more than X tokens stacked at a time; dont wanna overwhelm player
 
 
+---@param sidebarWidth number
 ---@param noDraw boolean?
 ---@param drawXPBar boolean?
-function Profile:draw(noDraw, drawXPBar)
+function Profile:draw(sidebarWidth, noDraw, drawXPBar)
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
-    local leftR = r:splitHorizontal(1, 1, 1, 1, 1)
-    local profileR = leftR:shrinkToAspectRatio(1, 1):attachToBottomOf(r):moveRatio(0, -1):padRatio(0.05)
+    local profileBaseR = Kirigami(0, 0, sidebarWidth, sidebarWidth)
+        :attachToBottomOf(r)
+        :attachToLeftOf(r)
+        :moveRatio(1, -1)
+    local profileR = profileBaseR:padUnit(4)
     local stackTokenR = Kirigami(0, 0, 20, 20)
         :attachToRightOf(profileR)
         :attachToTopOf(profileR)
         :moveRatio(0, 1)
         :moveUnit(-8, 0)
 
+    local _,xpBarCenterizeR = r:splitHorizontal(profileBaseR.w, r.w - profileBaseR.w)
     local _,xpBarR = r:splitVertical(18,1)
-    xpBarR = xpBarR:shrinkTo(xpBarR.w - profileR.w, xpBarR.h)
-        :moveUnit(profileR.w)
+    xpBarR = xpBarR:shrinkTo(xpBarR.w - profileBaseR.w, xpBarR.h)
         :padUnit(14,0,20,0)
+        :centerX(xpBarCenterizeR)
 
     self.tokenQueuePos.x, self.tokenQueuePos.y = stackTokenR:getCenter()
 
