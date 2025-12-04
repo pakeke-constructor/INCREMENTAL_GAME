@@ -437,6 +437,29 @@ end
 
 
 
+---@param x number
+---@param y number
+function Tree:clear(x,y)
+    local i = pair(x,y)
+    local upg = self.upgrades[i]
+    self.upgrades[i] = nil
+    self._distances = calculateDistancesFromRoot(self)
+
+    -- remove from ev/q caches:
+    if upg then
+        for k,arr in pairs(self._eventCache) do
+            arr:remove(upg)
+        end
+        for k,arr in pairs(self._questionCache) do
+            arr:remove(upg)
+        end
+    end
+
+    return upg
+end
+
+
+
 
 ---@param uinfo g.UpgradeInfo
 function Tree:addOrUpgradeUnboundUpgrade(uinfo)

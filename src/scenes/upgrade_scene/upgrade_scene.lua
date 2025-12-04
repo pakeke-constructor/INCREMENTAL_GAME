@@ -16,6 +16,9 @@ local upgscene = FreeCameraScene()
 
 function upgscene:init()
     self.dev_editMode = false
+    ---@type {x:number,y:number}?
+    self.dev_editModeSelection = nil
+
     self.dev_revealUpgrades = false
 
     ---@type ui.UpgradeDescription|nil
@@ -26,7 +29,7 @@ end
 
 ---@param x integer
 ---@param y integer
-local function getUpgradeCoords(x, y)
+local function getUpgradeGridCoords(x, y)
     local spacing = consts.UPGRADE_GRID_SPACING + consts.UPGRADE_IMAGE_SIZE
     return math.floor((x + 0.5) * spacing), math.floor((y + 0.5) * spacing)
 end
@@ -37,8 +40,8 @@ end
 ---@param upg1 g.Tree.Upgrade
 ---@param upg2 g.Tree.Upgrade
 local function drawConnector(upg1, upg2)
-    local x1,y1 = getUpgradeCoords(upg1.x, upg1.y)
-    local x2,y2 = getUpgradeCoords(upg2.x, upg2.y)
+    local x1,y1 = getUpgradeGridCoords(upg1.x, upg1.y)
+    local x2,y2 = getUpgradeGridCoords(upg2.x, upg2.y)
 
     local lw=love.graphics.getLineWidth()
     love.graphics.setLineWidth(8)
@@ -158,13 +161,14 @@ local function drawUpgradeBoxes(self)
     end
 
     for _, upg in ipairs(upgrades) do
-        local forceVisible = (consts.DEV_MODE and self.dev_revealUpgrades)
+        local forceVisible = (consts.DEV_MODE and (self.dev_revealUpgrades or self.dev_editMode))
+        -- if editMode or revealUpgrades, 
         if forceVisible or (not tree:isUpgradeHidden(upg)) then
             local level = upg.level
 
             -- Then draw upgrade box
             local price = tree:getUpgradePrice(upg)
-            local x, y = getUpgradeCoords(upg.x, upg.y)
+            local x, y = getUpgradeGridCoords(upg.x, upg.y)
 
             local dontDraw = g.getBundleCostRatio(price) < 0.2
             -- its WAYYY too expensive... just draw black square
@@ -176,13 +180,38 @@ local function drawUpgradeBoxes(self)
             if wasJustHovered then
                 g.playUISound("ui_tick", 1,1)
             end
-            if wasJustClicked then
+            if (not self.dev_editMode) and wasJustClicked then
                 g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
                 tree:tryBuyUpgrade(upg)
                 hoveredUpgrade=nil
             end
         end
     end
+
+    if self.dev_editMode then
+        local lw = lg.getLineWidth()
+        local sel = self.dev_editModeSelection
+        for gridX=-50, 50 do
+            for gridY=-50, 50 do
+                local x,y = getUpgradeGridCoords(gridX,gridY)
+                local size2 = math.floor(consts.UPGRADE_IMAGE_SIZE/2) + consts.UPGRADE_GRID_SPACING/2
+                if sel and sel.x==gridX and sel.y==gridY then
+                    lg.setColor(1,1,0, math.sin(love.timer.getTime()*9)/2 + 1)
+                    lg.setLineWidth(5)
+                else
+                    lg.setColor(1,1,1,0.4)
+                    lg.setLineWidth(1)
+                end
+                lg.rectangle("line",x-size2,y-size2, size2*2,size2*2)
+                if iml.wasJustClicked(x-size2,y-size2,size2*2,size2*2) then
+                    -- SELECT.
+                    self.dev_editModeSelection = {x=gridX,y=gridY}
+                end
+            end
+        end
+        lg.setLineWidth(lw)
+    end
+
     return hoveredUpgrade
 end
 
@@ -210,8 +239,90 @@ end
 end
 
 
-function upgscene:draw()
+
+local function drawDevEditModeUI(self)
     local region = Kirigami(0,0,ui.getScaledUIDimensions())
+    local leftbar, sidebar = region:splitHorizontal(5,1)
+    local _, bigSidebar = region:splitHorizontal(3,2)
+    lg.setColor(1,1,1)
+    lg.rectangle("line",sidebar:get())
+
+    local regs = sidebar:grid(1,9)
+    if ui.DefaultButton("Reset all", regs[1]) then
+        -- resets all upgrades to level 0
+        
+    end
+
+    local function calculateGrid(itemCount, regionWidth, regionHeight)
+        local aspectRatio = regionWidth / regionHeight
+        local cols = math.ceil(math.sqrt(itemCount * aspectRatio))
+        local rows = math.ceil(itemCount / cols)
+        return cols, rows
+    end
+
+    local tree = g.getUpgTree()
+    local sel = self.dev_editModeSelection
+    if sel then
+        local selectArea,bot = bigSidebar:splitVertical(8,1)
+        selectArea = selectArea:padUnit(4)
+        lg.setColor(0,0,0,0.5)
+        lg.rectangle("fill", selectArea:get())
+        lg.setColor(1,1,1)
+
+        local ww, hh = calculateGrid(#g.UPGRADE_LIST, selectArea.w, selectArea.h)
+        for i, utype in ipairs(g.UPGRADE_LIST) do
+            local col = (i - 1) % ww
+            local row = math.floor((i - 1) / ww)
+            local x = col * (selectArea.w / ww) + selectArea.x
+            local y = row * (selectArea.h / hh) + selectArea.y
+            local w = selectArea.w/ww
+            local h = selectArea.h/hh
+            
+            local uinfo = g.getUpgradeInfo(utype)
+            g.drawImageContained(uinfo.image, x,y,w,h)
+            if iml.wasJustClicked(x,y,w,h) then
+                -- put upgrade:
+                if not tree:get(sel.x,sel.y) then
+                    tree:put(sel.x, sel.y, uinfo)
+                end
+            end
+        end
+
+        local cancelButton, _, deleteButton = bot:splitHorizontal(5,1,2)
+        if ui.DefaultButton("Cancel", cancelButton) then
+            self.dev_editModeSelection = nil
+        end
+
+        if ui.Button("DELETE", {0.9,0,0}, {0.6,0,0}, deleteButton) then
+            tree:clear(sel.x,sel.y)
+        end
+    end
+
+end
+
+
+---@param self UpgradesScene
+local function drawDevUI(self)
+    local region = Kirigami(0,0,ui.getScaledUIDimensions())
+    local header, body,_ = region:splitVertical(1,5)
+    _,header = header:splitHorizontal(1,2,1)
+    local editButton, revealButton = header:padRatio(0.2):splitHorizontal(1,1)
+    local editTxt = self.dev_editMode and "ON" or "OFF"
+    local revealTxt = self.dev_revealUpgrades and "ON" or "OFF"
+    if ui.DefaultButton(("dev:Edit (%s)"):format(editTxt), editButton:padRatio(0.3)) then
+        self.dev_editMode = not self.dev_editMode
+    end
+    if ui.DefaultButton(("dev:Reveal: (%s)"):format(revealTxt), revealButton:padRatio(0.3)) then
+        self.dev_revealUpgrades = not self.dev_revealUpgrades
+    end
+
+    if self.dev_editMode then
+        drawDevEditModeUI(self)
+    end
+end
+
+
+function upgscene:draw()
     drawBackground()
 
     love.graphics.setColor(1,1,1)
@@ -246,45 +357,7 @@ function upgscene:draw()
     end
 
     if consts.DEV_MODE then
-        local header, body,_ = region:splitVertical(1,5)
-        _,header = header:splitHorizontal(1,2,1)
-        local editButton, revealButton = header:padRatio(0.2):splitHorizontal(1,1)
-        local editTxt = self.dev_editMode and "ON" or "OFF"
-        local revealTxt = self.dev_revealUpgrades and "ON" or "OFF"
-        if ui.DefaultButton(("dev:Edit (%s)"):format(editTxt), editButton:padRatio(0.3)) then
-            self.dev_editMode = not self.dev_editMode
-        end
-        if ui.DefaultButton(("dev:Reveal: (%s)"):format(revealTxt), revealButton:padRatio(0.3)) then
-            self.dev_revealUpgrades = not self.dev_revealUpgrades
-        end
-
-        if self.dev_editMode then
-            local leftbar, sidebar = region:splitHorizontal(5,1)
-            lg.setColor(1,1,1)
-            lg.rectangle("line",sidebar:get())
-
-            local regs = sidebar:grid(1,9)
-            if ui.DefaultButton("Reset all", regs[1]) then
-                -- resets all upgrades to level 0
-                
-            end
-            -- if ui.DefaultButton("Delete tree", regs[2]) then
-            --     -- Next upgrade you
-            -- end
-            lg.rectangle("fill", regs[2]:get())
-            lg.rectangle("fill", regs[3]:get())
-
-
-            --[[
-            TODO: put tools n shit here.
-            
-            - clear tree
-            - pricing mode?
-            - buy all upgrades?
-            - set all levels to 0?
-            - etc
-            ]]
-        end
+        drawDevUI(self)
     end
 
     ui.endUI()
