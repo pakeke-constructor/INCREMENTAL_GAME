@@ -15,7 +15,7 @@ local upgscene = FreeCameraScene()
 
 
 function upgscene:init()
-    self.dev_editUpgrades = false
+    self.dev_editMode = false
     self.dev_revealUpgrades = false
 
     ---@type ui.UpgradeDescription|nil
@@ -135,8 +135,9 @@ local function bundleGreaterOrEqual(b1, b2)
 end
 
 
+---@param self UpgradesScene
 ---@return g.Tree.Upgrade? hoveredUpgrade
-local function drawUpgradeBoxes()
+local function drawUpgradeBoxes(self)
     --[[
     NOTE: there is a hard-assumption that all
     upgrades are within the same "map".
@@ -157,7 +158,8 @@ local function drawUpgradeBoxes()
     end
 
     for _, upg in ipairs(upgrades) do
-        if not tree:isUpgradeHidden(upg) then
+        local forceVisible = (consts.DEV_MODE and self.dev_revealUpgrades)
+        if forceVisible or (not tree:isUpgradeHidden(upg)) then
             local level = upg.level
 
             -- Then draw upgrade box
@@ -215,7 +217,7 @@ function upgscene:draw()
     love.graphics.setColor(1,1,1)
 
     self:setCamera()
-    local hoveredUpgrade = drawUpgradeBoxes()
+    local hoveredUpgrade = drawUpgradeBoxes(self)
 
     self:resetCamera()
 
@@ -247,13 +249,29 @@ function upgscene:draw()
         local header, body,_ = region:splitVertical(1,5)
         _,header = header:splitHorizontal(1,2,1)
         local editButton, revealButton = header:padRatio(0.2):splitHorizontal(1,1)
-        local editTxt = self.dev_editUpgrades and "ON" or "OFF"
+        local editTxt = self.dev_editMode and "ON" or "OFF"
         local revealTxt = self.dev_revealUpgrades and "ON" or "OFF"
         if ui.DefaultButton(("dev:Edit (%s)"):format(editTxt), editButton:padRatio(0.3)) then
-            self.dev_editUpgrades = not self.dev_editUpgrades
+            self.dev_editMode = not self.dev_editMode
         end
         if ui.DefaultButton(("dev:Reveal: (%s)"):format(revealTxt), revealButton:padRatio(0.3)) then
             self.dev_revealUpgrades = not self.dev_revealUpgrades
+        end
+
+        if self.dev_editMode then
+            local leftbar, sidebar = region:splitHorizontal(5,1)
+            lg.setColor(1,1,1)
+            lg.rectangle("line",sidebar:get())
+
+            --[[
+            TODO: put tools n shit here.
+            
+            - clear tree
+            - pricing mode?
+            - buy all upgrades?
+            - set all levels to 0?
+            - etc
+            ]]
         end
     end
 
