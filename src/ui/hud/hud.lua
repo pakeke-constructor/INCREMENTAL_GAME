@@ -9,6 +9,12 @@ local SIDEBAR_STRIP = objects.Color("#".."FFFF8CC8")
 local SIDEBAR_WIDTH = 86
 local REWARD_CELL_SIZE = 24
 
+local DESC_BACKGROUND_GRADIENT = helper.newGradientMesh(
+    "horizontal",
+    objects.Color("#".."FF14465A"),
+    objects.Color("#".."ff191e3c")
+)
+local DESC_TEXT_MAX_WIDTH = 200
 
 
 ---@class g.HUD: objects.Class
@@ -22,9 +28,6 @@ function HUD:init()
     self.resourceHUD = Resources()
     self.profileHUD = Profile()
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
-
-    ---@type g.Tree.Upgrade|nil
-    self.lastHoveredReward = nil
 end
 
 if false then
@@ -42,6 +45,35 @@ function HUD:update(dt)
 end
 
 
+
+
+
+---@param upg g.Tree.Upgrade
+---@param x number
+---@param y number
+local function drawRewardsUI(upg, x, y)
+    local font = g.getSmallFont(16)
+    local uinfo = g.getUpgradeInfo(upg.id)
+
+    local desc = g.getUpgradeDescription(uinfo, upg.level, false)
+    local width, lines = font:getWrap(richtext.stripEffects(desc), DESC_TEXT_MAX_WIDTH)
+
+    local boxR = Kirigami(0, 0, width, #lines * font:getHeight())
+    local boxBaseR = boxR:padUnit(-12):set(x, y)
+    boxR = boxR:center(boxBaseR)
+
+    -- Draw gradient background
+    do
+        love.graphics.setColor(1, 1, 1)
+        local a, b, c, d = boxBaseR:padUnit(3):get()
+        love.graphics.draw(DESC_BACKGROUND_GRADIENT, a, b, 0, c, d)
+    end
+    love.graphics.setColor(SIDEBAR_COLOR)
+    ui.drawPanel(boxBaseR:get())
+
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRich(desc, font, boxR.x, boxR.y, boxR.w, "center")
+end
 
 ---@param show {resource:boolean?,profile:boolean?,xpbar:boolean?}?
 function HUD:draw(show)
@@ -78,40 +110,30 @@ function HUD:draw(show)
         end
 
         -- Draw each permanent reward
-        local levelFont = g.getBigFont(16)
         local hovered = nil
-        love.graphics.setColor(1, 1, 1)
+        local levelFont = g.getBigFont(16)
         for i, v in ipairs(rewards) do
             local gridR = grid[i]:padUnit(1)
             local uinfo = g.getUpgradeInfo(v.id)
             local cx, cy = gridR:getCenter()
+            love.graphics.setColor(1, 1, 1)
             g.drawImage(uinfo.image, cx, cy)
             richtext.printRich("{o}"..v.level.."{/o}", levelFont, gridR.x, cy, gridR.w, "center")
 
             if iml.isHovered(gridR:get()) then
+                -- Draw tooltip later
                 hovered = v
             end
         end
 
-        -- Draw tooltip
-        if self.lastHoveredReward ~= hovered then
-            self.lastHoveredReward = hovered
-            self.rewardDescription = nil
-        end
-
-        if not self.rewardDescription and self.lastHoveredReward then
-            self.rewardDescription = ui.upgradeDescriptionUI(g.getUpgTree(), self.lastHoveredReward)
-        end
-
-        if self.rewardDescription then
+        if hovered then
             local mx, my = ui.getMouse()
-            local descriptionBoxR = Kirigami(mx + 14, my - 3, self.rewardDescription:getDimensions())
-                :clampInside(r:padUnit(4))
-            self.rewardDescription:draw(descriptionBoxR:get())
+            drawRewardsUI(hovered, mx + 14, my - 3)
         end
     end
 
     -- Draw profile HUD
+    love.graphics.setColor(1, 1, 1)
     self.profileHUD:draw(SIDEBAR_WIDTH, show.profile == false, show.xpbar)
 end
 

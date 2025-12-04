@@ -260,7 +260,7 @@ end
 
 ---@param noDraw boolean?
 function Resources:drawHUD(noDraw)
-    if not g.hasSession() then return end
+    if not g.hasSession() then return 0 end
 
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
 
@@ -292,6 +292,7 @@ function Resources:drawHUD(noDraw)
     end
 
     self.freeArea = r:padUnit(freeX, 0, 0, 0)
+    return BASE_Y + indices * 32
 end
 
 function Resources:getSafeArea()
@@ -333,7 +334,7 @@ end
 ---@param noDraw boolean?
 function Resources:draw(noDraw)
     self:drawParticles()
-    self:drawHUD(noDraw)
+    return self:drawHUD(noDraw)
 end
 
 
