@@ -522,14 +522,19 @@ local xpParticles = particles.newParticlesWorld({
         local sx,sy = 1,1
         local i = id%8
         local img
-        if i<3 then
-            img = "xp_packet_small_2"
-        elseif i<6 then
-            img = "xp_packet_small_1"
-        elseif i==6 then
-            img = "xp_packet_big_1"
-        elseif i==7 then
-            img = "xp_packet_big_2"
+        -- if i<3 then
+        --     img = "xp_packet_small_2"
+        -- elseif i<6 then
+        --     img = "xp_packet_small_1"
+        -- elseif i==6 then
+        --     img = "xp_packet_big_1"
+        -- elseif i==7 then
+        --     img = "xp_packet_big_2"
+        -- end
+        if i%2 == 0 then
+            img = "XPgem_small"
+        else
+            img = "XPgem_large"
         end
         local rot = 0--love.timer.getTime()*10 + id*1.77
         local x,y = p.x,p.y
