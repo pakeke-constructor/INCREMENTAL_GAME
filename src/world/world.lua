@@ -112,6 +112,18 @@ function World:_enableMouseHarvester(x,y)
 end
 
 
+function World:_isPlayerCurrentlyHarvesting()
+    -- HACK:
+    -- when the player's mouse-harvester is off-screen,
+    -- (Eg when the player isnt in the scene, or when a popup is open,)
+    -- we say that the player isn't harvesting.
+    if not self.mouseX then
+        return false
+    end
+    return (self.mouseX > -100)
+end
+
+
 local function getSwingTime()
     return g.getHitDuration() * 0.75
 end
@@ -598,14 +610,18 @@ function World:_update(dt)
         self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
     end
 
-    -- Update effect durations (iterate backward)
-    for i = #self.effects, 1, -1 do
-        local eff = self.effects[i]
-        self.effectDurations[eff] = self.effectDurations[eff] - dt
+    -- Effects should only tick down when player is harvesting.
+    -- (Or else it will tick down when player is in another scene!)
+    if self:_isPlayerCurrentlyHarvesting() then
+        -- Update effect durations (iterate backward)
+        for i = #self.effects, 1, -1 do
+            local eff = self.effects[i]
+            self.effectDurations[eff] = self.effectDurations[eff] - dt
 
-        if self.effectDurations[eff] <= 0 then
-            table.remove(self.effects, i)
-            self.effectDurations[eff] = nil
+            if self.effectDurations[eff] <= 0 then
+                table.remove(self.effects, i)
+                self.effectDurations[eff] = nil
+            end
         end
     end
 

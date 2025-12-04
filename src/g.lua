@@ -142,7 +142,12 @@ function g.call(ev, arg1, ...)
 
     local tree = g.getUpgTree()
     tree:callUpgrades(ev, arg1, ...)
-    callEffects(ev, arg1, ...)
+
+    local world = currentSession.mainWorld
+    if world:_isPlayerCurrentlyHarvesting() then
+        -- only apply effects if player is currently harvesting
+        callEffects(ev, arg1, ...)
+    end
 
     local sc = sceneManager.getCurrentScene()
     if sc and sc[ev] then
@@ -187,8 +192,14 @@ function g.ask(q, arg1, ...)
     end
 
     local tree = g.getUpgTree()
-    val = reducer(val, tree:askUpgrades(q, arg1, ...))
-    return reducer(val, askEffects(q, arg1, ...))
+
+    local mainWorld = currentSession.mainWorld
+    if mainWorld:_isPlayerCurrentlyHarvesting() then
+        -- effects should only be active when player is harvesting
+        val = reducer(askEffects(q, arg1, ...))
+    end
+
+    return reducer(val, tree:askUpgrades(q, arg1, ...))
 end
 
 
