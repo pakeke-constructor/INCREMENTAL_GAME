@@ -7,3 +7,5 @@ _notes/.obsidian
 
 *.ase
 *.aseprite
+
+*.pyc
