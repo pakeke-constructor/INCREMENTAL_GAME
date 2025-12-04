@@ -201,6 +201,7 @@ end
 
 end
 
+local REWARDS_SPACING = 24
 
 function upgscene:draw()
     local header, body = Kirigami(0,0,ui.getScaledUIDimensions()):splitVertical(1,5)
@@ -226,29 +227,35 @@ function upgscene:draw()
 
     local unboundUpgrades = g.getUpgTree():getUnboundUpgrades()
     if #unboundUpgrades > 0 then
-        local spacing = consts.UPGRADE_GRID_SPACING + consts.UPGRADE_IMAGE_SIZE
         local rows = math.ceil(#unboundUpgrades / 3)
-        local grid = Kirigami(0, 0, spacing * 3, spacing * rows)
+        local gridBaseR = Kirigami(0, 0, REWARDS_SPACING * 3, REWARDS_SPACING * rows)
             :attachToLeftOf(hud.resourceHUDUsableArea)
             :attachToBottomOf(hud.resourceHUDUsableArea)
             :moveRatio(1, 0)
-            :grid(3, rows)
+        local grid = gridBaseR:grid(3, rows)
 
+        love.graphics.setColor(0, 0, 0, 0.3)
+        do
+            local a, b, c, d = gridBaseR:get()
+            love.graphics.rectangle("fill", a, b, c, d, 5, 5)
+        end
+
+        love.graphics.setColor(1, 1, 1)
         for i, v in ipairs(unboundUpgrades) do
             local uinfo = g.getUpgradeInfo(v.id)
             local gridR = grid[i]
-            local gridPaddedR = gridR:padUnit(consts.UPGRADE_GRID_SPACING)
+            local gridPaddedR = gridR:padUnit(2)
             local cx, cy = gridR:getCenter()
 
             --------------------
             -- draw image/icon/custom shit:
             --------------------
-            love.graphics.setColor(1,1,1)
             g.drawImage(uinfo.image, cx, cy)
 
             -- custom rendering:
             if uinfo.drawUI then
                 uinfo:drawUI(v.level, gridPaddedR:get())
+                love.graphics.setColor(1,1,1)
             end
 
             --------------------
@@ -258,13 +265,13 @@ function upgscene:draw()
             richtext.printRich(
                 "{o thickness=1}"..tostring(v.level),
                 font,
-                math.floor(cx+consts.UPGRADE_IMAGE_SIZE/4),
+                math.floor(gridR.x),
                 math.floor(cy),
-                0xfffff,
-                "left"
+                gridR.w,
+                "center"
             )
 
-            if iml.isHovered(gridR:padUnit(consts.UPGRADE_GRID_SPACING):get()) then
+            if iml.isHovered(gridPaddedR:get()) then
                 hoveredUpgrade = v
                 isBoundedUpgradeHovered = true
             end
