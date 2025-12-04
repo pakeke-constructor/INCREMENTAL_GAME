@@ -202,6 +202,9 @@ end
 end
 
 local REWARDS_SPACING = 24
+local SIDEBAR_COLOR = objects.Color("#".."FF14A0CD")
+local SIDEBAR_STRIP = objects.Color("#".."FFFF8CC8")
+local REWARD_TEXT = "{o}"..loc("Rewards:", nil, {context = "permanent rewards"}).."{/o}"
 
 function upgscene:draw()
     local header, body = Kirigami(0,0,ui.getScaledUIDimensions()):splitVertical(1,5)
@@ -223,15 +226,36 @@ function upgscene:draw()
     self:renderMapButton()
 
     local hud = g.getHUD()
+    local sidebarRegion
+
+    -- Draw sidebar background
+    do
+        local _, height = ui.getScaledUIDimensions()
+        local usable = hud.resourceHUDUsableArea
+        local width = usable.x + usable.w + usable.x
+        sidebarRegion = Kirigami(0, 0, width, height)
+
+        love.graphics.setColor(SIDEBAR_COLOR)
+        love.graphics.rectangle("fill", 0, 0, width, height)
+        love.graphics.setColor(SIDEBAR_STRIP)
+        love.graphics.rectangle("fill", width, 0, 2, height)
+        love.graphics.setColor(objects.Color.BLACK)
+        love.graphics.rectangle("fill", width + 2, 0, 2, height)
+    end
+
     hud:draw({profile = false})
 
     local unboundUpgrades = g.getUpgTree():getUnboundUpgrades()
     if #unboundUpgrades > 0 then
         local rows = math.ceil(#unboundUpgrades / 3)
         local gridBaseR = Kirigami(0, 0, REWARDS_SPACING * 3, REWARDS_SPACING * rows)
-            :attachToLeftOf(hud.resourceHUDUsableArea)
+            :centerX(hud.resourceHUDUsableArea)
             :attachToBottomOf(hud.resourceHUDUsableArea)
-            :moveRatio(1, 0)
+            :moveUnit(0, 16)
+
+        love.graphics.setColor(1, 1, 1)
+        richtext.printRich(REWARD_TEXT, g.getSmallFont(16), 0, gridBaseR.y - 16, sidebarRegion.w, "center")
+
         local grid = gridBaseR:grid(3, rows)
 
         love.graphics.setColor(0, 0, 0, 0.3)
@@ -261,10 +285,9 @@ function upgscene:draw()
             --------------------
             -- draw level:
             --------------------
-            local font = g.getBigFont(16)
             richtext.printRich(
                 "{o thickness=1}"..tostring(v.level),
-                font,
+                g.getBigFont(16),
                 math.floor(gridR.x),
                 math.floor(cy),
                 gridR.w,
