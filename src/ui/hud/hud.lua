@@ -12,6 +12,7 @@ function HUD:init()
     self.resourceHUD = Resources()
     self.profileHUD = Profile()
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
+    self.resourceHUDUsableArea = Kirigami(0, 0, 0, 0)
 end
 
 if false then
@@ -31,7 +32,7 @@ end
 ---@param show {resource:boolean?,profile:boolean?,xpbar:boolean?}?
 function HUD:draw(show)
     show = show or {}
-    self.resourceHUD:draw(show.resource == false)
+    self.resourceHUDUsableArea = self.resourceHUD:draw(show.resource == false)
     self.profileHUD:draw(show.profile == false, show.xpbar)
 end
 
