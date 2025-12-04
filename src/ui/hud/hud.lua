@@ -7,6 +7,7 @@ local SIDEBAR_COLOR = objects.Color("#".."FF14A0CD")
 local SIDEBAR_STRIP = objects.Color("#".."FFFF8CC8")
 -- TODO: Make this auto-computable?
 local SIDEBAR_WIDTH = 86
+local REWARD_CELL_SIZE = 24
 
 
 
@@ -21,6 +22,9 @@ function HUD:init()
     self.resourceHUD = Resources()
     self.profileHUD = Profile()
     self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
+
+    ---@type g.Tree.Upgrade|nil
+    self.lastHoveredReward = nil
 end
 
 if false then
@@ -42,6 +46,7 @@ end
 ---@param show {resource:boolean?,profile:boolean?,xpbar:boolean?}?
 function HUD:draw(show)
     show = show or {}
+    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
     -- Draw sidebar
     love.graphics.setColor(SIDEBAR_COLOR)
@@ -51,8 +56,62 @@ function HUD:draw(show)
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", self.sidebar.x + self.sidebar.w + 2, 0, 2, self.sidebar.h)
 
-    -- Draw other HUDs
-    self.resourceHUD:draw(show.resource == false)
+    -- Draw resource HUD
+    local resHudY = self.resourceHUD:draw(show.resource == false)
+
+    -- Draw reward HUD
+    local rewards = g.getUpgTree():getUnboundUpgrades()
+    if #rewards > 0 then
+        love.graphics.setColor(1, 1, 1)
+        -- FIXME: Use "loc". Can't do it now because cyclic dependency between g and localization.
+        richtext.printRich("{o}Rewards:{/o}", g.getSmallFont(16), 0, resHudY - 2, self.sidebar.w, "center")
+
+        local rows = math.ceil(#rewards / 3)
+        local gridBaseR = Kirigami(0, resHudY + 16, REWARD_CELL_SIZE * 3, REWARD_CELL_SIZE * rows)
+            :centerX(self.sidebar)
+        local grid = gridBaseR:grid(3, rows)
+
+        love.graphics.setColor(0, 0, 0, 0.3)
+        do
+            local x, y, w, h = gridBaseR:get()
+            love.graphics.rectangle("fill", x, y, w, h, 4, 4)
+        end
+
+        -- Draw each permanent reward
+        local levelFont = g.getBigFont(16)
+        local hovered = nil
+        love.graphics.setColor(1, 1, 1)
+        for i, v in ipairs(rewards) do
+            local gridR = grid[i]:padUnit(1)
+            local uinfo = g.getUpgradeInfo(v.id)
+            local cx, cy = gridR:getCenter()
+            g.drawImage(uinfo.image, cx, cy)
+            richtext.printRich("{o}"..v.level.."{/o}", levelFont, gridR.x, cy, gridR.w, "center")
+
+            if iml.isHovered(gridR:get()) then
+                hovered = v
+            end
+        end
+
+        -- Draw tooltip
+        if self.lastHoveredReward ~= hovered then
+            self.lastHoveredReward = hovered
+            self.rewardDescription = nil
+        end
+
+        if not self.rewardDescription and self.lastHoveredReward then
+            self.rewardDescription = ui.upgradeDescriptionUI(g.getUpgTree(), self.lastHoveredReward)
+        end
+
+        if self.rewardDescription then
+            local mx, my = ui.getMouse()
+            local descriptionBoxR = Kirigami(mx + 14, my - 3, self.rewardDescription:getDimensions())
+                :clampInside(r:padUnit(4))
+            self.rewardDescription:draw(descriptionBoxR:get())
+        end
+    end
+
+    -- Draw profile HUD
     self.profileHUD:draw(SIDEBAR_WIDTH, show.profile == false, show.xpbar)
 end
 
