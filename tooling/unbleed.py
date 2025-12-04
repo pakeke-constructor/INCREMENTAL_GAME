@@ -6,7 +6,7 @@ import PIL.Image
 import numpy
 import tqdm
 
-from util import find_main_lua
+from util import find_game_root
 
 from numpy.typing import NDArray
 
@@ -28,7 +28,7 @@ TRANSPARENT_BLACK = numpy.array([0, 0, 0, 0], numpy.uint8)
 SCRIPT_FILE = pathlib.Path(__file__)
 
 
-MAIN_DIR = find_main_lua()
+MAIN_DIR = find_game_root()
 
 
 def alpha_bleeding(image_orig: NDArray[numpy.uint8]):
