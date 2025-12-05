@@ -58,16 +58,15 @@ end
 
 function FreeCameraScene:renderMapButton()
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
-    local header,_ = r:splitVertical(1,6)
+    local header,_ = r:splitVertical(1,5)
 
-    local left, right = header:splitHorizontal(1,1)
-    right = right:padRatio(0.5,0.2,0.5,0.3)
+    local left, right = header:splitHorizontal(7,1)
+    right = right:padRatio(0.2)
 
     local MAIN=objects.Color.WHITE
     local BASE=objects.Color.GRAY
     -- TEMPORARY CODE
     if ui.Button("{o}MAP", MAIN,BASE, right) then
-        g.playUISound("ui_mouse_click", 1, 0.6, 0.1)
         g.gotoScene("map_scene")
     end
 

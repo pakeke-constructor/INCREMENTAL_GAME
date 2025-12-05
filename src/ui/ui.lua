@@ -63,7 +63,11 @@ function ui.CustomButton(drawLabel, col1, col2, region)
 
 	ui.drawPanel(region:get())
 	drawLabel(region:padRatio(0.4,0.2):get())
-	return iml.wasJustClicked(region:get())
+	if iml.wasJustClicked(region:get()) then
+		g.playUISound("ui_click_basic", 1.4,0.8)
+		return true
+	end
+	return false
 end
 
 

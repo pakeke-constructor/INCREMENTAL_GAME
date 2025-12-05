@@ -555,6 +555,9 @@ local function openXpPopup(self)
     self.timeSinceXpPopupOpened = 0
     self.timeTakenThisLevel = 0
     self.xpRewards = rewards.generateRandomRewards()
+    -- g.playUISound("xp_level_up", 1, 1)
+    -- g.playUISound("xp_goto_upgrades", 0.5, 1)
+    g.playUISound("xp_level_up2", 1, 1)
     popupParticles:clear()
 end
 
@@ -667,10 +670,14 @@ function drawXpPopup(self)
         if iml.isHovered(rrr:get()) then
             col2 = col1
         end
+        if iml.wasJustHovered(rrr:get()) then
+    		g.playUISound("ui_tick", 1.6,0.65, 0,0)
+        end
         helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
         ui.drawPanel(rrr:get())
         rewards.drawRewardDescription(rew, rrr)
         if iml.wasJustClicked(rrr:get()) and (not rewardClaimed) then
+		    g.playUISound("ui_click_basic", 1.4,0.8)
             rewardClaimed = true
             rewards.selectReward(rew)
         end
@@ -681,6 +688,7 @@ function drawXpPopup(self)
     end
 
     if rewardClaimed then
+        g.playUISound("xp_level_up2", 1.2, 1)
         closeXpPopup(self)
     end
 

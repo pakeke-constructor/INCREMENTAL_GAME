@@ -81,8 +81,9 @@ function HUD:draw(show)
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
     -- Draw sidebar
-    love.graphics.setColor(SIDEBAR_COLOR)
-    love.graphics.rectangle("fill", self.sidebar:get())
+    -- love.graphics.setColor(SIDEBAR_COLOR)
+    helper.gradientRect("vertical", objects.Color.WHITE, SIDEBAR_COLOR, self.sidebar:get())
+    --love.graphics.rectangle("fill", self.sidebar:get())
     love.graphics.setColor(SIDEBAR_STRIP)
     love.graphics.rectangle("fill", self.sidebar.x + self.sidebar.w, 0, 2, self.sidebar.h)
     love.graphics.setColor(0, 0, 0)
