@@ -59,6 +59,12 @@ _G.table.clear = require("table.clear")
 _G.table.new = require("table.new")
 
 
+local _isloadtime = true
+function _G.isLoadTime()
+    return _isloadtime
+end
+
+
 _G.json = require("lib.json")
 _G.consts = require("src.consts")
 
@@ -178,6 +184,8 @@ function love.load(arg)
     else
         sceneManager.gotoScene("title_scene")
     end
+
+    _isloadtime = false
 end
 
 function love.quit()

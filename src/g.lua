@@ -68,23 +68,6 @@ g.isBeingSimulated = simulation.isSimulating
 
 
 
-local loadingContext = {
-    modname = "@" -- @ = built-in mod
-}
-
-
----@return {modname:string}
-function g.getLoadingContext()
-    return loadingContext
-end
-
-function g.finishLoading()
-    loadingContext = nil
-end
-
-
-
-
 
 
 local sceneManager = require("src.scenes.sceneManager")
@@ -113,7 +96,7 @@ local callEffects, askEffects
 local definedEvents = objects.Set()
 
 function g.defineEvent(ev)
-    assert(g.getLoadingContext())
+    assert(isLoadTime())
     definedEvents:add(ev)
 end
 
@@ -169,7 +152,7 @@ end
 ---@param reducer fun(a:any, b:any): any
 ---@param defaultValue any
 function g.defineQuestion(question, reducer, defaultValue)
-    assert(g.getLoadingContext())
+    assert(isLoadTime())
     questions[question] = {
         reducer = reducer,
         defaultValue = defaultValue
