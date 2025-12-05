@@ -107,7 +107,7 @@ defineFarmerCat("lumberjack_cat", "Lumberjack Cat", {
 --------------------
 
 g.defineUpgrade("lightning_upgrade", "Lightning Bolt", {
-    image = "stick",
+    image = "happy_cat",
     description = "Every second, %{1} chance for Lightning to spawn!",
     kind = "MISC",
 
