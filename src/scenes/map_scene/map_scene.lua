@@ -427,7 +427,10 @@ function map:draw()
         end
         if isUnlocked(poi.type) then
             if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
-                drawPOIText(poi)
+                -- dont draw text when zooming; it looks weird
+                if not self.transitionTarget then
+                    drawPOIText(poi)
+                end
             end
 
             if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) and not self.transitionTarget then
@@ -438,7 +441,7 @@ function map:draw()
                     action = makePOIAction(poi),
                     duration = TRANSITION_DURATION
                 }
-                g.playUISound("map_zoom_woosh",1.2,0.4)
+                g.playUISound("map_zoom_woosh3",1,0.4)
             end
         else
             local buyText = ""
@@ -527,7 +530,7 @@ function map:update(dt)
                     duration = TRANSITION_DURATION
                 }
                 self.queuedTransitionTargetScene = nil
-                g.playUISound("map_zoom_woosh",1.2,0.4)
+                g.playUISound("map_zoom_woosh3",1,0.4)
             else
                 self.transitionTarget = nil
             end
@@ -538,7 +541,7 @@ end
 
 
 function map:enter()
-    g.playUISound("map_zoom_woosh",1.3,0.4)
+    g.playUISound("map_zoom_woosh3",1,0.4)
 end
 
 
