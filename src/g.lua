@@ -916,19 +916,15 @@ end
 
 ---@alias g.Category
 ---| "grass"
----| "wood"
----| "cat"
+---| "berry"
 ---| "mushroom"
----| "rock"
 ---| "slime"
 
 ---@type table<g.Category, true|nil>
 g.CATEGORIES = {
     grass = true,
-    wood = true,
-    cat = true,
+    berry = true,
     mushroom = true,
-    rock = true,
     slime = true,
 }
 
