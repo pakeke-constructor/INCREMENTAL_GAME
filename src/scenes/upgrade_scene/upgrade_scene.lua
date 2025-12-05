@@ -242,19 +242,22 @@ end
 
 local drawBackground
 do
-local image = love.graphics.newImage("src/scenes/upgrade_scene/upgrade_background_tile.png")
 function drawBackground()
     -- draw background:
     love.graphics.clear(0.4,0.6,0.8)
-    local GAP = image:getWidth()*2
-    local rot = math.sin(love.timer.getTime() / 1.5) / 4
-    local w,h = image:getDimensions()
+    helper.gradientRect("vertical",
+        objects.Color("#".."FF4B73ED"),
+        objects.Color("#".."FF2C12BE"),
+        0,0,love.graphics.getDimensions()
+    )
+    local GAP = 150
+    local rot = math.sin(3*love.timer.getTime() / 3.5) / 12
     love.graphics.scale(ui.getUIScaling())
-    local delta = (love.timer.getTime() * 2) % GAP
+    local delta = 0--(love.timer.getTime() * 8) % GAP
     for x=-300, 3000, GAP do
         for y=-300, 2000, GAP do
             love.graphics.setColor(1,1,1,0.07)
-            love.graphics.draw(image, x,y-delta, rot, 1,1,w/2,h/2)
+            g.drawImage("upgrade_cat_background_symbol", x+delta,y+delta/3, rot, 1,1)
         end
     end
 end

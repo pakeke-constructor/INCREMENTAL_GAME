@@ -21,7 +21,7 @@ local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color(
 
 
 
-
+local GIVES_RESOURCES = loc "Gives Resources"
 
 ---Create upgrade description automatically.
 ---@param self ui.UpgradeDescription
@@ -40,7 +40,7 @@ local function autoBuild(self, tree, upg)
     if isTokenUpgrade then
         local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
         if next(tinfo.resources) then
-            local text = loc "Gives Resources"
+            local text = GIVES_RESOURCES
             local actualText = "{yield_scythe}"..text
             self:addDivider()
             self:addInlineText(actualText, "center", 16)
@@ -225,11 +225,16 @@ function UpgradeDescription:addBox(w, h, render)
 end
 
 
+
+local LEVEL_TEXT = interp("Level %{level}/%{maxLevel}", {
+    context = "As in, the level of a game upgrade. Level 5/6"
+})
+
 ---@param level integer
 ---@param maxLevel integer
 function UpgradeDescription:addLevel(level, maxLevel)
     local col = helper.multiplyAlpha(objects.Color.WHITE, 0.4)
-    local text = loc("Level %{level}/%{maxLevel}", {level = level, maxLevel = maxLevel})
+    local text = LEVEL_TEXT{level = level, maxLevel = maxLevel}
     local fw = self.font:getWidth(richtext.stripEffects(text))
     local fh = self.font:getHeight()
 

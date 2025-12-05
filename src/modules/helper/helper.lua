@@ -372,10 +372,17 @@ function helper.newGradientMesh(dir, ...)
 end
 
 
+
 do
 local mesh = nil
 
-
+---@param dir "vertical"|"horizontal"
+---@param col1 objects.Color|[number,number,number,number?
+---@param col2 objects.Color|[number,number,number,number?
+---@param x number
+---@param y number
+---@param w number
+---@param h number
 function helper.gradientRect(dir, col1, col2, x,y,w,h)
     local isHorizontal = true
     if dir == "vertical" then
