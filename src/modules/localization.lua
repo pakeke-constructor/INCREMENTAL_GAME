@@ -218,7 +218,7 @@ function localization.dump()
     if jsondata then
         local res, strs = pcall(json.decode, jsondata)
         if res then
-            strings = strs.strings or {}
+            strings = strs.strings or strings
         end
     end
 

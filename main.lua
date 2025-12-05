@@ -192,6 +192,10 @@ function love.load(arg)
 end
 
 function love.quit()
+    if consts.DEV_MODE then
+        localization.dump()
+    end
+
     settings.save()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
     if shouldSave and g.hasSession() and not wasSimulating then
