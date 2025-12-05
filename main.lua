@@ -85,7 +85,7 @@ _G.godrays = require("src.modules.godrays.godrays")
 
 _G.helper = require("src.modules.helper.helper")
 
-_G.settings = require("src.setting")
+_G.settings = require("src.settings")
 
 _G.richtext = require("src.modules.richtext.exports")
 
