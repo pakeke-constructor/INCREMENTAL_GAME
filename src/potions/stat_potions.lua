@@ -47,7 +47,7 @@ for i = 1, #dmgs do
     defStatPotion(i, "hit_damage", "HitDamage", "Damage", dmgs[i])
 end
 
-local areas = {40, 60, 80}
+local areas = {20, 40, 60}
 for i = 1, #areas do
     defStatPotion(i, "harvest_area", "HarvestArea", "Area", areas[i])
 end
