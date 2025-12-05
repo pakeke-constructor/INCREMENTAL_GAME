@@ -51,11 +51,11 @@ g.defineToken("mushroom_green", "Green Mushroom", {
                 local t = nil
                 local r = love.math.random()
                 if r < 0.4 then
-                    t = "small_grass"
+                    t = "grass_1"
                 elseif r < 0.7 then
-                    t = "grass_blades"
+                    t = "grass_2"
                 else
-                    t = "thick_grass"
+                    t = "grass_3"
                 end
                 g.spawnToken(t, x,y)
             end
