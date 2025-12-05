@@ -257,7 +257,9 @@ function custom:_drawUI(mapButtonR)
 
     -- Draw avatar with background
     local drawBg = self.activeCategory == 1 or self.activeCategory == 3
-    local avatarX, avatarY = math.floor(baseCosmeticGridR.x / 2), math.floor(select(2, ui.getScaledUIDimensions()) / 2)
+    local safeArea = g.getHUD():getSafeArea()
+    local avatarX = helper.lerp(safeArea.x, baseCosmeticGridR.x, 0.5)
+    local avatarY = math.floor(select(2, ui.getScaledUIDimensions()) / 2)
     local avatarSize = consts.AVATAR_SIZE * AVATAR_SCALE
     if drawBg then
         love.graphics.setStencilMode("draw", 3)

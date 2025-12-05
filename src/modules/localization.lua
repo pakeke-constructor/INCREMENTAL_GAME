@@ -56,28 +56,49 @@ end
 
 
 
----@type table<string, table<string, string>>
+-- List of strings to be translated
+---@type table<string, string>
 local stringsToLocalize = {}
+-- List of interpolators
 ---@type table<string, localization.Interpolator>
 local interpolators = {}
-local EXPORT_ON_EXIT = true
+-- List of available languages, key is language code, value is localized name
+---@type table<string, string>
+local languageList = {}
 
 
----@type table<string, table<string, string>>
+---@type table<string, string>
 local translatedKeys = {}
 
+---@type table<string, boolean?>
+local missingKeys = {}
+
+---@class localization.Metadata
+---@field public context string? Additional context to be added to translation key.
 
 ---@class localization.InterpolatorObject: objects.Class
 local Interpolator = objects.Class("localization:Interpolator")
 
----@param modname string
 ---@param text string
-function Interpolator:init(modname, text, context)
-    self.modname = modname
+---@param metadata localization.Metadata?
+function Interpolator:init(text, metadata)
+    local key = text
+    local context = metadata and metadata.context or ""
+    if #context > 0 then
+        key = key.."\0"..context
+    end
 
-    if translatedKeys[modname] and translatedKeys[modname][text] then
-        self.text = translatedKeys[modname][text]
+    if translatedKeys[key] then
+        self.text = translatedKeys[key]
     else
+        if not missingKeys[key] then
+            if #context > 0 then
+                log.warn(string.format("Missing translation key of %q (%q)", text, context))
+            else
+                log.warn(string.format("Missing translation key of %q", text))
+            end
+            missingKeys[key] = true
+        end
         self.text = text
     end
 
@@ -85,11 +106,7 @@ function Interpolator:init(modname, text, context)
     dummy for now.
     In future, add proper translation
     ]]
-    if not stringsToLocalize[modname] then
-        stringsToLocalize[modname] = {}
-    end
-
-    stringsToLocalize[modname][text] = text
+    stringsToLocalize[key] = text
 end
 
 ---Availability: Client and Server
@@ -112,109 +129,123 @@ local strTc = typecheck.assert("string")
 ---
 ---Availability: Client and Server
 ---@param text string String to translate
----@param context table? Reserved for future use
+---@param metadata localization.Metadata? Additional metadata
 ---@return localization.Interpolator
-function localization.newInterpolator(text, context)
+function localization.newInterpolator(text, metadata)
     strTc(text)
-    local loadingContext = assert(isLoadTime(), "this can only be called at load-time")
+    assert(isLoadTime(), "this can only be called at load-time")
     local key = text
     local interpolator = interpolators[key]
 
     if not interpolator then
-        interpolator = Interpolator("", text)
+        interpolator = Interpolator(text, metadata)
         interpolators[key] = interpolator
     end
 
     return interpolator
 end
 
-
 ---Translates a string.
 ---
 ---Availability: Client and Server
 ---@param text string String to translate
 ---@param variables table<string, any>? Variable to interpolate
----@param context table? Reserved for future use
+---@param metadata localization.Metadata? Additional metadata
 ---@return string
-function localization.localize(text, variables, context)
-    return localization.newInterpolator(text, context)(variables)
+function localization.localize(text, variables, metadata)
+    return localization.newInterpolator(text, metadata)(variables)
 end
 
 
----@param modname string
----@param fsysobj love.filesystem.
----@param path string
-local function tryLoad(modname, fsysobj, path)
-    if fsysobj:exists(path) then
-        local locData, err = fsysobj:read(path)
-        if locData then
-            local status, locs = pcall(json.decode, locData)
-            if status then
-                if not translatedKeys[modname] then
-                    translatedKeys[modname] = {}
-                end
 
-                -- TODO: Handle pluralization
-                for k, v in pairs(locs) do
-                    translatedKeys[modname][k] = v
+---@param lang string
+---@return string
+---@return string|nil
+local function extractLangRegCode(lang)
+    local langcode, regcode = lang:match("(%l%l)_(%u%u)")
+    if not langcode then
+        return lang, nil
+    end
+
+    return langcode, regcode
+end
+
+---Load localization data (callable only during initialization).
+---@param targetLang string
+function localization.load(targetLang)
+    local loadingContext = assert(isLoadTime(), "this can only be called at load-time")
+    local langcode, regcode = extractLangRegCode(targetLang)
+    local stringsWithRegCode = nil
+    local stringsWithoutRegCode = nil
+
+    -- Load all localization
+    for _, lang in ipairs(love.filesystem.getDirectoryItems("assets/localization")) do
+        if lang:lower():sub(-5) == ".json" then
+            local contents = assert(love.filesystem.read("assets/localization/"..lang))
+            local ok, jsondata = pcall(json.decode, contents)
+
+            if ok then
+                local langname = lang:sub(1, -6)
+                languageList[langname] = helper.assert(jsondata.name, "missing name from", lang)
+                local strings = helper.assert(jsondata.strings, "missing strings from", lang)
+
+                if targetLang == langname then
+                    if regcode then
+                        stringsWithRegCode = strings
+                    else
+                        stringsWithoutRegCode = strings
+                    end
+                elseif langcode == langname then
+                    stringsWithoutRegCode = strings
                 end
             else
-                log.error("unable to load localization for mod '"..modname.."': "..locs)
+                log.error("unable to load localization from '"..lang.."': "..jsondata)
             end
-        else
-            log.error("unable to load localization for mod '"..modname.."': "..err)
+        end
+    end
+
+    -- Localization file with country-specific code has higher priority.
+    -- so load non-region strings first
+    if stringsWithoutRegCode then
+        for k, v in pairs(stringsWithoutRegCode) do
+            translatedKeys[k] = v
+        end
+    end
+    -- now load with region code
+    if stringsWithRegCode then
+        for k, v in pairs(stringsWithRegCode) do
+            translatedKeys[k] = v
         end
     end
 end
 
----Load localization data from filesystem object (callable only during initialization).
----
----Note: This currently does nothing server-side.
----
----Availability: Client and Server
----@param fsysobj umg.FilesystemObject
-function localization.load()
-    local loadingContext = assert(isLoadTime(), "this can only be called at load-time")
-    local lang = love.system.getPreferredLocales()[1]
 
-    -- Localization file without country-specific code has lower priority.
-    local countryCodeOnly = lang:match("(%l%l)_%u%u")
-    if countryCodeOnly then
-        tryLoad(loadingContext.modname, fsysobj, countryCodeOnly..".json")
+-- Dump list of strings to be translated.
+function localization.dump()
+    local jsondata = love.filesystem.read("localization.json")
+    local strings = {}
+
+    if jsondata then
+        local res, strs = pcall(json.decode, jsondata)
+        if res then
+            strings = strs.strings or strings
+        end
     end
 
-    tryLoad(loadingContext.modname, fsysobj, lang..".json")
+    for k, v in pairs(stringsToLocalize) do
+        strings[k] = v
+    end
+
+    jsondata = json.encode({name = "", strings = strings})
+    love.filesystem.write("localization.json", jsondata)
 end
 
 
-if EXPORT_ON_EXIT then
 
-local jsondata = love.filesystem.read("localization.json")
-local strings = {}
-
-if jsondata then
-    local res, strs = pcall(json.decode, jsondata)
-    if res then
-        strings = strs
-    end
-end
-
-for modname, stringlist in pairs(stringsToLocalize) do
-    if not strings[modname] then
-        strings[modname] = {}
-    end
-
-    for k, v in pairs(stringlist) do
-        strings[modname][k] = v
-    end
-end
-
-jsondata = json.encode(strings)
-love.filesystem.write("localization.json", jsondata)
+function localization.getLanguages()
+    return languageList
 end
 
 
 
 return localization
-
-
