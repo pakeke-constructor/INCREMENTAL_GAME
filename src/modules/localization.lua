@@ -232,4 +232,10 @@ end
 
 
 
+function localization.getLanguages()
+    return languageList
+end
+
+
+
 return localization

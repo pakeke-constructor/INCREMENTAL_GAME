@@ -54,13 +54,16 @@ function settingscene:init()
     sfx.setVolume(settings.getSFXVolume())
     -- TODO: bgm.setVolume here
 
-    -- TODO: Wire this up to settings once we have proper localization
-    self.languages = love.system.getPreferredLocales()
-    if #self.languages == 0 then
-        -- Ensure there's at least one option
-        self.languages[#self.languages+1] = "en_US"
+    -- key = language code, value = language name
+    self.languages = localization.getLanguages()
+    -- Interleaved
+    ---@type [string,string][]
+    self.languageListInterleaved = {}
+    for k, v in pairs(self.languages) do
+        self.languageListInterleaved[#self.languageListInterleaved+1] = {k, v}
     end
-    self.languageIndex = 1
+    table.sort(self.languageListInterleaved, function (a, b) return a[1] < b[1] end)
+    self.language = settings.getLanguage()
     self.showLanguagePopup = false
 end
 
@@ -183,10 +186,8 @@ function settingscene:draw()
         languageLabelR.w,
         "center"
     )
-    if ui.DefaultButton(
-        helper.wrapRichtextColor(objects.Color.BLACK, self.languages[self.languageIndex]),
-        languageButtonR
-    ) then
+    local langButtonText = self.languages[self.language] or self.language
+    if ui.DefaultButton("{o}"..langButtonText.."{/o}", languageButtonR) and #self.languageListInterleaved > 0 then
         self.showLanguagePopup = true
     end
 
@@ -227,7 +228,7 @@ function settingscene:_drawLanguageSelector()
 
     -- TODO: Slider
     local font = g.getSmallFont(32)
-    for i, lang in ipairs(self.languages) do
+    for i, lang in ipairs(self.languageListInterleaved) do
         local buttonR = grid[i]:padUnit(4)
         local textR = buttonR
             :set(nil, nil, nil, font:getHeight())
@@ -235,7 +236,7 @@ function settingscene:_drawLanguageSelector()
 
         -- Draw button
         if iml.wasJustClicked(buttonR:get()) then
-            self.languageIndex = i
+            self.language = lang[2]
             self.showLanguagePopup = false
             break
         elseif iml.isHovered(buttonR:get()) then
@@ -244,14 +245,14 @@ function settingscene:_drawLanguageSelector()
         end
 
         -- Add outline for current language selection
-        if i == self.languageIndex then
+        if lang[1] == self.language then
             love.graphics.setColor(0, 0, 0)
             love.graphics.rectangle("line", buttonR:get())
         end
 
         -- Button text
         love.graphics.setColor(1, 1, 1)
-        richtext.printRich("{o}"..lang.."{/o}", font, textR.x, textR.y, textR.w, "center")
+        richtext.printRich("{o}"..lang[2].."{/o}", font, textR.x, textR.y, textR.w, "center")
     end
 end
 
