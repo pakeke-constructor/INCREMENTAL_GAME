@@ -239,14 +239,14 @@ function ui.Slider(key, direction, slidercol, currentsegment, segments, slidersi
 	assert(slidersize > 0 and slidersize <= 1, "invalid slider size")
 
 	local x, y, w, h = reg:get()
-	local _, _, click = iml.consumeDrag(key, x, y, w, h, 1)
+	local drag = iml.consumeDrag(key, x, y, w, h, 1)
 	local s = helper.clamp(currentsegment, 1, segments)
 
 	-- Select slider color and handle drags
 	local curslidercol = slidercol
-	if click then
+	if drag then
 		curslidercol = multiplyHSVValue(slidercol, 0.5)
-		local mx, my = iml.getTransformedPointer()
+		local mx, my = drag.endX, drag.endY
 
 		if direction == "horizontal" then
 			local pos = helper.clamp(mx - x, 0, w)

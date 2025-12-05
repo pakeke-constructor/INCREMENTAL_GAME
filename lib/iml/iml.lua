@@ -349,9 +349,12 @@ end
 
 
 ---@class iml.Drag
----@field originalX number
----@field originalY number
-local iml_Drag
+---@field startX number
+---@field startY number
+---@field endX number
+---@field endY number
+---@field dx number
+---@field dy number
 
 ---@param key any
 ---@param button integer
@@ -500,12 +503,6 @@ function iml.setPointer(x,y)
     pointer_x = x
     pointer_y = y
 end
-
-
-function iml.getPointer()
-    return pointer_x, pointer_y
-end
-iml.getTransformedPointer = getTransformedPointer
 
 
 
