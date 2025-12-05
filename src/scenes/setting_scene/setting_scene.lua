@@ -8,6 +8,13 @@ local sfx = require("src.sound.sfx")
 local SLIDER_BACKGROUND = objects.Color.BLACK
 local SLIDER_COLOR = objects.Color.WHITE
 
+local TEXT = {
+    EFFECT_VOLUME = loc "Effect Volume",
+    MUSIC_VOLUME = loc "Music Volume",
+    LANGUAGE = loc "Language",
+    REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"})
+}
+
 
 ---@param reg kirigami.Region
 ---@param ... kirigami.Region
@@ -143,7 +150,7 @@ function settingscene:draw()
         :centerX(musicVolumeLabelR)
         :moveUnit(0, 8)
     -- Language. Let's just make it a button that shows fullscreen panel later.
-    local languageLabelR = Kirigami(0, 0, 240, font:getHeight())
+    local languageLabelR = Kirigami(0, 0, 240, font:getHeight() * 1.5)
         :centerX(titleTextR)
         :attachToBottomOf(musicVolumeSliderBaseR)
         :moveUnit(0, 8)
@@ -164,24 +171,31 @@ function settingscene:draw()
 
     -- Draw effect volume
     local sfxVolume = settings.getSFXVolume()
-    sfxVolume = drawVolume(sfxVolume, "Effect Volume", effectVolumeLabelR, effectVolumeSliderBaseR)
+    sfxVolume = drawVolume(sfxVolume, TEXT.EFFECT_VOLUME, effectVolumeLabelR, effectVolumeSliderBaseR)
     settings.setSFXVolume(sfxVolume)
     sfx.setVolume(sfxVolume)
 
     -- Draw music volume
     local bgmVolume = settings.getBGMVolume()
-    bgmVolume = drawVolume(bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
+    bgmVolume = drawVolume(bgmVolume, TEXT.MUSIC_VOLUME, musicVolumeLabelR, musicVolumeSliderBaseR)
     settings.setBGMVolume(bgmVolume)
     -- TODO: set BGM volume in BGM service once we have it
 
     -- Draw language button
     love.graphics.setColor(1, 1, 1)
-    -- TODO: localize
     richtext.printRich(
-        "{o}Language{/o}",
+        "{o}"..TEXT.LANGUAGE.."{/o}",
         g.getSmallFont(32),
         languageLabelR.x,
         languageLabelR.y,
+        languageLabelR.w,
+        "center"
+    )
+    richtext.printRich(
+        "{o}"..TEXT.REQUIRES_RESTART.."{/o}",
+        g.getSmallFont(16),
+        languageLabelR.x,
+        languageLabelR.y + 32,
         languageLabelR.w,
         "center"
     )
