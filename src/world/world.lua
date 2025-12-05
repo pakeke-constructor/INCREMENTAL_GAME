@@ -283,6 +283,12 @@ local function drawToken(tok)
     local rot = getTokRotation(tok)
     local kx,ky = getTokShear(tok)
 
+    local stalkInfo = tok.growths and g.getStalkInfo(tok.growths.stalk)
+    if stalkInfo and stalkInfo.dontFlip then
+        -- dont flip non-symmetric stalks (it messes up berry placement)
+        sx = math.abs(sx)
+    end
+
     -- shadow:
     drawShadow(tok.shadow, tok.x, tok.y)
 
@@ -294,8 +300,7 @@ local function drawToken(tok)
     love.graphics.setColor(1,1,1)
     g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
 
-    if tok.growths then
-        local stalkInfo = g.getStalkInfo(tok.growths.stalk)
+    if stalkInfo then
         for _, pos in ipairs(stalkInfo.growthpos) do
             g.drawImage(tok.growths.growth, tok.x + pos.x, tok.y + pos.y, rot, sx, sy, kx, ky)
         end

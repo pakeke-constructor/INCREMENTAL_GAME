@@ -1232,6 +1232,7 @@ local STALKS = {}
 
 ---@class g.StalkDefinition
 ---@field public image string?
+---@field public dontFlip boolean?
 ---@field public growthpos {x: number, y: number}[] Position coordinate is in pixels, relative to stalk center
 
 ---@param id string
