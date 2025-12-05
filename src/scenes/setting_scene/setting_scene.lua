@@ -63,7 +63,6 @@ function settingscene:init()
         self.languageListInterleaved[#self.languageListInterleaved+1] = {k, v}
     end
     table.sort(self.languageListInterleaved, function (a, b) return a[1] < b[1] end)
-    self.language = settings.getLanguage()
     self.showLanguagePopup = false
 end
 
@@ -186,7 +185,8 @@ function settingscene:draw()
         languageLabelR.w,
         "center"
     )
-    local langButtonText = self.languages[self.language] or self.language
+    local lang = settings.getLanguage()
+    local langButtonText = self.languages[lang] or lang
     if ui.DefaultButton("{o}"..langButtonText.."{/o}", languageButtonR) and #self.languageListInterleaved > 0 then
         self.showLanguagePopup = true
     end
@@ -236,7 +236,7 @@ function settingscene:_drawLanguageSelector()
 
         -- Draw button
         if iml.wasJustClicked(buttonR:get()) then
-            self.language = lang[2]
+            settings.setLanguage(lang[1])
             self.showLanguagePopup = false
             break
         elseif iml.isHovered(buttonR:get()) then
@@ -245,7 +245,7 @@ function settingscene:_drawLanguageSelector()
         end
 
         -- Add outline for current language selection
-        if lang[1] == self.language then
+        if lang[1] == settings.getLanguage() then
             love.graphics.setColor(0, 0, 0)
             love.graphics.rectangle("line", buttonR:get())
         end
