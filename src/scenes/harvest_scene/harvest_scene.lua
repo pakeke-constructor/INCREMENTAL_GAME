@@ -776,6 +776,31 @@ function harvest:draw()
         drawUpgradePopup(self)
     end
 
+    -- show stats in dev-mode
+    if consts.DEV_MODE then
+        local r = Kirigami(0,0,ui.getScaledUIDimensions())
+        local left,right = r:splitHorizontal(6,1)
+        local N=20
+        local regions = right:grid(1,N)
+
+        local i = N
+        local font = g.getSmallFont(16)
+
+        local function stat(txt, val)
+            if txt:find("Limit") then
+                return -- ignore stat limits
+            end
+            local reg = regions[i]
+            richtext.printRichContained("{o}"..txt .. ": " .. g.formatNumber(val), font, reg:get())
+            i = i - 1
+        end
+
+        for _,k in ipairs({"HitDamage", "HitSpeed", "HarvestArea"}) do
+            local val = g.stats[k]
+            stat(k,val)
+        end
+    end
+
     ui.endUI()
 end
 
