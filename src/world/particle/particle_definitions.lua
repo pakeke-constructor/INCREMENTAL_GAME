@@ -120,6 +120,38 @@ function initParticles()
     crosshair:setRotation(0, 0)
 
 
+    do
+    local lifetime=0.2
+    local xp = defineParticle("xp1", {
+        frames = {"xp_particle_blue","xp_particle_blue2"},
+        lifetime=lifetime,
+        emissionArea = {
+            distribution = "ellipse",
+            distance = {0,0}
+        }
+    })
+    local xp2 = defineParticle("xp2", {
+        frames = {"xp_particle_white", "xp_particle_white2", "xp_particle_white3"},
+        lifetime=lifetime,
+        emissionArea = {
+            distribution = "ellipse",
+            distance = {0,0}
+        }
+    })
+    local xp3 = defineParticle("xp3", {
+        frames = {"xp_particle_pink","xp_particle_pink2"},
+        lifetime=lifetime,
+        emissionArea = {
+            distribution = "ellipse",
+            distance = {0,0}
+        }
+    })
+
+    for _,psys in ipairs({xp,xp2,xp3}) do
+        psys:setSpeed(40,40)
+    end
+    end
+
     local grass = defineParticle("grass", {
         frames = makeFrames("grass_particle_", 3),
         lifetime = 0.3,
@@ -139,6 +171,15 @@ function initParticles()
         }
     })
 
+
+    local slime = defineParticle("slime", {
+        frames = makeFrames("slimed_particle_", 3),
+        lifetime = 0.3,
+        emissionArea = {
+            distribution = "ellipse",
+            distance = {4, 4}
+        }
+    })
     -- ... 
 
     -- ... 

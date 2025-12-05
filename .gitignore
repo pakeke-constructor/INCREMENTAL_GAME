@@ -4,3 +4,8 @@
 
 _notes/private
 _notes/.obsidian
+
+*.ase
+*.aseprite
+
+*.pyc

@@ -8,10 +8,15 @@ local consts = {
     FILE_LOG_LEVEL = "warn",
     CONSOLE_LOG_LEVEL = "trace",
 
-    ATLAS_SIZE = 4096,
+    TARGET_TIME_PER_LEVEL_UP = 25,
 
-    UPGRADE_IMAGE_SIZE = 24,
+    ATLAS_SIZE = 2048,
+
+    MAX_PLAYING_SOURCES = 14,
+
+    UPGRADE_IMAGE_SIZE = 28,
     UPGRADE_GRID_SPACING = 8, -- spaced 8 units apart
+    UPGRADE_CONNECTOR_WIDTH = 8,
 
     HARVEST_AREA_LEEWAY = 4, -- Mouse-harvest extends by this amount so it "feels good"
 
@@ -21,7 +26,20 @@ local consts = {
 
     DEFAULT_UPGRADE_MAX_LEVEL = 10,
 
-    TEST = true
+    MAX_HIT_DURATION = 0.125,
+
+    TEST = true,
+
+    LAGGED_HEALTHBAR_DURATION = 0.3, -- the "healtbar lag" on tokens, (purely visual effect)
+
+    WORLD_TILE_SIZE = 16, -- World tile size on both width and height.
+
+    AVATAR_SIZE = 24, -- Size of the avatar with background
+    DEFAULT_CAT_AVATAR = "cat",
+    DEFAULT_BACKGROUND_AVATAR = "white",
+    DEFAULT_SCYTHE = "scythe",
+
+    ORBIT_RING_DISTANCE = 20 -- Radius of each orbit ring.
 }
 
 

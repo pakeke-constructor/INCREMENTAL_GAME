@@ -9,7 +9,6 @@ end
 
 
 defUpgrade("grassy_poison", "Grass Poison", {
-    price = {money = 20},
     description = "All grass spawns with 20% less health",
     maxLevel = 1,
 
@@ -22,7 +21,6 @@ defUpgrade("grassy_poison", "Grass Poison", {
 
 
 defUpgrade("grassy_shovel", "Grassy Shovel", {
-    price = {money = 20},
     description = "Deal %{1} damage to grass",
     maxLevel = 10,
     getValues = function(uinfo, level)
@@ -41,7 +39,6 @@ defUpgrade("grassy_shovel", "Grassy Shovel", {
 
 
 defUpgrade("horticulture_book", "Horticulture Book", {
-    price = {money = 20},
     description = "Grasses earn %{1}",
     maxLevel = 10,
     getValues = function(uinfo, level)
@@ -65,7 +62,6 @@ defUpgrade("horticulture_book", "Horticulture Book", {
 
 
 defUpgrade("moldy_block", "Moldy Block", {
-    price = {money = 20},
     description = "Mushrooms earn %{1}",
     maxLevel = 10,
     getValues = function(uinfo, level)
@@ -79,7 +75,7 @@ defUpgrade("moldy_block", "Moldy Block", {
     getTokenResourceModifier = function(uinfo, level, tok)
         if (tok.category == "mushroom") then
             return {
-                logs = uinfo:getValues(level)
+                fabric = uinfo:getValues(level)
             }
         end
         return nil

@@ -34,18 +34,18 @@ local function computeValueBouncing(dt, value, velocity, maxvalue)
     return value, false
 end
 
----@param world g.World
 ---@param obj {x:number,y:number,dirX:number,dirY:number,speed:number}
 ---@param dt number
-function worldutil.updateLikeDVD(world, obj, dt)
+function worldutil.updateLikeDVD(obj, dt)
     local flip
+    local worldW, worldH = g.getWorldDimensions()
 
-    obj.x, flip = computeValueBouncing(dt, obj.x, obj.speed * obj.dirX, world.WIDTH)
+    obj.x, flip = computeValueBouncing(dt, obj.x, obj.speed * obj.dirX, worldW)
     if flip then
         obj.dirX = -obj.dirX
     end
 
-    obj.y, flip = computeValueBouncing(dt, obj.y, obj.speed * obj.dirY, world.HEIGHT)
+    obj.y, flip = computeValueBouncing(dt, obj.y, obj.speed * obj.dirY, worldH)
     if flip then
         obj.dirY = -obj.dirY
     end
@@ -105,8 +105,8 @@ end
 ---@param damage any
 function worldutil.spawnLightning(x,y, damage, radius)
     g.spawnEntity("lightning_animation", x,y)
-    g.playSound("lightning_foreground",0.9,0.7,0.3,0)
-    radius = radius or 40
+    g.playWorldSound("lightning_foreground",0.9,0.4,0.3,0)
+    radius = radius or 8
     g.iterateTokensInArea(x,y, radius, function(tok)
         g.damageToken(tok,damage)
     end)
@@ -120,7 +120,7 @@ end
 ---@param damage number?
 function worldutil.explosion(x,y,damage)
     g.spawnEntity("small_explosion_animation", x,y)
-    g.playSound("small_explosion", 1,0.3,0.35)
+    g.playWorldSound("small_explosion", 1,0.3,0.35)
     if damage then
         g.iterateTokensInArea(x,y, 40, function(tok)
             g.damageToken(tok,damage)
@@ -131,9 +131,8 @@ end
 
 
 
-do
 
-local WADDLE_SPEED=6
+local WADDLE_ANIM_SPEED=6
 
 ---@param ent g.Entity
 ---@param vx number
@@ -148,7 +147,7 @@ function worldutil.updateWaddleAnimation(ent,vx,vy)
         ent.sx = -1
     end
 
-    local t = love.timer.getTime() * WADDLE_SPEED
+    local t = love.timer.getTime() * WADDLE_ANIM_SPEED
     if (vx*vx + vy*vy) > 0.01 then
         -- then we are moving! do waddle
         local height = math.abs(math.sin(t))*7
@@ -160,8 +159,6 @@ function worldutil.updateWaddleAnimation(ent,vx,vy)
     end
 end
 
-
-end
 
 
 

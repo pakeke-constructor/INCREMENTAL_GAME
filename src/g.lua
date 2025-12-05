@@ -8,6 +8,12 @@ local reducers = require("src.modules.reducers")
 local Session = require("src.Session")
 local HUD = require("src.ui.hud.hud")
 
+
+
+local sfx = require("src.sound.sfx")
+
+local simulation = require("src.world.simulation")
+
 ---@class g
 local g = {}
 
@@ -29,10 +35,23 @@ function g.loadSession(path)
     currentSession = Session.deserialize(jsondata)
 end
 
+function g.hasSession()
+    return not not currentSession
+end
+
 
 ---@return g.Session
 function g.getSn()
-    return assert(currentSession)
+    return assert(currentSession, "session not loaded")
+end
+
+function g.getWorldTime()
+    return currentSession.worldTime
+end
+
+---@return g.Tree
+function g.getUpgTree()
+    return currentSession.tree
 end
 
 ---@return g.World
@@ -44,45 +63,40 @@ function g.getPrestige()
     return currentSession.prestige
 end
 
-
-
-
-local loadingContext = {
-    modname = "@" -- @ = built-in mod
-}
-
-
----@return {modname:string}
-function g.getLoadingContext()
-    return loadingContext
-end
-
-function g.finishLoading()
-    loadingContext = nil
-end
+g.isBeingSimulated = simulation.isSimulating
 
 
 
 
 
 
-local sceneManager
+local sceneManager = require("src.scenes.sceneManager")
 
 ---@param scName string
 function g.gotoScene(scName)
-    sceneManager = sceneManager or require("src.scenes.sceneManager")
     sceneManager.gotoScene(scName)
+end
+
+---@param scName string
+function g.gotoSceneViaMap(scName)
+    local _,curName = sceneManager.getCurrentScene()
+    assert(curName ~= "map_scene", "Already in map! (this will break stuff.)")
+    g.gotoScene("map_scene")
+    if scName ~= "map_scene" then
+        local mapScene, sceneName = sceneManager.getCurrentScene()
+        assert(sceneName == "map_scene")
+        mapScene:queueDestinationScene(scName)
+    end
 end
 
 
 
 
-local callUpgrades, askUpgrades
 local callEffects, askEffects
 local definedEvents = objects.Set()
 
 function g.defineEvent(ev)
-    assert(g.getLoadingContext())
+    assert(isLoadTime())
     definedEvents:add(ev)
 end
 
@@ -109,8 +123,19 @@ function g.call(ev, arg1, ...)
         arg1[ev](arg1, ...)
     end
 
-    callUpgrades(ev, arg1, ...)
-    callEffects(ev, arg1, ...)
+    local tree = g.getUpgTree()
+    tree:callUpgrades(ev, arg1, ...)
+
+    local world = currentSession.mainWorld
+    if world:_isPlayerCurrentlyHarvesting() then
+        -- only apply effects if player is currently harvesting
+        callEffects(ev, arg1, ...)
+    end
+
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc[ev] then
+        sc[ev](sc, arg1, ...)
+    end
 end
 
 
@@ -127,7 +152,7 @@ end
 ---@param reducer fun(a:any, b:any): any
 ---@param defaultValue any
 function g.defineQuestion(question, reducer, defaultValue)
-    assert(g.getLoadingContext())
+    assert(isLoadTime())
     questions[question] = {
         reducer = reducer,
         defaultValue = defaultValue
@@ -149,8 +174,15 @@ function g.ask(q, arg1, ...)
         val = reducer(arg1[q](arg1, ...), val)
     end
 
-    val = reducer(val, askUpgrades(q, arg1, ...))
-    return reducer(val, askEffects(q, arg1, ...))
+    local tree = g.getUpgTree()
+
+    local mainWorld = currentSession.mainWorld
+    if mainWorld:_isPlayerCurrentlyHarvesting() then
+        -- effects should only be active when player is harvesting
+        val = reducer(askEffects(q, arg1, ...))
+    end
+
+    return reducer(val, tree:askUpgrades(q, arg1, ...))
 end
 
 
@@ -317,6 +349,25 @@ function g.drawImageOffset(imageName, x,y, r, sx,sy, ox,oy, kx,ky)
     atlas:draw(quad, x, y, r, sx, sy, (ox or 0.5) * w, (oy or 0.5) * h, kx, ky)
 end
 
+---@param imageName string
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param rot number?
+function g.drawImageContained(imageName, x,y, w,h, rot)
+    local quad = g.getImageQuad(imageName)
+    local _,_,qw,qh = quad:getViewport()
+    local scaleX = w / qw
+    local scaleY = h / qh
+    local scale = math.min(scaleX, scaleY)
+    local scaledW = qw * scale
+    local scaledH = qh * scale
+    local centerX = x + (w - scaledW) / 2
+    local centerY = y + (h - scaledH) / 2
+    atlas:draw(quad, centerX, centerY, rot or 0, scale, scale, 0, 0)
+end
+
 
 ---@param imageName any
 ---@return boolean
@@ -339,13 +390,36 @@ local function loadImage(path)
             error("Duplicate image: "..name)
         end
         nameToQuad[name] = quad
+        richtext.defineImage(name, atlas:getTexture(), quad)
     end
 end
 
+-- Define 1x1 white image
+do
+    -- Add padding around to prevent bleeding
+    local id = love.image.newImageData(3, 3, "rgba8")
+    id:mapPixel(function() return 1, 1, 1, 0 end) -- fill transparent white
+    id:setPixel(1, 1, 1, 1, 1, 1) -- set middle pixel
+    local q = assert(atlas:add(id))
+    local x, y = q:getViewport()
+    -- Now define it to be 1x1 instead of 3x3
+    q:setViewport(x + 1, y + 1, 1, 1, g.getAtlas():getDimensions())
+    nameToQuad["1x1"] = q
+end
 
+-- Load other images
 g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
 g.walkDirectory("src/entities", loadImage)
+g.walkDirectory("src/scythes", loadImage)
+g.walkDirectory("src/rewards", loadImage)
+g.walkDirectory("src/potions", loadImage)
+
+-- Set this to true to dump the atlas
+if false then
+    local atlasImageData = love.graphics.readbackTexture(atlas:getTexture())
+    atlasImageData:encode("png", "texture_atlas_dump.png")
+end
 
 end
 
@@ -425,18 +499,28 @@ g.stats = {}
 
 -- SSTATS 
 -- (if you ever want to quickly search the name of stats, search "sstats")
-g.stats.HitDuration = g.defineStat("HitDuration", 0.8)
-g.stats.HitDamage = g.defineStat("HitDamage", 1)
+g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
+g.stats.HitDamage = g.defineStat("HitDamage", 3)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
+g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 1) -- rad/s
+
+-- World stat
+g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 25)
+g.stats.WorldTileHeight = g.defineStat("WorldTileHeight", 16)
+
+function g.getWorldDimensions()
+    local w = math.floor(g.stats.WorldTileWidth * consts.WORLD_TILE_SIZE)
+    local h = math.floor(g.stats.WorldTileHeight * consts.WORLD_TILE_SIZE)
+    return w, h
+end
 
 
 
-
----@alias g.ResourceType "money"|"logs"|"rocks"|"bones"
+---@alias g.ResourceType "money"|"fabric"|"bread"|"juice"|"fish"
 
 -- i wish we could define this as { [g.ResourceType]: number } but it doesnt work that way
----@alias g.Bundle {money?: number, bones?: number, rocks?: number, logs?: number}
----@alias g.Resources {money: number, bones: number, rocks: number, logs: number}
+---@alias g.Bundle {money?: number, fabric?: number, bread?: number, juice?: number, fish?: number}
+---@alias g.Resources {money: number, fabric: number, bread: number, juice: number, fish: number}
 
 
 ---@alias g.PrestigeRange {lower: integer, upper: integer}
@@ -461,18 +545,18 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@class g.UpgradeDefinition
 ---@field kind g.UpgradeKind
 ---@field tokenType string? (only for kind == "TOKEN")
----@field price g.Bundle
 ---@field maxLevel integer?
----@field startingUpgrade boolean? starting-upgrades will be visible at the start, no matter what.
 ---@field image string?
 ---@field priceScaling number?
 ---@field description string?
+---@field getPriceOverride (fun(uinfo:g.UpgradeInfo, level:integer): g.Bundle)?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number)?
 ---@field valueFormatter ((string|(fun(x:number):string))[])?
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
 ---@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer))?
+---@field drawUI (fun(uinfo: g.UpgradeInfo, level:integer, x:number,y:number,w:number,h:number): boolean)?
 local g_UpgradeDefinition = {}
 
 
@@ -480,9 +564,20 @@ local g_UpgradeDefinition = {}
 ---@field maxHealth number
 ---@field resources g.Bundle
 ---@field image string?
+---@field maxLevel integer?
+---@field growths {stalk:string,growth:string}?
 ---@field description string?
 ---@field particles string?
 ---@field category g.Category?
+---@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
+---@field init (fun(tok:g.Token))?
+---@field update (fun(tok: g.Token, dt:number))?
+---@field drawBelow (fun(tok: g.Token))?
+--- below this line are events (via g.call)
+---@field drawToken (fun(tok: g.Token, x:number,y:number, rot:number?,sx:number?,sy:number?,kx:number?,ky:number?))?
+---@field tokenHit (fun(tok: g.Token))?
+---@field tokenDestroyed (fun(tok: g.Token))?
+---@field tokenDamaged (fun(tok: g.Token, dmg:number))?
 local g_TokenDefinition = {}
 
 
@@ -545,25 +640,30 @@ end
 
 
 g.defineResource("money", {
-    image="money_icon",
+    image="money",
     limitStat="MoneyLimit",
     startingLimit=(consts.DEV_MODE and 10000000000000) or 1000,
     color = {0.71, 0.55, 0.02},
 })
-g.defineResource("logs", {
-    image="logs_icon",
-    limitStat="LogLimit",
-    color={0.53, 0.5, 0.41}
+g.defineResource("juice", {
+    image="juice",
+    limitStat="JuiceLimit",
+    color=objects.Color("#".."FF8A2E59")
 })
-g.defineResource("rocks", {
-    image="rocks_icon",
-    limitStat="RockLimit",
-    color={0.35, 0.35, 0.35}
+g.defineResource("fabric", {
+    image="fabric",
+    limitStat="FabricLimit",
+    color=objects.Color("#".."FFF353FB")
 })
-g.defineResource("bones", {
-    image="bones_icon",
-    limitStat="BoneLimit",
-    color={0.75, 0.27, 0.1}
+g.defineResource("bread", {
+    image="bread",
+    limitStat="BreadLimit",
+    color=objects.Color("#".."FFB78652")
+})
+g.defineResource("fish", {
+    image="fish",
+    limitStat="FishLimit",
+    color=objects.Color("#".."FF305FCD")
 })
 
 
@@ -584,9 +684,9 @@ end
 ---@param resId string
 function g.isResourceUnlocked(resId)
     assertValidResource(resId)
-    if g.getPrestige() == 0 and (resId == "bones" or resId == "rocks") then
-        return false
-    end
+    -- if g.getPrestige() == 0 and (g.getResource(resId) <= 0) then
+    --     return false
+    -- end
     return true
 end
 
@@ -594,6 +694,15 @@ end
 function g.getResourceInfo(resId)
     assertValidResource(resId)
     return RESOURCES[resId]
+end
+
+
+---@param resId string
+---@return number resourcesPerSecond
+function g.getResourcesPerSecond(resId)
+    assertValidResource(resId)
+    local world = g.getSn().mainWorld
+    return world.resourcesPerSecond[resId] or 0
 end
 
 
@@ -642,6 +751,58 @@ function g.multBundles(a,b)
     return result
 end
 
+---@param a g.Bundle
+---@param b g.Bundle
+---@return g.Resources
+function g.minBundle(a, b)
+    local result = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        local aVal = a[resId] or 0
+        local bVal = b[resId] or 0
+        result[resId] = math.min(aVal, bVal)
+    end
+    return result
+end
+
+---@param a g.Bundle
+---@param b g.Bundle
+---@return g.Resources
+function g.maxBundle(a, b)
+    local result = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        local aVal = a[resId] or 0
+        local bVal = b[resId] or 0
+        result[resId] = math.max(aVal, bVal)
+    end
+    return result
+end
+
+---@param cost g.Bundle The cost of the upgrade
+---@param current? g.Bundle The current resources available
+---@return number ratio A value between 0 and 1 representing affordability (1 = can fully afford)
+function g.getBundleCostRatio(cost, current)
+    current = current or g.getResources()
+
+    local totalRatio = 0
+    local resourceCount = 0
+
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        local costVal = cost[resId] or 0
+        if costVal > 0 then
+            resourceCount = resourceCount + 1
+            local currentVal = current[resId] or 0
+            local ratio = currentVal / costVal
+            -- Clamp ratio to [0, 1] so having more than needed doesn't exceed 1
+            totalRatio = totalRatio + math.min(ratio, 1)
+        end
+    end
+
+    -- If no resources required, return 1 (fully affordable)
+    if resourceCount == 0 then
+        return 1
+    end
+    return totalRatio / resourceCount
+end
 
 
 
@@ -733,33 +894,6 @@ end
 
 ---@param tok g.Token
 ---@param bundle g.Bundle
-local function spawnTokenResource(tok, bundle)
-    local rhud = g.getHUD().resourceHUD
-    if bundle.money then
-        rhud:spawnParticles("money", tok.x, tok.y, bundle.money)
-    end
-    if bundle.logs then
-        rhud:spawnParticles("logs", tok.x, tok.y, bundle.logs)
-    end
-    if bundle.rocks then
-        rhud:spawnParticles("rocks", tok.x, tok.y, bundle.rocks)
-    end
-    if bundle.bones then
-        rhud:spawnParticles("bones", tok.x, tok.y, bundle.bones)
-    end
-end
-
-
----@param x number
----@param y number
----@param bundle g.Bundle
-function g.addResourceFromPosition(x,y,bundle)
-
-end
-
-
----@param tok g.Token
----@param bundle g.Bundle
 ---@return g.Bundle
 function g.addResourceFrom(tok, bundle)
     local mod = g.ask("getTokenResourceModifier", tok)
@@ -768,9 +902,9 @@ function g.addResourceFrom(tok, bundle)
     bundle = g.addBundles(bundle, mod)
     bundle = g.multBundles(bundle, mult)
 
-    -- TODO: MAKE g.call here?  "tokenEarnedResource"
     g.addResources(bundle)
-    spawnTokenResource(tok, bundle)
+
+    g.call("tokenEarnedResources", tok, bundle)
     return bundle
 end
 
@@ -786,6 +920,7 @@ end
 ---| "cat"
 ---| "mushroom"
 ---| "rock"
+---| "slime"
 
 ---@type table<g.Category, true|nil>
 g.CATEGORIES = {
@@ -794,6 +929,7 @@ g.CATEGORIES = {
     cat = true,
     mushroom = true,
     rock = true,
+    slime = true,
 }
 
 
@@ -865,6 +1001,7 @@ function g.grantEffect(id, duration)
 end
 
 ---@param id string
+---@return g.EffectInfo
 function g.getEffectInfo(id)
     local effInfo = EFFECT_INFOS[id]
     if not effInfo then
@@ -913,6 +1050,7 @@ end
 
 
 
+
 --------------------------------------------------
 -- Upgrades.
 --- 
@@ -923,39 +1061,6 @@ end
 --------------------------------------------------
 do
 
--- Dont ask me how this hash/unhash shit works, i vibecoded it.
--- (And YES, i tested it thoroughly)
--- just make sure args are in range.
-local MAX_VAL = 500
-
----@param x integer (-499 to 499)
----@param y integer (-499 to 499)
----@param prestige integer (0 to 499)
----@return integer
-local function hash(x, y, prestige)
-    -- M_X = 499500 (999 * 500)
-    -- M_Y = 500
-    -- Offset = 499
-    assert(prestige>=0,"prestige must be positive")
-    return (x + 499) * 499500 + (y + 499) * 500 + prestige
-end
-g.hashPos = hash
-
----@param h integer
----@return integer x, integer y, integer prestige
-local function unhash(h)
-    -- M_X = 499500, S_Y = 999, M_Y = 500, Offset = 499
-    local p = h % 500
-    local r = math.floor(h/500)
-    local y = r % 999 - 499
-    local x = math.floor(r/999) - 499
-    return x, y, p
-end
-
-
-local function assertSmallEnough(x)
-    assert(math.abs(x) < MAX_VAL, "Needs to be less than " .. MAX_VAL .. " for hashing to work correctly!")
-end
 
 ---@type string[]
 g.UPGRADE_LIST = {}
@@ -965,33 +1070,7 @@ local upgradeInfos = {--[[
     [upgradeId] -> Table (contains all info)
 ]]}
 
-local upgradePositionsHash = {--[[
-    hash(x,y,prestige) -> upgrade type
-]]}
----@cast upgradePositionsHash {[integer]: (string|_dev.Connector)?}
 
----The mapping is `positions: {x:integer,y:integer} = t[prestige][upgradename]`
----@type table<integer, table<string, _dev.UpgradePosition>>
-local upgradePositionByPrestige = {}
-
----@param x integer
----@param y integer
----@param p integer
----@param t any
-local function ensureEmpty(x, y, p, t)
-    local h = hash(x, y, p)
-    if upgradePositionsHash[h] then
-        error(string.format(
-            "prestige %d position %dx%d trying to put '%s' on '%s'",
-            p,
-            x,
-            y,
-            t,
-            tostring(upgradePositionsHash[h])
-        ))
-    end
-    return h
-end
 
 -- Load prestiges
 do
@@ -1003,21 +1082,6 @@ do
             ---@type _g.UpgradePrestigeData
             local r = json.decode((assert(love.filesystem.read(p))))
 
-            for utype, upos in pairs(r.upgrades) do
-                local h = ensureEmpty(upos.x, upos.y, i, utype)
-                upgradePositionsHash[h] = utype
-            end
-
-            for _, cpos in ipairs(r.connectors) do
-                for j = 0, cpos.length - 1 do
-                    local dx = cpos.isVertical and 0 or j
-                    local dy = cpos.isVertical and j or 0
-                    local h = ensureEmpty(cpos.x + dx, cpos.y + dy, i, "connector")
-                    upgradePositionsHash[h] = cpos
-                end
-            end
-
-            upgradePositionByPrestige[i] = r.upgrades
         else
             break
         end
@@ -1026,107 +1090,9 @@ do
     end
 end
 
----@class _UpgradeDefinitionWithoutKind: g.UpgradeDefinition
----@field public kind nil
-
----@class _TokenUpgradeDefinition
----@field public token g.TokenDefinition
----@field public upgrade _UpgradeDefinitionWithoutKind
-
-
----@param id string
----@param name string
----@param def _TokenUpgradeDefinition
-function g.defineTokenUpgrade(id, name, def)
-    def.upgrade.populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
-        tokens:add(id, level)
-    end
-
-    def.upgrade.kind = "TOKEN"
-    g.defineUpgrade(id, name, def.upgrade)
-    g.defineToken(id, name, def.token)
-end
 
 
 
-
-
-
-
----@param con _dev.Connector
----@param prestige integer
----@return [string, string]|nil
-local function getTargetConnector(con, prestige)
-    local h1, h2 = nil, nil
-    if con.isVertical then
-        -- Check utype on top and bottom
-        h1 = hash(con.x, con.y - 1, prestige)
-        h2 = hash(con.x, con.y + con.length, prestige)
-    else
-        -- Check utype on left and right
-        h1 = hash(con.x - 1, con.y, prestige)
-        h2 = hash(con.x + con.length, con.y, prestige)
-    end
-
-    local utype1 = upgradePositionsHash[h1]
-    local utype2 = upgradePositionsHash[h2]
-
-    if type(utype1) == "string" and type(utype2) == "string" then
-        return {utype1, utype2}
-    end
-
-    return nil
-end
-
----@param uinfo g.UpgradeInfo
----@param prestige integer
-local function getNeighbor(uinfo, prestige, dx,dy)
-    local upos = g.getUpgradePosition(uinfo, prestige)
-    local ux, uy = upos.x+dx, upos.y+dy
-    local h = hash(ux,uy,prestige)
-    local utype = upgradePositionsHash[h]
-    local vertical = nil -- if it's nil, inegligible for connector search
-    if dx ~= 0 and dy == 0 then
-        vertical = false
-    elseif dx == 0 and dy ~= 0 then
-        vertical = true
-    end
-
-    if utype then
-        if type(utype) == "string" then
-            return g.getUpgradeInfo(utype)
-        elseif vertical ~= nil and utype.isVertical == vertical then
-            local target = getTargetConnector(utype, prestige)
-            -- The target connector returns 2 types across each endpoints.
-            -- One of it is equal to `uinfo.type`. We want the one not equal to `uinfo.type`.
-            if target then
-                if target[1] == uinfo.type then
-                    return g.getUpgradeInfo(target[2])
-                elseif target[2] == uinfo.type then
-                    return g.getUpgradeInfo(target[1])
-                end
-            end
-        end
-    end
-    return nil
-end
-
-
-local NEIGHBORS = {
-    {1,0},{-1,0},{0,1},{0,-1}
-}
-
-local function hasAnyPurchasedNeighbors(uinfo)
-    -- checks if any of `uinfo`s neighbors have been purchased (level>1)
-    local prestige = g.getPrestige()
-    for _,c in ipairs(NEIGHBORS) do
-        local a = getNeighbor(uinfo, prestige, c[1],c[2])
-        if a and g.getUpgradeLevel(a) > 0 then
-            return true
-        end
-    end
-    return false
-end
 
 
 local function niceAssert(bool, str, val)
@@ -1141,24 +1107,15 @@ end
 
 
 
-local questionCache = {} -- [questionName] -> {upgradeId1, upgradeId2, ...}
-
-local eventCache = {} -- [eventName] -> {upgradeId1, upgradeId2, ...}
-
-
--- some upgrades lie across multiple ranges.
--- EG `wood` is purchasable at prestige-0 AND prestige-1. {lower=0, upper=1}
--- And some upgrades are valid across ALL prestiges. {lower=0, upper=INFINITY}
-
-
-
 
 -- a list of "special" functions that upgrades use,
 -- that ARENT q-bus or ev-bus. (eg ignore them)
 local SPECIAL_FUNCTIONS = {
     getValues = true,
     getEntityCount = true,
-    spawnEntity = true
+    spawnEntity = true,
+    getPriceOverride = true,
+    drawUI = true
 }
 
 
@@ -1188,16 +1145,16 @@ function g.defineUpgrade(id, name, def)
     assert(not upgradeInfos[id], "Redefined upgrade!")
     upgradeInfos[id] = def
 
+    if rawget(def,"price") then
+        error("Deprecated.", 2)
+    end
+
     -- Cache questions and events this upgrade can handle
     for key, func in pairs(def) do
         if type(func) == "function"  then
-            if g.getQuestionInfo(key) then
-                if not questionCache[key] then questionCache[key] = {} end
-                table.insert(questionCache[key], id)
-            elseif g.isEvent(key) then
-                if not eventCache[key] then eventCache[key] = {} end
-                table.insert(eventCache[key], id)
-            elseif (not SPECIAL_FUNCTIONS[key]) then
+            local ok = g.getQuestionInfo(key) or g.isEvent(key)
+            local ok2 = SPECIAL_FUNCTIONS[key]
+            if not (ok or ok2) then
                 error("Not a question, event, or special-function: "..tostring(key))
             end
         end
@@ -1216,247 +1173,87 @@ function g.getUpgradeInfo(upgradeId)
 end
 
 
-
-
----@param uinfo g.UpgradeInfo
+---@param upgradeId string
 ---@return boolean
-function g.isUpgradeLocked(uinfo)
-    error([[
-        todo: should we have this?
-
-        the idea is that we have some upgrades that can be 
-        purchased later on in the game,
-
-        eg. late-game upgrades.
-    ]])
-end
-
-
----@param uinfo g.UpgradeInfo
----@param prestige integer
-function g.isUpgradeDefinedInPrestige(uinfo, prestige)
-    return not not upgradePositionByPrestige[prestige][uinfo.type]
+function g.isValidUpgrade(upgradeId)
+    local uinfo = upgradeInfos[upgradeId]
+    return not not uinfo
 end
 
 
 
+local STAT_UP_COLOR = objects.Color("#".."FFEF8EFC")
+
 ---@param uinfo g.UpgradeInfo
----@param prestige integer
----@return {x:integer,y:integer}
-function g.getUpgradePosition(uinfo, prestige)
-    if not g.isUpgradeDefinedInPrestige(uinfo, prestige) then
-        error("upgrade '"..uinfo.type.."' not defined in prestige "..prestige)
+---@param level integer
+---@param nextLevel boolean? (Display next level values?)
+function g.getUpgradeDescription(uinfo, level, nextLevel)
+    if not uinfo.description then
+        return ""
     end
-
-    return upgradePositionByPrestige[prestige][uinfo.type]
-end
-
-
-
-
----@param prestige integer
----@return fun():({x:integer,y:integer},string)
-function g.iterateUpgradeTree(prestige)
-    return coroutine.wrap(function()
-        for k, v in pairs(upgradePositionByPrestige[prestige]) do
-            coroutine.yield(v, k)
+    local displayValue = {}
+    if uinfo.getValues then
+        local currentValues = {uinfo:getValues(level)}
+        local nextValues = nil
+        if nextLevel then
+            nextValues = {uinfo:getValues(level + 1)}
+            assert(#currentValues == #nextValues)
         end
-    end)
-end
-
-
-
-
----@param uinfo g.UpgradeInfo
----@return boolean
-function g.isUpgradeHidden(uinfo)
-    if not g.isUpgradeDefinedInPrestige(uinfo, g.getPrestige()) then
-        -- not in prestige range... its obviously hidden
-        return true
-    end
-
-    if g.getUpgradeLevel(uinfo) > 0 then
-        return false -- cant be hidden if level>0
-    end
-    if uinfo.isHidden and uinfo:isHidden() then
-        return true
-    end
-
-    if uinfo.startingUpgrade then
-        return false
-    end
-
-    local isHidden = not hasAnyPurchasedNeighbors(uinfo)
-    return isHidden
-end
-
-
-
----Retireves list of upgrade connectors adjacent to the upgrade.
----
----TODO: Not sure if this should be in g. but upgrade_scene needs it.
----@param uinfo g.UpgradeInfo
----@param prestige integer
-function g.getUpgradeConnectors(uinfo, prestige)
-    local pos = g.getUpgradePosition(uinfo, prestige)
-    ---@type _dev.Connector[]
-    local result = {}
-    for _, d in ipairs(NEIGHBORS) do
-        local h = hash(pos.x + d[1], pos.y + d[2], prestige)
-        local isVertical = d[1] == 0 and d[2] ~= 0
-        local con = upgradePositionsHash[h]
-
-        if con and type(con) ~= "string" and con.isVertical == isVertical then
-            -- Also make sure none of the connector target is hidden
-            local target = getTargetConnector(con, prestige)
-            if target then
-                local hidden1 = g.isUpgradeHidden(g.getUpgradeInfo(target[1]))
-                local hidden2 = g.isUpgradeHidden(g.getUpgradeInfo(target[2]))
-                if not (hidden1 or hidden2) then
-                    result[#result+1] = con
+        for i = 1, #currentValues do
+            local formatter = uinfo.valueFormatter[i] or "%.14g"
+            local value
+            if type(formatter) == "string" then
+                value = string.format(formatter, currentValues[i])
+                if nextValues then
+                    value = value..string.format(helper.wrapRichtextColor(STAT_UP_COLOR, " -> "..formatter), nextValues[i])
+                end
+            else
+                value = formatter(currentValues[i])
+                if nextValues then
+                    value = value..helper.wrapRichtextColor(STAT_UP_COLOR, " -> "..formatter(nextValues[i]))
                 end
             end
+            displayValue[tostring(i)] = value
         end
     end
-
-    return result
+    return uinfo.description(displayValue)
 end
 
 
 
---- Floors a number, removing insignificant digits.
---- Useful for adjusting prices to look a bit "nicer"
----
---- g.floorSignificant(12345, 1) -> 10000
---- g.floorSignificant(12345, 2) -> 12000
---- g.floorSignificant(12345, 3) -> 12300
---- g.floorSignificant(12345, 4) -> 12340
---- g.floorSignificant(12345, 5) -> 12345
----@param value number
----@param nsig integer
----@return integer
-local function floorSignificant(value, nsig)
-	local zeros = math.floor(math.log10(math.max(math.abs(value), 1)))
-	local mulby = 10 ^ (1+math.max(zeros-nsig, -1))
-	return math.floor(math.floor(value / mulby) * mulby)
-end
-
-local function modifyUpgradePrice(uinfo, val, level)
-    level = level or g.getUpgradeLevel(uinfo)
-    local mult = (uinfo.priceScaling or consts.DEFAULT_UPGRADE_PRICE_SCALING) ^ level
-    local mult2 = g.ask("getUpgradePriceMultiplier")
-    val = floorSignificant(val*mult*mult2, 2)
-    return val
-end
-
-
----WARNING: This incurs a table allocation.
----@param uinfo g.UpgradeInfo
----@param level number? Optional; defaults to the current upgrade's level.
----@return g.Bundle
-function g.getUpgradePrice(uinfo, level)
-    local truePrice = {}
-    for _,res in ipairs(g.RESOURCE_LIST)do
-        if uinfo.price[res] then
-            truePrice[res] = modifyUpgradePrice(uinfo, uinfo.price[res], level)
-        end
-    end
-    return truePrice
-end
-
-
----@param uinfo g.UpgradeInfo
----@param level number? Optional; defaults to the current upgrade's level.
----@return boolean
-function g.canAffordUpgrade(uinfo, level)
-    level = level or g.getUpgradeLevel(uinfo)
-    for res,p in pairs(uinfo.price) do
-        local truePrice = modifyUpgradePrice(uinfo, p, level)
-        if truePrice > g.getResource(res) then
-            return false -- cant afford
-        end
-    end
-    return true
-end
-
-
-
----@param uinfo g.UpgradeInfo
----@return boolean wasPurchased
-function g.tryBuyUpgrade(uinfo)
-    local session = g.getSn()
-    local typ = uinfo.type
-    if g.getUpgradeLevel(uinfo) >= uinfo.maxLevel then
-        return false -- already max level
-    end
-    if g.canAffordUpgrade(uinfo) then
-        local price = g.getUpgradePrice(uinfo)
-        g.subtractResources(price)
-        session.upgradeLevels[typ] = (session.upgradeLevels[typ] or 0) + 1
-        return true
-    end
-    return false
-end
-
-
-
----@param uinfo g.UpgradeInfo
----@return number
-function g.getUpgradeLevel(uinfo)
-    local session = g.getSn()
-    assert(upgradeInfos[uinfo.type], "Invalid upgrade")
-    return (session.upgradeLevels[uinfo.type] or 0)
-end
-
-
-
-function askUpgrades(question, ...)
-    local questionInfo = g.getQuestionInfo(question)
-    local reducer = questionInfo.reducer
-    local defaultValue = questionInfo.defaultValue
-    local upgradeIds = questionCache[question]
-
-    local result = defaultValue
-
-    if not upgradeIds then return result end
-
-    for _, upgradeId in ipairs(upgradeIds) do
-        local uinfo = g.getUpgradeInfo(upgradeId)
-        local level = g.getUpgradeLevel(uinfo)
-        if level > 0 then
-            local answerFunc = uinfo[question]
-            if answerFunc then
-                local answer = answerFunc(uinfo, level, ...) or defaultValue
-                result = reducer(answer, result)
-            end
-        end
-    end
-
-    return result
-end
-
-
-function callUpgrades(event, ...)
-    local upgradeIds = eventCache[event]
-    if not upgradeIds then return end
-
-    for _, id in ipairs(upgradeIds) do
-        local uinfo = g.getUpgradeInfo(id)
-        local level = g.getUpgradeLevel(uinfo)
-        if level and level > 0 then
-            local eventFunc = uinfo[event]
-            if eventFunc then
-                eventFunc(uinfo, level, ...)
-            end
-        end
-    end
 end
 
 
 
 
+
+
+
+
+
+---@type table<string, g.StalkDefinition>
+local STALKS = {}
+
+---@class g.StalkDefinition
+---@field public image string?
+---@field public growthpos {x: number, y: number}[] Position coordinate is in pixels, relative to stalk center
+
+---@param id string
+---@param def g.StalkDefinition
+function g.defineStalk(id, def)
+    helper.assert(not STALKS[id], "stalk", id, "already defined")
+    assert(def.growthpos and type(def.growthpos) == "table", "missing or invalid growth position table")
+    assert(#def.growthpos > 0, "missing growth position (must at least 1)")
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "invalid image", def.image)
+
+    STALKS[id] = def
 end
 
+---@param stalk string
+function g.getStalkInfo(stalk)
+    return (helper.assert(STALKS[stalk], "invalid stalk", stalk))
+end
 
 
 
@@ -1495,18 +1292,55 @@ function g.defineToken(tokType, name, tabl)
     assert(not tabl.type, ".type is a reserved field!")
     assert(tabl.maxHealth, "Tokens need .maxHealth")
     assert(tabl.resources, "Tokens need .resources")
+    assert(not tokenDefinitions[tokType], "Duplicate token definition!")
+    if tabl.shadow then
+        assert(g.getImageQuad(tabl.shadow))
+    end
+
     if tabl.category and not g.CATEGORIES[tabl.category] then
         error("invalid category '"..tabl.category.."'")
     end
-    tabl.type = tokType ---@diagnostic disable-line
-    tabl.image = tabl.image or tokType ---@diagnostic disable-line
-    tabl.name = loc(name) ---@diagnostic disable-line
+
+    if tabl.growths then
+        assert(tabl.growths.growth, "growth field is missing")
+        assert(tabl.growths.stalk, "stalk field is missing")
+        -- LuaLS why you not remove nil on assert of table field?
+        ---@type g.StalkDefinition
+        local stalkInfo = helper.assert(STALKS[tabl.growths.stalk], "invalid stalk", tabl.growths.stalk)
+
+        assert(not tabl.image, "cannot define image when defining stalk")
+        tabl.image = assert(stalkInfo.image)
+    end
+
+    if tabl.resources then
+        for resId,v in pairs(tabl.resources) do
+            assertValidResource(resId)
+            assert(v >= 0)
+        end
+    end
+
+    tabl.image = tabl.image or tokType
+
     tokenDefinitions[tokType] = tabl
+    ---@cast tabl g.Token
+    tabl.type = tokType
+    tabl.name = loc(name) ---@diagnostic disable-line
     local mt = {__index = tabl}
     tokenMts[tokType] = mt
     reverseTokMt[mt] = true
     g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
+
+    g.defineUpgrade(tokType, name, {
+        image = tabl.image,
+        populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
+            tokens:add(tokType, level)
+        end,
+        maxLevel = tabl.maxLevel or nil,
+        kind = "TOKEN"
+    })
 end
+
+
 
 ---@param obj any
 function g.isToken(obj)
@@ -1517,15 +1351,37 @@ end
 ---@param tokType string
 function g.getTokenInfo(tokType)
     if not tokenDefinitions[tokType] then
-        error("token '"..tokType.."' does not exist")
+        error("token '"..tostring(tokType).."' does not exist")
     end
     return tokenDefinitions[tokType]
+end
+
+
+function g.drawTokenIcon(tokType, x,y, rot,sx,sy, kx,ky)
+    love.graphics.setColor(1,1,1)
+    local tinfo = g.getTokenInfo(tokType)
+    if tinfo.image then
+        g.drawImage(tinfo.image, x, y, rot, sx, sy, kx,ky)
+    end
+
+    if tinfo.growths then
+        local stalkInfo = g.getStalkInfo(tinfo.growths.stalk)
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.drawImage(tinfo.growths.growth, x + pos.x, y + pos.y, rot, sx, sy, kx, ky)
+        end
+    end
 end
 
 
 local DEFAULT_MIN_SPACING = 12
 
 ---@param world g.World
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param minSpacing number?
+---@param maxAttempts integer?
 local function getRandomPos(world, x, y, w, h, minSpacing, maxAttempts)
     maxAttempts = maxAttempts or 20
     minSpacing = minSpacing or DEFAULT_MIN_SPACING
@@ -1573,21 +1429,23 @@ do
 ---@field x number
 ---@field y number
 ---@field id integer
----@field shadowRadius number?
+---@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
 ---@field sx number?
 ---@field sy number?
 ---@field ox number?
 ---@field oy number?
 ---@field rot number?
+---@field orbitRing integer?
 ---@field image string?
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
 ---@field blendalphamode love.BlendAlphaMode?
----@field init (fun(ent:g.Entity))?
+---@field init (fun(ent:g.Entity,...:any))?
 ---@field update (fun(ent: g.Entity, dt:number))?
 ---@field perSecondUpdate (fun(e:g.Entity))?
 ---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?
+---@field hitToken {radius:number,collision:fun(self:g.Entity,tok:g.Token),cooldown:number?}?
 local Entity = {}
 
 
@@ -1603,6 +1461,10 @@ function g.defineEntity(type, etype)
     assert(etype.x == nil, "x is reserved field")
     assert(etype.y == nil, "y is reserved field")
     assert(etype.type == nil, "type is reserved field")
+    if etype.hitToken then
+        assert(etype.hitToken.radius, "missing radius")
+        assert(etype.hitToken.collision, "missing collision function")
+    end
     etype.type = type
     local mt = {__index=etype}
     ENTITY_DEFS[type] = mt
@@ -1616,7 +1478,7 @@ local currentId = 0
 ---@param x number
 ---@param y number
 ---@return g.Entity
-function g.spawnEntity(ename, x,y)
+function g.spawnEntity(ename, x,y, ...)
     local w = g.getMainWorld()
     local mt = ENTITY_DEFS[ename]
     if not mt then
@@ -1629,8 +1491,12 @@ function g.spawnEntity(ename, x,y)
         x=x,y=y, type=ename
     }, mt)
 
+    if ent.hitToken then
+        ent.hitToken = helper.shallowCopy(ent.hitToken)
+    end
+
     if ent.init then
-        ent:init()
+        ent:init(...)
     end
 
     currentId = currentId + 1
@@ -1662,6 +1528,7 @@ end
 ---@field x number
 ---@field y number
 ---@field id number
+---@field laggedHealth number for lag-health-visual
 ---@field health number
 ---@field maxHealth number
 ---@field image string
@@ -1670,7 +1537,7 @@ end
 ---@field timeSinceHit number Time since `tryHitToken` actually hits the token.
 ---@field timeSinceDamaged number
 ---@field timeAlive number
----
+---@field drawToken (fun(tok: g.Token, x:number,y:number, rot:number?,sx:number?,sy:number?,kx:number?,ky:number?))?
 ---@field slimed boolean?
 ---@field ___destroyed boolean?
 local g_Token = {}
@@ -1678,12 +1545,11 @@ local g_Token = {}
 
 
 
----@return number?
----@return number
+---@return number?,number?
 function g.getRandomPositionForToken()
-    local world = g.getMainWorld()
+    local worldW, worldH = g.getWorldDimensions()
     local pad=4
-    return getRandomPos(world, pad,pad, world.WIDTH-pad*2,world.HEIGHT-pad*2) ---@diagnostic disable-line
+    return getRandomPos(g.getMainWorld(), pad,pad, worldW-pad*2,worldH-pad*2)
 end
 
 
@@ -1737,8 +1603,14 @@ function g.spawnToken(tokType, x,y)
         timeSinceHit = 0xffffffffff,
         timeSinceDamaged = 0xfffffffff,
     }, tokenMts[tokType])
+    ---@cast tok g.Token
     tok.maxHealth = tabl.maxHealth * g.ask("getTokenMaxHealthMultiplier", tok)
     tok.health = tok.maxHealth
+    tok.laggedHealth = tok.health
+
+    if tok.init then
+        tok:init()
+    end
 
     w.tokens:addBuffered(tok)
     g.call("tokenSpawned", tok)
@@ -1760,16 +1632,35 @@ function g.destroyToken(tok)
 
     g.addResourceFrom(tok, tok.resources)
 
+    if tok.slimed then
+        g.spawnParticle("slime", tok.x,tok.y, love.math.random(3,5))
+    end
     if tok.particles then
         g.spawnParticle(tok.particles, tok.x,tok.y, love.math.random(3,5))
+    end
+    if tok.growths then
+        local stalkInfo = g.getStalkInfo(tok.growths.stalk)
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.spawnEntity("growth_falling", tok.x + pos.x, tok.y + pos.y, tok.growths.growth, tok.y + 8)
+        end
     end
 
     w.tokens:removeBuffered(tok)
 
     -- todo: rework/rethink this.
     -- Each token should have different "sound"
-    g.playSound("pop", 1, 1, 0.15)
+    g.playWorldSound("pop", 1, 1, 0.15)
     return true
+end
+
+
+
+---@param tok g.Token
+function g.slimeToken(tok)
+    if not tok.slimed then
+        g.call("tokenSlimed",tok)
+    end
+    tok.slimed=true
 end
 
 
@@ -1777,16 +1668,37 @@ end
 ---@param tok g.Token
 ---@param dmg number
 function g.damageToken(tok, dmg)
+    if tok.health <= 0 then
+        return
+    end
+
     local dmgMult = g.ask("getTokenDamageMultiplier", tok)
     local dmgMod = g.ask("getTokenDamageModifier", tok)
     dmg = (dmg + dmgMod) * dmgMult
-    tok.health = tok.health - dmg
+    local displayDmg = math.min(dmg, math.max(tok.health, 0))
+
+    -- Ensure lagged health number is updated first before tok.health
+    local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
+    t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
+    tok.laggedHealth = helper.lerp(tok.laggedHealth, tok.health, t)
+
+    -- Now update tok.health
+    tok.health = math.max(tok.health - dmg, 0)
     g.call("tokenDamaged", tok, dmg)
 
+    currentSession.mainWorld:_spawnDamageNumber(
+        displayDmg,
+        tok.x,
+        tok.y - 5,
+        g.COLORS.DAMAGE_NUMBERS_BY_CATEGORY[tok.category] or objects.Color.WHITE
+    )
+
     tok.timeSinceDamaged = 0
-    if tok.health <= 0 then
-        g.destroyToken(tok)
-    end
+end
+
+
+function g.getHitDuration()
+    return consts.MAX_HIT_DURATION + (3 / g.stats.HitSpeed) ^ 0.9
 end
 
 
@@ -1795,12 +1707,12 @@ end
 ---@return boolean
 function g.isBeingHit(tok)
     local time = tok.timeSinceHitStart
-    return time <= g.stats.HitDuration
+    return time <= g.getHitDuration()
 end
 
 ---@param tok g.Token
 function g.tryHitToken(tok)
-    if not g.isBeingHit(tok) then
+    if tok.health > 0 and not g.isBeingHit(tok) then
         tok.timeSinceHitStart = 0
         g.call("tokenHitStart", tok)
     end
@@ -1814,23 +1726,30 @@ function g.hitImmediately(tok)
     g.call("tokenHit", tok)
     g.damageToken(tok, hitMult * g.stats.HitDamage)
 
-    g.spawnParticle("crosshair", tok.x, tok.y, 1)
+    local r = love.math.random()
+    if r < 0.333 then
+        g.spawnParticle("xp1", tok.x, tok.y, 2)
+    elseif r < 0.666 then
+        g.spawnParticle("xp2", tok.x, tok.y, 1)
+    else
+        g.spawnParticle("xp3", tok.x, tok.y, 2)
+    end
 
     local i = love.math.random(1,3)
     local s = "hit_generic_"..i
-    g.playSound(s, 1,0.1,0.2,0.2)
+    g.playWorldSound(s, 1,0.1,0.2,0.2)
 
     -- todo: rework all this.
     if tok.category == "grass" then
         if love.math.random()<0.3 then
-            g.playSound("hit_grass",1,0.15, 0.1)
+            g.playWorldSound("hit_grass",1,0.15, 0.1)
         else
-            g.playSound("hit_grass2",1,0.15, 0.1)
+            g.playWorldSound("hit_grass2",1,0.15, 0.1)
         end
     elseif love.math.random()<0.5 then
-        g.playSound("hit_billiard", 1, 0.18, 0.3)
+        g.playWorldSound("hit_billiard", 1, 0.18, 0.3)
     else
-        g.playSound("hit_soft", 1, 0.18, 0.3)
+        g.playWorldSound("hit_soft", 1, 0.18, 0.3)
     end
 end
 
@@ -1841,7 +1760,7 @@ end
 ---@param func fun(tok:g.Token)
 function g.iterateTokensInArea(x, y, radius, func)
     g.getMainWorld().tokenPartition:query(x, y, function(tok)
-        if math.distance(x-tok.x, y-tok.y) <= radius then
+        if helper.magnitude(x-tok.x, y-tok.y) <= radius then
             func(tok)
         end
     end, radius)
@@ -1852,29 +1771,57 @@ end
 local MAX_QUEUED_TOKENS = 100
 
 ---@param tokenId string
----@param x number?
----@param y number?
-function g.stackToken(tokenId, x, y)
-    currentSession.tokenQueue[#currentSession.tokenQueue+1] = tokenId
+---@param screenX number?
+---@param screenY number?
+---@param onSpawn fun(tok:g.Token)?
+function g.stackToken(tokenId, screenX,screenY, onSpawn)
+    assert(g.getTokenInfo(tokenId))
+    currentSession.tokenQueue[#currentSession.tokenQueue+1] = {
+        tokenId = tokenId,
+        onSpawn = onSpawn
+    }
 
     while #currentSession.tokenQueue > MAX_QUEUED_TOKENS do
         g.popStackedToken()
     end
 
-    if x and y then
-        g.getHUD().profileHUD:spawnTokenVisual(tokenId, x, y)
+    if screenX and screenY then
+        g.getHUD().profileHUD:spawnTokenVisual(tokenId, screenX, screenY)
     end
 end
 
+
+---@param duration number
+---@param effectInfo g.EffectInfo
+---@param screenX number?
+---@param screenY number?
+function g.stackPotionToken(duration, effectInfo, screenX, screenY)
+    g.stackToken("abstract_potion_token", screenX, screenY, function (tok)
+        -- HACKY HACKY: Injecting shit here.
+        tok.image = effectInfo.image
+
+        ---@diagnostic disable-next-line
+        tok._effect = effectInfo.type
+        ---@diagnostic disable-next-line
+        tok._effectDuration = duration
+    end)
+end
+
+
 ---@return string?
+---@return fun(tok:g.Token)? onSpawn
 function g.peekStackedToken()
-    return currentSession.tokenQueue[1]
+    local tabl = currentSession.tokenQueue[1]
+    if tabl then
+        return tabl.tokenId, tabl.onSpawn
+    end
 end
 
 ---@return string
 function g.popStackedToken()
     assert(#currentSession.tokenQueue > 0, "token queue is empty")
-    return table.remove(currentSession.tokenQueue, 1)
+    local popped = table.remove(currentSession.tokenQueue, 1)
+    return popped.tokenId
 end
 
 
@@ -1888,64 +1835,50 @@ end
 
 
 
--- g.playSound defined here
+-- g.playWorldSound
+-- g.playUISound
 do
 
-local MAX_SOURCE_POOL = 4
----@type table<string, love.Source[]>
-local sourcePool = {} -- first source always the one to clone
-
----@param name string
-local function getSourceFromPool(name)
-    local sources = sourcePool[name]
-    if not sources then
-        error("invalid sound '"..name.."'")
-    end
-
-    -- Linear search won't be expensive as long as source pool is low
-    for _, s in ipairs(sources) do
-        if not s:isPlaying() then
-            s:stop()
-            return s
-        end
-    end
-
-    if #sources < MAX_SOURCE_POOL then
-        -- first source always the one to clone
-        local s = sources[1]:clone()
-        sources[#sources+1] = s
-        s:stop()
-        return s
-    end
-
-    return nil
-end
 
 ---@param soundname string
 ---@param pitch number? (defaults to 1)
 ---@param volume number? (defaults to 1)
 ---@param pitchVar number? (pitch variance, default 0)
 ---@param volumeVar number? (volume variance, default 0)
-function g.playSound(soundname, pitch, volume, pitchVar, volumeVar)
-    local s = getSourceFromPool(soundname)
-    if not s then
+function g.playWorldSound(soundname, pitch, volume, pitchVar, volumeVar)
+    if love.audio.getActiveSourceCount() > consts.MAX_PLAYING_SOURCES then
         return false
     end
-
-    local dv = (volumeVar or 0) * (love.math.random()-0.5)*2
-    local dp = (pitchVar or 0) * (love.math.random()-0.5)*2
-
-    pitch = (pitch or 1) + dp
-    volume = math.max((volume or 1) + dv, 0)
-    if pitch <= 0 then
-        error("invalid pitch "..pitch)
+    if select(2, sceneManager.getCurrentScene()) == "harvest_scene" then
+        return sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
     end
-
-    s:setPitch(pitch)
-    s:setVolume(volume)
-    s:play()
-    return true
+    return false
 end
+
+
+---@param soundname string
+---@param pitch number? (defaults to 1)
+---@param volume number? (defaults to 1)
+---@param pitchVar number? (pitch variance, default 0)
+---@param volumeVar number? (volume variance, default 0)
+function g.playUISound(soundname, pitch, volume, pitchVar, volumeVar)
+    return sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
+end
+
+
+
+local cosmetics = require("src.cosmetics.cosmetics")
+
+g.getCosmeticInfo = cosmetics.getInfo
+g.getUnlockedCosmetics = cosmetics.getUnlocked
+
+g.drawAvatar = cosmetics.drawAvatar
+g.drawPlayerAvatar = cosmetics.drawPlayerAvatar
+
+
+
+
+
 
 local validExtensions = {
     wav = true,
@@ -1964,8 +1897,7 @@ local function loadSound(path)
 
         if #basename > 0 then
             local name = basename:sub(1, -#ext - 2)
-            local mainSource = love.audio.newSource(path, "static")
-            sourcePool[name] = {mainSource}
+            sfx.defineSound(name, path)
         end
     end
 end
@@ -1977,17 +1909,67 @@ end
 
 
 
+-------------
+-- Scythes --
+-------------
+do
+
+---@class _ScytheDefinition
+---@field public image string?
+
+---@class g.Scythe: _ScytheDefinition
+---@field public type string
+---@field public image string
+---@field public name string
+
+
+
+---@type table<string, g.Scythe>
+local SCYTHES = {}
+
+---Define new scythe
+---@param id string
+---@param name string
+---@param def _ScytheDefinition
+function g.defineScythe(id, name, def)
+    def.image = def.image or id
+    helper.assert(g.isImage(def.image), "invalid image", def.image)
+
+    ---@cast def g.Scythe
+    def.type = id
+    def.name = loc(name)
+    SCYTHES[id] = def
+end
+
+---@param id string
+function g.getScytheInfo(id)
+    return (helper.assert(SCYTHES[id], "invalid scythe", id))
+end
+
+function g.getCurrentScythe()
+    return consts.DEFAULT_SCYTHE
+end
+
+end
+
+
+
 ---@param particleName string
 ---@param x number
 ---@param y number
 ---@param amount integer?
 function g.spawnParticle(particleName, x, y, amount)
+    if g.isBeingSimulated() then return end
     return currentSession.mainWorld.particles:spawnParticles(particleName, x, y, amount)
 end
 
 
 
 g.COLORS = {
+
+    BUTTON_FADE_1 = objects.Color("#" .. "FF9F14F6"),
+    BUTTON_FADE_2 = objects.Color("#" .. "FF3B12A4"),
+
     UPGRADE_KINDS = {
         HARVESTING = objects.Color("#" .. "FFCB8B14"),
         TOKEN = objects.Color("#" .. "FF1479CB"),
@@ -1995,12 +1977,22 @@ g.COLORS = {
         MISC = objects.Color("#" .. "FFFFFFFF"),
     },
 
+    ---@type table<g.Category, objects.Color>
+    DAMAGE_NUMBERS_BY_CATEGORY = {
+        grass = objects.Color("#".."FF84CDFA"),
+        wood = objects.Color("#".."FFF5D48E"),
+        mushroom = objects.Color("#".."FFFAFCC0"),
+        rock = objects.Color("#".."FFF7A8A6"),
+    },
+
     SHADOW = objects.Color(0,0,0,0.4),
 
-    CANT_AFFORD = objects.Color("#".."FFC81515"),
+    CANT_AFFORD = objects.Color("#".."FFD72D2D"),
+    CAN_AFFORD = objects.Color("#".."FF73FF73"),
+
     MONEY = objects.Color("#".."FFF7D127"),
     RECOMMENDED = objects.Color("#".."FF9DEC4E"),
-    UPGRADE_CONNECTOR = objects.Color("#".."FF123A85")
+    UPGRADE_CONNECTOR = objects.Color("#".."FF000000")
 }
 
 do
@@ -2013,7 +2005,5 @@ for k,v in pairs(g.COLORS) do
 end
 end
 
-
-richtext.defineImage("health_icon", g.getAtlas(), g.getImageQuad("health_icon"))
 
 return g

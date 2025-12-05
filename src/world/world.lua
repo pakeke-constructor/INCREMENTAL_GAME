@@ -7,7 +7,8 @@ The world is a container for tokens and entities.
 ]]
 
 local ParticleService = require(".particle.ParticleService")
-local DataCollection = require(".data_collection")
+local DataCollector = require(".data_collector")
+local table_clear = require("table.clear")
 
 ---@class g.World: objects.Class
 ---@field entities objects.BufferedSet
@@ -18,10 +19,6 @@ local DataCollection = require(".data_collection")
 ---@field mouseY number?
 local World = objects.Class("g:World")
 
--- Think of this as the "dimensions" of the harvest-area
-World.WIDTH = 400
-World.HEIGHT = 250
-
 -- Minimum hover time before a token can be mined
 -- (Prevents players flicking their mouse all over the screen)
 local MIN_HOVER_TIME = 0.07
@@ -29,6 +26,8 @@ local MIN_HOVER_TIME = 0.07
 
 function World:init()
     self.tokens = objects.BufferedSet()
+    ---@type table<string, integer>
+    self.tokenCounts = {}
     self.entities = objects.BufferedSet()
     ---@type table<string, objects.BufferedSet<g.Entity>>
     self.upgradeEntities = {}
@@ -36,15 +35,19 @@ function World:init()
     self.tokenPartition = objects.Partition(20)
 
     self.mouseX, self.mouseY = nil,nil
+    self.orbitAngle = 0
 
     self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
     ]]})
 
+    ---@type table<g.Entity, number?>
+    self.entitiesToHitCooldown = setmetatable({}, {__mode = "k"})
+
     self.particles = ParticleService()
     self.timer = 0 -- For per second update
 
-    ---@type table<g.ResourceType, g.DataCollection>
+    ---@type table<g.ResourceType, g.DataCollector>
     self.dataCollectors = nil
     -- We can't create the collectors yet because session isnt loaded.
 
@@ -54,6 +57,23 @@ function World:init()
     -- Holds all effect durations
     ---@type table<string, number>
     self.effectDurations = {}
+
+    ---@type {color:objects.Color,number:number,x:number,y:number,lifetime:number}[]
+    self.damageNumbers = {}
+
+    -- Create tile atlas
+    self.tilemap = helper.splitTileImage("harvestarea_tilemap", consts.WORLD_TILE_SIZE)
+    -- For decor tile, we want it to be flat so pickRandom do the job.
+    do
+        local decorTilemap = helper.splitTileImage("decorationgrass_tilemap", consts.WORLD_TILE_SIZE)
+        ---@type love.Quad[]
+        self.decorTilemap = {}
+        for _, tmaps in ipairs(decorTilemap) do
+            for _, tquad in ipairs(tmaps) do
+                self.decorTilemap[#self.decorTilemap+1] = tquad
+            end
+        end
+    end
 end
 
 
@@ -92,8 +112,20 @@ function World:_enableMouseHarvester(x,y)
 end
 
 
+function World:_isPlayerCurrentlyHarvesting()
+    -- HACK:
+    -- when the player's mouse-harvester is off-screen,
+    -- (Eg when the player isnt in the scene, or when a popup is open,)
+    -- we say that the player isn't harvesting.
+    if not self.mouseX then
+        return false
+    end
+    return (self.mouseX > -100)
+end
+
+
 local function getSwingTime()
-    return g.stats.HitDuration * 0.75
+    return g.getHitDuration() * 0.75
 end
 
 local function getAxeSwingTime()
@@ -109,12 +141,22 @@ local function updateToken(tok,dt)
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
     tok.timeSinceHit = tok.timeSinceHit + dt
 
+    if tok.update then
+        tok:update(dt)
+    end
+
+    if tok.health <= 0 then
+        g.destroyToken(tok)
+        return
+    end
+
     if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceHit then
         g.hitImmediately(tok)
     end
 end
 
 
+---@param tok g.Token
 local function drawTokenHealthBar(tok)
     if tok.health >= tok.maxHealth then
         return -- dont draw
@@ -124,10 +166,19 @@ local function drawTokenHealthBar(tok)
     local HP_BAR_W = 14
     local HP_BAR_H = 3
     local realW = HP_BAR_W * (tok.health / tok.maxHealth)
+    -- Draw bar background
     love.graphics.setColor(0,0,0,0.5)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
-    love.graphics.setColor(1,0,0,1)
+    -- Draw lagged health
+    local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
+    t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
+    local laggedW = HP_BAR_W * helper.lerp(tok.laggedHealth, tok.health, t) / tok.maxHealth
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, laggedW, HP_BAR_H)
+    -- Draw health
+    love.graphics.setColor(0.1,0.9,0.1,1)
     love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, realW, HP_BAR_H)
+    -- Draw border
     love.graphics.setLineWidth(1)
     love.graphics.setColor(0,0,0,1)
     love.graphics.rectangle("line", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
@@ -205,11 +256,26 @@ end
 ---@param tok g.Token
 local function drawAxe(tok)
     love.graphics.setColor(1,1,1)
-    local t = math.min(tok.timeSinceHitStart / getAxeSwingTime(), 1)
-    local scale = 2 * math.floor(tok.id % 2) - 1
-    g.drawImageOffset("iron_axe", tok.x - 14 * scale, tok.y + 4, scale * (t * t - 0.9), scale, 1, 0.1, 0.9)
+    local t = tok.timeSinceHitStart / getAxeSwingTime()
+    -- For scythe, we need to "damage" at mid-swing. This means narrowing down the timing for `t`.
+    local t2 = helper.EASINGS.sineInOut(helper.clamp(helper.remap(t, 0.6, 1.2, 0, 1), 0, 1))
+    local flip = 2 * math.floor(tok.id % 2) - 1
+    local rot = helper.lerp(0.7, 0.1, t2)
+    local scythe = g.getScytheInfo(g.getCurrentScythe()).image
+    g.drawImageOffset(scythe, tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
 end
 
+
+local function drawShadow(shadow, x,y)
+    love.graphics.setColor(g.COLORS.SHADOW)
+    shadow = shadow or "shadow_medium"
+    local dy = 1
+    if shadow == "shadow_big" then dy=3 end
+    g.drawImage(shadow, x, y+dy, 0)
+end
+
+
+---@param tok g.Token
 local function drawToken(tok)
     love.graphics.setColor(1,1,1,1)
 
@@ -218,11 +284,32 @@ local function drawToken(tok)
     local kx,ky = getTokShear(tok)
 
     -- shadow:
-    love.graphics.setColor(g.COLORS.SHADOW)
-    love.graphics.ellipse("fill",tok.x,tok.y+6,6,3)
+    drawShadow(tok.shadow, tok.x, tok.y)
+
+    love.graphics.setColor(1,1,1)
+    if tok.drawBelow then
+        tok:drawBelow()
+    end
 
     love.graphics.setColor(1,1,1)
     g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
+
+    if tok.growths then
+        local stalkInfo = g.getStalkInfo(tok.growths.stalk)
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.drawImage(tok.growths.growth, tok.x + pos.x, tok.y + pos.y, rot, sx, sy, kx, ky)
+        end
+    end
+
+    love.graphics.setColor(1,1,1)
+    if tok.drawToken then
+        tok:drawToken(tok.x, tok.y, rot, sx, sy, kx,ky)
+    end
+
+    if tok.slimed then
+        local s = math.sin(love.timer.getTime()*4 + tok.id*7.343)
+        g.drawImage("slimed_visual2", tok.x+6,tok.y-5+s, 0, 1,1)
+    end
 
     if tok.timeSinceHitStart < getSwingTime() then
         drawAxe(tok)
@@ -241,10 +328,7 @@ local function drawEntity(e)
         e:drawBelow()
     end
 
-    if e.shadowRadius then
-        love.graphics.setColor(g.COLORS.SHADOW)
-        love.graphics.ellipse("fill",e.x,e.y+e.shadowRadius,e.shadowRadius,e.shadowRadius/2)
-    end
+    drawShadow(e.shadow, e.x, e.y)
 
     if e.image then
         love.graphics.setColor(1, 1, 1)
@@ -267,10 +351,93 @@ local function sortOrder(a, b)
 end
 
 
+---@param x number
+---@param y number
+---@return number
+local function hash(x, y)
+    return (x + 499) * 499500 + (y + 499) * 500
+end
+
 function World:_draw()
-    local w,h = self.WIDTH, self.HEIGHT
-    love.graphics.setColor(0,0,0)
-    love.graphics.rectangle("line", 0,0, w,h)
+    -- local w,h = g.getWorldDimensions()
+    -- love.graphics.setColor(0,0,0)
+    -- love.graphics.rectangle("line", 0,0, w,h)
+    love.graphics.setColor(1, 1, 1)
+    local wtw = g.stats.WorldTileWidth - 1
+    local wth = g.stats.WorldTileHeight - 1
+    local wtz = consts.WORLD_TILE_SIZE
+    local atlas = g.getAtlas()
+    for y = 0, wth do
+        for x = 0, wtw do
+            local targetQuad = nil
+
+            -- Border specializations
+            if y == 0 then
+                if x == 0 then
+                    -- Top left
+                    love.graphics.draw(atlas, self.tilemap[1][2], x * wtz, (y - 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[2][1], (x - 1) * wtz, y * wtz)
+                    targetQuad = self.tilemap[2][2]
+                elseif x == wtw then
+                    -- Top right
+                    love.graphics.draw(atlas, self.tilemap[1][4], x * wtz, (y - 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[2][5], (x + 1) * wtz, y * wtz)
+                    targetQuad = self.tilemap[2][4]
+                else
+                    -- Top center
+                    love.graphics.draw(atlas, self.tilemap[1][3], x * wtz, (y - 1) * wtz)
+                    targetQuad = self.tilemap[2][3]
+                end
+            elseif y == wth then
+                if x == 0 then
+                    -- Bottom left
+                    love.graphics.draw(atlas, self.tilemap[4][1], (x - 1) * wtz, y * wtz)
+                    love.graphics.draw(atlas, self.tilemap[5][2], x * wtz, (y + 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[6][2], x * wtz, (y + 2) * wtz)
+                    targetQuad = self.tilemap[4][2]
+                elseif x == wtw then
+                    -- Bottom right
+                    love.graphics.draw(atlas, self.tilemap[4][5], (x + 1) * wtz, y * wtz)
+                    love.graphics.draw(atlas, self.tilemap[5][4], x * wtz, (y + 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[6][4], x * wtz, (y + 2) * wtz)
+                    targetQuad = self.tilemap[4][4]
+                else
+                    -- Bottom center
+                    love.graphics.draw(atlas, self.tilemap[5][3], x * wtz, (y + 1) * wtz)
+                    love.graphics.draw(atlas, self.tilemap[6][3], x * wtz, (y + 2) * wtz)
+                    targetQuad = self.tilemap[4][3]
+                end
+            else
+                if x == 0 then
+                    -- Left center
+                    love.graphics.draw(atlas, self.tilemap[3][1], (x - 1) * wtz, y * wtz)
+                    targetQuad = self.tilemap[3][2]
+                elseif x == wtw then
+                    -- Right center
+                    love.graphics.draw(atlas, self.tilemap[3][5], (x + 1) * wtz, y * wtz)
+                    targetQuad = self.tilemap[3][4]
+                else
+                    -- Center
+                    targetQuad = self.tilemap[3][3]
+                end
+            end
+
+            -- Draw tile
+            love.graphics.draw(atlas, targetQuad, x * wtz, y * wtz)
+
+            -- Draw decoration
+            -- Why we do this hash you ask? So we can place random decoration
+            -- in respect to tile X and tile Y.
+            local hashpos = (x+499)*hash(x, y)
+            hashpos = helper.hashInteger(hashpos) % 65536
+            if hashpos / 65535 <= 0.1 then
+                local noise = helper.hashInteger(hashpos) % 65536
+                local index = math.floor(noise / 65535 * #self.decorTilemap + 0.5)
+                index = helper.clamp(index, 1, #self.decorTilemap)
+                love.graphics.draw(atlas, self.decorTilemap[index], x * wtz, y * wtz)
+            end
+        end
+    end
 
     ---@type (g.Token|g.Entity)[]
     local objlist = {}
@@ -300,6 +467,8 @@ function World:_draw()
             drawEntity(t_or_e)
         end
     end
+
+    self:_drawDamageNumbers()
 
     love.graphics.setColor(1, 1, 1)
     self.particles:draw()
@@ -347,7 +516,7 @@ local function updateResourceDataCollection(self)
 
         for _, resId in ipairs(g.RESOURCE_LIST) do
             local startValue = g.getResource(resId)
-            self.dataCollectors[resId] = DataCollection(60, startValue)
+            self.dataCollectors[resId] = DataCollector(60, startValue)
         end
     end
 
@@ -359,6 +528,37 @@ local function updateResourceDataCollection(self)
     end
 end
 
+
+
+---@param x number
+---@param y number
+---@param maxRadius number
+---@param toks g.Token[]
+local function selectNearestToken(x, y, maxRadius, toks)
+    local currentDist = maxRadius + 0.001
+    local index = 0
+
+    for i, v in ipairs(toks) do
+        local dist = helper.magnitude(v.x - x, v.y - y)
+
+        if dist < currentDist then
+            currentDist = dist
+            index = i
+        end
+    end
+
+    if index > 0 then
+        return toks[index]
+    end
+    return nil
+end
+
+
+---@return fun(table: table<string, integer>, index?: string):string
+---@return integer
+function World:iterateTokenPool()
+    return pairs(self.tokenPool.tokens)
+end
 
 
 ---@param id string
@@ -389,6 +589,11 @@ function World:_update(dt)
         elist:flush()
     end
 
+    self.resourcesPerSecond = {}
+    for resId, collector in pairs(self.dataCollectors or {}) do
+        self.resourcesPerSecond[resId] = collector:avgdiff()
+    end
+
     -- update TokenPool
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
@@ -396,21 +601,27 @@ function World:_update(dt)
         tp:add("grass_blades", 5)
     end
     self.tokenPool = tp
-
+    table_clear(self.tokenCounts)
 
     self.tokenPartition:clear()
     for _, t in ipairs(self.tokens) do
+        ---@cast t g.Token
         self.tokenPartition:add(t, t.x,t.y)
+        self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
     end
 
-    -- Update effect durations (iterate backward)
-    for i = #self.effects, 1, -1 do
-        local eff = self.effects[i]
-        self.effectDurations[eff] = self.effectDurations[eff] - dt
+    -- Effects should only tick down when player is harvesting.
+    -- (Or else it will tick down when player is in another scene!)
+    if self:_isPlayerCurrentlyHarvesting() then
+        -- Update effect durations (iterate backward)
+        for i = #self.effects, 1, -1 do
+            local eff = self.effects[i]
+            self.effectDurations[eff] = self.effectDurations[eff] - dt
 
-        if self.effectDurations[eff] <= 0 then
-            table.remove(self.effects, i)
-            self.effectDurations[eff] = nil
+            if self.effectDurations[eff] <= 0 then
+                table.remove(self.effects, i)
+                self.effectDurations[eff] = nil
+            end
         end
     end
 
@@ -419,16 +630,22 @@ function World:_update(dt)
         updateToken(tok,dt)
     end
 
-    -- Spawn or delete upgrade entity if necessary
-    for _, upgradeId in ipairs(g.UPGRADE_LIST) do
+    local tree = g.getUpgTree()
+    for _, upg in ipairs(tree:getAllUpgrades()) do
+        local upgradeId = upg.id
+        local ulevel = upg.level
         local uinfo = g.getUpgradeInfo(upgradeId)
-        local ulevel = g.getUpgradeLevel(uinfo)
 
-        if ulevel > 0 and uinfo.spawnEntity then
-            local ecount = 1
-            if uinfo.getEntityCount then
-                ecount = math.max(uinfo:getEntityCount(ulevel), 0)
+        if uinfo.spawnEntity then
+            local ecount = 0
+            if ulevel > 0 then
+                if uinfo.getEntityCount then
+                    ecount = math.max(uinfo:getEntityCount(ulevel), 0)
+                else
+                    ecount = 1
+                end
             end
+
             local diff = self:_countEntityUpgrades(upgradeId) - ecount
 
             if diff ~= 0 then
@@ -463,10 +680,66 @@ function World:_update(dt)
 
     self.entities:flush() -- flush one more time in case entities are removed
 
+    -- These entity table and function is for singular token collision
+    -- Define the function on outer loop for optimization reasons.
+    ---@type g.Token[]
+    local collidedTokens = {}
+    ---@param tok g.Token
+    local function collectCollidedTokens(tok)
+        if not tok.___destroyed then
+            collidedTokens[#collidedTokens+1] = tok
+        end
+        return false
+    end
+
+    ---@type table<integer, table<string, g.Entity[]>>
+    local orbitRingStack = {}
     for _, e in ipairs(self.entities) do
         ---@cast e g.Entity
         if e.update then
             e:update(dt)
+        end
+
+        if e.hitToken then
+            local entCooldown = e.hitToken.cooldown or 1
+            local cd0 = math.min(self.entitiesToHitCooldown[e] or 0, entCooldown)
+            local cooldown = math.max(cd0 - dt, 0)
+            self.entitiesToHitCooldown[e] = cooldown
+
+            if cooldown <= 0 then
+                self.tokenPartition:query(e.x, e.y, collectCollidedTokens, e.hitToken.radius)
+
+                if #collidedTokens > 0 then
+                    local tok = selectNearestToken(e.x, e.y, e.hitToken.radius, collidedTokens)
+
+                    if tok then
+                        e.hitToken.collision(e, tok)
+                        self.entitiesToHitCooldown[e] = entCooldown
+                    end
+
+                    table.clear(collidedTokens)
+                end
+            end
+        end
+
+        -- For orbit rings, we'll update their position
+        -- but we need to do it in multiple passes.
+        -- Also only add to list if mouse harvester is enabled.
+        if self.mouseX and e.orbitRing then
+            local ringIndex = math.floor(e.orbitRing)
+            local ring = orbitRingStack[ringIndex]
+            if not ring then
+                ring = {}
+                orbitRingStack[ringIndex] = ring
+            end
+
+            local ents = ring[e.type]
+            if not ents then
+                ents = {}
+                ring[e.type] = ents
+            end
+
+            ents[#ents+1] = e
         end
 
         if e.lifetime then
@@ -474,6 +747,49 @@ function World:_update(dt)
             if e.lifetime <= 0 then
                 self.entities:removeBuffered(e)
             end
+        end
+    end
+
+    -- Update orbit ring positions (this has multiple pass for each ring)
+    self.orbitAngle = (self.orbitAngle + g.stats.OrbitSpeed * dt) % (2 * math.pi)
+    for ringIndex, ring in pairs(orbitRingStack) do
+        ---@type string[]
+        local etypes = {}
+        local count = 0
+
+        -- Pass 1: Get etypes and total entities
+        for k, v in pairs(ring) do
+            etypes[#etypes+1] = k
+            count = count + #v
+        end
+
+        ---@type g.Entity[]
+        local entsToBeUpdated = {}
+        -- Pass 2: Pop each type in round-robin fashion
+        repeat
+            local noMorePops = true
+            for _, etype in ipairs(etypes) do
+                -- Ideally we want to pop etype from etypes if it's 0 but
+                -- that feels like an unnecessary optimization.
+                if #ring[etype] > 0 then
+                    noMorePops = false
+                    entsToBeUpdated[#entsToBeUpdated+1] = table.remove(ring[etype])
+                end
+            end
+        until noMorePops
+
+        -- Pass 3: Update the entity positions
+        for i, e in ipairs(entsToBeUpdated) do
+            -- Note: This always has non-nil `self.mouseX` and `self.mouseY`
+            -- because entities are queued to orbitRingStack only if mouse
+            -- harvester is enabled in the first place.
+            local mx = assert(self.mouseX)
+            local my = assert(self.mouseY)
+            local dir = (ringIndex % 2) * 2 - 1
+            local rot = self.orbitAngle + i * 2 * math.pi / #entsToBeUpdated
+            local dist = g.stats.HarvestArea + (ringIndex - 0.5) * consts.ORBIT_RING_DISTANCE
+            e.x = mx + math.sin(rot * dir) * dist
+            e.y = my + math.cos(rot * dir) * dist
         end
     end
 
@@ -510,6 +826,12 @@ function World:_update(dt)
             end
         end
 
+        for _, tok in ipairs(self.tokens) do
+            if tok.perSecondUpdate then
+                tok:perSecondUpdate()
+            end
+        end
+
         g.call("perSecondUpdate")
         updateResourceDataCollection(self)
         self.timer = self.timer - 1
@@ -518,21 +840,9 @@ function World:_update(dt)
     self.tokens:flush()
 
     self.particles:update(dt)
+    self:_updateDamageNumbers(dt)
 end
 
-
-
-
----@return table<g.ResourceType, number>
-function World:_getResourcesPerSecond()
-    local result = {}
-
-    for resId, collector in pairs(self.dataCollectors) do
-        result[resId] = collector:avgdiff()
-    end
-
-    return result
-end
 
 
 
@@ -549,6 +859,68 @@ function World:_iterateActiveEffects()
 end
 
 
+
+
+-- Initial lifetime of the damage numbers
+local DAMAGE_NUMBER_LIFETIME = 0.5
+-- After lifetime, show popup with bouncy easing.
+local DAMAGE_NUMBER_POPUP_TIME = 0.2
+-- For every 0.1 seconds below lifetime, draw sparkles.
+local DAMAGE_NUMBER_SPARKLE_TIME = 0.03
+-- If the indices (computed using above variable) is out-of-range, remove the damage numbers.
+local DAMAGE_NUMBER_SPARKLE_ASSETS = {"damage_number_sparkle_1", "damage_number_sparkle_2"}
+
+---@param num number
+---@param x number
+---@param y number
+---@param col objects.Color
+function World:_spawnDamageNumber(num, x, y, col)
+    self.damageNumbers[#self.damageNumbers+1] = {
+        color = col,
+        number = num,
+        x = x + helper.lerp(-3, 3, love.math.random()),
+        y = y + helper.lerp(-5, 1, love.math.random()),
+        lifetime = DAMAGE_NUMBER_LIFETIME,
+    }
+end
+
+---@param dt number
+---@private
+function World:_updateDamageNumbers(dt)
+    for i = #self.damageNumbers, 1, -1 do
+        local dn = self.damageNumbers[i]
+        dn.lifetime = dn.lifetime - dt
+
+        if dn.lifetime < 0 then
+            local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
+            if not DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx] then
+                table.remove(self.damageNumbers, i)
+            end
+        end
+    end
+
+    table.sort(self.damageNumbers, sortOrder)
+end
+
+---@private
+function World:_drawDamageNumbers()
+    local smallFont = g.getSmallFont(16)
+    local fontHeight = smallFont:getHeight()
+    for _, dn in ipairs(self.damageNumbers) do
+        love.graphics.setColor(dn.color)
+
+        if dn.lifetime < 0 then
+            local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
+            g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
+        else
+            local tspawn = helper.clamp((DAMAGE_NUMBER_LIFETIME - dn.lifetime) / DAMAGE_NUMBER_POPUP_TIME, 0, 1)
+            local scale = math.max(helper.EASINGS.easeOutBack(tspawn) ^ 3, 0)
+            local text = g.formatNumber(dn.number)
+            local width = smallFont:getWidth(text)
+            helper.printTextOutlineSimple(text, smallFont, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
+        end
+    end
+end
 
 
 

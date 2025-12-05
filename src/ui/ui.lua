@@ -1,4 +1,5 @@
 
+local n9slice = require("src.modules.n9slice.n9slice")
 
 ---@class ui
 local ui = {}
@@ -12,67 +13,61 @@ ui.upgradeDescriptionUI = require(".upgrades.upgrade_description_ui")
 
 
 do
-local CLICK_BUTTON = 1
 
----@param richText string
----@param mainCol objects.Color
----@param baseCol objects.Color
----@param x number
----@param y number
----@param w number
----@param h number
-function ui.Button(richText, mainCol, baseCol, x,y,w,h)
+
+---@param richTxt string
+---@param col1 number[]|objects.ColorObject
+---@param col2 number[]|objects.ColorObject
+---@param region kirigami.Region
+---@return boolean
+function ui.Button(richTxt, col1,col2, region)
 	return ui.CustomButton(function (xx,yy,ww,hh)
 		local font = g.getSmallFont(16)
-    	richtext.printRichContained(richText, font, xx,yy,ww,hh)
-	end, mainCol,baseCol, x,y,w,h)
+    	richtext.printRichContained(richTxt, font, xx,yy,ww,hh)
+	end, col1,col2, region)
 end
 
 
 
+---@param richTxt string
+---@param region kirigami.Region
+---@return boolean
+function ui.DefaultButton(richTxt, region)
+	local c = g.COLORS
+	return ui.CustomButton(function (xx,yy,ww,hh)
+		local font = g.getSmallFont(16)
+    	richtext.printRichContained(richTxt, font, xx,yy,ww,hh)
+	end, c.BUTTON_FADE_1, c.BUTTON_FADE_2, region)
+end
+
+
+
+
 ---@param drawLabel fun(x:number,y:number,w:number,h:number)
----@param mainCol objects.Color
----@param baseCol objects.Color
----@param x number
----@param y number
----@param w number
----@param h number
-function ui.CustomButton(drawLabel, mainCol,baseCol, x,y,w,h)
+---@param col1 objects.Color
+---@param col2 objects.Color
+---@param region kirigami.Region
+function ui.CustomButton(drawLabel, col1, col2, region)
 	ui.assertUIStarted()
 
-	local dh = math.floor(h/10)
-	local rounding = 8
-
-	-- draw button base:
-    lg.setColor(1,1,1)
-	local multCol = objects.Color.WHITE
-    if iml.isHovered(x,y,w,h) then
-        multCol = objects.Color(0.8,0.8,0.8)
-    end
-	lg.setColor(baseCol * multCol)
-    ui.jaggedRectangle("fill", rounding, x,y+dh,w,h-dh)
-
-	-- draw main button part:
-	local dy = 0
-	if iml.isClicked(x,y,w,h, CLICK_BUTTON) then
-		dy = dh
+	love.graphics.setColor(1,1,1)
+	if iml.isHovered(region:get()) then
+		helper.gradientRect("horizontal", col1,col1, region:padUnit(4):get())
+	else
+		helper.gradientRect("horizontal", col1,col2, region:padUnit(4):get())
 	end
-	lg.setColor(mainCol * multCol)
-    ui.jaggedRectangle("fill", rounding, x,y+dy,w,h-dh)
 
-	-- draw "main label"
-    lg.setColor(multCol)
-	local r = Kirigami(x,y+dy,w,h-dh):padRatio(0.3)
-    drawLabel(r:get())
+	if iml.wasJustHovered(region:get()) then
+		g.playUISound("ui_tick", 1.6,0.35, 0,0)
+	end
 
-	-- draw outline/border
-	lg.setColor(0,0,0)
-	local lw = lg.getLineWidth()
-	lg.setLineWidth(2)
-	ui.jaggedRectangle("line", rounding, x,y+dy,w,h-dy)
-	lg.setLineWidth(lw)
-
-    return iml.wasJustClicked(x,y,w,h, CLICK_BUTTON)
+	ui.drawPanel(region:get())
+	drawLabel(region:padRatio(0.4,0.2):get())
+	if iml.wasJustClicked(region:get()) then
+		g.playUISound("ui_click_basic", 1.4,0.8)
+		return true
+	end
+	return false
 end
 
 
@@ -187,10 +182,102 @@ end
 
 
 ---For debugging purpose only
----@param region layout.Region
+---@param region kirigami.Region
 ---@param mode love.DrawMode?
 function ui.debugRegion(region, mode)
 	lg.rectangle(mode or "line", region:get())
+end
+
+
+local singleColorPanel = nil
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function ui.drawSingleColorPanel(x, y, w, h)
+	singleColorPanel = singleColorPanel or n9slice.new {
+		image = g.getAtlas(),
+		padding = 4,
+		quad = g.getImageQuad("single_color_ui_panel")
+	}
+	return singleColorPanel:draw(x, y, w, h)
+end
+
+
+local simpleUIPanel = nil
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function ui.drawPanel(x, y, w, h)
+	simpleUIPanel = simpleUIPanel or n9slice.new {
+		image = g.getAtlas(),
+		padding = 9,
+		quad = g.getImageQuad("simple_ui_panel")
+	}
+	return simpleUIPanel:draw(x, y, w, h)
+end
+
+
+---@param col objects.Color
+---@param val number Value multiplier for HSV
+local function multiplyHSVValue(col, val)
+	local a = select(4, col:getRGBA())
+	local h, s, v = col:getHSV()
+	local nr, ng, nb = objects.Color.HSVtoRGB(h, s, v * val)
+	return objects.Color(nr, ng, nb, a)
+end
+
+---@param key string
+---@param direction "horizontal"|"vertical"
+---@param slidercol objects.Color
+---@param currentsegment integer Current value of the slider (from 1 to `segments` inclusive)
+---@param segments integer Max value of the sliders (inclusive).
+---@param slidersize number|nil (1 = max size, 0 is not valid, nil = `1 / segments`)
+---@param reg kirigami.Region
+---@return integer currentsegment Current segment (1 to `segments` both inclusive)
+function ui.Slider(key, direction, slidercol, currentsegment, segments, slidersize, reg)
+	assert(currentsegment >= 1, "invalid current segment value")
+	assert(segments > 0, "invalid segment count")
+	slidersize = slidersize or (1 / segments)
+	assert(slidersize > 0 and slidersize <= 1, "invalid slider size")
+
+	local x, y, w, h = reg:get()
+	local drag = iml.consumeDrag(key, x, y, w, h, 1)
+	local s = helper.clamp(currentsegment, 1, segments)
+
+	-- Select slider color and handle drags
+	local curslidercol = slidercol
+	if drag then
+		curslidercol = multiplyHSVValue(slidercol, 0.5)
+		local mx, my = drag.endX, drag.endY
+
+		if direction == "horizontal" then
+			local pos = helper.clamp(mx - x, 0, w)
+			local segmentsize = w / segments
+			s = helper.clamp(math.floor(pos / segmentsize), 0, segments - 1) + 1
+		elseif direction == "vertical" then
+			local pos = helper.clamp(my - y, 0, h)
+			local segmentsize = h / segments
+			s = helper.clamp(math.floor(pos / segmentsize), 0, segments - 1) + 1
+		end
+	elseif iml.isHovered(x, y, w, h, key) then
+		curslidercol = multiplyHSVValue(slidercol, 0.75)
+	end
+
+	-- Draw slider handle
+	love.graphics.setColor(curslidercol)
+	if direction == "horizontal" then
+		local sliderwidth = w * slidersize
+		local slideroff = segments > 1 and ((s - 1) * (w - sliderwidth) / (segments - 1)) or 0
+		love.graphics.rectangle("fill", x + slideroff, y, w * slidersize, h)
+	elseif direction == "vertical" then
+		local sliderheight = h * slidersize
+		local slideroff = segments > 1 and ((s - 1) * (h - sliderheight) / (segments - 1)) or 0
+		love.graphics.rectangle("fill", x, y + slideroff, w, sliderheight)
+	end
+
+	return s
 end
 
 

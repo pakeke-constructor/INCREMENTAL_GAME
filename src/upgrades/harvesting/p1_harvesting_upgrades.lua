@@ -17,8 +17,6 @@ end
 defUpgrade("more_damage", "More Damage", {
     startingUpgrade=true,
 
-    price = {money=10},
-
     getValues = function(self,level)
         return level*10
     end,
@@ -33,24 +31,20 @@ defUpgrade("more_damage", "More Damage", {
 
 
 defUpgrade("hit_speed", "Hit Speed", {
-    price = {money=10},
-
     getValues = function(self,level)
         return level*10
     end,
     description = "+%{1}% hit speed",
 
-    getHitDurationMultiplier = function(self,level)
+    getHitSpeedMultiplier = function(self,level)
         local a=self:getValues(level)
-        return 1/(1+(a/100))
+        return 1 + a / 100
     end
 })
 
 
 
 defUpgrade("more_area", "More Area", {
-    price = {money=10},
-
     getValues = function(self,level)
         return level*4
     end,
@@ -66,8 +60,6 @@ defUpgrade("more_area", "More Area", {
 
 
 defUpgrade("lucky_hit", "Lucky Hit", {
-    price = {money=10},
-
     getValues = function(self,level)
         return level*3
     end,
@@ -93,8 +85,6 @@ defUpgrade("lucky_hit", "Lucky Hit", {
 
 
 defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
-    price = {money=800},
-
     maxLevel = 3,
 
     getValues = function(self,level)
@@ -118,8 +108,7 @@ defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
 
 
 defUpgrade("more_loot", "More Loot", {
-    image = "money_icon", -- TODO: change
-    price = {money = 100},
+    image = "money", -- TODO: change
     description = "All tokens have %{1} more health, and earn %{2} more resources.",
 
     getValues = function(uinfo, level)
@@ -140,3 +129,75 @@ defUpgrade("more_loot", "More Loot", {
 
 
 
+
+defUpgrade("critical_damage", "Critical Damage", {
+    description = "%{1} chance of hitting token with 10x more damage.",
+    getValues = function(uinfo, level)
+        return 1 + (level - 1) / 2
+    end,
+    valueFormatter = {"%.14g%%"},
+
+    getTokenHitMultiplier = function(uinfo, level)
+        local val = uinfo:getValues(level) / 100
+        return love.math.random() <= val and 10 or 1
+    end
+})
+
+
+
+defUpgrade("bomb_rain", "Bomb Rain", {
+    description = "Every second, %{1} chance of spawning Bomb token.",
+    getValues = function(uinfo, level)
+        return level
+    end,
+    valueFormatter = {"%d%%"},
+
+    perSecondUpdate = function(uinfo, level)
+        local world = g.getMainWorld()
+        local bombs = world.tokenCounts.bomb or 0
+        if bombs < 10 then
+            local chance = uinfo:getValues(level) / 100
+            if love.math.random() <= chance then
+                local worldW, worldH = g.getWorldDimensions()
+                local x = helper.lerp(8, worldW - 8, love.math.random())
+                local y = helper.lerp(8, worldH - 8, love.math.random())
+                g.spawnToken("bomb", x, y)
+            end
+        end
+    end
+})
+
+
+
+
+defUpgrade("spinning_knife", "Spinning Knife", {
+    description = "Spawn %{1} spinning knife orbiting the harvest area!",
+    maxLevel = 5,
+
+    getValues = function(uinfo, level)
+        return level
+    end,
+    getEntityCount = function(uinfo, level)
+        return (uinfo:getValues(level))
+    end,
+    spawnEntity = function (uinfo)
+        -- Position will be controlled by the world since it's orbital entity.
+        return g.spawnEntity("spinning_knife", 0, 0)
+    end
+})
+
+defUpgrade("thorns", "Thorns", {
+    description = "When a crop is harvested, %{1} chance for it to shoot out a knife projectile!",
+
+    getValues = function(uinfo, level)
+        return level * 2
+    end,
+    valueFormatter = {"%d%%"},
+    tokenDestroyed = function(uinfo, level, tok)
+        local chance = uinfo:getValues(level) / 100
+        if love.math.random() <= chance then
+            -- Spawn knife
+            g.spawnEntity("knife", tok.x, tok.y)
+        end
+    end
+})

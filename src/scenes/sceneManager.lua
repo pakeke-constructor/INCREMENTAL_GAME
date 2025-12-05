@@ -5,7 +5,7 @@ local sceneManager = {}
 
 
 local currentScene, currentSceneName
-
+local lastSceneName
 
 
 local nameToScene = {--[[
@@ -17,32 +17,43 @@ local nameToScene = {--[[
 local allScenes = objects.Array()
 
 local SCENE_PATH = "src/scenes/"
-for _, folder in ipairs(love.filesystem.getDirectoryItems(SCENE_PATH)) do
-    if love.filesystem.getInfo(SCENE_PATH .. folder, "directory") then
-        allScenes:add(folder)
-    end
-end
 
-for _, name in ipairs(allScenes) do
-    local scene = require("src.scenes." .. name .. "." .. name)
-    if scene.init then
-        scene:init()
+function sceneManager.loadScenes()
+    for _, folder in ipairs(love.filesystem.getDirectoryItems(SCENE_PATH)) do
+        if love.filesystem.getInfo(SCENE_PATH .. folder, "directory") then
+            allScenes:add(folder)
+        end
     end
-    nameToScene[name] = scene
+
+    for _, name in ipairs(allScenes) do
+        local scene = require("src.scenes." .. name .. "." .. name)
+        if scene.init then
+            scene:init()
+        end
+        scene.name = name
+        nameToScene[name] = scene
+    end
 end
 
 
 
 function sceneManager.gotoScene(sceneName)
     assert(nameToScene[sceneName])
-    local oldScene = nameToScene[sceneName]
-    if oldScene.leave then
+    local oldScene = nameToScene[currentSceneName]
+    if oldScene and oldScene.leave then
         oldScene:leave()
     end
+    lastSceneName = currentSceneName
     currentSceneName = sceneName
     currentScene = nameToScene[sceneName]
     if currentScene.enter then
         currentScene:enter()
+    end
+end
+
+function sceneManager.gotoLastScene()
+    if lastSceneName then
+        return sceneManager.gotoScene(lastSceneName)
     end
 end
 

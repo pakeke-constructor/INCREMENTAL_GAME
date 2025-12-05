@@ -5,13 +5,12 @@
 ---@param name string
 ---@param typedef {token:g.TokenDefinition, effect:g.EffectDefinition}
 local function defTokenEffect(id, name, typedef)
-    g.defineToken(id, name, typedef.token)
-    g.defineEffect(id, name, typedef.effect)
 end
 
 
+--[[
 
-defTokenEffect("thick_grass", "Thick Grass", {
+defTokenEffect("thicker_grass", "Thicker Grass", {
     effect = {
         description = loc"Grass tokens yield 2x more resources",
 
@@ -45,3 +44,6 @@ defTokenEffect("happy_cat", "Happy Cat", {
         resources = {}
     }
 })
+
+]]
+

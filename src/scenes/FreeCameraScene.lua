@@ -55,45 +55,22 @@ end
 
 
 
-local sceneManager
 
-local function navTab(text, sceneName, x,y,w,h)
-    sceneManager = sceneManager or require("src.scenes.sceneManager")
-    local _, name = sceneManager.getCurrentScene()
-
-    love.graphics.setColor(1,1,1)
-    if iml.isHovered(x,y,w,h) then
-        love.graphics.setColor(0.5,0.5,0.5)
-    elseif sceneName == name then
-        love.graphics.setColor(0.6,0.6,0.6)
-    end
-
-    local f = w/4
-    love.graphics.polygon("fill", x,y, x+w,y, x+w-f,y+h, x+f,y+h)
-    love.graphics.setColor(0,0,0)
-
-    local txtR = Kirigami(x,y,w,h):padRatio(0.,0.7,0.,0.7)
-    richtext.printRichContainedNoWrap(text, love.graphics.getFont(), txtR:get())
-
-    if iml.wasJustClicked(x,y,w,h) then
-        g.playSound("ui_mouse_click", 1, 0.6, 0.1)
-        g.gotoScene(sceneName)
-    end
-end
-
-
-function FreeCameraScene:renderNavbar()
+function FreeCameraScene:renderMapButton()
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
-    local header,_ = r:splitVertical(1,6)
+    local header,_ = r:splitVertical(1,5)
 
-    local left, right = header:splitHorizontal(1,1)
-    right = right:padRatio(0.2,0.0,0.2,0.1)
+    local left, right = header:splitHorizontal(7,1)
+    right = right:padRatio(0.2)
 
-    local map, upgrades, harvest = right:splitHorizontal(1,1,1)
+    local MAIN=objects.Color.WHITE
+    local BASE=objects.Color.GRAY
+    -- TEMPORARY CODE
+    if ui.Button("{o}MAP", MAIN,BASE, right) then
+        g.gotoScene("map_scene")
+    end
 
-    navTab("MAP", "map_scene", map:get())
-    navTab("UPGRADES ", "upgrade_scene", upgrades:get())
-    navTab("HARVEST ", "harvest_scene", harvest:get())
+    return right
 end
 
 
@@ -167,9 +144,6 @@ function FreeCameraScene:defaultKeyreleased(k)
     if consts.DEV_MODE then
         if k == "f1" then
             g.gotoScene("dev_scene")
-        elseif k == "f2" then
-            -- TODO: Remove this once fishing are is accessible through map.
-            g.gotoScene("fishing_scene")
         end
     end
 end

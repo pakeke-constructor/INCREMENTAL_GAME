@@ -1,39 +1,53 @@
-g.defineTokenUpgrade("clay_pot", "Clay Pot", {
-    token = {
-        maxHealth = 3,
-        resources = {money = 20},
-    },
-    upgrade = {
-        price = {money = 200}
-    }
+
+
+g.defineToken("clay_pot", "Clay Pot", {
+    maxHealth = 3,
+    resources = {money = 20},
 })
 
-g.defineTokenUpgrade("chest_small", "Small Chest", {
-    token = {
-        maxHealth = 6,
-        resources = {money = 50},
-    },
-    upgrade = {
-        price = {money = 1000}
-    }
+
+g.defineToken("chest_small", "Small Chest", {
+    maxHealth = 6,
+    resources = {money = 50},
 })
 
-g.defineTokenUpgrade("chest_big", "Big Chest", {
-    token = {
-        maxHealth = 11,
-        resources = {money = 100},
-    },
-    upgrade = {
-        price = {money = 10000}
-    }
+
+g.defineToken("chest_big", "Big Chest", {
+    maxHealth = 11,
+    resources = {money = 100},
 })
 
-g.defineTokenUpgrade("chest_golden", "Golden Chest", {
-    token = {
-        maxHealth = 20,
-        resources = {money = 100},
-    },
-    upgrade = {
-        price = {money = 60000}
-    }
+
+g.defineToken("chest_golden", "Golden Chest", {
+    maxHealth = 20,
+    resources = {money = 100},
+})
+
+
+
+--[[
+
+All of these chests are special;
+their `resources` tables are SUPPOSED to be adjusted!
+
+]]
+g.defineToken("chest_money", "Money Chest", {
+    maxHealth = 7,
+    resources = {money = 10},
+})
+g.defineToken("chest_fish", "Fishy Chest", {
+    maxHealth = 7,
+    resources = {fish = 10},
+})
+g.defineToken("chest_fabric", "Fabric Chest", {
+    maxHealth = 7,
+    resources = {fabric = 10},
+})
+g.defineToken("chest_juice", "Juice Chest", {
+    maxHealth = 7,
+    resources = {juice = 10},
+})
+g.defineToken("chest_bread", "Bread Chest", {
+    maxHealth = 7,
+    resources = {bread = 10},
 })

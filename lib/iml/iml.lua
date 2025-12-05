@@ -9,7 +9,18 @@ local iml = {}
 ---@alias iml._Panel {x:number, y:number, w:number,h:number, key:any, transform?: love.Transform}
 ---@alias iml._FrameState { hoveredPanel: iml._Panel?, transformStack: love.Transform[], transform: love.Transform}
 
----@alias iml._Click {original_x:number, original_y:number, total_dx:number,total_dy:number, last_frame_dx:number,last_frame_dy:number, panel_key:any? }
+
+---@class iml._Click
+---@field original_x number
+---@field original_y number
+---@field total_dx number (drag distance).
+---@field total_dy number (drag distance).
+---@field last_frame_dx number
+---@field last_frame_dy number
+---@field panel_key any? The key or identifier of the panel that was clicked
+---@field is_drag boolean?
+local iml_Click
+
 
 
 ---@type iml._Panel?
@@ -31,7 +42,7 @@ local frameState = nil
 
 
 
-local CLICK_MOVE_THRESHOLD = 6
+iml.CLICK_MOVE_THRESHOLD = 10
 -- Click and move less than X pixels = click
 -- MORE than X pixels, drag
 
@@ -67,8 +78,12 @@ local last_pointer_y = 0
 ---@param cl iml._Click
 ---@return boolean
 local function isClick(cl)
-    -- if it moves less than X distance, its a click
-    return math.sqrt(cl.total_dx*cl.total_dx + cl.total_dy*cl.total_dy) < CLICK_MOVE_THRESHOLD
+    if cl.is_drag then
+        -- once its a drag; its *always* a drag
+        return false
+    end
+    -- Otherwise, if it moves less than X distance, its a click
+    return math.sqrt(cl.total_dx*cl.total_dx + cl.total_dy*cl.total_dy) < iml.CLICK_MOVE_THRESHOLD
 end
 
 
@@ -322,9 +337,28 @@ function iml.wasJustClicked(x,y,w,h, button, key)
 end
 
 
+---@param x number
+---@param y number
+---@return number
+---@return number
+local function inverseTransform(x,y)
+    assert(frameState and x and y, "?")
+    return frameState.transform:inverseTransformPoint(x,y)
+end
+
+
+
+---@class iml.Drag
+---@field startX number
+---@field startY number
+---@field endX number
+---@field endY number
+---@field dx number
+---@field dy number
+
 ---@param key any
 ---@param button integer
----@return number?, number?, iml._Click?
+---@return iml.Drag?
 function iml.consumeDrag(key, x,y,w,h, button)
     assertIsFrame()
     iml.panel(x,y,w,h, key)
@@ -333,10 +367,18 @@ function iml.consumeDrag(key, x,y,w,h, button)
     local cl = currentClicks[button]
     if cl and (cl.panel_key == key) and (not isClick(cl)) then
         -- its dragging this element!
-        local dx, dy = cl.last_frame_dx, cl.last_frame_dy
         cl.last_frame_dx = 0
         cl.last_frame_dy = 0
-        return dx,dy, cl
+        local startX,startY = inverseTransform(cl.original_x, cl.original_y)
+        local endX,endY = getTransformedPointer()
+        local dx,dy = endX-startX, endY-startY
+        return {
+            startX = startX,
+            startY = startY,
+            endX = endX,
+            endY = endY,
+            dx = dx, dy=dy
+        }
     end
 end
 
@@ -397,6 +439,12 @@ function iml.endFrame()
         end
     end
 
+    for _button,cl in pairs(currentClicks) do
+        if not isClick(cl) then
+            cl.is_drag = true
+        end
+    end
+
     lastHoveredPanel = frameState.hoveredPanel or nil
     frameCount = frameCount + 1
     clickReleases = {}
@@ -454,11 +502,6 @@ end
 function iml.setPointer(x,y)
     pointer_x = x
     pointer_y = y
-end
-
-
-function iml.getPointer()
-    return pointer_x, pointer_y
 end
 
 

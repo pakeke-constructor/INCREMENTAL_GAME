@@ -11,36 +11,211 @@ local map = FreeCameraScene()
 
 
 
+-- Total duration of transition, including fade in and fade out.
+-- fade in is half the duration and fade out is half of it too.
+local TRANSITION_DURATION = 1
+-- Target transition scale.
+local TRANSITION_SCALE = 4
+
+
+---@class (exact) _MapBuilding
+---@field public x integer
+---@field public y integer
+---@field public image string
+
+---@type table<string, _MapBuilding>
+local buildings = {
+    questarea_buildings = {
+        image = "questarea_buildings",
+        x = 413, y = 269,
+    },
+    bossarea_statue = {
+        image = "bossarea_statue",
+        x = 484, y = 183,
+    },
+    harvestarea_windmill = {
+        image = "harvestarea_windmill",
+        x = 338, y = 158,
+    },
+    harvestarea_house = {
+        image = "harvestarea_house",
+        x = 237, y = 211,
+    },
+    harvestarea_platform = {
+        image = "harvestarea_platform",
+        x = 294, y = 177,
+    },
+    upgradearea_dome = {
+        image = "upgradearea_dome",
+        x = 181, y = 140,
+    },
+    upgradearea_plasmahut = {
+        image = "upgradearea_plasmahut",
+        x = 157, y = 95,
+    },
+    fishingarea_buildings = {
+        image = "fishingarea_buildings",
+        x = 393, y = 94,
+    },
+    fishingarea_dock = {
+        image = "fishingarea_dock",
+        x = 377, y = 90,
+    },
+    carnivalarea_attractions = {
+        image = "carnivalarea_attractions",
+        x = 221, y = 255,
+    }
+}
+
+
+
+---@class (exact) _CloudPlacement: _MapBuilding
+---@field public seed integer pick any random integer to be used to randomize cloud bobbing
+
+-- key same as POI ID
+---@type table<string, _CloudPlacement>
+local clouds = {
+    fishing = {
+        image = "bigcloud_fishingzone", seed = 12345,
+        x = 210, y = 64
+    },
+    minigame = {
+        image = "bigcloud_minigamezone", seed = 1,
+        x = 107, y = 247
+    },
+    quest = {
+        image = "bigcloud_questzone", seed = 42,
+        x = 256, y = 232
+    },
+    boss = {
+        image = "bigcloud_bosszone", seed = 666,
+        x = 367, y = 131
+    },
+    -- Use underscore to denote decoration.
+    _empty1 = {
+        image = "bigcloud_emptyzone", seed = 0,
+        x = 158, y = 2,
+    }
+}
+
+-- We can't just `pairs(clouds)` when drawing as they have undefined order
+---@type string[]
+local cloudsOrder = {}
+for k in pairs(clouds) do
+    cloudsOrder[#cloudsOrder+1] = k
+end
+table.sort(cloudsOrder, function(a, b)
+    return clouds[a].y > clouds[b].y
+end)
+
+
+
+
+
+---@class (exact) _POI.Def
+---@field public scene string
+---@field public x integer
+---@field public y integer
+---@field public w integer
+---@field public h integer
+---@field public highlight string[] building to highlight
+---@field public tx number text position
+---@field public ty number text position
+---@field public tcolor objects.Color Outline text color (actual text color always white)
+---@field public price g.Bundle?
+
+---@class (exact) _POI: _POI.Def
+---@field public type string
+---@field public name string
+
+---@type table<string, _POI>
 local POI = {}
-local unlockedPOIs = objects.Set()
-local POI_CLICK_RADIUS = 8
+---@type table<string, string>
+local sceneNamePOIMap = {}
+---@param id string
+---@param name string
+---@param def _POI.Def
 local function definePOI(id, name, def)
+    ---@cast def _POI
     def.type = id
-    def.name = name
+    def.name = loc(name)
     POI[id] = def
+
+    if def.price then
+        assert(clouds[id], "cloud info must exist for this POI")
+    end
+
+    sceneNamePOIMap[def.scene] = id
 end
 
-definePOI("fishing", "Fishing", {
-    x = 593, y = 91,
-    price = {money = 5000, logs = 100},
-    action = function()
-        g.gotoScene("fishing_scene")
+---@param poiId string
+---@return boolean
+local function isUnlocked(poiId)
+    local def = assert(POI[poiId])
+    if not def.price then
+        return true -- no price => unlocked
     end
+    return g.getSn().unlockedPOI:has(poiId)
+end
+
+
+definePOI("harvest", "Harvest", {
+    scene = "harvest_scene",
+    x = 197, y = 156, w = 144, h = 98,
+    highlight = {"harvestarea_windmill", "harvestarea_house", "harvestarea_platform"},
+    tx = 262, ty = 169, tcolor = objects.Color("#".."FF0FA569"),
+})
+definePOI("upgrade", "Upgrade", {
+    scene = "upgrade_scene",
+    x = 106, y = 94, w = 91, h = 104,
+    highlight = {"upgradearea_dome", "upgradearea_plasmahut"},
+    tx = 152, ty = 132, tcolor = objects.Color("#".."FF41D7D7"),
+})
+definePOI("fishing", "Fish", {
+    scene = "fishing_scene",
+    x = 236, y = 82, w = 142, h = 74,
+    highlight = {"fishingarea_buildings", "fishingarea_dock"},
+    tx = 323, ty = 100, tcolor = objects.Color("#".."FF14A0CD"),
+    price = {money = 5000},
+})
+definePOI("minigame", "Minigames", {
+    -- TODO: scene
+    scene = "",
+    x = 121, y = 246, w = 109, h = 93,
+    highlight = {"carnivalarea_attractions"},
+    tx = 188, ty = 277, tcolor = objects.Color("#".."FFE65AE6"),
+    -- TODO: Price
+    price = {money = 1000},
+})
+definePOI("quest", "Town", {
+    scene = "customization_scene",
+    x = 252, y = 267, w = 165, h = 100,
+    highlight = {"questarea_buildings"},
+    tx = 327, ty = 291, tcolor = objects.Color("#".."FFB4236E"),
+    -- TODO: Price
+    price = {money = 7000},
+})
+definePOI("boss", "Challenges", {
+    -- TODO: scene
+    scene = "",
+    x = 391, y = 168, w = 98, h = 90,
+    highlight = {"bossarea_statue"},
+    tx = 441, ty = 175, tcolor = objects.Color("#".."FF7891A5"),
+    -- TODO: Price
+    price = {money = 10000},
 })
 
 
 
+local MAP_BACKGROUND = objects.Color("#".."FF0F379B")
+
 local mapAnim = {
-    lg.newImage("src/scenes/map_scene/maps/new_map1.png"),
-    lg.newImage("src/scenes/map_scene/maps/new_map2.png"),
+    lg.newImage("src/scenes/map_scene/maps/map.png"),
+    -- lg.newImage("src/scenes/map_scene/maps/new_map2.png"),
     -- lg.newImage("src/scenes/map_scene/maps/map1.png"),
     -- lg.newImage("src/scenes/map_scene/maps/map2.png")
 }
 
-
-local cloudImg = lg.newImage("src/scenes/map_scene/maps/new_map_clouds.png")
-
-local WASD = lg.newImage("src/scenes/map_scene/maps/wasd_image.png")
 
 
 
@@ -55,17 +230,37 @@ local function prop(x,y,img)
 end
 
 
-function map:init()
-    local w,h = mapAnim[1]:getDimensions()
-    self.camera:setPos(w/2,h/2-200)
 
-    prop(300,150,"happy_cat")
+---@param t number
+---@param seed integer
+local function computeOffsetBySeed(t, seed)
+    local offsetStartBase = helper.hashInteger(seed) % 65536
+    local frequencyBase = helper.hashInteger(offsetStartBase) % 65536
+    local offset = (offsetStartBase / 65536) * 2 * math.pi
+    -- Tweak these values to tune the bobbing speed
+    local frequency = 0.1 + (frequencyBase / 65536) * 0.3
+    return math.sin(2 * math.pi * frequency * t + offset)
 end
 
 
 
-local clampCameraToMap
-do
+---@class (exact) _MapTransitionTarget
+---@field public time number
+---@field public x number
+---@field public y number
+---@field public action function?
+---@field public duration number
+
+function map:init()
+    self.allowMousePan = false
+    ---@type _MapTransitionTarget|nil
+    self.transitionTarget = nil
+    ---@type string|nil
+    self.queuedTransitionTargetScene = nil
+end
+
+
+
 
 
 -- Clamps camera position and zoom to stay within map bounds
@@ -74,194 +269,236 @@ do
 ---@param mapY number
 ---@param mapW number
 ---@param mapH number
-function clampCameraToMap(camera, mapX, mapY, mapW, mapH)
-    -- Get viewport dimensions from camera if not provided
-    local vpx, vpy, vpw, vph = camera:getViewport()
-    local viewportWidth = vpw or lg.getWidth()
-    local viewportHeight = vph or lg.getHeight()
+---@param ttgt _MapTransitionTarget?
+local function clampCameraToMap(camera, mapX, mapY, mapW, mapH, ttgt)
+    -- Adjust viewport and set position to center of map.
+    local w, h = love.graphics.getDimensions()
+    camera:setViewport(0, 0, w, h, 0.5, 0.5)
+    local posX = mapX + mapW / 2
+    local posY = mapY + mapH / 2
 
-    local zoom = camera:getZoom()
-    local x, y = camera:getPos()
-
-    local visibleWidth = viewportWidth / zoom
-    local visibleHeight = viewportHeight / zoom
-
-    -- Clamp X position
-    if visibleWidth >= mapW then
-        x = mapX + mapW / 2
-    else
-        local minX = mapX + visibleWidth / 2
-        local maxX = mapX + mapW - visibleWidth / 2
-        x = math.max(minX, math.min(maxX, x))
+    local transitionT = 0
+    local transitionScale = 1
+    if ttgt then
+        local t = 1 - math.abs(1 - helper.clamp(ttgt.time / ttgt.duration, 0, 1) * 2)
+        transitionT = t--helper.EASINGS.sineOut(t)
+        posX = helper.lerp(posX, ttgt.x, transitionT)
+        posY = helper.lerp(posY, ttgt.y, transitionT)
+        transitionScale = helper.lerp(1, TRANSITION_SCALE, transitionT)
     end
+    camera:setPos(posX, posY)
 
-    -- Clamp Y position
-    if visibleHeight >= mapH then
-        y = mapY + mapH / 2
-    else
-        local minY = mapY + visibleHeight / 2
-        local maxY = mapY + mapH - visibleHeight / 2
-        y = math.max(minY, math.min(maxY, y))
-    end
-
-    -- Optional: Clamp zoom to ensure map always fills viewport
-    local minZoomX = viewportWidth / mapW
-    local minZoomY = viewportHeight / mapH
-    local minZoom = math.max(minZoomX, minZoomY)
-
-    if zoom < minZoom then
-        zoom = minZoom
-    end
-
-    -- Apply clamped values back to camera
-    camera:setPos(x, y)
-
-    -- HACK: Scale with respect to dimensions
-    local ww,hh = lg.getDimensions()
-    camera:setZoom(math.floor(10*(ww+hh)/600)/10)
-end
-
+    -- Adjust zooming
+    local scale = math.min(w / mapW, h / mapH)
+    -- Only allow integer scaling with minimum of 1
+    scale = math.max(math.floor(scale), 1)
+    camera:setZoom(scale * transitionScale)
 end
 
 
 
-local function drawWASDVisual()
-    local x=10
-    local y=10
-    lg.push()
-    lg.scale(1.5)
-    love.graphics.setColor(0.3,0.3,0.4)
-    lg.draw(WASD, x+2, y)
-    lg.draw(WASD, x+2, y+2)
-    lg.draw(WASD, x, y+2)
-    lg.setColor(0,0,0)
-    for dx=-1,1,2 do
-        for dy=-1,1,2 do
-            lg.draw(WASD, x+dx, y+dy)
+---@param poi _POI
+---@param x number?
+---@param y number?
+local function drawPOIText(poi, x, y)
+    local r, g, b = poi.tcolor:getRGBA()
+    local text = string.format("{o thickness=2 r=%.2f g=%.2f b=%.2f}%s{/o}", r, g, b, poi.name)
+
+    richtext.printRich(text, _G.g.getBigFont(32), x or poi.tx, y or poi.ty, 1000, "center", 0, 1, 1, 500, 16)
+end
+
+
+local function dummy() end
+---@param poi _POI
+local function makePOIAction(poi)
+    local action = dummy
+    if poi.scene ~= "" then
+        function action()
+            return g.gotoScene(poi.scene)
         end
     end
-    lg.setColor(1,1,1)
-    lg.draw(WASD,x,y)
-    lg.pop()
+
+    return action
 end
 
 
 
----@param r layout.Region
----@param cam Camera
-local function drawPOITooltip(r, cam, poi)
-    local TOOLTIP_PADDING = 4
-    local SCREEN_PADDING = 4
+---@param t number
+---@param oy number
+---@param clearRadius number
+---@param cloudRadius number
+---@param cloudSpacing number
+local function drawIndividualClouds(t, oy, clearRadius, cloudRadius, cloudSpacing)
+    local w, h = ui.getScaledUIDimensions()
+    local cx, cy = w / 2, h / 2
+    local ncircles = math.ceil(math.pi * (clearRadius + cloudSpacing) / cloudSpacing)
+    local centerRadius = helper.magnitude(cx + 4, cy + 4) + cloudRadius
+    local rdist = centerRadius + cloudRadius * 2
+    local nrings = rdist / cloudSpacing
+    local targetRadius = helper.lerp(centerRadius, clearRadius, t)
 
-    local titleFont = g.getBigFont(32)
-    local font = g.getSmallFont(16)
-    local hasBought = unlockedPOIs:has(poi.type)
-    local canAfford = hasBought or g.canAfford(poi.price)
+    local cloudCount = 0
+    for i = 0, nrings - 1 do
+        local cdist = targetRadius + i * cloudSpacing
+        local ioff = i % 2 / 2
+        for j = 0, ncircles do
+            local angle = (j + ioff) * 2 * math.pi / ncircles
 
-    -- Calculate box width and height
-    local height = titleFont:getHeight()
-    local width = titleFont:getWidth(richtext.stripEffects(poi.name))
-    local buyText = ""
-    if not hasBought then
-        local buyTextWidth = 0
+            local hash = helper.hashInteger(cloudCount + 12345) % 65536
+            local x = math.cos(angle) * cdist + helper.lerp(-4, 4, hash / 65535)
 
-        if canAfford then
-            buyText = "Buy"
+            hash = helper.hashInteger(hash + 12345) % 65536
+            local y = math.sin(angle) * cdist + helper.lerp(-4, 4, hash / 65535)
+
+            hash = helper.hashInteger(hash + 12345) % 65536
+            local r = cloudRadius + oy + i + helper.lerp(-10, 20, hash / 65535)
+
+            love.graphics.circle("fill", x + cx, y + cy + oy, r)
+            cloudCount = cloudCount + 1
         end
-
-        for _, resId in ipairs(g.RESOURCE_LIST) do
-            if poi.price[resId] then
-                local resInfo = g.getResourceInfo(resId)
-                buyText = buyText.." {"..resInfo.image.."}"..poi.price[resId]
-                buyTextWidth = buyTextWidth + 16
-            end
-        end
-
-        buyTextWidth = buyTextWidth + font:getWidth(richtext.stripEffects(buyText))
-        width = math.max(width, buyTextWidth)
-        height = height + font:getHeight()
     end
+end
 
-    -- Compute regions
-    local tx, ty = ui.getUIScalingTransform():inverseTransformPoint(cam:toScreen(poi.x, poi.y))
-    local tooltipR = Kirigami(tx - width / 2, ty + 16, width, height)
-        -- Apply padding
-        :padUnit(-TOOLTIP_PADDING)
-        -- Clamp
-        :clampInside(r:padUnit(SCREEN_PADDING))
-    local tooltipContentR = tooltipR:padUnit(TOOLTIP_PADDING)
-
-    -- Draw it
-    if canAfford then
-        love.graphics.setColor(0.2, 0.2, 0.4, 0.8)
-    else
-        love.graphics.setColor(0.4, 0.2, 0.2, 0.8)
-    end
-    love.graphics.rectangle("fill", tooltipR:get())
-
-    love.graphics.setColor(0.,0.,0.08)
-    love.graphics.rectangle("line", tooltipR:get())
-
+---@param t number 0 = no clouds, 1 = fully covered
+---@param clearRadius number Radius that it shouldn't have clouds on
+---@param cloudRadius number Size of each individual cloud
+---@param cloudSpacing number? Spacing of each individual cloud (default to `cloudRadius`)
+local function drawCloudTransition(t, clearRadius, cloudRadius, cloudSpacing)
+    cloudSpacing = cloudSpacing or cloudRadius
+    love.graphics.setColor(1, 0.55, 0.78, 1)
+    drawIndividualClouds(t, 9, clearRadius, cloudRadius, cloudSpacing)
     love.graphics.setColor(1, 1, 1)
-    richtext.printRich(poi.name, titleFont, tooltipContentR.x, tooltipContentR.y, tooltipContentR.w, "center")
-    if not hasBought then
-        richtext.printRich(buyText, font, tooltipContentR.x, tooltipContentR.y + titleFont:getHeight(), tooltipContentR.w, "center")
-    end
-
-    -- Action area
-    local poid = POI_CLICK_RADIUS * 2
-    if iml.wasJustClicked(tx - POI_CLICK_RADIUS, ty - POI_CLICK_RADIUS, poid, poid) then
-        if hasBought then
-            poi.action()
-        elseif canAfford then
-            g.subtractResources(poi.price)
-            unlockedPOIs:add(poi.type)
-        end
-    end
+    drawIndividualClouds(t, 0, clearRadius, cloudRadius, cloudSpacing)
 end
+
 
 
 function map:draw()
-    local COL = objects.Color("#FF2080D8")
-    lg.clear(COL)
+    lg.clear(MAP_BACKGROUND)
 
     local mapW,mapH = mapAnim[1]:getDimensions()
-    clampCameraToMap(self.camera,0,0,mapW,mapH)
+    clampCameraToMap(self.camera,0,0,mapW,mapH,self.transitionTarget)
     self:setCamera()
+
+    local unlockedPOIs = g.getSn().unlockedPOI
 
     lg.setColor(1,1,1)
     local t = love.timer.getTime()
-    local i = (math.floor(t) % 2) + 1
+    local i = (math.floor(t) % #mapAnim) + 1
     lg.draw(mapAnim[i],0,0)
-
-    local cloudW = cloudImg:getDimensions()
-    lg.draw(cloudImg, (mapW-cloudW)/2 + math.sin(t/4)*10,0)
 
     for _,p in ipairs(props) do
         g.drawImage(p.image,p.x,p.y)
     end
 
-    local mwx, mwy = self.camera:toWorld(ui.getUIScalingTransform():transformPoint(ui.getMouse()))
-    local hoveredPOI = nil
-    for _, poi in pairs(POI) do
-        -- TODO: Use better icon?
-        love.graphics.circle("fill", poi.x, poi.y, POI_CLICK_RADIUS)
+    -- Draw POI outline only.
+    for poiType, poi in pairs(POI) do
+        if isUnlocked(poiType) and iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
+            lg.setColor(1, 1, 1, 1)
 
-        if math.distance(mwx - poi.x, mwy - poi.y) <= POI_CLICK_RADIUS then
-            hoveredPOI = poi
+            for _, buildingId in ipairs(poi.highlight) do
+                local b = buildings[buildingId]
+                -- Buildings are relative to top right
+                g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
+            end
         end
     end
+
+    -- Draw buildings
+    lg.setColor(1, 1, 1)
+    for _, b in pairs(buildings) do
+        g.drawImageOffset(b.image, b.x, b.y, 0, 1, 1, 1, 0)
+    end
+
+    -- Draw clouds
+    for _, clid in ipairs(cloudsOrder) do
+        if (not (POI[clid] and isUnlocked(clid))) then
+            local cloud = clouds[clid]
+            local yoff = computeOffsetBySeed(t, cloud.seed)
+            g.drawImageOffset(cloud.image, cloud.x, cloud.y + yoff, 0, 1, 1, 0, 0)
+        end
+    end
+
+    -- Draw POI tooltip
+    local smallFont = g.getSmallFont(16)
+    for _, poi in pairs(POI) do
+        if consts.DEV_MODE and love.keyboard.isDown("space") then
+            ui.debugRegion(Kirigami(poi.x, poi.y, poi.w, poi.h))
+        end
+        if isUnlocked(poi.type) then
+            if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
+                drawPOIText(poi)
+            end
+
+            if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) and not self.transitionTarget then
+                self.transitionTarget = {
+                    time = 0,
+                    x = poi.x + poi.w / 2,
+                    y = poi.y + poi.h / 2,
+                    action = makePOIAction(poi),
+                    duration = TRANSITION_DURATION
+                }
+                g.playUISound("map_zoom_woosh",1.2,0.4)
+            end
+        else
+            local buyText = ""
+
+            for _, resId in ipairs(g.RESOURCE_LIST) do
+                if poi.price[resId] then
+                    local resInfo = g.getResourceInfo(resId)
+                    buyText = buyText.." {"..resInfo.image.."} "..g.formatNumber(poi.price[resId])
+                end
+            end
+
+            -- Compute cloud bobbing offset
+            local cloud = clouds[poi.type]
+            local yoff = computeOffsetBySeed(t, cloud.seed)
+
+            local cx = poi.x + poi.w / 2
+            local cy = poi.y
+            g.drawImageOffset("map_unlockbutton", cx, cy + yoff, 0, 1, 1, 0.5, 0)
+            richtext.printRich("{o}"..buyText.."{/o}", smallFont, cx, cy + 10, 1000, "center", 0, 1, 1, 500, 0)
+
+            -- Button dimensions
+            local bw, bh = select(3, g.getImageQuad("map_unlockbutton"):getViewport()) --[[@as number]]
+
+            if iml.isHovered(cx - bw / 2, cy, bw, bh) then
+                drawPOIText(poi, cx, cy - 16)
+            end
+
+            if iml.wasJustClicked(cx - bw / 2, cy, bw, bh, 1) then
+                if g.canAfford(poi.price) then
+                    g.subtractResources(poi.price)
+                    unlockedPOIs:add(poi.type)
+                end
+            end
+        end
+    end
+
+    -- Well it's unfortunate that we iterate POI twice, but we need to ensure
+    -- the draw order is correct.
 
     self:resetCamera()
 
     vignette.draw()
 
     ui.startUI()
-    self:renderNavbar()
-    drawWASDVisual()
-    if hoveredPOI then
-        local r = Kirigami(0, 0, ui.getScaledUIDimensions())
-        drawPOITooltip(r, self.camera, hoveredPOI)
+    do
+    local ttgt = self.transitionTarget
+    if ttgt then
+        local val = 0
+        if ttgt.action then
+            val = helper.remap(ttgt.time, 0, ttgt.duration / 2, 0, 1)
+        else
+            -- its zooming out! invert it:
+            val = helper.remap(ttgt.time, ttgt.duration / 2, ttgt.duration, 1, 0)
+        end
+        val = helper.EASINGS.sineInOut(helper.clamp(val, 0, 1))
+
+        if val > 0 then
+            drawCloudTransition(val, 160, 14)
+        end
+    end
     end
     ui.endUI()
 end
@@ -271,14 +508,51 @@ end
 
 function map:update(dt)
     self:updateCamera(dt)
+
+    -- Update transition data
+    if self.transitionTarget then
+        self.transitionTarget.time = self.transitionTarget.time + dt
+
+        if self.transitionTarget.time >= self.transitionTarget.duration / 2 and self.transitionTarget.action then
+            self.transitionTarget.action()
+            self.transitionTarget.action = nil
+        elseif self.transitionTarget.time >= self.transitionTarget.duration then
+            if self.queuedTransitionTargetScene then
+                local poi = helper.assert(POI[sceneNamePOIMap[self.queuedTransitionTargetScene]], "invalid scene", self.queuedTransitionTargetScene)
+                self.transitionTarget = {
+                    time = 0,
+                    x = poi.x + poi.w / 2,
+                    y = poi.y + poi.h / 2,
+                    action = makePOIAction(poi),
+                    duration = TRANSITION_DURATION
+                }
+                self.queuedTransitionTargetScene = nil
+                g.playUISound("map_zoom_woosh",1.2,0.4)
+            else
+                self.transitionTarget = nil
+            end
+        end
+    end
 end
 
 
 
-map.wheelmoved = map.defaultWheelmoved
+function map:enter()
+    g.playUISound("map_zoom_woosh",1.3,0.4)
+end
+
+
+
+function map.wheelmoved() end -- disable zooming
 map.mousemoved = map.defaultMousemoved
 map.keyreleased = map.defaultKeyreleased
 
+
+
+---@param name string
+function map:queueDestinationScene(name)
+    self.queuedTransitionTargetScene = name
+end
 
 
 

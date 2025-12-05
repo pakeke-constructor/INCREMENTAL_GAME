@@ -2,6 +2,10 @@
 local love = require("love")
 
 
+---@type love.graphics
+_G.lg=love.graphics
+
+
 -- relative-require
 do
 local stack = {""}
@@ -39,13 +43,10 @@ end
 
 
 
-love.graphics.setDefaultFilter("nearest", "nearest")
 
 -- todo: set a better font here
 love.graphics.setFont(love.graphics.newFont(64))
 
-local font = love.graphics.getFont()
--- font:setFilter("nearest", "nearest")
 
 --[[
 =========
@@ -53,14 +54,16 @@ GLOBALS START
 =========
 ]]
 _G.utf8 = require("utf8")
-_G.table.clear = require("table.clear")
 
----@param x number
----@param y number
----@return number
-function _G.math.distance(x,y)
-    return (x*x + y*y)^0.5
+_G.table.clear = require("table.clear")
+_G.table.new = require("table.new")
+
+
+local _isloadtime = true
+function _G.isLoadTime()
+    return _isloadtime
 end
+
 
 _G.json = require("lib.json")
 _G.consts = require("src.consts")
@@ -77,6 +80,8 @@ _G.log = require("src.modules.log")
 _G.typecheck = require("src.modules.typecheck.typecheck")
 
 _G.objects = require("src.modules.objects.objects")
+
+_G.godrays = require("src.modules.godrays.godrays")
 
 _G.helper = require("src.modules.helper.helper")
 
@@ -112,8 +117,10 @@ setmetatable(_G, {
 })
 
 
+local crt = require("src.modules.crt")
 local vignette = require("src.modules.vignette.vignette")
 vignette.setStrength(0.35)
+local subpixel = require("src.modules.subpixel")
 
 require("src.ev_q_definitions")
 
@@ -146,36 +153,44 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local sfx = require("src.sound.sfx")
+local wasaSimulating = false
 
 function love.load(arg)
     assert(love.filesystem.createDirectory("saves"))
     love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
-
-    local shouldLoad = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") and arg[1] ~= "--simulate" then
-        g.loadSession("saves/save1.json")
-    else
-        g.newSession()
-    end
+    g.requireFolder("src/potions")
+    g.requireFolder("src/scythes")
+    sceneManager.loadScenes()
 
     if arg[1] == "--simulate" then
-        local upg = assert(arg[2], "missing upgrade")
-        local dur = assert(tonumber(arg[3]), "invalid simulation duration")
-        simulation.setup(upg, dur)
+        -- TODO: Setup procgen tree instead of simulating current save
+        -- We simulate current save for now to test the API
+        if love.filesystem.getInfo("saves/save1.json", "file") then
+            g.loadSession("saves/save1.json")
+        else
+            g.newSession()
+        end
+        -- This simulates 10 minutes of playtime.
+        -- If your machine is fast enough, this should finish in less than 10 seconds.
+        simulation.start(600)
+        wasaSimulating = true
     end
 
     if simulation.isSimulating() then
         sceneManager.gotoScene("harvest_scene")
     else
-        sceneManager.gotoScene("map_scene")
+        sceneManager.gotoScene("title_scene")
     end
+
+    _isloadtime = false
 end
 
 function love.quit()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and g.getSn() and not simulation.isSimulating() then
+    if shouldSave and g.hasSession() and not wasaSimulating then
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
@@ -184,13 +199,28 @@ end
 
 
 function love.update(dt)
+    sfx.update()
     iml.setPointer(love.mouse.getPosition())
-    local session = g.getSn()
-    session:_update(dt)
-    if idleTime >= CONSIDERED_IDLE_TIME then
-        session.idletime = session.idletime + dt
+
+    if simulation.isSimulating() then
+        if simulation.update() then
+            local result = simulation.getResult()
+            print("Simulation data dump")
+            print(json.encode(result))
+
+            -- TODO: We could be doing multiple simulations one after each other.
+            -- But for now, let's quit after it's done.
+            love.event.quit()
+        end
+    elseif g.hasSession() then
+        local session = g.getSn()
+        session:_update(dt)
+        if idleTime >= CONSIDERED_IDLE_TIME then
+            session.idletime = session.idletime + dt
+        end
+        idleTime = idleTime + dt
     end
-    idleTime = idleTime + dt
+
     local sc = sceneManager.getCurrentScene()
     if sc and sc.update then
         sc:update(dt)
@@ -198,11 +228,21 @@ function love.update(dt)
 end
 
 function love.draw()
+    local crtActive = love.keyboard.isModifierActive("capslock")
+
+    if crtActive then
+        crt.start()
+    end
+    love.graphics.setShader(subpixel.shader)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.draw then
         iml.beginFrame()
         sc:draw()
         iml.endFrame()
+    end
+    love.graphics.setShader()
+    if crtActive then
+        crt.finish()
     end
 end
 

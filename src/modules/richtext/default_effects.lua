@@ -30,8 +30,10 @@ return function(text)
     local function outlineEffect(args,char)
         local thickness = args.thickness or 1
         local r, g, b, a = love.graphics.getColor()
-
-        love.graphics.setColor(0, 0, 0, a)
+        local cr = args.r or 0
+        local cg = args.g or 0
+        local cb = args.b or 0
+        local ca = (args.a or 1) * a
 
         local ox, oy = char:getOffset()
 
@@ -40,7 +42,7 @@ return function(text)
             for dx = -1, 1 do
                 if not (dx == 0 and dy == 0) then
                     char:setOffset(ox + dx * thickness, oy + dy * thickness)
-                    char:draw(0, 0, 0, a, true)
+                    char:draw(cr, cg, cb, ca, true)
                 end
             end
         end
@@ -58,6 +60,22 @@ return function(text)
     end
     text.defineEffect("color", colorEffect)
     text.defineEffect("c", colorEffect)
+
+    local rainbow = {
+        {0.85, 0.15, 0.15, 1.0},  -- Red
+        {0.90, 0.55, 0.20, 1.0},  -- Orange
+        {0.90, 0.90, 0.30, 1.0},  -- Yellow
+        {0.20, 0.80, 0.20, 1.0},  -- Green
+        {0.20, 0.60, 0.80, 1.0},  -- Light Blue
+        {0.25, 0.25, 0.80, 1.0},  -- Blue
+        {0.60, 0.20, 0.80, 1.0},  -- Violet
+    }
+    local function rainbowEffect(args, char)
+        local i = math.floor(char.start/3 - love.timer.getTime()/2)
+        local index = (i % (#rainbow))+1
+        char:setColor(rainbow[index])
+    end
+    text.defineEffect("rainbow", rainbowEffect)
 
     text.defineEffect("i", function(args, char)
         local skewness = args.skew or 1

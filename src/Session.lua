@@ -2,6 +2,8 @@
 
 
 local World = require("src.world.world")
+local Tree = require("src.upgrades.Tree")
+local cosmetics = require("src.cosmetics.cosmetics")
 
 
 
@@ -12,6 +14,7 @@ local World = require("src.world.world")
 ---@field mainWorld g.World
 ---@field metrics table<string, number>
 ---@field stats table<string, number>
+---@field tokenQueue {tokenId:string, onSpawn: function?}[]
 local Session = objects.Class("g:Session")
 
 
@@ -29,9 +32,18 @@ just provide the raw data, keep it simple.
 ]]
 
 function Session:init()
+    self.worldTime = 0.
     self.prestige = 0
     self.playtime = 0
     self.idletime = 0
+
+    -- xp is basically just token-health.
+    -- eg.  Harvest token with 5 health ==> earn +5 xp
+    self.xpRequirement = 1
+    self.xp = 0
+    -- (only increments when player is INSIDE harvest-scene)
+
+    self.level = 0 -- when xp > xpRequirement, level up!
 
     self.resources = {}
     for _,resId in ipairs(g.RESOURCE_LIST) do
@@ -40,14 +52,6 @@ function Session:init()
             self.resources[resId] = 1000000000
         end
     end
-
-    self.upgradeLevels = {--[[
-        [upgradeId] -> level
-    ]]}
-
-    self.prestigeLevels = {--[[
-        [prestigeId] -> prestigeLevel
-    ]]} --[[@as table<integer,integer>]]
 
     self.mainWorld = World()
 
@@ -59,12 +63,23 @@ function Session:init()
 
     -- Fishing-scene upgrades stored in here,
     -- (theres no other good place to put them; they arent regular upgrades)
-    self.fishingRodLevel = 0
     self.fisherCatCount = 0
 
     -- Tokens that are queued for spawning in harvest area
-    ---@type string[]
+    ---@type {tokenId:string, onSpawn: function?}[]
     self.tokenQueue = {}
+
+    -- Accessory data
+    ---@type g.Avatar
+    self.avatar = {
+        avatar = consts.DEFAULT_CAT_AVATAR,
+        background = consts.DEFAULT_BACKGROUND_AVATAR,
+        hat = nil,
+    }
+
+    self.tree = Tree()
+
+    self.unlockedPOI = objects.Set()
 
     -- reset stats:
     for k,sta in pairs(g.VALID_STATS) do
@@ -81,6 +96,29 @@ end
 
 
 
+local function calculateXPRequirement()
+    --[[
+    xp requirement scales with the number of tokens.
+    xp = the amount of token-health destroyed
+    ]]
+    local totalTokenHP = 0
+    local world = g.getMainWorld()
+    for tokType, count in world:iterateTokenPool() do
+        local tinfo = g.getTokenInfo(tokType)
+        totalTokenHP = totalTokenHP + (tinfo.maxHealth * count)
+    end
+
+    local level = g.getSn().level
+    if level <= 1 then
+        return math.ceil(totalTokenHP * 1.8)
+    elseif level <= 5 then
+        return math.ceil(totalTokenHP * 2.5)
+    end
+
+    return math.ceil(totalTokenHP * math.sqrt(level))
+end
+
+
 
 --- updates session and main world. should only be called once, (hence _)
 ---@param dt any
@@ -90,8 +128,11 @@ function Session:_update(dt)
         local mult = g.ask(t.multQuestion)
         g.stats[stat] = mod*mult
     end
+    self.worldTime = self.worldTime + dt
     self.playtime = self.playtime + dt
     self.mainWorld:_update(dt)
+
+    self.xpRequirement = calculateXPRequirement()
 end
 
 
@@ -109,17 +150,12 @@ function Session.deserialize(data)
         sess.resources[resId] = tonumber(data.resources[resId]) or 0
     end
 
-    -- Load upgrade levels
-    for utype, v in pairs(data.upgradeLevels) do
-        if pcall(g.getUpgradeInfo, utype) then
-            sess.upgradeLevels[utype] = assert(tonumber(v))
-        end
-    end
-
-    -- Load prestige levels
-    -- Stored prestige ID is 1-based but we want 0-based
-    for pid, v in ipairs(data.prestigeLevels) do
-        sess.prestigeLevels[pid - 1] = assert(tonumber(v))
+    -- Load accessory unlocks
+    if data.avatar then
+        local av = data.avatar
+        sess.avatar.avatar = cosmetics.isValidCosmetic(av.avatar) and av.avatar or consts.DEFAULT_CAT_AVATAR
+        sess.avatar.background = cosmetics.isValidCosmetic(av.background) and av.background or consts.DEFAULT_BACKGROUND_AVATAR
+        sess.avatar.hat = cosmetics.isValidCosmetic(av.hat) and av.hat or nil
     end
 
     -- Metrics
@@ -129,19 +165,25 @@ function Session.deserialize(data)
 
     -- Stats
     for k,sta in pairs(g.VALID_STATS) do
-        g.stats[k] = assert(tonumber(data.stats[k]))
+        g.stats[k] = helper.assert(tonumber(data.stats[k] or sta.startingValue), "invalid stat value", k)
+    end
+
+    -- Upgrade trees
+    if data.tree then
+        sess.tree = Tree.deserialize(data.tree)
+    end
+
+    -- Unlocked map POIs
+    if data.unlockedPOI then
+        for _, v in ipairs(data.unlockedPOI) do
+            sess.unlockedPOI:add(v)
+        end
     end
 
     return sess
 end
 
 function Session:serialize()
-    -- Convert prestige level indices to 1-based
-    local plevels = {}
-    for i = 0, #self.prestigeLevels do
-        plevels[i + 1] = self.prestigeLevels[i]
-    end
-
     -- Save stats
     local stats = {}
     for k in pairs(g.VALID_STATS) do
@@ -153,10 +195,15 @@ function Session:serialize()
         playtime = self.playtime,
         idletime = self.idletime,
         resources = self.resources,
-        upgradeLevels = self.upgradeLevels,
-        prestigeLevels = plevels,
         metrics = self.metrics,
-        stats = stats
+        stats = stats,
+        avatar = {
+            avatar = self.avatar.avatar,
+            background = self.avatar.background,
+            hat = self.avatar.hat
+        },
+        tree = self.tree:serialize(),
+        unlockedPOI = self.unlockedPOI:totable()
     }
 end
 

@@ -20,7 +20,7 @@ local img = love.graphics.newImage("src/scenes/fishing_scene/fishing_wharf.png")
 local WHARF_IMAGE_REGION = Kirigami(169,148, 124,56)
 
 
-FishingWorld.MAX_FISHERCATS = 9
+FishingWorld.MAX_FISHERCATS = 4
 FishingWorld.MAX_ROD_LEVEL = 9
 
 
@@ -35,9 +35,9 @@ end
 
 
 function FishingWorld:init()
-    ---@type g.FisherCat[]
+    ---@type _FisherCat[]
     self.managedFishercat = {}
-    ---@type g.FisherCat|nil
+    ---@type _FisherCat|nil
     self.mainFishercat = nil -- This is player's fishercat
 
     self.worldArea = Kirigami(0,0,300,200)
@@ -78,8 +78,8 @@ function FishingWorld:update(dt)
     end
 end
 
----@param a g.FisherCat
----@param b g.FisherCat
+---@param a _FisherCat
+---@param b _FisherCat
 local function sortOrder(a, b)
     return a.y < b.y
 end
@@ -88,12 +88,12 @@ end
 ---@param self FishingWorld
 local function addFisherCat(self)
     local x,y = helper.randomInRegion(self:getWharfArea():get())
-    table.insert(self.managedFishercat, FisherCat(x,y))
+    table.insert(self.managedFishercat, FisherCat(x,y, self, false))
 end
 
 
 function FishingWorld:draw()
-    ---@type g.FisherCat[]
+    ---@type _FisherCat[]
     local objlist = {}
 
     if self.mainFishercat then
@@ -118,6 +118,9 @@ function FishingWorld:draw()
         love.graphics.setColor(1,1,1)
         v:draw()
     end
+
+    love.graphics.setColor(0.2,0.2,1)
+    love.graphics.rectangle("line", self.castArea:get())
 end
 
 
