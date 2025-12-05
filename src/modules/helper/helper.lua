@@ -377,8 +377,8 @@ do
 local mesh = nil
 
 ---@param dir "vertical"|"horizontal"
----@param col1 objects.Color|[number,number,number,number?
----@param col2 objects.Color|[number,number,number,number?
+---@param col1 objects.Color|[number,number,number,number?]
+---@param col2 objects.Color|[number,number,number,number?]
 ---@param x number
 ---@param y number
 ---@param w number
@@ -392,8 +392,8 @@ function helper.gradientRect(dir, col1, col2, x,y,w,h)
     end
 
     mesh = mesh or love.graphics.newMesh(4, "fan")
-    local r1, g1, b1, a1 = col1[1], col1[2], col1[3], col1[4]
-    local r2, g2, b2, a2 = col2[1], col2[2], col2[3], col2[4]
+    local r1, g1, b1, a1 = col1[1], col1[2], col1[3], col1[4] or 1
+    local r2, g2, b2, a2 = col2[1], col2[2], col2[3], col2[4] or 1
 
     if isHorizontal then
         mesh:setVertex(1, 0, 0, 0, 0, r1, g1, b1, a1)

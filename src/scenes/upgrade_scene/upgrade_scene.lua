@@ -246,8 +246,8 @@ function drawBackground()
     -- draw background:
     love.graphics.clear(0.4,0.6,0.8)
     helper.gradientRect("vertical",
-        objects.Color("#".."FF4B73ED"),
-        objects.Color("#".."FF2C12BE"),
+        objects.Color("#".."FF6B8BEB"),
+        objects.Color("#".."FF5339E9"),
         0,0,love.graphics.getDimensions()
     )
     local GAP = 150
