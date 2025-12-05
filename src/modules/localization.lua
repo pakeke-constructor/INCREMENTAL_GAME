@@ -70,6 +70,9 @@ local languageList = {}
 ---@type table<string, string>
 local translatedKeys = {}
 
+---@type table<string, boolean?>
+local missingKeys = {}
+
 ---@class localization.Metadata
 ---@field public context string? Additional context to be added to translation key.
 
@@ -89,6 +92,14 @@ function Interpolator:init(text, metadata)
         self.text = translatedKeys[key]
     else
         -- TODO: Add warn that localization not found
+        if not missingKeys[key] then
+            if #context > 0 then
+                log.warn(string.format("Missing translation key of %q (%q)", text, context))
+            else
+                log.warn(string.format("Missing translation key of %q", text))
+            end
+            missingKeys[key] = true
+        end
         self.text = text
     end
 
