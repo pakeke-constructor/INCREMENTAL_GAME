@@ -19,8 +19,6 @@ function upgscene:init()
     ---@type {x:number,y:number,isAddingConnector:false}?
     self.dev_editModeSelection = nil
 
-    self.dev_revealUpgrades = false
-
     ---@type ui.UpgradeDescription|nil
     self.upgradeDescription = nil
 end
@@ -151,19 +149,34 @@ local function drawUpgradeBoxes(self)
 
     local tree = g.getUpgTree()
     local upgrades = tree:getUpgradesOnTree()
+
+    local isHiddenCache = {}
     for _, upg in ipairs(upgrades) do
-        if not tree:isUpgradeHidden(upg) then
+        -- cache it, because :isUpgradeHidden is kinda an expensive operation
+        isHiddenCache[upg] = tree:isUpgradeHidden(upg)
+    end
+    ---@param upg g.Tree.Upgrade
+    ---@return boolean
+    local function isVisible(upg)
+        local forceVisibility = (consts.DEV_MODE and self.dev_editMode)
+        local hidden = isHiddenCache[upg]
+        return forceVisibility or (not hidden)
+    end
+
+    for _, upg in ipairs(upgrades) do
+        if isVisible(upg) then
             -- Draw connector first
             for _, upg2 in ipairs(tree:getNeighbors(upg.x,upg.y)) do
-                drawConnector(upg, upg2)
+                if isVisible(upg2) then
+                    drawConnector(upg, upg2)
+                end
             end
         end
     end
 
     for _, upg in ipairs(upgrades) do
-        local forceVisible = (consts.DEV_MODE and (self.dev_revealUpgrades or self.dev_editMode))
         -- if editMode or revealUpgrades, 
-        if forceVisible or (not tree:isUpgradeHidden(upg)) then
+        if isVisible(upg) then
             local level = upg.level
 
             -- Then draw upgrade box

@@ -29,6 +29,7 @@ FEATURES WE NEED:
 ---@field x integer
 ---@field y integer
 ---@field isRoot boolean?
+---@field connections integer[] list of other upgrades this upgrade is connected to
 ---@field isUnbound boolean? "unbound" upgrades exist without a position; (ie relics and stuff)
 local Upgrade = {}
 
@@ -154,13 +155,17 @@ end
 ---@param self g.Tree
 local function finalizeConnections(self)
     self._connectionMap = {}
-    for _, tabl in ipairs(self.connections) do
-        local i1, i2 = tabl[1],tabl[2]
-        updateEdge(self, i1,i2)
+    for i = #self.connections, 1, -1 do
+        local tabl = self.connections[i]
+        local i1, i2 = tabl[1], tabl[2]
+        if (not self.upgrades[i1]) or (not self.upgrades[i2]) then
+            -- One of the upgrades has been destroyed!!! remove connections
+            table.remove(self.connections, i)
+        else
+            updateEdge(self, i1, i2)
+        end
     end
 end
-
-
 
 ---@param upg1 any
 ---@param upg2 any
@@ -292,7 +297,7 @@ function Tree:getNeighbors(x,y)
     end
 
     local arr = self._connectionMap[pair(x,y)] or EMPTY
-    for _, i in ipairs(arr) do
+    for i in pairs(arr) do
         local upg = self.upgrades[i] -- HACK: using self.upgrades directly
         -- (more efficient tho)
         if upg then
@@ -311,7 +316,7 @@ function Tree:getConnectors(upg)
     local connectors = {}
 
     local arr = self._connectionMap[pair(upg.x,upg.y)] or EMPTY
-    for _, i in ipairs(arr) do
+    for i in pairs(arr) do
         local u = self.upgrades[i] -- HACK: using self.upgrades directly
         if u then
             table.insert(arr, u)
@@ -459,6 +464,7 @@ function Tree:clear(x,y)
         end
     end
 
+    self:finalize() -- this is expensive, but robust
     return upg
 end
 

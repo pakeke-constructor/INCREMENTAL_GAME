@@ -500,8 +500,8 @@ end
 local xpParticles = particles.newParticlesWorld({
     gravity = 0,
     updateParticle = function (p, dt)
-        local ACCELLERATION = 400
-        local TARG_VEL = 400
+        local ACCELLERATION = 300
+        local TARG_VEL = 300
         local w,h = ui.getScaledUIDimensions()
         local hud = g.getHUD()
         local targX,targY = hud.profileHUD:getXPBarStartPos()
@@ -536,6 +536,7 @@ local xpParticles = particles.newParticlesWorld({
         else
             img = "XPgem_large"
         end
+        img = "XPgem_small"
         local rot = 0--love.timer.getTime()*10 + id*1.77
         local x,y = p.x,p.y
         g.drawImage(img, x,y, rot, sx,sy)
