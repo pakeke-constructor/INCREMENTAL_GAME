@@ -85,9 +85,12 @@ _G.godrays = require("src.modules.godrays.godrays")
 
 _G.helper = require("src.modules.helper.helper")
 
+_G.settings = require("src.setting")
+
 _G.richtext = require("src.modules.richtext.exports")
 
 _G.localization = require("src.modules.localization")
+_G.localization.load(_G.settings.getLanguage())
 _G.loc = _G.localization.localize
 _G.interp = _G.localization.newInterpolator
 
@@ -154,7 +157,7 @@ TESTS END
 
 local sceneManager = require("src.scenes.sceneManager")
 local sfx = require("src.sound.sfx")
-local wasaSimulating = false
+local wasSimulating = false
 
 function love.load(arg)
     assert(love.filesystem.createDirectory("saves"))
@@ -176,7 +179,7 @@ function love.load(arg)
         -- This simulates 10 minutes of playtime.
         -- If your machine is fast enough, this should finish in less than 10 seconds.
         simulation.start(600)
-        wasaSimulating = true
+        wasSimulating = true
     end
 
     if simulation.isSimulating() then
@@ -189,8 +192,9 @@ function love.load(arg)
 end
 
 function love.quit()
+    settings.save()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and g.hasSession() and not wasaSimulating then
+    if shouldSave and g.hasSession() and not wasSimulating then
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))

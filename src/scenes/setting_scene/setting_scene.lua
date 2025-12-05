@@ -48,30 +48,10 @@ end
 
 
 ---@class SettingScene: FreeCameraScene
-local setting = FreeCameraScene()
+local settingscene = FreeCameraScene()
 
--- Keep this in-sync with the setting.init
-local settingData = {
-    sfxVolume = 100,
-    bgmVolume = 50,
-}
-
-function setting:init()
-    if love.filesystem.getInfo("setting.json", "file") then
-        local success, sdata = pcall(function()
-            local settingDataJSON = love.filesystem.read("setting.json")
-            local settingDataTable = json.decode(settingDataJSON)
-            return {
-                sfxVolume = assert(tonumber(settingDataTable.sfxVolume)),
-                bgmVolume = assert(tonumber(settingDataTable.bgmVolume)),
-            }
-        end)
-        if success then
-            settingData = sdata
-        end
-    end
-
-    sfx.setVolume(settingData.sfxVolume)
+function settingscene:init()
+    sfx.setVolume(settings.getSFXVolume())
     -- TODO: bgm.setVolume here
 
     -- TODO: Wire this up to settings once we have proper localization
@@ -84,13 +64,12 @@ function setting:init()
     self.showLanguagePopup = false
 end
 
-function setting:leave()
-    local settingDataJSON = json.encode(settingData)
-    assert(love.filesystem.write("setting.json", settingDataJSON))
+function settingscene:leave()
+    settings.save()
 end
 
 ---@param dt number
-function setting:update(dt)
+function settingscene:update(dt)
     titleBackground.update(dt)
 end
 
@@ -126,7 +105,7 @@ local function drawVolume(value, label, labelR, sliderBaseR)
     return value
 end
 
-function setting:draw()
+function settingscene:draw()
     ui.startUI()
 
     titleBackground.draw()
@@ -182,10 +161,17 @@ function setting:draw()
     )
 
     -- Draw effect volume
-    settingData.sfxVolume = drawVolume(settingData.sfxVolume, "Effect Volume", effectVolumeLabelR, effectVolumeSliderBaseR)
-    sfx.setVolume(settingData.sfxVolume)
+    local sfxVolume = settings.getSFXVolume()
+    sfxVolume = drawVolume(sfxVolume, "Effect Volume", effectVolumeLabelR, effectVolumeSliderBaseR)
+    settings.setSFXVolume(sfxVolume)
+    sfx.setVolume(sfxVolume)
+
     -- Draw music volume
-    settingData.bgmVolume = drawVolume(settingData.bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
+    local bgmVolume = settings.getBGMVolume()
+    bgmVolume = drawVolume(bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
+    settings.setBGMVolume(bgmVolume)
+    -- TODO: set BGM volume in BGM service once we have it
+
     -- Draw language button
     love.graphics.setColor(1, 1, 1)
     -- TODO: localize
@@ -225,7 +211,7 @@ function setting:draw()
     ui.endUI()
 end
 
-function setting:_drawLanguageSelector()
+function settingscene:_drawLanguageSelector()
     local SELECTION_BUTTON_SIZE = 40
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
     local panelR = r
@@ -269,4 +255,4 @@ function setting:_drawLanguageSelector()
     end
 end
 
-return setting
+return settingscene
