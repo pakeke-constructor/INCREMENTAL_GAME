@@ -37,22 +37,21 @@ g.defineStalk("stalk_4", {
 })
 
 
---[[
 g.defineStalk("stalk_5", {
     image = "stalk_5",
     dontFlip = true,
     growthpos = {
-        {x=9, y=-2},
-        {x=-3, y=-11},
+        {x=1, y=-2},
+        {x=-1, y=-16},
+        {x=1, y=-30},
     }
 })
 
-]]
 
 
 
 for _, berry in ipairs({"blue_berry", "flax_berry"}) do
-    for i=1, 4 do
+    for i=1, 5 do
         local id = "stalk_"..tostring(i)
 
         local name = berry .. tostring(i) -- TODO. do this properly
