@@ -8,6 +8,13 @@ local sfx = require("src.sound.sfx")
 local SLIDER_BACKGROUND = objects.Color.BLACK
 local SLIDER_COLOR = objects.Color.WHITE
 
+local TEXT = {
+    EFFECT_VOLUME = loc "Effect Volume",
+    MUSIC_VOLUME = loc "Music Volume",
+    LANGUAGE = loc "Language",
+    REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"})
+}
+
 
 ---@param reg kirigami.Region
 ---@param ... kirigami.Region
@@ -48,49 +55,30 @@ end
 
 
 ---@class SettingScene: FreeCameraScene
-local setting = FreeCameraScene()
+local settingscene = FreeCameraScene()
 
--- Keep this in-sync with the setting.init
-local settingData = {
-    sfxVolume = 100,
-    bgmVolume = 50,
-}
-
-function setting:init()
-    if love.filesystem.getInfo("setting.json", "file") then
-        local success, sdata = pcall(function()
-            local settingDataJSON = love.filesystem.read("setting.json")
-            local settingDataTable = json.decode(settingDataJSON)
-            return {
-                sfxVolume = assert(tonumber(settingDataTable.sfxVolume)),
-                bgmVolume = assert(tonumber(settingDataTable.bgmVolume)),
-            }
-        end)
-        if success then
-            settingData = sdata
-        end
-    end
-
-    sfx.setVolume(settingData.sfxVolume)
+function settingscene:init()
+    sfx.setVolume(settings.getSFXVolume())
     -- TODO: bgm.setVolume here
 
-    -- TODO: Wire this up to settings once we have proper localization
-    self.languages = love.system.getPreferredLocales()
-    if #self.languages == 0 then
-        -- Ensure there's at least one option
-        self.languages[#self.languages+1] = "en_US"
+    -- key = language code, value = language name
+    self.languages = localization.getLanguages()
+    -- Interleaved
+    ---@type [string,string][]
+    self.languageListInterleaved = {}
+    for k, v in pairs(self.languages) do
+        self.languageListInterleaved[#self.languageListInterleaved+1] = {k, v}
     end
-    self.languageIndex = 1
+    table.sort(self.languageListInterleaved, function (a, b) return a[1] < b[1] end)
     self.showLanguagePopup = false
 end
 
-function setting:leave()
-    local settingDataJSON = json.encode(settingData)
-    assert(love.filesystem.write("setting.json", settingDataJSON))
+function settingscene:leave()
+    settings.save()
 end
 
 ---@param dt number
-function setting:update(dt)
+function settingscene:update(dt)
     titleBackground.update(dt)
 end
 
@@ -126,7 +114,7 @@ local function drawVolume(value, label, labelR, sliderBaseR)
     return value
 end
 
-function setting:draw()
+function settingscene:draw()
     ui.startUI()
 
     titleBackground.draw()
@@ -162,7 +150,7 @@ function setting:draw()
         :centerX(musicVolumeLabelR)
         :moveUnit(0, 8)
     -- Language. Let's just make it a button that shows fullscreen panel later.
-    local languageLabelR = Kirigami(0, 0, 240, font:getHeight())
+    local languageLabelR = Kirigami(0, 0, 240, font:getHeight() * 1.5)
         :centerX(titleTextR)
         :attachToBottomOf(musicVolumeSliderBaseR)
         :moveUnit(0, 8)
@@ -182,25 +170,38 @@ function setting:draw()
     )
 
     -- Draw effect volume
-    settingData.sfxVolume = drawVolume(settingData.sfxVolume, "Effect Volume", effectVolumeLabelR, effectVolumeSliderBaseR)
-    sfx.setVolume(settingData.sfxVolume)
+    local sfxVolume = settings.getSFXVolume()
+    sfxVolume = drawVolume(sfxVolume, TEXT.EFFECT_VOLUME, effectVolumeLabelR, effectVolumeSliderBaseR)
+    settings.setSFXVolume(sfxVolume)
+    sfx.setVolume(sfxVolume)
+
     -- Draw music volume
-    settingData.bgmVolume = drawVolume(settingData.bgmVolume, "Music Volume", musicVolumeLabelR, musicVolumeSliderBaseR)
+    local bgmVolume = settings.getBGMVolume()
+    bgmVolume = drawVolume(bgmVolume, TEXT.MUSIC_VOLUME, musicVolumeLabelR, musicVolumeSliderBaseR)
+    settings.setBGMVolume(bgmVolume)
+    -- TODO: set BGM volume in BGM service once we have it
+
     -- Draw language button
     love.graphics.setColor(1, 1, 1)
-    -- TODO: localize
     richtext.printRich(
-        "{o}Language{/o}",
+        "{o}"..TEXT.LANGUAGE.."{/o}",
         g.getSmallFont(32),
         languageLabelR.x,
         languageLabelR.y,
         languageLabelR.w,
         "center"
     )
-    if ui.DefaultButton(
-        helper.wrapRichtextColor(objects.Color.BLACK, self.languages[self.languageIndex]),
-        languageButtonR
-    ) then
+    richtext.printRich(
+        "{o}"..TEXT.REQUIRES_RESTART.."{/o}",
+        g.getSmallFont(16),
+        languageLabelR.x,
+        languageLabelR.y + 32,
+        languageLabelR.w,
+        "center"
+    )
+    local lang = settings.getLanguage()
+    local langButtonText = self.languages[lang] or lang
+    if ui.DefaultButton("{o}"..langButtonText.."{/o}", languageButtonR) and #self.languageListInterleaved > 0 then
         self.showLanguagePopup = true
     end
 
@@ -225,7 +226,7 @@ function setting:draw()
     ui.endUI()
 end
 
-function setting:_drawLanguageSelector()
+function settingscene:_drawLanguageSelector()
     local SELECTION_BUTTON_SIZE = 40
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
     local panelR = r
@@ -241,7 +242,7 @@ function setting:_drawLanguageSelector()
 
     -- TODO: Slider
     local font = g.getSmallFont(32)
-    for i, lang in ipairs(self.languages) do
+    for i, lang in ipairs(self.languageListInterleaved) do
         local buttonR = grid[i]:padUnit(4)
         local textR = buttonR
             :set(nil, nil, nil, font:getHeight())
@@ -249,7 +250,7 @@ function setting:_drawLanguageSelector()
 
         -- Draw button
         if iml.wasJustClicked(buttonR:get()) then
-            self.languageIndex = i
+            settings.setLanguage(lang[1])
             self.showLanguagePopup = false
             break
         elseif iml.isHovered(buttonR:get()) then
@@ -258,15 +259,15 @@ function setting:_drawLanguageSelector()
         end
 
         -- Add outline for current language selection
-        if i == self.languageIndex then
+        if lang[1] == settings.getLanguage() then
             love.graphics.setColor(0, 0, 0)
             love.graphics.rectangle("line", buttonR:get())
         end
 
         -- Button text
         love.graphics.setColor(1, 1, 1)
-        richtext.printRich("{o}"..lang.."{/o}", font, textR.x, textR.y, textR.w, "center")
+        richtext.printRich("{o}"..lang[2].."{/o}", font, textR.x, textR.y, textR.w, "center")
     end
 end
 
-return setting
+return settingscene
