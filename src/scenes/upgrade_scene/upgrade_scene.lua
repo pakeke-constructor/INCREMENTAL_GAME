@@ -341,9 +341,17 @@ local function drawDevEditModeUI(self)
             local y = row * (selectArea.h / hh) + selectArea.y
             local w = selectArea.w/ww
             local h = selectArea.h/hh
-            
+
+            -- draw upgr icon:
             local uinfo = g.getUpgradeInfo(utype)
             g.drawImageContained(uinfo.image, x,y,w,h)
+            if uinfo.tokenType then
+                local tinfo = g.getTokenInfo(uinfo.tokenType)
+                if tinfo.growths then
+                    g.drawImageContained(tinfo.growths.growth, Kirigami(x,y,w,h):padRatio(0.7):get())
+                end
+            end
+
             if iml.wasJustClicked(x,y,w,h) then
                 -- put upgrade:
                 if not tree:get(sel.x,sel.y) then
