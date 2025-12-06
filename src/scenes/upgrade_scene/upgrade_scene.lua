@@ -268,15 +268,48 @@ end
 
 local function drawDevEditModeUI(self)
     local region = Kirigami(0,0,ui.getScaledUIDimensions())
-    local leftbar, sidebar = region:splitHorizontal(5,1)
+    local leftbar, _, sidebar = region:splitHorizontal(1,4,1)
     local _, bigSidebar = region:splitHorizontal(3,2)
     lg.setColor(1,1,1)
     lg.rectangle("line",sidebar:get())
 
     local regs = sidebar:grid(1,9)
-    if ui.DefaultButton("Reset all", regs[1]) then
+
+    if ui.DefaultButton("Reset levels", regs[1]) then
         -- resets all upgrades to level 0
-        
+        local tree = g.getUpgTree()
+        for _, upg in ipairs(tree:getAllUpgrades()) do
+            upg.level = 0
+        end
+        tree.unboundUpgrades = {}
+        tree:finalize()
+    end
+    
+    local treeURL = "file://" .. (love.filesystem.getSaveDirectory() .. consts.FILE_SEP .. consts.DEV_UPGRADE_TREE_PATH)
+    if ui.DefaultButton("Open Folder", regs[2]) then
+        love.filesystem.createDirectory(consts.DEV_UPGRADE_TREE_PATH)
+        love.system.openURL(treeURL)
+    end
+
+    if ui.DefaultButton("NEW TREE", regs[3]) then
+        love.filesystem.createDirectory(consts.DEV_UPGRADE_TREE_PATH)
+        for i=1,100 do
+            local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP.."NEW_TREE_"..i..".json"
+            if not love.filesystem.getInfo(fname) then
+                -- dont overwrite!
+                local ok,er = love.filesystem.write(fname, "{}")
+                if not ok then
+                    log.error("COULDNT CREATE FILE", er)
+                end
+                love.system.openURL(treeURL)
+                return
+            end
+        end
+        print("FILE CREATION FAILED.")
+    end
+
+    if ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[4]) then
+        --love.filesystem.write(fname, json.encode(g.getUpgTree():serialize()))
     end
 
     local function calculateGrid(itemCount, regionWidth, regionHeight)
@@ -436,6 +469,9 @@ function upgscene:keypressed(k)
 end
 
 
+function upgscene:directorydropped(fullpath)
+    -- ...
+end
 
 upgscene.keyreleased = upgscene.defaultKeyreleased
 upgscene.wheelmoved = upgscene.defaultWheelmoved

@@ -666,7 +666,7 @@ end
 function Tree.deserialize(data)
     local self = Tree()
 
-    self.upgrades = keysToNumber(data.upgrades)
+    self.upgrades = keysToNumber(data.upgrades or {})
     for hash,upg in pairs(self.upgrades) do
         if not g.isValidUpgrade(upg.id) then
             log.error("UHOH!!! Unknown upgrade, deleting: ", upg.id)
@@ -675,7 +675,7 @@ function Tree.deserialize(data)
     end
 
     self.unboundUpgrades = data.unboundUpgrades or {}
-    self.connections = data.connections
+    self.connections = data.connections or {}
     self:finalize()
     return self
 end

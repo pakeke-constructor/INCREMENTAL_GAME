@@ -8,6 +8,10 @@ local consts = {
     FILE_LOG_LEVEL = "warn",
     CONSOLE_LOG_LEVEL = "trace",
 
+    FILE_SEP = love.system.getOS() == "Windows" and "\\" or "/",
+
+    DEV_UPGRADE_TREE_PATH = "trees",
+
     TARGET_TIME_PER_LEVEL_UP = 25,
 
     ATLAS_SIZE = 2048,

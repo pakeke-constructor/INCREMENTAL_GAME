@@ -795,6 +795,7 @@ function harvest:draw()
             i = i - 1
         end
 
+        stat("{c r=1 g=1 b=0}LEVEL: ", g.getSn().level)
         for _,k in ipairs({"HitDamage", "HitSpeed", "HarvestArea"}) do
             local val = g.stats[k]
             stat(k,val)

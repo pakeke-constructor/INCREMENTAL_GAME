@@ -331,3 +331,11 @@ function love.focus(focus)
         idleTime = CONSIDERED_IDLE_TIME
     end
 end
+
+function love.directorydropped(fullpath)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.directorydropped then
+        sc:directorydropped(fullpath)
+    end
+end
+
