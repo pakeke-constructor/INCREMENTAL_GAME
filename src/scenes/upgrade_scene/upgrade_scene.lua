@@ -305,7 +305,6 @@ local function drawDevEditModeUI(self)
                 return
             end
         end
-        print("FILE CREATION FAILED.")
     end
 
     if ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[4]) then
