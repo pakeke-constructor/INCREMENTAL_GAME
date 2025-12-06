@@ -254,7 +254,7 @@ function UpgradeDescription:addTokenInfo(tinfo)
     local minCellWidth = 0
 
     for _, resId in ipairs(g.RESOURCE_LIST) do
-        if tinfo.resources[resId] then
+        if tinfo.resources[resId] and tinfo.resources[resId]>0 then
             -- TODO: Dynamic resource output
             local resInfo = g.getResourceInfo(resId)
             local value = "+"..g.formatNumber(tinfo.resources[resId])
