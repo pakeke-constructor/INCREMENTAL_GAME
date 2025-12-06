@@ -276,9 +276,9 @@ local function drawDevEditModeUI(self)
 
     local regs = sidebar:grid(1,9)
 
+    local tree = g.getUpgTree()
     if ui.DefaultButton("Reset levels", regs[1]) then
         -- resets all upgrades to level 0
-        local tree = g.getUpgTree()
         for _, upg in ipairs(tree:getAllUpgrades()) do
             upg.level = 0
         end
@@ -309,7 +309,7 @@ local function drawDevEditModeUI(self)
         end
     end
 
-    if ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[4]) then
+    if tree._filename and ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[4]) then
         local tree = g.getUpgTree()
         if tree._filename then
             local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP..tree._filename
@@ -327,7 +327,7 @@ local function drawDevEditModeUI(self)
     local tree = g.getUpgTree()
     local sel = self.dev_editModeSelection
     if sel then
-        local selectArea,bot = bigSidebar:splitVertical(8,1)
+        local selectArea,bot = bigSidebar:splitVertical(8,2)
         selectArea = selectArea:padUnit(4)
         lg.setColor(0,0,0,0.5)
         lg.rectangle("fill", selectArea:get())
@@ -352,7 +352,8 @@ local function drawDevEditModeUI(self)
             end
         end
 
-        local cancelButton, connectButton, deleteButton = bot:splitHorizontal(5,2,2)
+        local cancelButton, bot2 = bot:splitVertical(1,1)
+        local makeRootButton, connectButton, deleteButton = bot2:splitHorizontal(1,1,1)
         if ui.DefaultButton("Cancel", cancelButton) then
             self.dev_editModeSelection = nil
         end
@@ -363,6 +364,11 @@ local function drawDevEditModeUI(self)
 
         if ui.Button("CONNECT", {0.1,0.9,0.0}, {0.0,0.6,0.0}, connectButton) then
             sel.isAddingConnector = true
+        end
+
+        if ui.Button("MAKE ROOT", objects.Color.DARK_GRAY,objects.Color.BLACK, makeRootButton) then
+            local upg = tree:get(sel.x,sel.y)
+            upg.isRoot=true
         end
     end
 
