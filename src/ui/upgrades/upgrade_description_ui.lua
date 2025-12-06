@@ -32,7 +32,12 @@ local function autoBuild(self, tree, upg)
     local isTokenUpgrade = uinfo.kind == "TOKEN"
     if isTokenUpgrade then
         local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
-        self:addTitle(uinfo.name, tinfo.image)
+        local img = tinfo.image
+        if tinfo.growths then
+            -- best we can do is set to berry/growth img
+            img = tinfo.growths.growth
+        end
+        self:addTitle(uinfo.name, img)
     else
         self:addTitle(uinfo.name)
     end
