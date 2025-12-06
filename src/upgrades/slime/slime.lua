@@ -38,7 +38,7 @@ g.defineToken("slime_token", "Slime", {
 
 local function drawSlime(uinfo,level,x,y,w,h)
     local s=math.sin(love.timer.getTime()*4)
-    g.drawImage("slimed_visual2",x,y+s,0)
+    g.drawImage("slimed_visual2",x+8,y+6+s,0)
 end
 
 
