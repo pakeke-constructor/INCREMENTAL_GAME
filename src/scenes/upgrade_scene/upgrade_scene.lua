@@ -292,27 +292,24 @@ local function drawDevEditModeUI(self)
         love.system.openURL(treeURL)
     end
 
-    local font = g.getSmallFont(16)
-    richtext.printRichContained("{o}Drag file onto\nscreen to open!", font, regs[3]:get())
-
-    if ui.Button("NEW TREE", objects.Color.DARK_GREEN,objects.Color.LIME, regs[4]) then
+    if ui.Button("CREATE NEW", objects.Color.LIME, objects.Color.DARK_GREEN, regs[3]) then
         love.filesystem.createDirectory(consts.DEV_UPGRADE_TREE_PATH)
         for i=1,100 do
-            local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP.."NEW_TREE_"..i..".json"
-            if not love.filesystem.getInfo(fname) then
-                -- dont overwrite!
-                love.filesystem.newFileData(fname)
-                local ok,er = love.filesystem.write(fname, "{}")
-                if not ok then
-                    log.error("COULDNT CREATE FILE", er)
-                end
+            local fname = "NEW_TREE_"..i..".json"
+            local fpath = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP..fname
+            if not love.filesystem.getInfo(fpath) then
+                local ok,er = love.filesystem.write(fpath, "{}")
+                log.debug("writing file:",ok,er)
                 love.system.openURL(treeURL)
-                return
+                local sn = g.getSn()
+                sn.tree = Tree()
+                sn.tree._filename = fname
+                break
             end
         end
     end
 
-    if ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[5]) then
+    if ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[4]) then
         local tree = g.getUpgTree()
         if tree._filename then
             local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP..tree._filename
@@ -375,13 +372,25 @@ end
 ---@param self UpgradesScene
 local function drawDevUI(self)
     local region = Kirigami(0,0,ui.getScaledUIDimensions())
-    local header, body,_ = region:splitVertical(1,5)
-    _,header = header:splitHorizontal(1,2,1)
+    local header, body,editname = region:splitVertical(2,9,1)
+    local _
+    _,header,_ = header:splitHorizontal(1,2,1)
     local _, editButton, _ = header:padRatio(0.2):splitHorizontal(1,1,1)
     local editTxt = self.dev_editMode and "ON" or "OFF"
     if ui.DefaultButton(("Edit (%s)"):format(editTxt), editButton:padRatio(0.3)) then
         self.dev_editMode = not self.dev_editMode
     end
+    local tree = g.getUpgTree()
+    local font=g.getSmallFont(16)
+    if tree and tree._filename then
+        richtext.printRichContained("{o}EDITING: {c r=1 g=1 b=0}" .. tree._filename, font, editname:padRatio(-0.2):get())
+    elseif not tree._filename then
+        richtext.printRichContained("{o}{c r=1 g=0 b=0}No file open.{/c}\n(Drag file onto screen to open)", font,
+            editname:padRatio(-0.5):moveRatio(0,-0.5):get()
+        )
+    end
+
+
 
     if self.dev_editMode then
         drawDevEditModeUI(self)
