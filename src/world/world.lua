@@ -298,13 +298,8 @@ local function drawToken(tok)
     end
 
     love.graphics.setColor(1,1,1)
-    g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
-
-    if stalkInfo then
-        for _, pos in ipairs(stalkInfo.growthpos) do
-            g.drawImage(tok.growths.growth, tok.x + pos.x, tok.y + pos.y, rot, sx, sy, kx, ky)
-        end
-    end
+    local tinfo = g.getTokenInfo(tok.type)
+    g.drawTokenImage(tinfo, tok.x, tok.y, rot, sx, sy, kx,ky)
 
     love.graphics.setColor(1,1,1)
     if tok.drawToken then
