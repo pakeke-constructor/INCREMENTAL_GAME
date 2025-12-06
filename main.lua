@@ -339,3 +339,10 @@ function love.directorydropped(fullpath)
     end
 end
 
+function love.filedropped(file)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.filedropped then
+        sc:filedropped(file)
+    end
+end
+

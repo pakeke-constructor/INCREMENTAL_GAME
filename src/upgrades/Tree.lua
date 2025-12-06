@@ -40,6 +40,7 @@ local Upgrade = {}
 ---@field unboundUpgrades g.Tree.Upgrade[]
 ---@field _connectionMap table<integer, table<integer, true>>
 ---@field _distances table<integer, integer>
+---@field _filename string?
 local Tree = objects.Class("g:Tree")
 
 
@@ -71,6 +72,7 @@ function Tree:init()
     self._eventCache = {--[[
         event -> {upg1, upg2, upg3 ...}
     ]]}
+    self._filename = nil
 end
 
 

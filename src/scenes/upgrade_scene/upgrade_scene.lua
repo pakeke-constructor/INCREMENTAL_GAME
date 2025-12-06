@@ -1,5 +1,6 @@
 
 local UpgradeDescription = require("src.ui.upgrades.upgrade_description_ui")
+local Tree = require("src.upgrades.Tree")
 
 local newDevTree = require("src.upgrades.dev_tree")
 
@@ -291,12 +292,16 @@ local function drawDevEditModeUI(self)
         love.system.openURL(treeURL)
     end
 
-    if ui.DefaultButton("NEW TREE", regs[3]) then
+    local font = g.getSmallFont(16)
+    richtext.printRichContained("{o}Drag file onto\nscreen to open!", font, regs[3]:get())
+
+    if ui.Button("NEW TREE", objects.Color.DARK_GREEN,objects.Color.LIME, regs[4]) then
         love.filesystem.createDirectory(consts.DEV_UPGRADE_TREE_PATH)
         for i=1,100 do
             local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP.."NEW_TREE_"..i..".json"
             if not love.filesystem.getInfo(fname) then
                 -- dont overwrite!
+                love.filesystem.newFileData(fname)
                 local ok,er = love.filesystem.write(fname, "{}")
                 if not ok then
                     log.error("COULDNT CREATE FILE", er)
@@ -307,8 +312,12 @@ local function drawDevEditModeUI(self)
         end
     end
 
-    if ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[4]) then
-        --love.filesystem.write(fname, json.encode(g.getUpgTree():serialize()))
+    if ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[5]) then
+        local tree = g.getUpgTree()
+        if tree._filename then
+            local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP..tree._filename
+            love.filesystem.write(fname, json.encode(g.getUpgTree():serialize()))
+        end
     end
 
     local function calculateGrid(itemCount, regionWidth, regionHeight)
@@ -468,8 +477,24 @@ function upgscene:keypressed(k)
 end
 
 
-function upgscene:directorydropped(fullpath)
-    -- ...
+
+---@param file love.DroppedFile
+function upgscene:filedropped(file)
+    if consts.DEV_MODE then
+        file:open("r")
+        local data = json.decode(file:read())
+        local tree
+        if next(data) then
+            -- it has data! deserialize tree
+            tree = Tree.deserialize(data)
+        else
+            tree = Tree()
+        end
+        local path = file:getFilename()
+        tree._filename = path:match("([^/\\]+)$")
+        local sn = g.getSn()
+        sn.tree = tree
+    end
 end
 
 upgscene.keyreleased = upgscene.defaultKeyreleased
