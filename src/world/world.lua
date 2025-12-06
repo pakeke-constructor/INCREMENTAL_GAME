@@ -496,9 +496,16 @@ local TokenPool = objects.Class("g:TokenPool")
 function TokenPool:init()
     self.tokens = {}
 end
+
 function TokenPool:add(tokenId, amount)
     self.tokens[tokenId] = (self.tokens[tokenId] or 0) + (amount or 1)
 end
+
+function TokenPool:subtract(tokenId, amount)
+    amount = amount or self.tokens[tokenId]
+    self.tokens[tokenId] = self.tokens[tokenId] - amount
+end
+
 
 
 
@@ -605,6 +612,7 @@ function World:_update(dt)
     if g.getPrestige() == 0 then
         tp:add("grass_1", 5)
     end
+    g.call("depopulateTokenPool", tp)
     self.tokenPool = tp
     table_clear(self.tokenCounts)
 

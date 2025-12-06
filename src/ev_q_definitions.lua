@@ -8,7 +8,8 @@ g.defineEvent("update")
 g.defineEvent("perSecondUpdate")
 
 
-g.defineEvent("populateTokenPool")
+g.defineEvent("populateTokenPool") -- define the whitelist
+g.defineEvent("depopulateTokenPool") -- clear tokens (blacklist)
 
 
 

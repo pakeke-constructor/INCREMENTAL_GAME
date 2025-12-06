@@ -49,17 +49,82 @@ g.defineStalk("stalk_5", {
 
 
 
+local BERRIES = {
+    {
+        id = "blue_berry",
+        name = "Blueberry",
+        resources = {money = 4}
+    },
+    {
+        id = "red_berry",
+        name = "Redberry",
+        resources = {money = 10}
+    },
+    {
+        id = "flax_berry",
+        name = "Flaxberry",
+        resources = {bread = 1}
+    },
+    {
+        id = "purple_berry",
+        name = "Purpleberry",
+        -- TODO: Maybe in future, purpleBerry should yield fabric?
+        resources = {money = 40}
+    },
+}
 
-for _, berry in ipairs({"blue_berry", "flax_berry"}) do
+
+local RESOURCE_MULTIPLIERS = {
+    1, 2, 5, 20,25
+}
+local MAX_LEVELS = {
+    -- whats the maximum level each tier can go up to?
+    15,10, 8, 10,10
+}
+local TOKEN_HEALTHS = {
+    4,5, 9, 15,18
+}
+
+local MAX_LEVELS = {
+    15,10, 8, 5,3
+}
+
+local DEPOPULATE_TOKEN = {
+    -- should this upgrade depopulate any of the earlier upgrades?
+    nil,nil,nil, 1,2
+}
+
+
+local function makeId(berry, i)
+    return berry.id .. "_" .. tostring(i)
+end
+
+
+for _, berry in ipairs(BERRIES) do
     for i=1, 5 do
-        local id = "stalk_"..tostring(i)
+        local token_id = makeId(berry,i)
+        local name = berry.name .. " ("..tostring(i)..")"
 
-        local name = berry .. tostring(i) -- TODO. do this properly
+        local mult = RESOURCE_MULTIPLIERS[i]
 
-        g.defineToken(berry .. "_"..i, name, {
-            maxHealth = 10,
-            growths = {stalk = id, growth = berry},
-            resources = {money = 10},
+        ---@param tp g.TokenPool
+        local depopulateTokenPool = DEPOPULATE_TOKEN[i] and function (uinfo, level, tp)
+            local depopId = DEPOPULATE_TOKEN[i]
+            local strId = makeId(berry, depopId)
+            tp:subtract(strId)
+        end
+
+        local stalk_id = "stalk_"..tostring(i)
+        g.defineToken(token_id, name, {
+            growths = {stalk = stalk_id, growth = berry.id},
+            resources = g.multBundles(berry.resources, mult),
+            maxLevel = MAX_LEVELS[i],
+            maxHealth = TOKEN_HEALTHS[i],
+
+            upgradeDefinition = {
+                ---@diagnostic disable-next-line
+                depopulateTokenPool = depopulateTokenPool
+            }
         })
     end
 end

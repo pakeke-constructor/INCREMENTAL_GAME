@@ -578,6 +578,7 @@ local g_UpgradeDefinition = {}
 ---@field tokenHit (fun(tok: g.Token))?
 ---@field tokenDestroyed (fun(tok: g.Token))?
 ---@field tokenDamaged (fun(tok: g.Token, dmg:number))?
+---@field upgradeDefinition table<string, function>? Extra definitions for the corresponding upgrade
 local g_TokenDefinition = {}
 
 
@@ -1332,7 +1333,9 @@ function g.defineToken(tokType, name, tabl)
     reverseTokMt[mt] = true
     g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
 
-    g.defineUpgrade(tokType, name, {
+    ---@type g.UpgradeDefinition
+    local upgradeDef
+    upgradeDef = {
         image = tabl.image,
         populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
             tokens:add(tokType, level)
@@ -1340,7 +1343,11 @@ function g.defineToken(tokType, name, tabl)
         maxLevel = tabl.maxLevel or nil,
         description = oldDescription,
         kind = "TOKEN"
-    })
+    }
+    for k,v in pairs(tabl.upgradeDefinition or {}) do
+        upgradeDef[k]=v
+    end
+    g.defineUpgrade(tokType, name, upgradeDef)
 end
 
 
