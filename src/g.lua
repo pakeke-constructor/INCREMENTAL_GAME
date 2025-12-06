@@ -1318,6 +1318,11 @@ function g.defineToken(tokType, name, tabl)
 
     tabl.image = tabl.image or tokType
 
+    local oldDescription = tabl.description
+    if tabl.description then
+        tabl.description = loc(tabl.description)
+    end
+
     tokenDefinitions[tokType] = tabl
     ---@cast tabl g.Token
     tabl.type = tokType
@@ -1333,6 +1338,7 @@ function g.defineToken(tokType, name, tabl)
             tokens:add(tokType, level)
         end,
         maxLevel = tabl.maxLevel or nil,
+        description = oldDescription,
         kind = "TOKEN"
     })
 end
