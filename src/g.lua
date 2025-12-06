@@ -765,15 +765,27 @@ function g.multBundles(a,b)
 
     if type(b) == "number" then
         for _, resId in ipairs(g.RESOURCE_LIST) do
-            result[resId] = (a[resId] or 1) * b
+            result[resId] = (a[resId] or 0) * b
         end
     else
         for _, resId in ipairs(g.RESOURCE_LIST) do
-            result[resId] = (a[resId] or 1) * (b[resId] or 1)
+            result[resId] = (a[resId] or 0) * (b[resId] or 1)
         end
     end
     return result
 end
+
+
+---@param bundle g.Bundle
+---@return g.Bundle
+function g.cloneBundle(bundle)
+    local result = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        result[resId] = bundle[resId] or 0
+    end
+    return result
+end
+
 
 ---@param a g.Bundle
 ---@param b g.Bundle
