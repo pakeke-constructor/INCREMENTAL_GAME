@@ -333,6 +333,29 @@ function g.drawImage(imageName, x,y, r,sx,sy,kx,ky)
     return g.drawImageOffset(imageName, x, y, r, sx, sy, 0.5, 0.5, kx, ky)
 end
 
+
+---@param tinfo g.TokenInfo
+---@param x number
+---@param y number
+---@param r number?
+---@param sx number?
+---@param sy number?
+---@param kx number?
+---@param ky number?
+function g.drawTokenImage(tinfo, x,y, r,sx,sy,kx,ky)
+    local stalkInfo = tinfo.growths and g.getStalkInfo(tinfo.growths.stalk)
+    if tinfo.image then
+        g.drawImage(tinfo.image, x,y, r, sx, sy, kx,ky)
+    end
+
+    if stalkInfo then
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.drawImage(tinfo.growths.growth, x + pos.x, y + pos.y, r, sx, sy, kx, ky)
+        end
+    end
+end
+
+
 ---@param imageName string
 ---@param x number
 ---@param y number
@@ -1342,7 +1365,8 @@ function g.defineToken(tokType, name, tabl)
         end,
         maxLevel = tabl.maxLevel or nil,
         description = oldDescription,
-        kind = "TOKEN"
+        kind = "TOKEN",
+        tokenType = tokType
     }
     for k,v in pairs(tabl.upgradeDefinition or {}) do
         upgradeDef[k]=v
@@ -1368,7 +1392,6 @@ end
 
 
 function g.drawTokenIcon(tokType, x,y, rot,sx,sy, kx,ky)
-    love.graphics.setColor(1,1,1)
     local tinfo = g.getTokenInfo(tokType)
     if tinfo.image then
         g.drawImage(tinfo.image, x, y, rot, sx, sy, kx,ky)

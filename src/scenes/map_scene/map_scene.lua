@@ -44,7 +44,7 @@ local buildings = {
     harvestarea_platform = {
         image = "harvestarea_platform",
         x = 294, y = 177,
-        bobbing = {amplitude = 3, period = 3},
+        bobbing = {amplitude = 3, period = 4},
     },
     upgradearea_dome = {
         image = "upgradearea_dome",

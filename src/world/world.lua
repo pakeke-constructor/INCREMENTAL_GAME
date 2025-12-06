@@ -502,8 +502,8 @@ function TokenPool:add(tokenId, amount)
 end
 
 function TokenPool:subtract(tokenId, amount)
-    amount = amount or self.tokens[tokenId]
-    self.tokens[tokenId] = self.tokens[tokenId] - amount
+    amount = amount or (self.tokens[tokenId] or 0)
+    self.tokens[tokenId] = math.max(0, (self.tokens[tokenId] or 0) - amount)
 end
 
 

@@ -114,7 +114,12 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
     else
         lg.setColor(0,0,0)
     end
-    g.drawImage(uinfo.image, cx, cy)
+    if uinfo.kind == "TOKEN" then
+        local tinfo = g.getTokenInfo(uinfo.tokenType)
+        g.drawTokenImage(tinfo, cx, cy)
+    else
+        g.drawImage(uinfo.image, cx, cy)
+    end
 
     -- custom rendering:
     if uinfo.drawUI then
