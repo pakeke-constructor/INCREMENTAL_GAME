@@ -82,7 +82,7 @@ function HUD:draw(show)
 
     -- Draw sidebar
     -- love.graphics.setColor(SIDEBAR_COLOR)
-    helper.gradientRect("vertical", objects.Color.WHITE, SIDEBAR_COLOR, self.sidebar:get())
+    helper.gradientRect("vertical", SIDEBAR_COLOR, objects.Color.BLUE, self.sidebar:get())
     --love.graphics.rectangle("fill", self.sidebar:get())
     love.graphics.setColor(SIDEBAR_STRIP)
     love.graphics.rectangle("fill", self.sidebar.x + self.sidebar.w, 0, 2, self.sidebar.h)

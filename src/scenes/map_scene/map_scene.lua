@@ -44,6 +44,7 @@ local buildings = {
     harvestarea_platform = {
         image = "harvestarea_platform",
         x = 294, y = 177,
+        bobbing = {amplitude = 3, period = 3},
     },
     upgradearea_dome = {
         image = "upgradearea_dome",
@@ -399,7 +400,11 @@ function map:draw()
             for _, buildingId in ipairs(poi.highlight) do
                 local b = buildings[buildingId]
                 -- Buildings are relative to top right
-                g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
+                local oy = 0
+                if b.bobbing then
+                    oy = b.bobbing.amplitude * math.sin((love.timer.getTime()*(math.pi*2)) / b.bobbing.period)
+                end
+                g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2 + oy, 0, 1, 1, 1, 0)
             end
         end
     end
@@ -407,7 +412,11 @@ function map:draw()
     -- Draw buildings
     lg.setColor(1, 1, 1)
     for _, b in pairs(buildings) do
-        g.drawImageOffset(b.image, b.x, b.y, 0, 1, 1, 1, 0)
+        local oy = 0
+        if b.bobbing then
+            oy = b.bobbing.amplitude * math.sin((love.timer.getTime()*(math.pi*2)) / b.bobbing.period)
+        end
+        g.drawImageOffset(b.image, b.x, b.y + oy, 0, 1, 1, 1, 0)
     end
 
     -- Draw clouds

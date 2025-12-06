@@ -101,6 +101,7 @@ end
 
 
 for _, berry in ipairs(BERRIES) do
+    -- define berry-tokens:
     for i=1, 5 do
         local token_id = makeId(berry,i)
         local name = berry.name .. " ("..tostring(i)..")"
