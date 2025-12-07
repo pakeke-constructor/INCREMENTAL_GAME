@@ -324,7 +324,6 @@ local function drawDevEditModeUI(self)
         return cols, rows
     end
 
-    local tree = g.getUpgTree()
     local sel = self.dev_editModeSelection
     if sel then
         local selectArea,bot = bigSidebar:splitVertical(8,2)
@@ -350,6 +349,9 @@ local function drawDevEditModeUI(self)
                 if tinfo.growths then
                     g.drawImageContained(tinfo.growths.growth, Kirigami(x,y,w,h):padRatio(0.7):get())
                 end
+            end
+            if uinfo.drawUI then
+                uinfo:drawUI(1, x,y,w,h)
             end
 
             if iml.wasJustClicked(x,y,w,h) then
@@ -403,8 +405,6 @@ local function drawDevUI(self)
             editname:padRatio(-0.5):moveRatio(0,-0.5):get()
         )
     end
-
-
 
     if self.dev_editMode then
         drawDevEditModeUI(self)

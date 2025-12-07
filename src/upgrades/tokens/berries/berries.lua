@@ -128,5 +128,24 @@ for _, berry in ipairs(BERRIES) do
             }
         })
     end
+
+    g.defineUpgrade("improved_berry_"..berry.id, "Improved " .. berry.name, {
+        image = "improved_berries",
+        kind = "TOKEN_MODIFIER",
+
+        description = "Earn +%{1} {money} from {" .. berry.id .. "}",
+
+        drawUI = function (uinfo, level, x, y, w, h)
+            local dy = 4*math.sin(love.timer.getTime())
+            g.drawImage(berry.id, x+w-4,y+4+dy, 0)
+        end,
+        getTokenResourceModifier = function(uinfo,level, tok)
+            if tok.growths and tok.growths.growth == berry.id then
+                return {money = level}
+            end
+        end,
+        getValues = helper.valueGetter(3,3)
+    })
 end
+
 
