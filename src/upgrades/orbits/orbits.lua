@@ -13,7 +13,7 @@ local function defOrbitalUpgrade(id,name,tabl)
     end
     tabl.spawnEntity = function (uinfo)
         -- Position will be controlled by the world since it's orbital entity.
-        return g.spawnEntity("orbit_knife", 0, 0)
+        return g.spawnEntity(id, 0, 0)
     end
 
     g.defineUpgrade(id,name,tabl)
@@ -47,8 +47,8 @@ defOrbitalUpgrade("orbital_knife", "Orbital Knife", {
 
 
 
-g.defineEntity("orbit_scythe", {
-    image = "orbit_scythe",
+g.defineEntity("orbital_scythe", {
+    image = "orbital_scythe",
     orbitRing = 2,
     update = function(ent, dt)
         ent.rot = (ent.rot or 0) + dt*5
@@ -88,7 +88,7 @@ g.defineEntity("slime_bucket", {
     },
 })
 
-g.defineUpgrade("slime_bucket", "Slime Bucket", {
+defOrbitalUpgrade("slime_bucket", "Slime Bucket", {
     description = "Spawn %{1} orbiting slime buckets, 20% chance to slime crops!",
     maxLevel = 5,
     kind="HARVESTING",

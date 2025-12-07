@@ -962,6 +962,7 @@ g.CATEGORIES = {
     grass = true,
     berry = true,
     mushroom = true,
+    chest = true,
     slime = true,
 }
 
@@ -1481,6 +1482,7 @@ do
 ---@field ox number?
 ---@field oy number?
 ---@field rot number?
+---@field alpha number?
 ---@field orbitRing integer?
 ---@field image string?
 ---@field lifetime number?

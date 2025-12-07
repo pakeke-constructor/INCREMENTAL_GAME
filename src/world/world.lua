@@ -331,7 +331,7 @@ local function drawEntity(e)
     drawShadow(e.shadow, e.x, e.y)
 
     if e.image then
-        love.graphics.setColor(1, 1, 1)
+        love.graphics.setColor(1, 1, 1, e.alpha or 1)
         love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
         g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, e.sx or 1, e.sy or 1)
         love.graphics.setBlendMode("alpha", "alphamultiply")

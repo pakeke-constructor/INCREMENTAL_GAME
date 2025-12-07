@@ -42,10 +42,12 @@ function GrowthFallingEntity:update(dt)
             self.lifetime = 0.3
         end
     end
+
+    local lifetime = self.lifetime or 1000
+    self.alpha = math.max(0, lifetime/0.25) -- make it fade out
 end
 
 function GrowthFallingEntity:drawBelow()
-    lg.setColor(1,1,1, math.max(0, self.lifetime/0.15))
 end
 
 g.defineEntity("growth_falling", GrowthFallingEntity)
