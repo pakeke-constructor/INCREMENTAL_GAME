@@ -1,3 +1,7 @@
+
+
+
+do
 local ROT_OFFSET = math.pi / 4
 local SPEED = 200 -- units/s
 
@@ -27,3 +31,21 @@ function KnifeEntity:update(dt)
 end
 
 g.defineEntity("knife", KnifeEntity)
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

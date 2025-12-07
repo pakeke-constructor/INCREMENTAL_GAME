@@ -217,20 +217,3 @@ g.defineUpgrade("slime_grenade", "Slime Grenade", {
 })
 
 
-
-g.defineUpgrade("slime_bucket", "Slime Bucket", {
-    description = "Orbits %{1} slime buckets around mouse, 20% chance to slime crops!",
-    maxLevel = 5,
-    kind="HARVESTING",
-
-    getValues = function(uinfo, level)
-        return level
-    end,
-    getEntityCount = function(uinfo, level)
-        return (uinfo:getValues(level))
-    end,
-    spawnEntity = function(uinfo)
-        -- Position will be controlled by the world since it's orbital entity.
-        return g.spawnEntity("slime_bucket", 0, 0)
-    end
-})

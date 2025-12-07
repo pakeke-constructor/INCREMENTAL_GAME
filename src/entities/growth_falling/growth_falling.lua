@@ -44,4 +44,8 @@ function GrowthFallingEntity:update(dt)
     end
 end
 
+function GrowthFallingEntity:drawBelow()
+    lg.setColor(1,1,1, math.max(0, self.lifetime/0.15))
+end
+
 g.defineEntity("growth_falling", GrowthFallingEntity)
