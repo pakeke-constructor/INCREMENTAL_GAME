@@ -954,6 +954,7 @@ end
 ---| "grass"
 ---| "berry"
 ---| "mushroom"
+---| "chest"
 ---| "slime"
 
 ---@type table<g.Category, true|nil>
