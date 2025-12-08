@@ -252,7 +252,7 @@ end
 
 
 ---@param self HarvestScene
-local function getXPMultiplier(self)
+local function getXpMultiplier(self)
     --[[
     every 1% the player is over the "target time" for XP harvesting, 
     gain +3% xp multiplier.
@@ -263,8 +263,9 @@ local function getXPMultiplier(self)
     ]]
     local targTime = consts.TARGET_TIME_PER_LEVEL_UP
     local overtime = math.max(0, self.timeTakenThisLevel - targTime) / targTime
+    local statMult = g.stats.XpMultiplier
     local XP_MULTIPLIER_RATE = 3 -- 1% over ==> 3% XP increase
-    return 1 + XP_MULTIPLIER_RATE*overtime
+    return statMult * (1 + (XP_MULTIPLIER_RATE*overtime))
 end
 
 
@@ -702,7 +703,7 @@ end
 function harvest:tokenDestroyed(tok)
     if not (self.xpPopup or self.upgradePopup) then
         local xp = tok.maxHealth
-        local mult = getXPMultiplier(self)
+        local mult = getXpMultiplier(self)
         local sn = g.getSn()
         sn.xp = sn.xp + xp*mult
     end
