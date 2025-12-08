@@ -99,32 +99,38 @@ end
 
 
 
+local LIGHTNING_CHAIN_LIFETIME = 0.15
 g.defineEntity("lightning_chain_visual", {
     init = function (ent, tokens)
         -- list of tokens to strike
-        ---@cast ent g.Entity|{_tokens:g.Token[],_baseX:number,_baseY:number}
+        ---@cast ent g.Entity|{_tokens:g.Token[]}
         ent._tokens = tokens
         local bestY = -100
-        ent._baseX, ent._baseY = 0,0
         for _,t in ipairs(tokens) do
             if t.y > bestY then
-                ent._baseX = t.y
-                ent._baseY = t.y
+                ent.x = t.x
+                ent.y = t.y
+                bestY = t.y
             end
         end
     end,
 
+    lifetime = LIGHTNING_CHAIN_LIFETIME,
+
     draw = function (ent)
         local lw=lg.getLineWidth()
-        lg.setLineWidth(3)
+        local fade = (math.min(1, ent.lifetime / LIGHTNING_CHAIN_LIFETIME))
 
-        ---@cast ent g.Entity|{_tokens:g.Token[],_baseX:number,_baseY:number}
-        local bx, by = ent._baseX, ent._baseY
+        ---@cast ent g.Entity|{_tokens:g.Token[]}
         for i = 1, #ent._tokens - 1 do
             local tok1 = ent._tokens[i]
             local tok2 = ent._tokens[i + 1]
-            lg.setColor(0.2,0.5,1)
-            lg.line(tok1.x - bx, tok1.y - by, tok2.x - bx, tok2.y - by)
+            lg.setLineWidth(10 * fade)
+            lg.setColor(0.9, 0.7, 1)
+            local r = love.math.random
+            local r1 = helper.lerp(-4,4, r())
+            local r2 = helper.lerp(-4,4, r())
+            lg.line(tok1.x, tok1.y, tok2.x + r2, tok2.y + r1)
         end
 
         lg.setLineWidth(lw)
@@ -132,34 +138,52 @@ g.defineEntity("lightning_chain_visual", {
 })
 
 
-local function findClosestToken( ) -- todo
-    g.iterateTokensInArea(x,y, radius, function(tok)
-        -- iterate tokens!
-        -- add these to buffer and select random
+local function findClosestToken(x, y, excludeTokens)
+    local radius = 80
+    local buffer = {}
+    g.iterateTokensInArea(x, y, radius, function(tok)
+        if not excludeTokens[tok] then
+            table.insert(buffer, tok)
+        end
     end)
+    if #buffer == 0 then
+        return nil
+    end
     return helper.randomChoice(buffer)
 end
 
 ---@param x number
 ---@param y number
 ---@param damage number
----@param tokenChainSize number
-function worldutil.spawnLightning(x,y, damage, tokenChainSize)
-    g.playWorldSound("lightning_foreground",0.9,0.4,0.3,0)
-    tokenChainSize = math.max(2, tokenChainSize or 4)
+---@param tokenChainSize number?
+function worldutil.spawnLightning(x, y, damage, tokenChainSize)
+    g.playWorldSound("lightning_foreground", 0.9, 0.4, 0.3, 0)
+    tokenChainSize = math.max(2, tokenChainSize or 5)
 
     local foundTokens = {}
-    local tok = findClosestToken(x,y, foundTokens)
+    local tokenList = {}
+
+    local tok = findClosestToken(x, y, foundTokens)
+    if not tok then return end
+
     foundTokens[tok] = true
+    table.insert(tokenList, tok)
 
-    for i=1, tokenChainSize do
+    for i = 1, tokenChainSize - 1 do
         local tok1 = findClosestToken(tok.x, tok.y, foundTokens)
+        if not tok1 then break end
         foundTokens[tok1] = true
+        table.insert(tokenList, tok1)
+        tok = tok1
     end
-    
-    g.spawnEntity("lightning_chain_visual", tokenList)
-end
+    for _,t in ipairs(tokenList)do
+        g.damageToken(t, damage)
+    end
 
+    if #tokenList >= 2 then
+        g.spawnEntity("lightning_chain_visual", 0,0,tokenList)
+    end
+end
 
 
 

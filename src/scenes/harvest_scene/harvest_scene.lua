@@ -887,7 +887,7 @@ function harvest:keyreleased(k)
         g.gotoSceneViaMap("upgrade_scene")
     elseif consts.DEV_MODE then
         if k=="1" then
-            worldutil.spawnLightning(100,100,10)
+            worldutil.spawnLightning(100,100,1)
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do
