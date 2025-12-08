@@ -9,6 +9,7 @@ local SLIDER_BACKGROUND = objects.Color.BLACK
 local SLIDER_COLOR = objects.Color.WHITE
 
 local TEXT = {
+    SETTINGS = "{w}{o thickness=2}"..loc("Settings").."{/o}{/w}",
     EFFECT_VOLUME = loc "Effect Volume",
     MUSIC_VOLUME = loc "Music Volume",
     LANGUAGE = loc "Language",
@@ -130,7 +131,7 @@ function settingscene:draw()
     local titleFont = g.getBigFont(48)
     local titleTextR = Kirigami(0, 0, w, titleFont:getHeight()):center(titleR)
     love.graphics.setColor(1, 1, 1)
-    richtext.printRich("{w}{o thickness=2}Settings{/o}{/w}",  titleFont, titleTextR.x, titleTextR.y, w, "center")
+    richtext.printRich(TEXT.SETTINGS,  titleFont, titleTextR.x, titleTextR.y, w, "center")
 
     -- Setup settings layout
     local font = g.getSmallFont(32)
