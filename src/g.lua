@@ -486,7 +486,6 @@ end
 
 
 
-
 local strTc = typecheck.assert("string")
 
 ---@type table<string, {addQuestion: string, multQuestion:string, startingValue: number}>
@@ -967,6 +966,22 @@ g.CATEGORIES = {
     chest = true,
     slime = true,
 }
+
+-- g.getTokensDestroyedInCategory
+do
+---@param tokCategory string
+---@return number
+function g.getTokensDestroyedInCategory(tokCategory)
+    local name = "totalCategoryHarvested_"..tokCategory
+    return g.getMetric(name) or 0
+end
+
+for tokCategory,_ in pairs(g.CATEGORIES)do
+    local name = "totalCategoryHarvested_"..tokCategory
+    g.defineMetric(name)
+end
+end
+
 
 
 
@@ -1696,6 +1711,11 @@ function g.destroyToken(tok)
     end
 
     w.tokens:removeBuffered(tok)
+
+    if tok.category then
+        local name = "totalCategoryHarvested_"..tok.category
+        g.setMetric(name, g.getMetric(name) + 1)
+    end
 
     -- todo: rework/rethink this.
     -- Each token should have different "sound"
