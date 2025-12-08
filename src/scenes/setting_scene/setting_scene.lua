@@ -73,7 +73,6 @@ function settingscene:init()
     end
     table.sort(self.languageListInterleaved, function (a, b) return a[1] < b[1] end)
     self.showLanguagePopup = false
-    self.crt = false -- TODO: Wire up
 end
 
 function settingscene:leave()
@@ -202,7 +201,8 @@ function settingscene:draw()
     richtext.printRich(TEXT.CRT_EFFECT, font, crtLabelR.x, crtLabelR.y, crtLabelR.w, "left")
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", crtBoxR:padUnit(-2):get())
-    self.crt = ui.Checkbox(objects.Color.WHITE, crtBoxR, self.crt)
+    local crtState = ui.Checkbox(objects.Color.WHITE, crtBoxR, settings.isCRTActive())
+    settings.setCRTActive(crtState)
 
     -- Draw language button
     love.graphics.setColor(1, 1, 1)

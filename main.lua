@@ -236,7 +236,7 @@ function love.update(dt)
 end
 
 function love.draw()
-    local crtActive = love.keyboard.isModifierActive("capslock")
+    local crtActive = settings.isCRTActive()
 
     if crtActive then
         crt.start()
