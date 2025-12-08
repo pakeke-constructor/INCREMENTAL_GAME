@@ -43,8 +43,6 @@ function harvest:init()
     self.timeTakenThisLevel = 0
     self.xpRequirement = 1 -- set every frame.
 
-    self.xpBarX, self.xpBarY = 1000,0 -- where should Xp particles move to?
-
     self.timeSinceXpPopupOpened = 0
     self.xpPopup = false
     self.xpRewards = {}
@@ -505,7 +503,7 @@ local xpParticles = particles.newParticlesWorld({
         local TARG_VEL = 300
         local w,h = ui.getScaledUIDimensions()
         local hud = g.getHUD()
-        local targX,targY = hud.profileHUD:getXPBarStartPos()
+        local targX,targY = hud:getXPBarStartPos()
         local vx,vy = p.vx,p.vy
         local dx, dy = (targX-p.x), (targY-p.y)
         local mag = ((dx*dx + dy*dy) ^ 0.5)
