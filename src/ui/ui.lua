@@ -281,6 +281,36 @@ function ui.Slider(key, direction, slidercol, currentsegment, segments, slidersi
 end
 
 
+---@param color objects.Color
+---@param checked boolean
+function ui.Checkbox(color, region, checked)
+	local x, y, w, h = region:get()
+
+	if iml.isClicked(x, y, w, h) then
+		color = multiplyHSVValue(color, 0.5)
+	elseif iml.isHovered(x, y, w, h) then
+		color = multiplyHSVValue(color, 0.75)
+	end
+
+
+	love.graphics.setColor(color)
+	love.graphics.rectangle("fill", x, y, w, h)
+
+	if iml.wasJustClicked(x, y, w, h) then
+		checked = not checked
+	end
+
+	if checked then
+		love.graphics.setColor(0, 0, 0, color[4])
+		-- Draw cross
+		love.graphics.line(x + 1, y + 1, x + w - 2, y + h - 2)
+		love.graphics.line(x + w - 2, y + 1, x + 1, y + h - 2)
+	end
+
+	return checked
+end
+
+
 
 -- For UI global scaling
 do
