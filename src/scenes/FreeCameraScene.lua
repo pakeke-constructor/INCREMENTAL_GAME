@@ -86,7 +86,7 @@ local function settings()
 end
 
 local function exit()
-    print("TODO exit")
+    g.gotoScene("title_scene")
 end
 
 local PAUSE_BUTTONS = {

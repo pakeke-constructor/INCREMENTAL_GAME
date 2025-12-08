@@ -57,6 +57,10 @@ function title:init()
     self.catRight = InteractiveCat({flip=true})
 end
 
+function title:enter()
+    return g.saveAndInvalidateSession()
+end
+
 ---@param dt number
 function title:update(dt)
     self.progress = (self.progress + dt * 0.2) % 1
