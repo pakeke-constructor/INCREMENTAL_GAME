@@ -85,6 +85,8 @@ function Session:init()
     for k,sta in pairs(g.VALID_STATS) do
         g.stats[k] = sta.startingValue
     end
+
+    self.paused = false
 end
 
 if false then
@@ -123,6 +125,10 @@ end
 --- updates session and main world. should only be called once, (hence _)
 ---@param dt any
 function Session:_update(dt)
+    if self.paused then
+        dt = 0
+    end
+
     for stat, t in pairs(g.VALID_STATS) do
         local mod = g.ask(t.addQuestion) + t.startingValue
         local mult = g.ask(t.multQuestion)

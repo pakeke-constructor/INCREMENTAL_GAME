@@ -803,6 +803,8 @@ function harvest:draw()
         end
     end
 
+    self:renderPause()
+
     ui.endUI()
 end
 
@@ -886,6 +888,9 @@ function harvest:keyreleased(k)
     self:defaultKeyreleased(k)
     if k == "tab" then
         g.gotoSceneViaMap("upgrade_scene")
+    elseif k == "escape" then
+        local s = g.getSn()
+        s.paused = not s.paused
     elseif consts.DEV_MODE then
         if k=="1" then
             worldutil.spawnLightning(100,100,1)

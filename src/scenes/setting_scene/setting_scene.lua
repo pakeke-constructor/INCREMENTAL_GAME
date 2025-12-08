@@ -262,7 +262,7 @@ function settingscene:_drawLanguageSelector()
 
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle("fill", panelR:get())
-    iml.isHovered(r:get()) -- Dummy panel to prevent input propagation to bottom
+    iml.panel(r:get()) -- Prevent input propagation to bottom
 
     local grid = panelR:grid(1, math.floor(panelR.h / SELECTION_BUTTON_SIZE))
 
