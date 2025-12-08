@@ -125,6 +125,10 @@ end
 --- updates session and main world. should only be called once, (hence _)
 ---@param dt any
 function Session:_update(dt)
+    if self.paused then
+        dt = 0
+    end
+
     for stat, t in pairs(g.VALID_STATS) do
         local mod = g.ask(t.addQuestion) + t.startingValue
         local mult = g.ask(t.multQuestion)
