@@ -5,7 +5,8 @@ local setting = {}
 local settingData = {
     sfxVolume = 100,
     bgmVolume = 50,
-    lang = love.system.getPreferredLocales()[1] or "en"
+    lang = love.system.getPreferredLocales()[1] or "en",
+    crt = false,
 }
 
 -- Load setting
@@ -62,6 +63,15 @@ end
 ---@param lang string
 function setting.setLanguage(lang)
     settingData.lang = lang
+end
+
+function setting.isCRTActive()
+    return settingData.crt
+end
+
+---@param active boolean
+function setting.setCRTActive(active)
+    settingData.crt = not not active
 end
 
 return setting

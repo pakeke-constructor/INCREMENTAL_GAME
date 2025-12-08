@@ -9,10 +9,12 @@ local SLIDER_BACKGROUND = objects.Color.BLACK
 local SLIDER_COLOR = objects.Color.WHITE
 
 local TEXT = {
+    SETTINGS = "{w}{o thickness=2}"..loc("Settings").."{/o}{/w}",
     EFFECT_VOLUME = loc "Effect Volume",
     MUSIC_VOLUME = loc "Music Volume",
     LANGUAGE = loc "Language",
-    REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"})
+    REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"}),
+    CRT_EFFECT = "{o}"..loc("CRT Effect").."{/o}"
 }
 
 
@@ -85,9 +87,12 @@ end
 ---@param value integer
 ---@param label string
 ---@param labelR kirigami.Region
----@param sliderBaseR kirigami.Region
-local function drawVolume(value, label, labelR, sliderBaseR)
-    local sliderR, valueR = sliderBaseR:splitHorizontal(10, 1)
+---@param sliderR kirigami.Region
+local function drawVolume(value, label, labelR, sliderR)
+    local valueR = Kirigami(0, 0, 100, 16)
+        :centerY(sliderR)
+        :attachToRightOf(sliderR)
+        :padUnit(8, 0)
 
     love.graphics.setColor(1, 1, 1)
     richtext.printRich("{o}"..label.."{/o}", g.getSmallFont(32), labelR.x, labelR.y, labelR.w, "center")
@@ -109,7 +114,7 @@ local function drawVolume(value, label, labelR, sliderBaseR)
         valueR.x,
         valueR.y,
         valueR.w,
-        "right"
+        "left"
     )
     return value
 end
@@ -128,36 +133,47 @@ function settingscene:draw()
     local titleFont = g.getBigFont(48)
     local titleTextR = Kirigami(0, 0, w, titleFont:getHeight()):center(titleR)
     love.graphics.setColor(1, 1, 1)
-    richtext.printRich("{w}{o thickness=2}Settings{/o}{/w}",  titleFont, titleTextR.x, titleTextR.y, w, "center")
+    richtext.printRich(TEXT.SETTINGS,  titleFont, titleTextR.x, titleTextR.y, w, "center")
 
     -- Setup settings layout
     local font = g.getSmallFont(32)
+    local fontHeight = font:getHeight()
     local smallFont = g.getSmallFont(16)
+    local smallFontHeight = smallFont:getHeight()
+
     -- Effects Volume
-    local effectVolumeLabelR = Kirigami(0, 0, 240, font:getHeight())
+    local effectVolumeLabelR = Kirigami(0, 0, 240, fontHeight)
         :centerX(titleTextR)
     local effectVolumeSliderBaseR = Kirigami(0, 0, 240, smallFont:getHeight())
         :attachToBottomOf(effectVolumeLabelR)
         :centerX(effectVolumeLabelR)
-        :moveUnit(0, 8)
+
     -- Music Volume
-    local musicVolumeLabelR = Kirigami(0, 0, 240, font:getHeight())
+    local musicVolumeLabelR = Kirigami(0, 0, 240, fontHeight)
         :centerX(titleTextR)
         :attachToBottomOf(effectVolumeSliderBaseR)
         :moveUnit(0, 8)
     local musicVolumeSliderBaseR = Kirigami(0, 0, 240, smallFont:getHeight())
         :attachToBottomOf(musicVolumeLabelR)
         :centerX(musicVolumeLabelR)
+
+    -- CRT toggle
+    local crtTextWidth = font:getWidth(richtext.stripEffects(TEXT.CRT_EFFECT))
+    local crtPlacementR = Kirigami(0, 0, crtTextWidth + fontHeight, fontHeight)
+        :centerX(titleTextR)
+        :attachToBottomOf(musicVolumeSliderBaseR)
         :moveUnit(0, 8)
+    local crtLabelR, crtBoxR = crtPlacementR:splitHorizontal(crtTextWidth, fontHeight)
+    crtBoxR = crtBoxR:padUnit(6)
+
     -- Language. Let's just make it a button that shows fullscreen panel later.
     local languageLabelR = Kirigami(0, 0, 240, font:getHeight() * 1.5)
         :centerX(titleTextR)
-        :attachToBottomOf(musicVolumeSliderBaseR)
+        :attachToBottomOf(crtPlacementR)
         :moveUnit(0, 8)
     local languageButtonR = Kirigami(0, 0, 144, 32)
         :attachToBottomOf(languageLabelR)
         :centerX(languageLabelR)
-        :moveUnit(0, 8)
 
     -- Centerize layout in place
     makeInCenterInplace(contentR,
@@ -165,6 +181,8 @@ function settingscene:draw()
         effectVolumeSliderBaseR,
         musicVolumeLabelR,
         musicVolumeSliderBaseR,
+        crtLabelR,
+        crtBoxR,
         languageLabelR,
         languageButtonR
     )
@@ -180,6 +198,14 @@ function settingscene:draw()
     bgmVolume = drawVolume(bgmVolume, TEXT.MUSIC_VOLUME, musicVolumeLabelR, musicVolumeSliderBaseR)
     settings.setBGMVolume(bgmVolume)
     -- TODO: set BGM volume in BGM service once we have it
+
+    -- Draw CRT
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRich(TEXT.CRT_EFFECT, font, crtLabelR.x, crtLabelR.y, crtLabelR.w, "left")
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", crtBoxR:padUnit(-2):get())
+    local crtState = ui.Checkbox(objects.Color.WHITE, crtBoxR, settings.isCRTActive())
+    settings.setCRTActive(crtState)
 
     -- Draw language button
     love.graphics.setColor(1, 1, 1)
