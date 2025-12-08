@@ -512,6 +512,7 @@ function map:draw()
         end
     end
     end
+    self:renderPause()
     ui.endUI()
 end
 
@@ -564,6 +565,15 @@ map.keyreleased = map.defaultKeyreleased
 ---@param name string
 function map:queueDestinationScene(name)
     self.queuedTransitionTargetScene = name
+end
+
+
+
+function map:keyreleased(k)
+    if k == "escape" then
+        local s = g.getSn()
+        s.paused = not s.paused
+    end
 end
 
 

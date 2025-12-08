@@ -75,6 +75,53 @@ end
 
 
 
+local function resume()
+    if g.hasSession() then
+        g.getSn().paused = false
+    end
+end
+
+local function settings()
+    g.gotoScene("setting_scene")
+end
+
+local function exit()
+    print("TODO exit")
+end
+
+local PAUSE_BUTTONS = {
+    {loc"Resume", objects.Color("#" .. "FFE0AC35"), objects.Color("#" .. "FFD78F0A"), resume},
+    {loc"Settings", objects.Color("#" .. "FF9F14F6"), objects.Color("#" .. "FF3B12A4"), settings},
+    {loc"Exit", objects.Color("#".."FFF26957"), objects.Color("#".."FF4E0E05"), exit}
+}
+local PAUSE_BUTTON_SIZE = {144, 40}
+local PAUSE_BUTTON_PAD = 4
+
+function FreeCameraScene:renderPause()
+    if g.hasSession() and g.getSn().paused then
+        local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+        iml.panel(r:get()) -- Prevent propagation to bottom panels
+
+        love.graphics.setColor(0, 0, 0, 0.6)
+        love.graphics.rectangle("fill", r:get())
+
+        local buttonGridR = Kirigami(0, 0, PAUSE_BUTTON_SIZE[1], PAUSE_BUTTON_SIZE[2] * #PAUSE_BUTTONS)
+            :center(r)
+        local buttonGrid = buttonGridR:grid(1, #PAUSE_BUTTONS)
+
+        for i, v in ipairs(PAUSE_BUTTONS) do
+            local buttonR = buttonGrid[i]:padUnit(PAUSE_BUTTON_PAD)
+
+            love.graphics.setColor(1, 1, 1)
+            if ui.Button("{o thickness=0.5}"..v[1].."{/o}", v[2], v[3], buttonR) then
+                v[4]()
+            end
+        end
+    end
+end
+
+
+
 
 
 ---@param dt number

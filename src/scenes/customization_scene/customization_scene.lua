@@ -295,12 +295,20 @@ function custom:draw()
     local mapButtonR = self:renderMapButton()
     self:_drawUI(mapButtonR)
     g.getHUD():draw({profile = false, xpbar = false})
+    self:renderPause()
     ui.endUI()
 end
 
 function custom:wheelmoved(dx, dy)
     local dir = helper.sign(dy)
     self.rowOffset = self.rowOffset - dir
+end
+
+function custom:keyreleased(k)
+    if k == "escape" then
+        local s = g.getSn()
+        s.paused = not s.paused
+    end
 end
 
 return custom

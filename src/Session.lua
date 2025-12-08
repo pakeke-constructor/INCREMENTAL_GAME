@@ -85,6 +85,8 @@ function Session:init()
     for k,sta in pairs(g.VALID_STATS) do
         g.stats[k] = sta.startingValue
     end
+
+    self.paused = false
 end
 
 if false then

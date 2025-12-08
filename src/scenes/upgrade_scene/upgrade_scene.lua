@@ -458,6 +458,8 @@ function upgscene:draw()
         drawDevUI(self)
     end
 
+    self:renderPause()
+
     ui.endUI()
 end
 
@@ -474,6 +476,9 @@ function upgscene:keypressed(k)
     local tree = g.getUpgTree()
     if k == "tab" then
         g.gotoSceneViaMap("harvest_scene")
+    elseif k == "escape" then
+        local s = g.getSn()
+        s.paused = not s.paused
     elseif consts.DEV_MODE then
         -- upgrades for dev
         if k == "u" then
@@ -509,7 +514,7 @@ end
 
 
 
----@param file love.DroppedFile
+---@param file love.File
 function upgscene:filedropped(file)
     if consts.DEV_MODE then
         file:open("r")
