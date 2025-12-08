@@ -60,3 +60,32 @@ g.defineToken("chest_bread", "Bread Chest", {
     category = "chest",
     resources = {bread = 10},
 })
+
+
+
+
+g.defineUpgrade("better_chests", "Better Chests", {
+    kind = "TOKEN_MODIFIER",
+    description = "All chests earn %{1} more resources!",
+    valueFormatter = {"+%d%%"},
+
+    image = "chest_golden",
+
+    maxLevel = 5,
+
+    getValues = helper.percentageGetter(25, 50),
+
+    getTokenResourceMultiplier = function(uinfo, level, tok)
+        if tok.category == "chest" then
+            local a=uinfo:getValues(level)
+            return 1+(a/100)
+        end
+    end,
+
+    drawUI = function(uinfo, level, x, y, w, h)
+        -- use this for other stuff mayb?
+        local dy = math.sin(love.timer.getTime()*3 + 2.1)*2
+        g.drawImage("generic_increase_icon", x+w/4,y+h/4+dy)
+    end
+})
+

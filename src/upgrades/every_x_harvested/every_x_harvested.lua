@@ -72,7 +72,7 @@ for _,action in ipairs(ACTIONS) do
                 end
             end,
             drawUI = function(uinfo, level, x, y, w, h)
-                local t1 = love.timer.getTime()
+                local t1 = love.timer.getTime()/2
                 local t2 = t1 + math.pi
 
                 local cx,cy = x+w/2, y+h/2
