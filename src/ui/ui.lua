@@ -282,6 +282,7 @@ end
 
 
 ---@param color objects.Color
+---@param region kirigami.Region
 ---@param checked boolean
 function ui.Checkbox(color, region, checked)
 	local x, y, w, h = region:get()
