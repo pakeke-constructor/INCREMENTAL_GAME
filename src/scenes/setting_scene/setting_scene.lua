@@ -14,7 +14,7 @@ local TEXT = {
     MUSIC_VOLUME = loc "Music Volume",
     LANGUAGE = loc "Language",
     REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"}),
-    CRT_EFFECT = loc "CRT Effect"
+    CRT_EFFECT = "{o}"..loc("CRT Effect").."{/o}"
 }
 
 
@@ -87,9 +87,12 @@ end
 ---@param value integer
 ---@param label string
 ---@param labelR kirigami.Region
----@param sliderBaseR kirigami.Region
-local function drawVolume(value, label, labelR, sliderBaseR)
-    local sliderR, valueR = sliderBaseR:splitHorizontal(10, 1)
+---@param sliderR kirigami.Region
+local function drawVolume(value, label, labelR, sliderR)
+    local valueR = Kirigami(0, 0, 100, 16)
+        :centerY(sliderR)
+        :attachToRightOf(sliderR)
+        :padUnit(8, 0)
 
     love.graphics.setColor(1, 1, 1)
     richtext.printRich("{o}"..label.."{/o}", g.getSmallFont(32), labelR.x, labelR.y, labelR.w, "center")
@@ -111,7 +114,7 @@ local function drawVolume(value, label, labelR, sliderBaseR)
         valueR.x,
         valueR.y,
         valueR.w,
-        "right"
+        "left"
     )
     return value
 end
