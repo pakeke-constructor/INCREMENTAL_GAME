@@ -19,7 +19,7 @@ g.defineToken("mushroom_blue", "Blue Mushroom", {
     resources = {},
     description = "Spawns lightning when destroyed!",
     tokenDestroyed = function(tok)
-        worldutil.spawnLightning(tok.x, tok.y, 3)
+        worldutil.spawnLightning(tok.x, tok.y, 2)
     end
 })
 

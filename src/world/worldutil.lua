@@ -157,7 +157,7 @@ end
 ---@param damage number
 ---@param tokenChainSize number?
 function worldutil.spawnLightning(x, y, damage, tokenChainSize)
-    g.playWorldSound("lightning_foreground", 0.9, 0.4, 0.3, 0)
+    g.playWorldSound("lightning_zap", 0.9, 0.25, 0.3, 0)
     tokenChainSize = math.max(2, tokenChainSize or 5)
 
     local foundTokens = {}
