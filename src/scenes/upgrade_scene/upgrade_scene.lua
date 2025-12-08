@@ -176,7 +176,6 @@ local function drawUpgradeBoxes(self)
     end
 
     for _, upg in ipairs(upgrades) do
-        -- if editMode or revealUpgrades, 
         if isVisible(upg) then
             local level = upg.level
 
@@ -216,8 +215,9 @@ local function drawUpgradeBoxes(self)
                     lg.setColor(1,1,1,0.4)
                     lg.setLineWidth(1)
                 end
-                lg.rectangle("line",x-size2,y-size2, size2*2,size2*2)
-                if iml.wasJustClicked(x-size2,y-size2,size2*2,size2*2) then
+                local xx,yy,ww,hh = x-size2,y-size2, size2*2,size2*2
+                lg.rectangle("line",xx,yy,ww,hh)
+                if iml.wasJustClicked(xx,yy,ww,hh) then
                     if sel and sel.isAddingConnector then
                         -- create connector
                         local upg1 = tree:get(gridX,gridY)
@@ -229,6 +229,14 @@ local function drawUpgradeBoxes(self)
                     else
                         -- select new:
                         self.dev_editModeSelection = {x=gridX,y=gridY}
+                    end
+                end
+                if iml.isHovered(xx,yy,ww,hh) then
+                    local upg = tree:get(gridX,gridY)
+                    if upg then
+                        lg.setColor(1,1,1)
+                        local desc = UpgradeDescription(tree, upg)
+                        desc:draw(xx,yy)
                     end
                 end
             end
