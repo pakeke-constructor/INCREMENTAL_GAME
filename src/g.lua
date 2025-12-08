@@ -986,6 +986,7 @@ do
 ---@param tokCategory string
 ---@return number
 function g.getTokensDestroyedInCategory(tokCategory)
+    assert(g.CATEGORIES[tokCategory], "?")
     local name = "totalCategoryHarvested_"..tokCategory
     return g.getMetric(name) or 0
 end

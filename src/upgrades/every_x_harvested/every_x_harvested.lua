@@ -1,14 +1,6 @@
 
 
 
----@param id string
----@param name string
----@param def g.UpgradeDefinition
-local function defEveryXUpgrade(id, name, def)
-    def.description = "Every "
-    g.defineUpgrade(id, name, def)
-end
-
 
 -- Spawn a {bomb/crop/chest/lightning} for every 10 {grass/berry} harvested
 
@@ -42,26 +34,39 @@ local ACTIONS = {
 
 ---@class _.every_x_CATEGORY
 local CATEGORIES = {
-    {id = "mushroom", name="Mushroom",plural="mushrooms", count = 5},
-    {id = "grass", name="Grassy",plural="grass", count = 50},
-    {id = "berry", name="Berry",plural="berries", count = 50},
+    {id = "mushroom", name="Mushroom",plural="mushrooms", count=20, image="mushroom_red"},
+    {id = "grass", name="Grassy",plural="grass", count=50, image="grass_3"},
+    {id = "berry", name="Berry",plural="berries", count=50, image="blue_berry"},
 }
 
 
 for _,action in ipairs(ACTIONS) do
     for _,category in pairs(CATEGORIES) do
         local id = "every_x_" .. category.id .. "_do_" .. action.id
-        local name = category.name .. action.name -- eg:  "Mushroom Bombs"
-        defEveryXUpgrade(id, name, {
+        local name = category.name .. " " .. action.name -- eg:  "Mushroom Bombs"
+        local description = ("Every %{1} ".. category.plural .." harvested, ") .. action.description
+
+        g.defineUpgrade(id, name, {
             image = "null_image",
 
             kind = "HARVESTING",
+            maxLevel = 4,
 
-            description = ("Every %{1} ".. category.plural .." harvested, ") .. action.description,
+            description = description,
+
+            getValues = function (uinfo, level)
+                local count = category.count
+                if count > 5 then
+                    return category.count - level*5
+                end
+                return category.count - level*2
+            end,
 
             tokenDestroyed = function(uinfo,level, tok)
                 if tok.category == category.id then
-                    if g.getTokensDestroyedInCategory(category.id) then
+                    local count = uinfo:getValues(level)
+                    local numDestroyed = g.getTokensDestroyedInCategory(category.id)
+                    if numDestroyed%count == 0 then
                         action.func(tok)
                     end
                 end
@@ -71,12 +76,13 @@ for _,action in ipairs(ACTIONS) do
                 local t2 = t1 + math.pi
 
                 local cx,cy = x+w/2, y+h/2
-                local rad = w/3
+                local rad = w/4
 
                 local x1,y1 = cx+rad*math.sin(t1), cy+rad*math.cos(t1)
                 local x2,y2 = cx+rad*math.sin(t2), cy+rad*math.cos(t2)
 
-                g.drawImage(x1,y2)
+                g.drawImage(action.image, x1,y1)
+                g.drawImage(category.image, x2,y2)
             end
         })
     end
