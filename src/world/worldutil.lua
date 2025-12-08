@@ -99,17 +99,65 @@ end
 
 
 
+g.defineEntity("lightning_chain_visual", {
+    init = function (ent, tokens)
+        -- list of tokens to strike
+        ---@cast ent g.Entity|{_tokens:g.Token[],_baseX:number,_baseY:number}
+        ent._tokens = tokens
+        local bestY = -100
+        ent._baseX, ent._baseY = 0,0
+        for _,t in ipairs(tokens) do
+            if t.y > bestY then
+                ent._baseX = t.y
+                ent._baseY = t.y
+            end
+        end
+    end,
 
----@param x any
----@param y any
----@param damage any
-function worldutil.spawnLightning(x,y, damage, radius)
-    g.spawnEntity("lightning_animation", x,y)
-    g.playWorldSound("lightning_foreground",0.9,0.4,0.3,0)
-    radius = radius or 8
+    draw = function (ent)
+        local lw=lg.getLineWidth()
+        lg.setLineWidth(3)
+
+        ---@cast ent g.Entity|{_tokens:g.Token[],_baseX:number,_baseY:number}
+        local bx, by = ent._baseX, ent._baseY
+        for i = 1, #ent._tokens - 1 do
+            local tok1 = ent._tokens[i]
+            local tok2 = ent._tokens[i + 1]
+            lg.setColor(0.2,0.5,1)
+            lg.line(tok1.x - bx, tok1.y - by, tok2.x - bx, tok2.y - by)
+        end
+
+        lg.setLineWidth(lw)
+    end
+})
+
+
+local function findClosestToken( ) -- todo
     g.iterateTokensInArea(x,y, radius, function(tok)
-        g.damageToken(tok,damage)
+        -- iterate tokens!
+        -- add these to buffer and select random
     end)
+    return helper.randomChoice(buffer)
+end
+
+---@param x number
+---@param y number
+---@param damage number
+---@param tokenChainSize number
+function worldutil.spawnLightning(x,y, damage, tokenChainSize)
+    g.playWorldSound("lightning_foreground",0.9,0.4,0.3,0)
+    tokenChainSize = math.max(2, tokenChainSize or 4)
+
+    local foundTokens = {}
+    local tok = findClosestToken(x,y, foundTokens)
+    foundTokens[tok] = true
+
+    for i=1, tokenChainSize do
+        local tok1 = findClosestToken(tok.x, tok.y, foundTokens)
+        foundTokens[tok1] = true
+    end
+    
+    g.spawnEntity("lightning_chain_visual", tokenList)
 end
 
 
