@@ -669,11 +669,15 @@ function Tree.deserialize(data)
     local self = Tree()
 
     self.upgrades = keysToNumber(data.upgrades or {})
+    local deprecatedUpgrades = objects.Array()
     for hash,upg in pairs(self.upgrades) do
         if not g.isValidUpgrade(upg.id) then
             log.error("UHOH!!! Unknown upgrade, deleting: ", upg.id)
-            self.upgrades[hash] = nil
+            deprecatedUpgrades:add(hash)
         end
+    end
+    for _,hash in ipairs(deprecatedUpgrades) do
+        self.upgrades[hash]=nil
     end
 
     self.unboundUpgrades = data.unboundUpgrades or {}
