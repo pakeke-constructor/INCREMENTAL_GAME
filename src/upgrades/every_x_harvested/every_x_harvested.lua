@@ -16,10 +16,10 @@ end
 local ACTIONS = {
     {id = "lightning", name="Lightning", description="spawn lightning!", func = function(tok)
         worldutil.spawnLightning(tok.x, tok.y, 2, 6)
-    end},
+    end, image="lightning_icon"},
     {id = "bombs", name="Bombs", description="spawn a bomb!", func = function(tok)
         g.spawnToken("bomb",tok.x,tok.y)
-    end},
+    end, image="bomb"},
     {id = "chests", name="Chests", description="spawn a random chest!", func = function(tok)
         local x,y = g.getRandomPositionForToken()
         if x and y then
@@ -29,22 +29,22 @@ local ACTIONS = {
                 g.spawnToken("chest_small", x,y)
             end
         end
-    end},
+    end, image="chest_small"},
     {id = "money_bonus", name="Bonuses", description="earn +10 {money}", func = function(tok)
         g.addResource("money", 10)
-    end},
+    end,image="money"},
     {id = "xp_bonus", name="Experience", description="earn +10 experience", func = function(tok)
         local sn = g.getSn()
         sn.xp = sn.xp + 10
-    end},
+    end, image="xp_increase_icon"},
 }
 
 
 ---@class _.every_x_CATEGORY
 local CATEGORIES = {
-    {id = "mushroom", name="Mushroom",plural="mushrooms"},
-    {id = "grass", name="Grassy",plural="grass"},
-    {id = "berry", name="Berry",plural="berries"},
+    {id = "mushroom", name="Mushroom",plural="mushrooms", count = 5},
+    {id = "grass", name="Grassy",plural="grass", count = 50},
+    {id = "berry", name="Berry",plural="berries", count = 50},
 }
 
 
@@ -57,7 +57,7 @@ for _,action in ipairs(ACTIONS) do
 
             kind = "HARVESTING",
 
-            description = ("Every %{1} %s harvested, "):format(category.plural) .. action.description,
+            description = ("Every %{1} ".. category.plural .." harvested, ") .. action.description,
 
             tokenDestroyed = function(uinfo,level, tok)
                 if tok.category == category.id then
@@ -67,7 +67,16 @@ for _,action in ipairs(ACTIONS) do
                 end
             end,
             drawUI = function(uinfo, level, x, y, w, h)
-                -- todo: draw orbiting shit here?
+                local t1 = love.timer.getTime()
+                local t2 = t1 + math.pi
+
+                local cx,cy = x+w/2, y+h/2
+                local rad = w/3
+
+                local x1,y1 = cx+rad*math.sin(t1), cy+rad*math.cos(t1)
+                local x2,y2 = cx+rad*math.sin(t2), cy+rad*math.cos(t2)
+
+                g.drawImage(x1,y2)
             end
         })
     end
