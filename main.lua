@@ -214,6 +214,7 @@ end
 
 
 function love.update(dt)
+    collectgarbage()
     if heartbeat then
         heartbeat:HeartbeatStart()
     end
