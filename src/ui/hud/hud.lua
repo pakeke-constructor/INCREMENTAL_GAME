@@ -107,8 +107,14 @@ local function drawRewardsUI(upg, x, y)
     richtext.printRich(desc, font, boxR.x, boxR.y, boxR.w, "center")
 end
 
+local REWARDS_TEXT = assert(richtext.parseRichText(
+    "{o}"..loc("Rewards:", nil, {context = "A list of permanent buff that were given to players."}).."{/o}"
+))
+
 ---@param show {resource:boolean?,profile:boolean?,xpbar:boolean?}?
 function HUD:draw(show)
+    prof_zone("HUD:draw")
+
     show = show or {}
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
 
@@ -128,8 +134,7 @@ function HUD:draw(show)
     local rewards = g.getUpgTree():getUnboundUpgrades()
     if #rewards > 0 then
         love.graphics.setColor(1, 1, 1)
-        -- FIXME: Use "loc". Can't do it now because cyclic dependency between g and localization.
-        richtext.printRich("{o}Rewards:{/o}", g.getSmallFont(16), 0, resHudY - 2, self.sidebarR.w, "center")
+        richtext.printRich(REWARDS_TEXT, g.getSmallFont(16), 0, resHudY - 2, self.sidebarR.w, "center")
 
         local rows = math.ceil(#rewards / 3)
         local gridBaseR = Kirigami(0, resHudY + 16, REWARD_CELL_SIZE * 3, REWARD_CELL_SIZE * rows)
@@ -174,6 +179,8 @@ function HUD:draw(show)
         self.xpBarR = Kirigami(sidebarWidth, 0, r.w - sidebarWidth, 8)
         drawExperienceBar(self.xpBarR)
     end
+
+    prof_zone() -- prof_zone("HUD:draw")
 end
 
 function HUD:getSafeArea()
