@@ -182,19 +182,19 @@ end
 ---@param sy number?
 ---@param ox number?
 ---@param oy number?
-function helper.printTextOutlineSimple(text, font, x, y, r, sx, sy, ox, oy)
-    local col = {love.graphics.getColor()}
+function helper.printTextOutlineSimple(text, font, x, y, rot, sx, sy, ox, oy)
+    local r,g,b,a = love.graphics.getColor()
     -- Draw outline
-    love.graphics.setColor(0, 0, 0, col[4])
+    love.graphics.setColor(0, 0, 0, a)
     for dy = -1, 1 do
         for dx = -1, 1 do
             if not (dx == 0 and dy == 0) then
-                love.graphics.print(text, font, x + dx, y + dy, r, sx, sy, ox, oy)
+                love.graphics.print(text, font, x + dx, y + dy, rot, sx, sy, ox, oy)
             end
         end
     end
-    love.graphics.setColor(col)
-    love.graphics.print(text, font, x, y, r, sx, sy, ox, oy)
+    love.graphics.setColor(r,g,b,a)
+    love.graphics.print(text, font, x, y, rot, sx, sy, ox, oy)
 end
 
 
