@@ -68,15 +68,18 @@ local function Class(name)
 
     local class = {}
     class.__index = class
-    class.___implementors = {--[[
-        -- set of Classes that this class implements
-        [Class] -> true
-    ]]}
-    class.___implementors[class] = true
+    class.__name = name
+    class.___implementors = {}
 
-    typecheck.addType(name, function(x)
-        return class:isInstance(x), "Expected " .. name
-    end)
+    local function isAncestor(base, derived)
+        for k in pairs(base.___implementors) do
+            if k == derived or isAncestor(k, derived) then
+                return true
+            end
+        end
+
+        return false
+    end
 
     function class:isInstance(x)
         assertStaticCall(self, class)
@@ -84,17 +87,19 @@ local function Class(name)
             return false
         end
         local cls = getmetatable(x)
-        return class.___implementors[cls]
+        if cls == class then
+            return true
+        end
+
+        return isAncestor(class, cls)
     end
 
-    local tableTc = typecheck.assert("table", "table")
-    function class:implement(otherClass)
-        tableTc(self, otherClass)
+    function class:implement(base)
         assertStaticCall(self, class)
-        if otherClass.___implementors then
-            otherClass.___implementors[self] = true
+        if base.___implementors then
+            base.___implementors[self] = true
         end
-        for k,v in pairs(otherClass) do
+        for k,v in pairs(base) do
             if not self[k] then
                 self[k] = v
             end
