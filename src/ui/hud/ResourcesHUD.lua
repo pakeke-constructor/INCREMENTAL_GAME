@@ -163,6 +163,8 @@ end
 ---@param barimagefill string
 ---@param noDraw boolean?
 local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, barimagefill, noDraw)
+    prof_zone("_drawResourcesMeter "..kind)
+
     local bw, bh = select(3, g.getImageQuad(barimage):getViewport())
     local reg = Kirigami(x, y, bw * scale, bh * scale)
     local iconR = reg
@@ -255,6 +257,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
     end
 
     local ux, uy = iconR:getCenter()
+    prof_zone() -- prof_zone("_drawResourcesMeter "..kind)
     return ux, uy, reg.x + reg.w
 end
 
@@ -305,6 +308,7 @@ local lerp = helper.lerp
 
 
 function Resources:drawParticles()
+    prof_zone("Resources:drawParticles")
     love.graphics.setColor(1,1,1)
     for _, particle in ipairs(self.particles) do
         local x = particle.x
@@ -329,12 +333,16 @@ function Resources:drawParticles()
 
         g.drawImage(particle.image, x, y, particle.rot, scale)
     end
+    prof_zone() --  prof_zone("Resources:drawParticles")
 end
 
 ---@param noDraw boolean?
 function Resources:draw(noDraw)
+    prof_zone("Resources:draw")
     self:drawParticles()
-    return self:drawHUD(noDraw)
+    local r = self:drawHUD(noDraw)
+    prof_zone()
+    return r
 end
 
 
