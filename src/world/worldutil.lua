@@ -227,8 +227,24 @@ function worldutil.updateWaddleAnimation(ent,vx,vy)
         ent.oy = origOy - height
         ent.rot = rot
     else
+        ent.rot = 0
         ent.oy = origOy
     end
+end
+
+---@param ent {x:number,y:number}
+---@param dt number
+---@param destx number
+---@param desty number
+---@param speed number
+function worldutil.moveToTarget(ent, dt, destx, desty, speed)
+    local rot = math.atan2(desty - ent.y, destx - ent.x)
+    local magn = helper.magnitude(destx - ent.x, desty - ent.y)
+    local vx = math.cos(rot) * math.min(speed * dt, magn)
+    local vy = math.sin(rot) * math.min(speed * dt, magn)
+    ent.x = ent.x + vx
+    ent.y = ent.y + vy
+    return vx, vy
 end
 
 

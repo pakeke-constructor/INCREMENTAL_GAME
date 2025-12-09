@@ -74,6 +74,10 @@ function World:init()
             end
         end
     end
+
+    -- Player avatar. Cannot initialize it in here due to cyclic dependency with g.spawnEntity and this world.
+    ---@type g.Entity|nil
+    self.playerAvatar = nil
 end
 
 
@@ -604,6 +608,12 @@ function World:_update(dt)
         end
 
         elist:flush()
+    end
+
+    -- Player avatar
+    if not self.playerAvatar or not self.entities:has(self.playerAvatar) then
+        local wx, wy = g.getWorldDimensions()
+        self.playerAvatar = g.spawnEntity("avatar", wx / 2, wy / 2)
     end
 
     self.resourcesPerSecond = {}
