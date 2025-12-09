@@ -71,10 +71,31 @@ _G.json = require("lib.json")
 _G.consts = require("src.consts")
 
 -- Profiler zones
-local prof = require("src.modules.zone")
-_G.prof_push, _G.prof_pop = prof.push, prof.pop
+local profilerStackCount = 0
 if consts.PROFILING then
     heartbeat = require("lib.heartbeat.heartbeat")
+
+    ---@param name string
+    function _G.prof_push(name)
+        profilerStackCount = profilerStackCount + 1
+        return heartbeat:PushNamedScope(name)
+    end
+
+    function _G.prof_pop()
+        assert(profilerStackCount > 0, "more pops than pushes")
+        profilerStackCount = profilerStackCount - 1
+        return heartbeat:PopScope()
+    end
+else
+    ---@param name string
+    function _G.prof_push(name)
+        profilerStackCount = profilerStackCount + 1
+    end
+
+    function _G.prof_pop()
+        assert(profilerStackCount > 0, "more pops than pushes")
+        profilerStackCount = profilerStackCount - 1
+    end
 end
 
 local AutoAtlas = require("lib.AutoAtlas.AutoAtlas")
@@ -283,7 +304,7 @@ function love.draw()
         heartbeat:HeartbeatEnd()
     end
 
-    assert(prof.count() == 0, "more pushes than pops")
+    assert(profilerStackCount == 0, "more pushes than pops")
 end
 
 
