@@ -1,6 +1,8 @@
 
 local love = require("love")
 
+local heartbeat = nil
+
 
 ---@type love.graphics
 _G.lg=love.graphics
@@ -67,6 +69,13 @@ end
 
 _G.json = require("lib.json")
 _G.consts = require("src.consts")
+
+-- Profiler zones
+_G.prof_zone = require("src.modules.zone")
+package.loaded["jit.zone"] = _G.prof_zone -- Allow LuaJIT profiler to use our modifized zone functions
+if consts.PROFILING then
+    heartbeat = require("lib.heartbeat.heartbeat")
+end
 
 local AutoAtlas = require("lib.AutoAtlas.AutoAtlas")
 _G.atlas = AutoAtlas(consts.ATLAS_SIZE, consts.ATLAS_SIZE)
@@ -189,6 +198,9 @@ function love.load(arg)
     end
 
     _isloadtime = false
+    if heartbeat then
+        heartbeat:StartCapture()
+    end
 end
 
 function love.quit()
@@ -202,6 +214,10 @@ end
 
 
 function love.update(dt)
+    if heartbeat then
+        heartbeat:HeartbeatStart()
+    end
+
     sfx.update()
     iml.setPointer(love.mouse.getPosition())
 
@@ -246,6 +262,10 @@ function love.draw()
     love.graphics.setShader()
     if crtActive then
         crt.finish()
+    end
+
+    if heartbeat then
+        heartbeat:HeartbeatEnd()
     end
 end
 
