@@ -552,11 +552,6 @@ function g.getWorldDimensions()
     return w, h
 end
 
----@return number?, number?
-function g.getMouseHarvesterPosition()
-    return currentSession.mainWorld.mouseX, currentSession.mainWorld.mouseY
-end
-
 
 
 ---@alias g.ResourceType "money"|"fabric"|"bread"|"juice"|"fish"

@@ -6,12 +6,8 @@ local SPEED = 50
 
 ---@param dt number
 function PlayerAvatarEntity:update(dt)
-    local mx, my = g.getMouseHarvesterPosition()
-    local destx, desty = self.x, self.y
-    if mx and my then
-        destx, desty = mx, my
-    end
-
+    local world = g.getMainWorld()
+    local destx, desty = world.mouseX or self.x, world.mouseY or self.y
     local vx, vy = worldutil.moveToTarget(self, dt, destx, desty, SPEED)
     worldutil.updateWaddleAnimation(self, vx, vy)
 end
