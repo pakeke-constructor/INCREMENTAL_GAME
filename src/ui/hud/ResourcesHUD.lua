@@ -212,8 +212,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         -- Draw resource value
         love.graphics.setColor(1, 1, 1)
         local font = g.getBigFont(16)
-        local r = textR
-            :set(nil, nil, nil, font:getHeight())
+        local r = Kirigami(textR.x, textR.y, textR.w, font:getHeight())
             :padUnit(4, 0, 8, 0)
             :centerY(textR)
             :moveUnit(0, math.sin(love.timer.getTime()*3) - 1)
