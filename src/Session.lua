@@ -125,7 +125,7 @@ end
 --- updates session and main world. should only be called once, (hence _)
 ---@param dt any
 function Session:_update(dt)
-    prof_zone("Session:_update")
+    prof_push("Session:_update")
 
     if self.paused then
         dt = 0
@@ -142,7 +142,7 @@ function Session:_update(dt)
 
     self.xpRequirement = calculateXPRequirement()
 
-    prof_zone()
+    prof_pop()
 end
 
 

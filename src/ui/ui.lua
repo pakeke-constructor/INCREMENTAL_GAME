@@ -364,7 +364,7 @@ local uiPushed = false
 
 function ui.startUI()
 	assert(not uiPushed, "attempt to call startUI twice")
-	prof_zone("ui")
+	prof_push("ui")
 	uiPushed = true
 	lg.push()
 	local t = ui.getUIScalingTransform()
@@ -377,7 +377,7 @@ function ui.endUI()
 	uiPushed = false
 	iml.popTransform()
 	lg.pop()
-	prof_zone() -- prof_zone("ui")
+	prof_pop() -- prof_push("ui")
 end
 
 function ui.assertUIStarted()

@@ -777,7 +777,7 @@ function harvest:draw()
 
     -- show stats in dev-mode
     if consts.DEV_MODE then
-        prof_zone("debug stats")
+        prof_push("debug stats")
 
         love.graphics.setColor(1, 1, 1)
         local r = Kirigami(0,0,ui.getScaledUIDimensions())
@@ -797,7 +797,7 @@ function harvest:draw()
             i = i - 1
         end
 
-        prof_zone() -- prof_zone("debug stats")
+        prof_pop() -- prof_push("debug stats")
     end
 
     self:renderPause()

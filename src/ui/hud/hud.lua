@@ -113,7 +113,7 @@ local REWARDS_TEXT = assert(richtext.parseRichText(
 
 ---@param show {resource:boolean?,profile:boolean?,xpbar:boolean?}?
 function HUD:draw(show)
-    prof_zone("HUD:draw")
+    prof_push("HUD:draw")
 
     show = show or {}
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
@@ -180,7 +180,7 @@ function HUD:draw(show)
         drawExperienceBar(self.xpBarR)
     end
 
-    prof_zone() -- prof_zone("HUD:draw")
+    prof_pop() -- prof_push("HUD:draw")
 end
 
 function HUD:getSafeArea()

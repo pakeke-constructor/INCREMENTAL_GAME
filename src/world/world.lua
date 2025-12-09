@@ -359,12 +359,12 @@ local function hash(x, y)
 end
 
 function World:_draw()
-    prof_zone("world:_draw")
+    prof_push("world:_draw")
 
     -- local w,h = g.getWorldDimensions()
     -- love.graphics.setColor(0,0,0)
     -- love.graphics.rectangle("line", 0,0, w,h)
-    prof_zone("draw_tiles")
+    prof_push("draw_tiles")
     love.graphics.setColor(1, 1, 1)
     local wtw = g.stats.WorldTileWidth - 1
     local wth = g.stats.WorldTileHeight - 1
@@ -441,14 +441,14 @@ function World:_draw()
             end
         end
     end
-    prof_zone() -- prof_zone("draw_tiles")
+    prof_pop() -- prof_push("draw_tiles")
 
     ---@type (g.Token|g.Entity)[]
     local objlist = {}
 
     -- drawGround()
 
-    prof_zone("token/entity sort")
+    prof_push("token/entity sort")
     -- Add token to be drawn
     for _, tok in ipairs(self.tokens) do
         objlist[#objlist+1] = tok
@@ -461,10 +461,10 @@ function World:_draw()
 
     -- Sort by Y bottom first
     table.sort(objlist, sortOrder)
-    prof_zone() -- prof_zone("token/entity sort")
+    prof_pop() -- prof_push("token/entity sort")
 
     -- Draw everything.
-    prof_zone("token/entity draw")
+    prof_push("token/entity draw")
     for _, t_or_e in ipairs(objlist) do
         if g.isToken(t_or_e) then
             ---@cast t_or_e g.Token
@@ -474,7 +474,7 @@ function World:_draw()
             drawEntity(t_or_e)
         end
     end
-    prof_zone() -- prof_zone("token/entity draw")
+    prof_pop() -- prof_push("token/entity draw")
 
     self:_drawDamageNumbers()
 
@@ -491,7 +491,7 @@ function World:_draw()
         )
     end
 
-    prof_zone()
+    prof_pop()
 end
 
 
@@ -922,11 +922,11 @@ end
 
 ---@private
 function World:_drawDamageNumbers()
-    prof_zone("World:_drawDamageNumbers")
+    prof_push("World:_drawDamageNumbers")
 
     local smallFont = g.getSmallFont(16)
     local fontHeight = smallFont:getHeight()
-    prof_zone("draw numbers")
+    prof_push("draw numbers")
     for _, dn in ipairs(self.damageNumbers) do
         if dn.lifetime >= 0 then
             love.graphics.setColor(dn.color)
@@ -937,9 +937,9 @@ function World:_drawDamageNumbers()
             helper.printTextOutlineSimple(text, smallFont, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
         end
     end
-    prof_zone() -- prof_zone("draw numbers")
+    prof_pop() -- prof_push("draw numbers")
 
-    prof_zone("draw sparks")
+    prof_push("draw sparks")
     for _, dn in ipairs(self.damageNumbers) do
         if dn.lifetime < 0 then
             love.graphics.setColor(dn.color)
@@ -947,9 +947,9 @@ function World:_drawDamageNumbers()
             g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
         end
     end
-    prof_zone() -- prof_zone("draw sparks")
+    prof_pop() -- prof_push("draw sparks")
 
-    prof_zone() -- prof_zone("World:_drawDamageNumbers")
+    prof_pop() -- prof_push("World:_drawDamageNumbers")
 end
 
 

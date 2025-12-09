@@ -71,8 +71,8 @@ _G.json = require("lib.json")
 _G.consts = require("src.consts")
 
 -- Profiler zones
-_G.prof_zone = require("src.modules.zone")
-package.loaded["jit.zone"] = _G.prof_zone -- Allow LuaJIT profiler to use our modifized zone functions
+local prof = require("src.modules.zone")
+_G.prof_push, _G.prof_pop = prof.push, prof.pop
 if consts.PROFILING then
     heartbeat = require("lib.heartbeat.heartbeat")
 end
@@ -166,7 +166,6 @@ TESTS END
 
 local sceneManager = require("src.scenes.sceneManager")
 local sfx = require("src.sound.sfx")
-local wasSimulating = false
 
 function love.load(arg)
     assert(love.filesystem.createDirectory("saves"))
@@ -188,7 +187,6 @@ function love.load(arg)
         -- This simulates 10 minutes of playtime.
         -- If your machine is fast enough, this should finish in less than 10 seconds.
         simulation.start(600)
-        wasSimulating = true
     end
 
     if simulation.isSimulating() then
@@ -219,7 +217,7 @@ function love.update(dt)
         heartbeat:HeartbeatStart()
     end
 
-    prof_zone("love.update")
+    prof_push("love.update")
 
     sfx.update()
     iml.setPointer(love.mouse.getPosition())
@@ -245,18 +243,18 @@ function love.update(dt)
 
     local sc, scname = sceneManager.getCurrentScene()
     if sc and sc.update then
-        prof_zone("scene "..scname..":update")
+        prof_push("scene "..scname..":update")
 
         sc:update(dt)
 
-        prof_zone()
+        prof_pop()
     end
 
-    prof_zone() -- prof_zone("love.update")
+    prof_pop() -- prof_push("love.update")
 end
 
 function love.draw()
-    prof_zone("love.draw")
+    prof_push("love.draw")
 
     local crtActive = settings.isCRTActive()
 
@@ -266,24 +264,26 @@ function love.draw()
     love.graphics.setShader(subpixel.shader)
     local sc, scname = sceneManager.getCurrentScene()
     if sc and sc.draw then
-        prof_zone("scene "..scname..":draw")
+        prof_push("scene "..scname..":draw")
 
         iml.beginFrame()
         sc:draw()
         iml.endFrame()
 
-        prof_zone()
+        prof_pop()
     end
     love.graphics.setShader()
     if crtActive then
         crt.finish()
     end
 
-    prof_zone() -- prof_zone("love.draw")
+    prof_pop() -- prof_push("love.draw")
 
     if heartbeat then
         heartbeat:HeartbeatEnd()
     end
+
+    assert(prof.count() == 0, "more pushes than pops")
 end
 
 
