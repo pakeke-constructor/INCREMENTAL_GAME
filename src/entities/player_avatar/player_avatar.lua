@@ -12,13 +12,8 @@ function PlayerAvatarEntity:update(dt)
         destx, desty = mx, my
     end
 
-    local rot = math.atan2(desty - self.y, destx - self.x)
-    local magn = helper.magnitude(destx - self.x, desty - self.y)
-    local vx = math.cos(rot) * math.min(SPEED * dt, magn)
-    local vy = math.sin(rot) * math.min(SPEED * dt, magn)
+    local vx, vy = worldutil.moveToTarget(self, dt, destx, desty, SPEED)
     worldutil.updateWaddleAnimation(self, vx, vy)
-    self.x = self.x + vx
-    self.y = self.y + vy
 end
 
 function PlayerAvatarEntity:draw()
