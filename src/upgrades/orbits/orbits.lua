@@ -97,3 +97,20 @@ defOrbitalUpgrade("slime_bucket", "Slime Bucket", {
 
 
 
+
+
+g.defineUpgrade("better_orbits", "Better Orbits", {
+    kind = "HARVESTING",
+    getValues = helper.percentageGetter(30,30),
+    valueFormatter = {"%d%%"},
+    description = "Increases speed of ALL orbitals by %{1}",
+    maxLevel = 4,
+    getOrbitSpeedMultiplier = function(self,level)
+        local a=self:getValues(level)
+        return 1+(a/100)
+    end
+})
+
+
+
+
