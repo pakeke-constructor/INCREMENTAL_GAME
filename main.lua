@@ -1,6 +1,8 @@
 
 local love = require("love")
 
+local heartbeat = nil
+
 
 ---@type love.graphics
 _G.lg=love.graphics
@@ -67,6 +69,34 @@ end
 
 _G.json = require("lib.json")
 _G.consts = require("src.consts")
+
+-- Profiler zones
+local profilerStackCount = 0
+if consts.PROFILING then
+    heartbeat = require("lib.heartbeat.heartbeat")
+
+    ---@param name string
+    function _G.prof_push(name)
+        profilerStackCount = profilerStackCount + 1
+        return heartbeat:PushNamedScope(name)
+    end
+
+    function _G.prof_pop()
+        assert(profilerStackCount > 0, "more pops than pushes")
+        profilerStackCount = profilerStackCount - 1
+        return heartbeat:PopScope()
+    end
+else
+    ---@param name string
+    function _G.prof_push(name)
+        profilerStackCount = profilerStackCount + 1
+    end
+
+    function _G.prof_pop()
+        assert(profilerStackCount > 0, "more pops than pushes")
+        profilerStackCount = profilerStackCount - 1
+    end
+end
 
 local AutoAtlas = require("lib.AutoAtlas.AutoAtlas")
 _G.atlas = AutoAtlas(consts.ATLAS_SIZE, consts.ATLAS_SIZE)
@@ -157,7 +187,6 @@ TESTS END
 
 local sceneManager = require("src.scenes.sceneManager")
 local sfx = require("src.sound.sfx")
-local wasSimulating = false
 
 function love.load(arg)
     assert(love.filesystem.createDirectory("saves"))
@@ -179,7 +208,6 @@ function love.load(arg)
         -- This simulates 10 minutes of playtime.
         -- If your machine is fast enough, this should finish in less than 10 seconds.
         simulation.start(600)
-        wasSimulating = true
     end
 
     if simulation.isSimulating() then
@@ -189,6 +217,9 @@ function love.load(arg)
     end
 
     _isloadtime = false
+    if heartbeat then
+        heartbeat:StartCapture()
+    end
 end
 
 function love.quit()
@@ -202,6 +233,13 @@ end
 
 
 function love.update(dt)
+    collectgarbage()
+    if heartbeat then
+        heartbeat:HeartbeatStart()
+    end
+
+    prof_push("love.update")
+
     sfx.update()
     iml.setPointer(love.mouse.getPosition())
 
@@ -224,29 +262,49 @@ function love.update(dt)
         idleTime = idleTime + dt
     end
 
-    local sc = sceneManager.getCurrentScene()
+    local sc, scname = sceneManager.getCurrentScene()
     if sc and sc.update then
+        prof_push("scene "..scname..":update")
+
         sc:update(dt)
+
+        prof_pop()
     end
+
+    prof_pop() -- prof_push("love.update")
 end
 
 function love.draw()
+    prof_push("love.draw")
+
     local crtActive = settings.isCRTActive()
 
     if crtActive then
         crt.start()
     end
     love.graphics.setShader(subpixel.shader)
-    local sc = sceneManager.getCurrentScene()
+    local sc, scname = sceneManager.getCurrentScene()
     if sc and sc.draw then
+        prof_push("scene "..scname..":draw")
+
         iml.beginFrame()
         sc:draw()
         iml.endFrame()
+
+        prof_pop()
     end
     love.graphics.setShader()
     if crtActive then
         crt.finish()
     end
+
+    prof_pop() -- prof_push("love.draw")
+
+    if heartbeat then
+        heartbeat:HeartbeatEnd()
+    end
+
+    assert(profilerStackCount == 0, "more pushes than pops")
 end
 
 

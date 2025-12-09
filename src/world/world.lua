@@ -359,9 +359,12 @@ local function hash(x, y)
 end
 
 function World:_draw()
+    prof_push("world:_draw")
+
     -- local w,h = g.getWorldDimensions()
     -- love.graphics.setColor(0,0,0)
     -- love.graphics.rectangle("line", 0,0, w,h)
+    prof_push("draw_tiles")
     love.graphics.setColor(1, 1, 1)
     local wtw = g.stats.WorldTileWidth - 1
     local wth = g.stats.WorldTileHeight - 1
@@ -438,12 +441,14 @@ function World:_draw()
             end
         end
     end
+    prof_pop() -- prof_push("draw_tiles")
 
     ---@type (g.Token|g.Entity)[]
     local objlist = {}
 
     -- drawGround()
 
+    prof_push("token/entity sort")
     -- Add token to be drawn
     for _, tok in ipairs(self.tokens) do
         objlist[#objlist+1] = tok
@@ -456,8 +461,10 @@ function World:_draw()
 
     -- Sort by Y bottom first
     table.sort(objlist, sortOrder)
+    prof_pop() -- prof_push("token/entity sort")
 
     -- Draw everything.
+    prof_push("token/entity draw")
     for _, t_or_e in ipairs(objlist) do
         if g.isToken(t_or_e) then
             ---@cast t_or_e g.Token
@@ -467,6 +474,7 @@ function World:_draw()
             drawEntity(t_or_e)
         end
     end
+    prof_pop() -- prof_push("token/entity draw")
 
     self:_drawDamageNumbers()
 
@@ -482,6 +490,8 @@ function World:_draw()
             HARVEST_CIRCLE_BORDER
         )
     end
+
+    prof_pop()
 end
 
 
@@ -912,15 +922,14 @@ end
 
 ---@private
 function World:_drawDamageNumbers()
+    prof_push("World:_drawDamageNumbers")
+
     local smallFont = g.getSmallFont(16)
     local fontHeight = smallFont:getHeight()
+    prof_push("draw numbers")
     for _, dn in ipairs(self.damageNumbers) do
-        love.graphics.setColor(dn.color)
-
-        if dn.lifetime < 0 then
-            local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
-            g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
-        else
+        if dn.lifetime >= 0 then
+            love.graphics.setColor(dn.color)
             local tspawn = helper.clamp((DAMAGE_NUMBER_LIFETIME - dn.lifetime) / DAMAGE_NUMBER_POPUP_TIME, 0, 1)
             local scale = math.max(helper.EASINGS.easeOutBack(tspawn) ^ 3, 0)
             local text = g.formatNumber(dn.number)
@@ -928,6 +937,19 @@ function World:_drawDamageNumbers()
             helper.printTextOutlineSimple(text, smallFont, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
         end
     end
+    prof_pop() -- prof_push("draw numbers")
+
+    prof_push("draw sparks")
+    for _, dn in ipairs(self.damageNumbers) do
+        if dn.lifetime < 0 then
+            love.graphics.setColor(dn.color)
+            local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
+            g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
+        end
+    end
+    prof_pop() -- prof_push("draw sparks")
+
+    prof_pop() -- prof_push("World:_drawDamageNumbers")
 end
 
 
