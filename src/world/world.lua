@@ -928,9 +928,8 @@ function World:_drawDamageNumbers()
     local fontHeight = smallFont:getHeight()
     prof_zone("draw numbers")
     for _, dn in ipairs(self.damageNumbers) do
-        love.graphics.setColor(dn.color)
-
         if dn.lifetime >= 0 then
+            love.graphics.setColor(dn.color)
             local tspawn = helper.clamp((DAMAGE_NUMBER_LIFETIME - dn.lifetime) / DAMAGE_NUMBER_POPUP_TIME, 0, 1)
             local scale = math.max(helper.EASINGS.easeOutBack(tspawn) ^ 3, 0)
             local text = g.formatNumber(dn.number)
@@ -942,9 +941,8 @@ function World:_drawDamageNumbers()
 
     prof_zone("draw sparks")
     for _, dn in ipairs(self.damageNumbers) do
-        love.graphics.setColor(dn.color)
-
         if dn.lifetime < 0 then
+            love.graphics.setColor(dn.color)
             local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
             g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
         end
