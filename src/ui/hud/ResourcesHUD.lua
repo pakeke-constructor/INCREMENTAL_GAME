@@ -153,6 +153,18 @@ local function easeInCubic(x)
     return x * x * x
 end
 
+
+local function currencyDevButton(txt, rr)
+    rr = rr:padRatio(0.1)
+    love.graphics.setColor(0,0,0,0.3)
+    love.graphics.rectangle("fill", rr:get())
+    love.graphics.setColor(1,1,1)
+    richtext.printRichContained("{o}{c r=1 g=1 b=1}"..txt, g.getBigFont(16), rr:get())
+    if iml.wasJustClicked(rr:get()) then
+        return true
+    end
+end
+
 ---@param self g.hud.Resources
 ---@param kind g.ResourceType
 ---@param x number
@@ -226,31 +238,21 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         g.drawImage(image, icx, icy, rot, scale * helper.lerp(1, 1.25, (1 - t) ^ 2))
 
         if consts.DEV_MODE then
-            local function button(txt, rr)
-                rr = rr:padRatio(0.1)
-                love.graphics.setColor(0,0,0,0.3)
-                love.graphics.rectangle("fill", rr:get())
-                love.graphics.setColor(1,1,1)
-                richtext.printRichContained("{o}{c r=1 g=1 b=1}"..txt, font, rr:get())
-                if iml.wasJustClicked(rr:get()) then
-                    return true
-                end
-            end
             local _,b = reg:splitHorizontal(1,1)
             local left,right = b:splitHorizontal(1,1)
             local up10, down10 = left:splitVertical(1,1)
             local upFull,downFull = right:splitVertical(1,1)
             local resLimit = g.getResourceLimit(kind)
-            if button("^", up10) then
+            if currencyDevButton("^", up10) then
                 g.addResource(kind, resLimit/10)
             end
-            if button("v", down10) then
+            if currencyDevButton("v", down10) then
                 g.addResource(kind, -resLimit/10)
             end
-            if button("^^^", upFull) then
+            if currencyDevButton("^^^", upFull) then
                 g.addResource(kind, resLimit)
             end
-            if button("VVV", downFull) then
+            if currencyDevButton("VVV", downFull) then
                 g.addResource(kind, -resLimit)
             end
         end
