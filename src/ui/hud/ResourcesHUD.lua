@@ -153,6 +153,18 @@ local function easeInCubic(x)
     return x * x * x
 end
 
+
+local function currencyDevButton(txt, rr)
+    rr = rr:padRatio(0.1)
+    love.graphics.setColor(0,0,0,0.3)
+    love.graphics.rectangle("fill", rr:get())
+    love.graphics.setColor(1,1,1)
+    richtext.printRichContained("{o}{c r=1 g=1 b=1}"..txt, g.getBigFont(16), rr:get())
+    if iml.wasJustClicked(rr:get()) then
+        return true
+    end
+end
+
 ---@param self g.hud.Resources
 ---@param kind g.ResourceType
 ---@param x number
@@ -163,6 +175,8 @@ end
 ---@param barimagefill string
 ---@param noDraw boolean?
 local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, barimagefill, noDraw)
+    prof_push("_drawResourcesMeter "..kind)
+
     local bw, bh = select(3, g.getImageQuad(barimage):getViewport())
     local reg = Kirigami(x, y, bw * scale, bh * scale)
     local iconR = reg
@@ -198,8 +212,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         -- Draw resource value
         love.graphics.setColor(1, 1, 1)
         local font = g.getBigFont(16)
-        local r = textR
-            :set(nil, nil, nil, font:getHeight())
+        local r = Kirigami(textR.x, textR.y, textR.w, font:getHeight())
             :padUnit(4, 0, 8, 0)
             :centerY(textR)
             :moveUnit(0, math.sin(love.timer.getTime()*3) - 1)
@@ -224,37 +237,28 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         g.drawImage(image, icx, icy, rot, scale * helper.lerp(1, 1.25, (1 - t) ^ 2))
 
         if consts.DEV_MODE then
-            local function button(txt, rr)
-                rr = rr:padRatio(0.1)
-                love.graphics.setColor(0,0,0,0.3)
-                love.graphics.rectangle("fill", rr:get())
-                love.graphics.setColor(1,1,1)
-                richtext.printRichContained("{o}{c r=1 g=1 b=1}"..txt, font, rr:get())
-                if iml.wasJustClicked(rr:get()) then
-                    return true
-                end
-            end
             local _,b = reg:splitHorizontal(1,1)
             local left,right = b:splitHorizontal(1,1)
             local up10, down10 = left:splitVertical(1,1)
             local upFull,downFull = right:splitVertical(1,1)
             local resLimit = g.getResourceLimit(kind)
-            if button("^", up10) then
+            if currencyDevButton("^", up10) then
                 g.addResource(kind, resLimit/10)
             end
-            if button("v", down10) then
+            if currencyDevButton("v", down10) then
                 g.addResource(kind, -resLimit/10)
             end
-            if button("^^^", upFull) then
+            if currencyDevButton("^^^", upFull) then
                 g.addResource(kind, resLimit)
             end
-            if button("VVV", downFull) then
+            if currencyDevButton("VVV", downFull) then
                 g.addResource(kind, -resLimit)
             end
         end
     end
 
     local ux, uy = iconR:getCenter()
+    prof_pop() -- prof_push("_drawResourcesMeter "..kind)
     return ux, uy, reg.x + reg.w
 end
 
@@ -305,6 +309,7 @@ local lerp = helper.lerp
 
 
 function Resources:drawParticles()
+    prof_push("Resources:drawParticles")
     love.graphics.setColor(1,1,1)
     for _, particle in ipairs(self.particles) do
         local x = particle.x
@@ -329,12 +334,16 @@ function Resources:drawParticles()
 
         g.drawImage(particle.image, x, y, particle.rot, scale)
     end
+    prof_pop() --  prof_push("Resources:drawParticles")
 end
 
 ---@param noDraw boolean?
 function Resources:draw(noDraw)
+    prof_push("Resources:draw")
     self:drawParticles()
-    return self:drawHUD(noDraw)
+    local r = self:drawHUD(noDraw)
+    prof_pop()
+    return r
 end
 
 
