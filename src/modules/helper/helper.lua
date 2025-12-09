@@ -177,7 +177,7 @@ end
 ---@param font love.Font
 ---@param x number
 ---@param y number
----@param r number?
+---@param rot number?
 ---@param sx number?
 ---@param sy number?
 ---@param ox number?
