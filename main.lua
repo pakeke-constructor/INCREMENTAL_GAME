@@ -218,6 +218,8 @@ function love.update(dt)
         heartbeat:HeartbeatStart()
     end
 
+    prof_zone("love.update")
+
     sfx.update()
     iml.setPointer(love.mouse.getPosition())
 
@@ -240,29 +242,43 @@ function love.update(dt)
         idleTime = idleTime + dt
     end
 
-    local sc = sceneManager.getCurrentScene()
+    local sc, scname = sceneManager.getCurrentScene()
     if sc and sc.update then
+        prof_zone("scene "..scname..":update")
+
         sc:update(dt)
+
+        prof_zone()
     end
+
+    prof_zone() -- prof_zone("love.update")
 end
 
 function love.draw()
+    prof_zone("love.draw")
+
     local crtActive = settings.isCRTActive()
 
     if crtActive then
         crt.start()
     end
     love.graphics.setShader(subpixel.shader)
-    local sc = sceneManager.getCurrentScene()
+    local sc, scname = sceneManager.getCurrentScene()
     if sc and sc.draw then
+        prof_zone("scene "..scname..":draw")
+
         iml.beginFrame()
         sc:draw()
         iml.endFrame()
+
+        prof_zone()
     end
     love.graphics.setShader()
     if crtActive then
         crt.finish()
     end
+
+    prof_zone() -- prof_zone("love.draw")
 
     if heartbeat then
         heartbeat:HeartbeatEnd()
