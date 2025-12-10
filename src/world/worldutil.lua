@@ -250,6 +250,21 @@ end
 
 
 
+---@param tokid string
+---@param x number
+---@param y number
+---@param radius number
+function worldutil.spawnTokenNearPosition(tokid, x, y, radius)
+    local magn = helper.lerp(0, radius, love.math.random())
+    local rot = helper.lerp(0, 2 * math.pi, love.math.random())
+    local tx = math.cos(rot) * magn
+    local ty = math.sin(rot) * magn
+    return g.spawnToken(tokid, x + tx, y + ty)
+end
+
+
+
+
 
 
 return worldutil

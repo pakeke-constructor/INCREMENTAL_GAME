@@ -22,6 +22,7 @@ g.defineEvent("tokenDamaged")
 g.defineEvent("tokenDestroyed")
 g.defineEvent("tokenEarnedResources")
 g.defineEvent("tokenSlimed")
+g.defineEvent("tokenStarred")
 
 
 

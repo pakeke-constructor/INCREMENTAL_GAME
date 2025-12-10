@@ -498,6 +498,12 @@ function g.getMetric(name)
     return g.getSn().metrics[name] or 0
 end
 
+---@param name string
+---@param by number?
+function g.incrementMetric(name, by)
+    return g.setMetric(name, g.getMetric(name) + (by or 1))
+end
+
 
 
 local strTc = typecheck.assert("string")
@@ -997,6 +1003,8 @@ for tokCategory,_ in pairs(g.CATEGORIES)do
     g.defineMetric(name)
 end
 end
+
+g.defineMetric("totalTokensHarvested")
 
 
 
@@ -1627,11 +1635,21 @@ local g_Token = {}
 
 
 
+---@param guarantee boolean? If true, get any random position even if it's too close to token.
+---@overload fun():(number?,number?)
+---@overload fun(guarantee:true):(number,number)
 ---@return number?,number?
-function g.getRandomPositionForToken()
+function g.getRandomPositionForToken(guarantee)
     local worldW, worldH = g.getWorldDimensions()
     local pad=4
-    return getRandomPos(g.getMainWorld(), pad,pad, worldW-pad*2,worldH-pad*2)
+    local x, y = getRandomPos(g.getMainWorld(), pad,pad, worldW-pad*2,worldH-pad*2)
+
+    if not (x and y) and guarantee then
+        x = helper.lerp(pad, worldW - pad, love.math.random())
+        y = helper.lerp(pad, worldH - pad, love.math.random())
+    end
+
+    return x, y
 end
 
 
@@ -1709,6 +1727,12 @@ function g.destroyToken(tok)
     end
     tok.___destroyed = true
 
+    if tok.category then
+        local name = "totalCategoryHarvested_"..tok.category
+        g.incrementMetric(name)
+    end
+    g.incrementMetric("totalTokensHarvested")
+
     local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
 
@@ -1729,11 +1753,6 @@ function g.destroyToken(tok)
 
     w.tokens:removeBuffered(tok)
 
-    if tok.category then
-        local name = "totalCategoryHarvested_"..tok.category
-        g.setMetric(name, g.getMetric(name) + 1)
-    end
-
     -- todo: rework/rethink this.
     -- Each token should have different "sound"
     g.playWorldSound("pop", 1, 1, 0.15)
@@ -1748,6 +1767,14 @@ function g.slimeToken(tok)
         g.call("tokenSlimed",tok)
     end
     tok.slimed=true
+end
+
+---@param tok g.Token
+function g.starToken(tok)
+    if not tok.starred then
+        g.call("tokenStarred", tok)
+    end
+    tok.starred = true
 end
 
 
