@@ -647,13 +647,11 @@ function World:_update(dt)
     end
     g.call("depopulateTokenPool", tp)
     self.tokenPool = tp
-    table_clear(self.tokenCounts)
 
     self.tokenPartition:clear()
     for _, t in ipairs(self.tokens) do
         ---@cast t g.Token
         self.tokenPartition:add(t, t.x,t.y)
-        self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
     end
     self:_updateTokenCount()
 
