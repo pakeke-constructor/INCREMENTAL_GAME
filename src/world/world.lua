@@ -78,6 +78,9 @@ function World:init()
     -- Player avatar. Cannot initialize it in here due to cyclic dependency with g.spawnEntity and this world.
     ---@type g.Entity|nil
     self.playerAvatar = nil
+
+    ---@type table<string, number[]>
+    self.tokenDestroyTime = {}
 end
 
 
@@ -599,6 +602,16 @@ function World:_grantEffect(id, dur)
 end
 
 
+---@private
+function World:_updateTokenCount()
+    table_clear(self.tokenCounts)
+    for _, t in ipairs(self.tokens) do
+        ---@cast t g.Token
+        self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
+    end
+end
+
+
 ---@param dt number
 function World:_update(dt)
     self.entities:flush()
@@ -642,6 +655,7 @@ function World:_update(dt)
         self.tokenPartition:add(t, t.x,t.y)
         self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
     end
+    self:_updateTokenCount()
 
     -- Effects should only tick down when player is harvesting.
     -- (Or else it will tick down when player is in another scene!)
@@ -830,21 +844,39 @@ function World:_update(dt)
         updateHarvestCircle(self, dt)
     end
 
+    self.tokens:flush() -- flush once again in case there are some destroyed tokens
+    self:_updateTokenCount()
+
     -- respawn tokens that died
-    local tokenCounts = {}
-    for _,t in ipairs(self.tokens)do
-        tokenCounts[t.type] = (tokenCounts[t.type] or 0) + 1
-    end
+    local curTime = g.getWorldTime()
     for tokType, poolCount in pairs(self.tokenPool.tokens) do
-        local ct = tokenCounts[tokType] or 0
+        local ct = self.tokenCounts[tokType] or 0
         local toSpawn = poolCount - ct
-        for _=1, toSpawn do
-            if love.math.random() < (dt*5) then
-                -- TODO: this randomness sucks! 
-                -- Its random and it sometimes takes ages to respawn
+        local tokenDestroyTime = self.tokenDestroyTime[tokType] or {}
+        self.tokenDestroyTime[tokType] = tokenDestroyTime
+
+        local cooldownTime = g.stats.TokenRespawnTime * math.abs(g.ask("getPerTokenRespawnTimeMultiplier", tokType))
+
+        if #tokenDestroyTime > math.max(toSpawn, 0) then
+            -- Truncate table.
+            table.sort(tokenDestroyTime)
+            -- math.max, as toSpawn can be negative if token pool decreases
+            while #tokenDestroyTime > math.max(toSpawn, 0) do
+                table.remove(tokenDestroyTime)
+            end
+        elseif #tokenDestroyTime < toSpawn then
+            -- #destroyTime + tokenCount is less than tokenPool. Spawn more
+            for i = 1, toSpawn - #tokenDestroyTime do
+                tokenDestroyTime[#tokenDestroyTime+1] = curTime + 0.1 * i - cooldownTime
+            end
+        end
+
+        for i = #tokenDestroyTime, 1, -1 do
+            if curTime >= (tokenDestroyTime[i] + cooldownTime) then
                 local x,y = g.getRandomPositionForToken()
                 if x and y then
                     g.spawnToken(tokType, x,y)
+                    table.remove(tokenDestroyTime, i)
                 end
             end
         end
@@ -870,7 +902,7 @@ function World:_update(dt)
         self.timer = self.timer - 1
     end
 
-    self.tokens:flush()
+    --self.tokens:flush()
 
     self.particles:update(dt)
     self:_updateDamageNumbers(dt)
