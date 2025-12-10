@@ -237,13 +237,19 @@ end
 ---@param destx number
 ---@param desty number
 ---@param speed number
-function worldutil.moveToTarget(ent, dt, destx, desty, speed)
+---@param leewayRadius number? Stop moving when in range of this
+function worldutil.moveToTarget(ent, dt, destx, desty, speed, leewayRadius)
     local rot = math.atan2(desty - ent.y, destx - ent.x)
     local magn = helper.magnitude(destx - ent.x, desty - ent.y)
     local vx = math.cos(rot) * math.min(speed * dt, magn)
     local vy = math.sin(rot) * math.min(speed * dt, magn)
-    ent.x = ent.x + vx
-    ent.y = ent.y + vy
+    if (leewayRadius or 1) > magn then
+        vx,vy = 0,0
+    end
+
+    local w,h = g.getWorldDimensions()
+    ent.x = helper.clamp(ent.x + vx, 0,w)
+    ent.y = helper.clamp(ent.y + vy, 0,h)
     return vx, vy
 end
 

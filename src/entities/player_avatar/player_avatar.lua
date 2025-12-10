@@ -2,13 +2,13 @@
 ---@field public speed number
 local PlayerAvatarEntity = {}
 
-local SPEED = 50
+local SPEED = 150
 
 ---@param dt number
 function PlayerAvatarEntity:update(dt)
     local world = g.getMainWorld()
     local destx, desty = world.mouseX or self.x, world.mouseY or self.y
-    local vx, vy = worldutil.moveToTarget(self, dt, destx, desty, SPEED)
+    local vx, vy = worldutil.moveToTarget(self, dt, destx, desty, SPEED, 18)
     worldutil.updateWaddleAnimation(self, vx, vy)
 end
 
