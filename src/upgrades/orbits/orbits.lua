@@ -116,11 +116,8 @@ g.defineUpgrade("better_orbits", "Better Orbits", {
 
 
 g.defineEntity("orbital_star", {
-    image = "star_icon",
+    image = "orbital_star",
     orbitRing = 1,
-    update = function(ent, dt)
-        ent.rot = ((ent.rot or 0) + dt) % (2 * math.pi)
-    end,
     hitToken = {
         radius = 24,
         collision = function(_, tok)
@@ -134,5 +131,19 @@ g.defineEntity("orbital_star", {
 defOrbitalUpgrade("orbital_star", "Orbital Star", {
     description = "Spawn %{1} star orbiting the mouse, 20% chance to star crops!",
     kind = "HARVESTING",
-    maxLevel = 5
+    maxLevel = 5,
+    image = "null_image",
+
+    drawUI = function(uinfo, level, x, y, w, h)
+        local t1 = love.timer.getTime()/2
+
+        local cx,cy = x+w/2, y+h/2
+        local rad = w/5
+
+        for i = 1, 5 do
+            local rot = t1 + i / 5 * 2 * math.pi
+            local starx, stary = cx+rad*math.sin(rot), cy+rad*math.cos(rot)
+            g.drawImage("star_icon", starx, stary)
+        end
+    end
 })
