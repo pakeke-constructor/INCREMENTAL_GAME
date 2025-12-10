@@ -1750,6 +1750,14 @@ function g.slimeToken(tok)
     tok.slimed=true
 end
 
+---@param tok g.Token
+function g.starToken(tok)
+    if not tok.starred then
+        g.call("tokenStarred", tok)
+    end
+    tok.starred = true
+end
+
 
 
 ---@param tok g.Token
