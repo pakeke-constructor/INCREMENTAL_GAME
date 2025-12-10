@@ -5,6 +5,7 @@ g.defineUpgrade("star_upgrade", "Starred Crops", {
 
     getValues = helper.percentageGetter(1),
     valueFormatter = {"%d%%"},
+    maxLevel = 5,
 
     ---@param uinfo g.UpgradeInfo
     ---@param level integer
