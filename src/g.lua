@@ -548,6 +548,7 @@ g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 1) -- rad/s
 g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1)
 g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 40)
 g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1)
+g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3)
 
 -- World stat
 g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 25)
@@ -1750,6 +1751,11 @@ function g.destroyToken(tok)
             g.spawnEntity("growth_falling", tok.x + pos.x, tok.y + pos.y, tok.growths.growth, tok.y + 8)
         end
     end
+
+    if not w.tokenDestroyTime[tok.type] then
+        w.tokenDestroyTime[tok.type] = {}
+    end
+    table.insert(w.tokenDestroyTime[tok.type], g.getWorldTime())
 
     w.tokens:removeBuffered(tok)
 
