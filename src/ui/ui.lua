@@ -312,6 +312,27 @@ function ui.Checkbox(color, region, checked)
 end
 
 
+---@param txt string
+---@param isFocused boolean
+---@param region kirigami.Region
+---@return string
+---@return boolean
+function ui.TextBox(txt, isFocused, region)
+	if isFocused then
+		txt = txt .. iml.consumeText()
+	end
+	if iml.wasJustClicked(region:get()) then
+		isFocused = true
+	end
+	lg.setColor(1,0.9,0.8)
+	lg.rectangle("fill", region:get())
+	lg.setColor(0,0,0)
+	lg.rectangle("line", region:get())
+	local font=g.getSmallFont(16)
+	richtext.printRichContained(txt,font,region:get())
+	return txt, isFocused
+end
+
 
 -- For UI global scaling
 do

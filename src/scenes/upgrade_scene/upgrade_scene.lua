@@ -17,8 +17,9 @@ local upgscene = FreeCameraScene()
 
 function upgscene:init()
     self.dev_editMode = false
-    ---@type {x:number,y:number,isAddingConnector:false}?
+    ---@type {x:number,y:number,isAddingConnector:boolean}?
     self.dev_editModeSelection = nil
+    self.dev_showDistances = false
 
     ---@type ui.UpgradeDescription|nil
     self.upgradeDescription = nil
@@ -198,6 +199,12 @@ local function drawUpgradeBoxes(self)
                 tree:tryBuyUpgrade(upg)
                 hoveredUpgrade=nil
             end
+
+            if self.dev_showDistances then
+                local dist = tree:distanceFromRoot(upg)
+                lg.setColor(1,1,1)
+                richtext.printRichContained("{o}" .. tostring(dist), g.getSmallFont(16), x-15,y-15, 30,30)
+            end
         end
     end
 
@@ -275,6 +282,7 @@ end
 
 
 
+---@param self UpgradesScene
 local function drawDevEditModeUI(self)
     local region = Kirigami(0,0,ui.getScaledUIDimensions())
     local leftbar, _, sidebar = region:splitHorizontal(1,4,1)
@@ -284,8 +292,13 @@ local function drawDevEditModeUI(self)
 
     local regs = sidebar:grid(1,9)
 
+    local on_or_off = self.dev_showDistances and "(ON)" or "(OFF)"
+    if ui.Button("Distances " .. on_or_off, objects.Color.GRAY, objects.Color.BLACK, regs[1]) then
+        self.dev_showDistances = not self.dev_showDistances
+    end
+
     local tree = g.getUpgTree()
-    if ui.DefaultButton("Reset levels", regs[1]) then
+    if ui.DefaultButton("Reset levels", regs[2]) then
         -- resets all upgrades to level 0
         for _, upg in ipairs(tree:getAllUpgrades()) do
             upg.level = 0
@@ -293,14 +306,14 @@ local function drawDevEditModeUI(self)
         tree.unboundUpgrades = {}
         tree:finalize()
     end
-    
+
     local treeURL = "file://" .. (love.filesystem.getSaveDirectory() .. consts.FILE_SEP .. consts.DEV_UPGRADE_TREE_PATH)
-    if ui.DefaultButton("Open Folder", regs[2]) then
+    if ui.DefaultButton("Open Folder", regs[3]) then
         love.filesystem.createDirectory(consts.DEV_UPGRADE_TREE_PATH)
         love.system.openURL(treeURL)
     end
 
-    if ui.Button("CREATE NEW", objects.Color.LIME, objects.Color.DARK_GREEN, regs[3]) then
+    if ui.Button("NEW TREE", objects.Color.LIME, objects.Color.DARK_GREEN, regs[4]) then
         love.filesystem.createDirectory(consts.DEV_UPGRADE_TREE_PATH)
         for i=1,100 do
             local fname = "NEW_TREE_"..i..".json"
@@ -317,7 +330,7 @@ local function drawDevEditModeUI(self)
         end
     end
 
-    if tree._filename and ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[4]) then
+    if tree._filename and ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[5]) then
         local tree = g.getUpgTree()
         if tree._filename then
             local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP..tree._filename
