@@ -2061,8 +2061,25 @@ function g.getScytheInfo(id)
 end
 
 function g.getCurrentScythe()
+    local scythe, prio = g.ask("getCurrentScythe")
+    if prio > 0 and scythe then
+        return scythe
+    end
     return consts.DEFAULT_SCYTHE
 end
+
+--[[
+EXAMPLE ANSWER:
+
+g.answer("getCurrentScythe", function()
+    local priority = 10
+    -- higher priority wins.
+    return "MY_SCYTHE", priority
+end)
+
+]]
+
+
 
 end
 

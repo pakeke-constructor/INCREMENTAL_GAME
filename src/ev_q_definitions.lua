@@ -43,6 +43,9 @@ g.defineQuestion("getTokenDamageModifier", reducers.ADD, 0)
 g.defineQuestion("getTokenDamageMultiplier", reducers.MULTIPLY, 1)
 
 
+g.defineQuestion("getCurrentScythe", reducers.PRIORITY, consts.DEFAULT_SCYTHE)
+
+
 
 -- Slight hack: using __index to set all keys to 1.
 -- (we dont know what resoruces are defined yet)
