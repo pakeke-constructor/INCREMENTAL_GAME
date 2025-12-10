@@ -548,6 +548,7 @@ g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 1) -- rad/s
 g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1)
 g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 40)
 g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1)
+g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 10)
 
 -- World stat
 g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 25)
