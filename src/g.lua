@@ -1620,6 +1620,7 @@ end
 ---@field timeAlive number
 ---@field drawToken (fun(tok: g.Token, x:number,y:number, rot:number?,sx:number?,sy:number?,kx:number?,ky:number?))?
 ---@field slimed boolean?
+---@field starred boolean?
 ---@field ___destroyed boolean?
 local g_Token = {}
 

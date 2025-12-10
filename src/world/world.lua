@@ -314,6 +314,12 @@ local function drawToken(tok)
         local s = math.sin(love.timer.getTime()*4 + tok.id*7.343)
         g.drawImage("slimed_visual2", tok.x+6,tok.y-5+s, 0, 1,1)
     end
+    if tok.starred then
+        local s = math.sin(love.timer.getTime()*4 + tok.id*4.143)
+        local sx = math.sin(love.timer.getTime()*8 + tok.id*4.143)
+        g.drawImage("star_visual", tok.x-6,tok.y-5+s, 0, sx,1)
+    end
+    tok.starred = true
 
     if tok.timeSinceHitStart < getSwingTime() then
         drawAxe(tok)
