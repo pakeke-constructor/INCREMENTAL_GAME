@@ -22,6 +22,7 @@ local function makeFarmerCatUpdate(targetCategory)
     ---@param self FarmerCatEntity
     ---@param dt number
     local function farmerCatUpdate(self, dt)
+        self.speed = g.stats.AutoCatMoveSpeed
         -- Update positions
         worldutil.updateLikeDVD(self, dt)
         worldutil.updateWaddleAnimation(self, self.dirX,self.dirY)
@@ -43,7 +44,6 @@ end
 
 
 
-
 g.defineEntity("grass_farmer_cat", {
     image = "grass_farmer_cat",
     radius = 20,
@@ -62,9 +62,50 @@ g.defineEntity("lumberjack_cat", {
     shadowRadius = 7,
 
     init = randomizeDir,
-    update = makeFarmerCatUpdate("wood"),
+    update = makeFarmerCatUpdate("berry"),
     drawBelow = drawHarvestCircle,
     draw = function(self)
         g.drawImageOffset("iron_axe", self.x+(self.ox or 0), self.y+(self.oy or 0), self.rot or 0, -self.sx, 1, 0, 0.3)
     end
 })
+
+
+
+
+
+
+---------------------
+-- Farmer Cat upgrade
+---------------------
+
+---@param id string
+---@param name string
+---@param def g.UpgradeDefinition|{kind:nil}
+local function defineFarmerCat(id, name, def)
+    function def:getEntityCount(level)
+        return level
+    end
+    function def:spawnEntity()
+        local worldW, worldH = g.getWorldDimensions()
+        local x = love.math.random(0, worldW - 1)
+        local y = love.math.random(0, worldH - 1)
+        return g.spawnEntity(id, x, y)
+    end
+    def.kind = "MISC"
+
+    g.defineUpgrade(id, name, def)
+end
+
+defineFarmerCat("grass_farmer_cat", "Grass Farmer Cat", {
+    description = "Grass Farmer-Cats farm grasses automatically!",
+    maxLevel = 5
+})
+
+defineFarmerCat("lumberjack_cat", "Lumberjack Cat", {
+    description = "Lumberjack Cat farm woods automatically!",
+    maxLevel = 5,
+})
+
+
+
+

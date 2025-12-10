@@ -67,40 +67,6 @@ g.defineUpgrade("capitalist", "Capitalist", {
 
 
 
----------------------
--- Farmer Cat upgrade
----------------------
-
----@param id string
----@param name string
----@param def g.UpgradeDefinition|{kind:nil}
-local function defineFarmerCat(id, name, def)
-    function def:getEntityCount(level)
-        return level
-    end
-    function def:spawnEntity()
-        local worldW, worldH = g.getWorldDimensions()
-        local x = love.math.random(0, worldW - 1)
-        local y = love.math.random(0, worldH - 1)
-        return g.spawnEntity(id, x, y)
-    end
-    def.kind = "MISC"
-
-    g.defineUpgrade(id, name, def)
-end
-
--- TODO: Balancing
-defineFarmerCat("grass_farmer_cat", "Grass Farmer Cat", {
-    description = "Grass Farmer-Cats farm grasses automatically!",
-    maxLevel = 10
-})
-
-defineFarmerCat("lumberjack_cat", "Lumberjack Cat", {
-    description = "Lumberjack Cat farm woods automatically!",
-    maxLevel = 10,
-})
-
-
 
 --------------------
 -- Lightning upgrade

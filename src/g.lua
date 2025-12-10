@@ -540,6 +540,7 @@ g.stats.HitDamage = g.defineStat("HitDamage", 3)
 g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
 g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 1) -- rad/s
 g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1)
+g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 40)
 g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1)
 
 -- World stat
