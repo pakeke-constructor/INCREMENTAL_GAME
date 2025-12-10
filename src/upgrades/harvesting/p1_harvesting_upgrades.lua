@@ -158,9 +158,7 @@ defUpgrade("bomb_rain", "Bomb Rain", {
         if bombs < 10 then
             local chance = uinfo:getValues(level) / 100
             if love.math.random() <= chance then
-                local worldW, worldH = g.getWorldDimensions()
-                local x = helper.lerp(8, worldW - 8, love.math.random())
-                local y = helper.lerp(8, worldH - 8, love.math.random())
+                local x, y = g.getRandomPositionForToken(true)
                 g.spawnToken("bomb", x, y)
             end
         end

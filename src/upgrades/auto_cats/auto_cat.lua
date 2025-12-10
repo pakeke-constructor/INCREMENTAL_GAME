@@ -109,3 +109,15 @@ defineFarmerCat("lumberjack_cat", "Lumberjack Cat", {
 
 
 
+g.defineUpgrade("cat_in_boots", "Cats in Boots", {
+    description = "Automatic cats move %{1} faster",
+    kind = "HARVESTING",
+
+    getValues = helper.percentageGetter(15),
+    valueFormatter = {"%d%%"},
+
+    getAutoCatMoveSpeedMultiplier = function(uinfo, level)
+        local a=uinfo:getValues(level)
+        return 1+(a/100)
+    end
+})

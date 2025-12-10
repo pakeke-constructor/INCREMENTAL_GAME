@@ -94,3 +94,44 @@ g.defineUpgrade("lightning_upgrade", "Lightning Bolt", {
         end
     end
 })
+
+
+
+----------------
+-- Knife Thrower
+----------------
+
+g.defineUpgrade("knife_thrower", "Knife Thrower", {
+    description = "Every 5 seconds, shoot out %{1} knives on mouse position.",
+    kind = "MISC",
+    image = "null_image",
+    maxLevel = 6,
+
+    getValues = helper.valueGetter(1, 5),
+
+    perSecondUpdate = function (uinfo, level)
+        local t = math.floor(g.getWorldTime())
+
+        if t % 5 == 4 then
+            local w = g.getMainWorld()
+            local ww, wh = g.getWorldDimensions()
+            local mx = w.mouseX or (ww / 2)
+            local my = w.mouseY or (wh / 2)
+            local count = uinfo:getValues(level)
+            local roff = helper.lerp(0, 2 * math.pi, love.math.random())
+            for i = 1, count do
+                g.spawnEntity("knife", mx, my, i * 2 * math.pi / count + roff)
+            end
+        end
+    end,
+
+    drawUI = function(uinfo, level, x, y, w, h)
+        local t = love.timer.getTime()/2
+        local cx,cy = x+w/2, y+h/2
+
+        for i = 1, 3 do
+            local rot = math.pi / 4 + t + i / 3 * 2 * math.pi
+            g.drawImageOffset("knife", cx, cy, rot, 1, 1, 0.2, 0.8)
+        end
+    end
+})
