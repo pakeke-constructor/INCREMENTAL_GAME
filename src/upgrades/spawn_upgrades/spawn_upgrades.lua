@@ -19,7 +19,7 @@ g.defineUpgrade("manure_spawner", "Fertilizer", {
     ---@param level integer
     ---@param tok g.Token
     tokenDestroyed = function(uinfo, level, tok)
-        if tok.id == "manure" then
+        if tok.type == "manure" then
             return
         end
 
