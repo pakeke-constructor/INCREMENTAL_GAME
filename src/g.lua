@@ -184,8 +184,13 @@ function g.ask(q, arg1, ...)
     end
     local reducer, val = t.reducer, t.defaultValue
 
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc[q] then
+        val = reducer(val, sc[q](sc, arg1, ...))
+    end
+
     if (type(arg1) == "table") and arg1[q] then
-        val = reducer(arg1[q](arg1, ...), val)
+        val = reducer(val, arg1[q](arg1, ...))
     end
 
     local tree = g.getUpgTree()
@@ -193,7 +198,7 @@ function g.ask(q, arg1, ...)
     local mainWorld = currentSession.mainWorld
     if mainWorld:_isPlayerCurrentlyHarvesting() then
         -- effects should only be active when player is harvesting
-        val = reducer(askEffects(q, arg1, ...))
+        val = reducer(val, askEffects(q, arg1, ...))
     end
 
     return reducer(val, tree:askUpgrades(q, arg1, ...))
@@ -543,7 +548,8 @@ g.stats = {}
 -- (if you ever want to quickly search the name of stats, search "sstats")
 g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
 g.stats.HitDamage = g.defineStat("HitDamage", 3)
-g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
+g.stats.HarvestArea = g.defineStat("HarvestArea", 10)
+g.stats.ResourceMultiplier = g.defineStat("ResourceMultiplier", 1)
 g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 1) -- rad/s
 g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1)
 g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 40)
@@ -2036,6 +2042,7 @@ do
 
 ---@class _ScytheDefinition
 ---@field public image string?
+---@field public harvestArea number harvest area modifier
 
 ---@class g.Scythe: _ScytheDefinition
 ---@field public type string
@@ -2046,6 +2053,10 @@ do
 
 ---@type table<string, g.Scythe>
 local SCYTHES = {}
+
+---@type string[]
+local SCYTHE_ORDER = {}
+
 
 ---Define new scythe
 ---@param id string
@@ -2059,6 +2070,7 @@ function g.defineScythe(id, name, def)
     def.type = id
     def.name = loc(name)
     SCYTHES[id] = def
+    table.insert(SCYTHE_ORDER,id)
 end
 
 ---@param id string
@@ -2066,24 +2078,21 @@ function g.getScytheInfo(id)
     return (helper.assert(SCYTHES[id], "invalid scythe", id))
 end
 
+---@return string
 function g.getCurrentScythe()
-    local scythe, prio = g.ask("getCurrentScythe")
-    if prio and scythe and prio > 0 then
-        return scythe
-    end
-    return consts.DEFAULT_SCYTHE
+    return currentSession.scythe or consts.DEFAULT_SCYTHE
 end
 
---[[
-EXAMPLE ANSWER:
-
-g.answer("getCurrentScythe", function()
-    local priority = 10
-    -- higher priority wins.
-    return "MY_SCYTHE", priority
-end)
-
-]]
+---@return string?
+function g.getNextScythe()
+    local curr = g.getCurrentScythe()
+    for i,sc in ipairs(SCYTHE_ORDER)do
+        if sc == curr then
+            return SCYTHE_ORDER[i+1] or nil
+        end
+    end
+    return nil
+end
 
 
 
