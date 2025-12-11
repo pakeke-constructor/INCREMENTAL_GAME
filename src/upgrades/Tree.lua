@@ -279,7 +279,8 @@ end
 ---@return boolean wasPurchased
 function Tree:tryBuyUpgrade(upg)
     local uinfo = g.getUpgradeInfo(upg.id)
-    if upg.level >= uinfo.maxLevel then
+    local maxLevel = self:getUpgradeMaxLevel(upg)
+    if upg.level >= maxLevel then
         return false -- already max level
     end
     if self:canAffordUpgrade(upg) then
