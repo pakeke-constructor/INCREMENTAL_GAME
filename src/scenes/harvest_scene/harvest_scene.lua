@@ -656,7 +656,13 @@ function drawXpPopup(self)
 
     do
     love.graphics.setColor(1,1,1)
-    local regions = {popup:splitVertical(1,1,1)}
+    local regions
+    if #self.xpRewards == 1 then
+        local _,rr1,_ = popup:splitVertical(1,1,1)
+        regions = {rr1}
+    else
+        regions = popup:grid(1,#self.xpRewards)
+    end
     local p = 0.2
     local rewardClaimed = false
 
@@ -682,7 +688,7 @@ function drawXpPopup(self)
         end
     end
 
-    for i=1, 3 do
+    for i=1, #self.xpRewards do
         drawReward(i)
     end
 

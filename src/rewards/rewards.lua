@@ -206,8 +206,8 @@ function rewards.generateRandomRewards()
 
     local rewardList = {
         -- generateResourceReward(),
-        generateStackedTokenReward(),
-        generatePotionReward(),
+        -- generateStackedTokenReward(),
+        -- generatePotionReward(),
         {
             upgradeId = "more_damage",
             icon = "more_damage"
