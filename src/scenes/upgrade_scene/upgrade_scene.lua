@@ -220,7 +220,6 @@ local function drawUpgradeBoxes(self)
                     hoveredUpgrade = upg
                 end
 
-                -- Draw the animation first, above the upgrade
                 if toAnimate:has(upg) then
                     drawUnlockedUpgradeAnimation(upg, self.lastUpgradeBought[2])
                 end
