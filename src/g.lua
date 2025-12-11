@@ -2068,7 +2068,7 @@ end
 
 function g.getCurrentScythe()
     local scythe, prio = g.ask("getCurrentScythe")
-    if prio > 0 and scythe then
+    if prio and scythe and prio > 0 then
         return scythe
     end
     return consts.DEFAULT_SCYTHE
