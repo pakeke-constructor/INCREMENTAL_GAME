@@ -18,6 +18,8 @@ function PlayerAvatarEntity:draw()
     love.graphics.rotate(self.rot or 0)
     love.graphics.scale(self.sx or 1, self.sy or 1)
     g.drawPlayerAvatar(self.ox or 0, (self.oy or 0) - 4, 1)
+    local sinfo = g.getScytheInfo(g.getCurrentScythe())
+    g.drawImageOffset(sinfo.image, 12, 4, math.pi / 4, -1, 1, 0.1, 0.9)
     love.graphics.pop()
 end
 
