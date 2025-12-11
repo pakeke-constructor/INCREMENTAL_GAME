@@ -20,7 +20,7 @@ defUpgrade("more_damage", "More Damage", {
     end,
 
     valueFormatter = {"+%d%%"},
-    description = "Deal %{1} extra damage to ALL tokens",
+    description = "%{1} hit damage",
 
     getTokenHitMultiplier = function(self,level)
         local a=self:getValues(level)
