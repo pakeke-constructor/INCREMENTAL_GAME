@@ -12,6 +12,8 @@ local vignette = require("src.modules.vignette.vignette")
 ---@class UpgradesScene: FreeCameraScene
 local upgscene = FreeCameraScene()
 
+local UNLOCKED_UPGRADE_ANIMATION_DURATION = 0.7
+
 
 
 
@@ -23,6 +25,9 @@ function upgscene:init()
 
     ---@type ui.UpgradeDescription|nil
     self.upgradeDescription = nil
+
+    ---@type [g.Tree.Upgrade?, number]
+    self.lastUpgradeBought = {nil, 0} -- {upgradeId, lifetime}
 end
 
 
@@ -138,6 +143,23 @@ local function bundleGreaterOrEqual(b1, b2)
 end
 
 
+local NEW_UPGRADE_RAY_COLOR = objects.Color("#".."ff0ac6fa")
+
+---@param upg g.Tree.Upgrade
+---@param lifetime number
+local function drawUnlockedUpgradeAnimation(upg, lifetime)
+    local t = 1 - (lifetime / UNLOCKED_UPGRADE_ANIMATION_DURATION)
+    local time = love.timer.getTime() - 100
+    local x, y = getUpgradeGridCoords(upg.x, upg.y)
+
+    local r = time % (2 * math.pi)
+    local r2 = (time * 0.8 + 1) % (2 * math.pi)
+    local size = (t ^ 0.6 * (1 - t)) * 200
+    godrays.drawRays(x, y, r, {color = NEW_UPGRADE_RAY_COLOR, rayCount = 6, startWidth = 4, length = size, fadeTo=0})
+    godrays.drawRays(x, y, -r2, {color = NEW_UPGRADE_RAY_COLOR, rayCount = 4, startWidth = 5, length = size, fadeTo=0})
+end
+
+
 ---@param self UpgradesScene
 ---@return g.Tree.Upgrade? hoveredUpgrade
 local function drawUpgradeBoxes(self)
@@ -165,12 +187,17 @@ local function drawUpgradeBoxes(self)
         return forceVisibility or (not hidden)
     end
 
+    local toAnimate = objects.Set() -- contains the upgrade tree
     for _, upg in ipairs(upgrades) do
         if isVisible(upg) then
             -- Draw connector first
             for _, upg2 in ipairs(tree:getNeighbors(upg.x,upg.y)) do
                 if isVisible(upg2) then
                     drawConnector(upg, upg2)
+
+                    if self.lastUpgradeBought[2] > 0 and self.lastUpgradeBought[1] == upg and upg2.level == 0 then
+                        toAnimate:add(upg2)
+                    end
                 end
             end
         end
@@ -188,15 +215,23 @@ local function drawUpgradeBoxes(self)
             -- its WAYYY too expensive... just draw black square
 
             local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y, dontDraw)
-            if (not dontDraw) and isHovered then
-                hoveredUpgrade = upg
+            if (not dontDraw) then
+                if isHovered then
+                    hoveredUpgrade = upg
+                end
+
+                if toAnimate:has(upg) then
+                    drawUnlockedUpgradeAnimation(upg, self.lastUpgradeBought[2])
+                end
             end
             if wasJustHovered then
                 g.playUISound("ui_tick", 1,1)
             end
             if (not self.dev_editMode) and wasJustClicked then
                 g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
-                tree:tryBuyUpgrade(upg)
+                if tree:tryBuyUpgrade(upg) and upg.level == 1 then
+                    self.lastUpgradeBought = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
+                end
                 hoveredUpgrade=nil
             end
 
@@ -482,6 +517,7 @@ end
 function upgscene:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
+    self.lastUpgradeBought[2] = math.max(self.lastUpgradeBought[2] - dt, 0)
 end
 
 
