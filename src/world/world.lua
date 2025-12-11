@@ -261,15 +261,15 @@ end
 
 
 ---@param tok g.Token
-local function drawAxe(tok)
+---@param scytheImg string
+local function drawScythe(tok, scytheImg)
     love.graphics.setColor(1,1,1)
     local t = tok.timeSinceHitStart / getAxeSwingTime()
     -- For scythe, we need to "damage" at mid-swing. This means narrowing down the timing for `t`.
     local t2 = helper.EASINGS.sineInOut(helper.clamp(helper.remap(t, 0.6, 1.2, 0, 1), 0, 1))
     local flip = 2 * math.floor(tok.id % 2) - 1
     local rot = helper.lerp(0.7, 0.1, t2)
-    local scythe = g.getScytheInfo(g.getCurrentScythe()).image
-    g.drawImageOffset(scythe, tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
+    g.drawImageOffset(scytheImg, tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
 end
 
 
@@ -323,8 +323,9 @@ local function drawToken(tok)
         g.drawImage("star_visual", tok.x-6,tok.y-5+s, 0, sc,1)
     end
 
+    local scytheImg = g.getScytheInfo(g.getCurrentScythe()).image
     if tok.timeSinceHitStart < getSwingTime() then
-        drawAxe(tok)
+        drawScythe(tok, scytheImg)
     end
 
     drawTokenHealthBar(tok)

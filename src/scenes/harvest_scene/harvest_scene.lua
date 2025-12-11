@@ -908,6 +908,12 @@ function harvest:keyreleased(k)
         elseif k=="4" then
             local sn=g.getSn()
             sn.xp = sn.xp + sn.xpRequirement
+        elseif k=="5" then
+            local sn=g.getSn()
+            local next = g.getNextScythe()
+            if next then
+                sn.scythe = next
+            end
         end
     end
 end
@@ -918,6 +924,11 @@ function harvest:leave(k)
     closeUpgradePopup(self)
 end
 
+
+function harvest:getHarvestAreaModifier()
+    local scythe = g.getScytheInfo(g.getCurrentScythe())
+    return scythe.harvestArea
+end
 
 
 

@@ -44,7 +44,6 @@ g.defineQuestion("getTokenDamageMultiplier", reducers.MULTIPLY, 1)
 g.defineQuestion("getPerTokenRespawnTimeMultiplier", reducers.MULTIPLY, 1)
 
 
-g.defineQuestion("getCurrentScythe", reducers.PRIORITY, consts.DEFAULT_SCYTHE)
 
 
 

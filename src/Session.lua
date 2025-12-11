@@ -13,6 +13,7 @@ local cosmetics = require("src.cosmetics.cosmetics")
 ---@field resources g.Resources
 ---@field mainWorld g.World
 ---@field metrics table<string, number>
+---@field scythe string
 ---@field stats table<string, number>
 ---@field tokenQueue {tokenId:string, onSpawn: function?}[]
 local Session = objects.Class("g:Session")
@@ -36,6 +37,8 @@ function Session:init()
     self.prestige = 0
     self.playtime = 0
     self.idletime = 0
+
+    self.scythe = consts.DEFAULT_SCYTHE
 
     -- xp is basically just token-health.
     -- eg.  Harvest token with 5 health ==> earn +5 xp
@@ -155,6 +158,8 @@ function Session.deserialize(data)
     sess.playtime = (data.playtime or 0) + 0
     sess.idletime = (data.idletime or 0) + 0
 
+    sess.scythe = data.scythe or consts.DEFAULT_SCYTHE
+
     -- Load resources
     for _,resId in ipairs(g.RESOURCE_LIST) do
         sess.resources[resId] = tonumber(data.resources[resId]) or 0
@@ -201,6 +206,7 @@ function Session:serialize()
     end
 
     return {
+        scythe = self.scythe,
         prestige = self.prestige,
         playtime = self.playtime,
         idletime = self.idletime,

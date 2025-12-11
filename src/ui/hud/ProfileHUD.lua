@@ -78,7 +78,7 @@ function Profile:draw(sidebarWidth, noDraw)
         lg.setStencilMode()
 
         -- Draw red border
-        lg.setColor(1, 0, 0)
+        lg.setColor(0, 0, 0)
         local lw = lg.getLineWidth()
         lg.setLineWidth(3)
         lg.rectangle("line", profileR:get())

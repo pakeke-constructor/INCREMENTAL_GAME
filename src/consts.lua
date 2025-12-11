@@ -42,7 +42,7 @@ local consts = {
     AVATAR_SIZE = 24, -- Size of the avatar with background
     DEFAULT_CAT_AVATAR = "cat",
     DEFAULT_BACKGROUND_AVATAR = "white",
-    DEFAULT_SCYTHE = "scythe",
+    DEFAULT_SCYTHE = "starting_scythe",
 
     ORBIT_RING_DISTANCE = 20 -- Radius of each orbit ring.
 }

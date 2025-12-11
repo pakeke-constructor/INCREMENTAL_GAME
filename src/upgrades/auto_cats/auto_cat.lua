@@ -64,9 +64,6 @@ g.defineEntity("lumberjack_cat", {
     init = randomizeDir,
     update = makeFarmerCatUpdate("berry"),
     drawBelow = drawHarvestCircle,
-    draw = function(self)
-        g.drawImageOffset("iron_axe", self.x+(self.ox or 0), self.y+(self.oy or 0), self.rot or 0, -self.sx, 1, 0, 0.3)
-    end
 })
 
 
