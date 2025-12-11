@@ -115,12 +115,19 @@ for _, berry in ipairs(BERRIES) do
             tp:subtract(strId)
         end
 
+        local desc = nil
+        if DEPOPULATE_TOKEN[i] then
+            desc = ("{c r=1 g=0.2 b=0.2}{o}Removes tier-%s {%s} crops!"):format(DEPOPULATE_TOKEN[i], berry.id)
+        end
+
         local stalk_id = "stalk_"..tostring(i)
         g.defineToken(token_id, name, {
             growths = {stalk = stalk_id, growth = berry.id},
             resources = g.multBundles(berry.resources, mult),
             maxLevel = MAX_LEVELS[i],
             maxHealth = TOKEN_HEALTHS[i],
+
+            description = desc,
 
             upgradeDefinition = {
                 ---@diagnostic disable-next-line

@@ -83,7 +83,7 @@ local function getCheapestUpgrade(tree)
         local uinfo = g.getUpgradeInfo(upg.id)
         local lv = upg.level
 
-        if (not tree:isUpgradeHidden(upg)) and (lv < uinfo.maxLevel) then
+        if (not tree:isUpgradeHidden(upg)) and (lv < tree:getUpgradeMaxLevel(upg)) then
             local price = tree:getUpgradePrice(upg)
             if price.money < bestPrice then
                 bestPrice = price.money

@@ -29,6 +29,7 @@ FEATURES WE NEED:
 ---@field x integer
 ---@field y integer
 ---@field isRoot boolean?
+---@field maxLevelOverride number?
 ---@field connections integer[] list of other upgrades this upgrade is connected to
 ---@field isUnbound boolean? "unbound" upgrades exist without a position; (ie relics and stuff)
 local Upgrade = {}
@@ -235,6 +236,19 @@ function Tree:getUpgradePrice(upg, level)
 
     return truePrice
 end
+
+
+
+---@param upg g.Tree.Upgrade
+---@return integer
+function Tree:getUpgradeMaxLevel(upg)
+    if upg.maxLevelOverride then
+        return upg.maxLevelOverride
+    end
+    local uinfo = g.getUpgradeInfo(upg.id)
+    return uinfo.maxLevel
+end
+
 
 
 --- This is MUCH more efficient than 

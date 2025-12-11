@@ -40,8 +40,9 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
     local time = love.timer.getTime()
     local uinfo = g.getUpgradeInfo(upg.id)
 
+    local maxLevel = tree:getUpgradeMaxLevel(upg)
     local hasBought = level > 0
-    local canAfford = level < uinfo.maxLevel and tree:canAffordUpgrade(upg, level+1)
+    local canAfford = level < maxLevel and tree:canAffordUpgrade(upg, level+1)
 
     ------------------------------
     -- define background and frame
@@ -133,7 +134,7 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
         --love.graphics.rectangle("line",xx,yy,ww,hh)
         local font = g.getBigFont(16)
         local append = ""
-        if level == uinfo.maxLevel then
+        if level == tree:getUpgradeMaxLevel(upg) then
             append = "{c r=0.1 g=0.7 b=0}"
         end
         richtext.printRich("{o thickness=1}"..append..tostring(level), font, math.floor(cx+w/4), math.floor(cy), 0xfffff, "left")
