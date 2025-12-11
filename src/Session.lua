@@ -94,6 +94,11 @@ function Session:init()
     end
 
     self.paused = false
+
+    self.showTutorials = {
+        harvest = true,
+        upgrades = true
+    }
 end
 
 if false then
@@ -125,6 +130,14 @@ local function calculateXPRequirement()
     end
 
     return math.ceil(totalTokenHP * math.sqrt(level))
+end
+
+local function nilIsTrue(value)
+    if value == nil then
+        return true
+    end
+
+    return not not value
 end
 
 
@@ -205,6 +218,12 @@ function Session.deserialize(data)
         for _, v in ipairs(data.unlockedPOI) do
             sess.unlockedPOI:add(v)
         end
+    end
+
+    -- Tutorial messages
+    if data.showTutorials then
+        sess.showTutorials.harvest = nilIsTrue(data.showTutorials.harvest)
+        sess.showTutorials.upgrades = nilIsTrue(data.showTutorials.upgrades)
     end
 
     return sess
