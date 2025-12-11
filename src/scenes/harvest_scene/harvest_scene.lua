@@ -34,6 +34,8 @@ local NEW_UPGRADES_AVAILABLE = loc("{outline}New Upgrades Available!{/outline}",
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
 })
 
+local TUTORIAL_HARVEST = "{w}{o thickness=2}"..loc("Hover your mouse over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
+
 
 
 
@@ -726,6 +728,11 @@ function harvest:tokenDestroyed(tok)
         local SPD = 600
         local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
         xpParticles:spawnParticle(uiX,uiY, vx,vy)
+
+        local tuts = g.getSn().showTutorials
+        if tuts.harvest then
+            tuts.harvest = false
+        end
     end
 end
 
@@ -767,6 +774,21 @@ function harvest:draw()
     end
 
     world:_draw()
+    local sess = g.getSn()
+
+    if not g.isBeingSimulated() then
+        if sess.showTutorials.harvest then
+            local lw = love.graphics.getLineWidth()
+            love.graphics.setLineWidth(3)
+            love.graphics.setColor(objects.Color.RED)
+
+            for _, tok in ipairs(g.getMainWorld().tokens) do
+                helper.circleHighlight(tok.x, tok.y, 10)
+            end
+
+            love.graphics.setLineWidth(lw)
+        end
+    end
 
     love.graphics.setColor(1, 1, 1)
     self:_drawTokenStackAnim()
@@ -776,12 +798,21 @@ function harvest:draw()
     vignette.draw()
 
     ui.startUI()
-    self:renderMapButton()
+    if not (g.isBeingSimulated() or sess.showTutorials.harvest) then
+        self:renderMapButton()
+    end
     lg.setColor(1,1,1)
     xpParticles:draw()
     g.getHUD():draw({
         xpbar=true
     })
+
+    if not g.isBeingSimulated() and sess.showTutorials.harvest then
+        local safeArea = g.getHUD():getSafeArea()
+        local tutTextR = safeArea:padRatio(0.1)
+        richtext.printRich(TUTORIAL_HARVEST, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+    end
+
     self:_drawActiveEffects()
     if self.xpPopup then
         drawXpPopup(self)
@@ -897,7 +928,7 @@ harvest.mousemoved = harvest.defaultMousemoved
 
 function harvest:keyreleased(k)
     self:defaultKeyreleased(k)
-    if k == "tab" then
+    if k == "tab" and not (g.isBeingSimulated() or g.getSn().showTutorials.harvest) then
         g.gotoSceneViaMap("upgrade_scene")
     elseif k == "escape" then
         local s = g.getSn()
