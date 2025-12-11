@@ -774,7 +774,7 @@ function harvest:draw()
     local sess = g.getSn()
 
     if not g.isBeingSimulated() then
-        if sess.showTutorials.harvest then
+        if sess.showTutorials.harvest and (not consts.DEV_MODE) then
             local lw = love.graphics.getLineWidth()
             love.graphics.setLineWidth(3)
             love.graphics.setColor(objects.Color.RED)

@@ -30,6 +30,7 @@ function upgscene:init()
     ---@type {x:number,y:number,isAddingConnector:boolean}?
     self.dev_editModeSelection = nil
     self.dev_showDistances = false
+    self.dev_showPrices = false
     self.dev_maxLevelInput = ui.newTextBox()
     self.dev_priceInput = ui.newTextBox()
 
@@ -255,6 +256,11 @@ local function drawUpgradeBoxes(self)
                 lg.setColor(1,1,1)
                 richtext.printRichContained("{o}" .. tostring(dist), g.getSmallFont(16), x-15,y-15, 30,30)
             end
+            if self.dev_showPrices then
+                local basePrice = g.formatNumber(tree:getUpgradePrice(upg, 0).money)
+                lg.setColor(1,1,1)
+                richtext.printRichContained("{o}" .. tostring(basePrice), g.getSmallFont(16), x-15,y-15, 30,30)
+            end
         end
     end
 
@@ -341,7 +347,10 @@ local function dev_fromFormattedNumber(str)
     local mult = 1
     if last == "k" then mult = 1000 end
     if last == "m" then mult = 1000000 end
-    local num = str:sub(1,-2)
+    local num = str
+    if not num:match("%d$") then
+        num = str:sub(1,-2) -- last digit isnt number!
+    end
     if tonumber(num) then
         return tonumber(num) * mult
     end
@@ -364,8 +373,13 @@ local function drawDevEditModeUI(self)
         self.dev_showDistances = not self.dev_showDistances
     end
 
+    on_or_off = self.dev_showPrices and "(ON)" or "(OFF)"
+    if ui.Button("Prices " .. on_or_off, objects.Color.GRAY, objects.Color.BLACK, regs[2]) then
+        self.dev_showPrices = not self.dev_showPrices
+    end
+
     local tree = g.getUpgTree()
-    if ui.DefaultButton("Reset levels", regs[2]) then
+    if ui.DefaultButton("Reset levels", regs[3]) then
         -- resets all upgrades to level 0
         for _, upg in ipairs(tree:getAllUpgrades()) do
             upg.level = 0
@@ -375,12 +389,12 @@ local function drawDevEditModeUI(self)
     end
 
     local treeURL = "file://" .. (love.filesystem.getSaveDirectory() .. consts.FILE_SEP .. consts.DEV_UPGRADE_TREE_PATH)
-    if ui.DefaultButton("Open Folder", regs[3]) then
+    if ui.DefaultButton("Open Folder", regs[4]) then
         love.filesystem.createDirectory(consts.DEV_UPGRADE_TREE_PATH)
         love.system.openURL(treeURL)
     end
 
-    if ui.Button("NEW TREE", objects.Color.LIME, objects.Color.DARK_GREEN, regs[4]) then
+    if ui.Button("NEW TREE", objects.Color.LIME, objects.Color.DARK_GREEN, regs[5]) then
         love.filesystem.createDirectory(consts.DEV_UPGRADE_TREE_PATH)
         for i=1,100 do
             local fname = "NEW_TREE_"..i..".json"
@@ -397,7 +411,7 @@ local function drawDevEditModeUI(self)
         end
     end
 
-    if tree._filename and ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[5]) then
+    if tree._filename and ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[6]) then
         local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP..tree._filename
         love.filesystem.write(fname, json.encode(g.getUpgTree():serialize()))
     end
@@ -568,7 +582,7 @@ function upgscene:draw()
     g.getHUD():draw({profile = false})
 
     -- Draw tutorial text if needed
-    if g.getSn().showTutorials.upgrades then
+    if g.getSn().showTutorials.upgrades and (not consts.DEV_MODE) then
         local safeArea = g.getHUD():getSafeArea()
         local tutTextR = safeArea:padRatio(0.1)
         richtext.printRich(TUTORIAL_UPGRADES, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
