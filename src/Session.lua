@@ -252,7 +252,8 @@ function Session:serialize()
             hat = self.avatar.hat
         },
         tree = self.tree:serialize(),
-        unlockedPOI = self.unlockedPOI:totable()
+        unlockedPOI = self.unlockedPOI:totable(),
+        showTutorials = helper.shallowCopy(self.showTutorials)
     }
 end
 
