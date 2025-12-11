@@ -171,6 +171,11 @@ function settingscene:draw()
         :centerX(titleTextR)
         :attachToBottomOf(crtPlacementR)
         :moveUnit(0, 8)
+    local languageIconR = Kirigami(0, 0, 32, 32)
+        :attachToTopOf(languageLabelR)
+        :centerX(languageLabelR)
+        :moveRatio(0, 1)
+        :moveUnit(font:getWidth(richtext.stripEffects(TEXT.LANGUAGE)) / 2 + 20, 0)
     local languageButtonR = Kirigami(0, 0, 144, 32)
         :attachToBottomOf(languageLabelR)
         :centerX(languageLabelR)
@@ -184,6 +189,7 @@ function settingscene:draw()
         crtLabelR,
         crtBoxR,
         languageLabelR,
+        languageIconR,
         languageButtonR
     )
 
@@ -217,6 +223,17 @@ function settingscene:draw()
         languageLabelR.w,
         "center"
     )
+    do
+        love.graphics.setColor(0, 0, 0)
+        local lx, ly = languageIconR:getCenter()
+        for dy = -1, 1, 2 do
+            for dx = -1, 1, 2 do
+                g.drawImage("localization_icon", lx + dx, ly + dy, 0, 0.75, 0.75)
+            end
+        end
+        love.graphics.setColor(1, 1, 1)
+        g.drawImage("localization_icon", lx, ly, 0, 0.75, 0.75)
+    end
     richtext.printRich(
         "{o}"..TEXT.REQUIRES_RESTART.."{/o}",
         g.getSmallFont(16),
