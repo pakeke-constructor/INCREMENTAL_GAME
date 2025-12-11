@@ -3,7 +3,7 @@
 ---@class consts
 local consts = {
 
-    DEV_MODE = not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
+    DEV_MODE = false, --not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
     PROFILING = false,
 
     FILE_LOG_LEVEL = "warn",

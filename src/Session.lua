@@ -49,12 +49,16 @@ function Session:init()
     self.level = 0 -- when xp > xpRequirement, level up!
 
     self.resources = {}
+    self.resourceUnlocks = {}
+
     for _,resId in ipairs(g.RESOURCE_LIST) do
         self.resources[resId] = 0
+        self.resourceUnlocks[resId] = false
         if consts.DEV_MODE then
             self.resources[resId] = 1000000000
         end
     end
+    self.resourceUnlocks["money"] = true
 
     self.mainWorld = World()
 
@@ -134,6 +138,12 @@ function Session:_update(dt)
         dt = 0
     end
 
+    for _,resId in ipairs(g.RESOURCE_LIST) do
+        if self.resources[resId] > 0 then
+            self.resourceUnlocks[resId] = true
+        end
+    end
+
     for stat, t in pairs(g.VALID_STATS) do
         local mod = g.ask(t.addQuestion) + t.startingValue
         local mult = g.ask(t.multQuestion)
@@ -164,6 +174,7 @@ function Session.deserialize(data)
     -- Load resources
     for _,resId in ipairs(g.RESOURCE_LIST) do
         sess.resources[resId] = tonumber(data.resources[resId]) or 0
+        sess.resourceUnlocks[resId] = not not data.resourceUnlocks[resId]
     end
 
     -- Load accessory unlocks
@@ -213,6 +224,7 @@ function Session:serialize()
         playtime = self.playtime,
         idletime = self.idletime,
         resources = self.resources,
+        resourceUnlocks = self.resourceUnlocks,
         metrics = self.metrics,
         stats = stats,
         avatar = {

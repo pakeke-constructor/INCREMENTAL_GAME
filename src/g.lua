@@ -737,10 +737,8 @@ end
 ---@param resId string
 function g.isResourceUnlocked(resId)
     assertValidResource(resId)
-    -- if g.getPrestige() == 0 and (g.getResource(resId) <= 0) then
-    --     return false
-    -- end
-    return true
+    local sn = currentSession
+    return sn.resourceUnlocks[resId]
 end
 
 ---@param resId string
