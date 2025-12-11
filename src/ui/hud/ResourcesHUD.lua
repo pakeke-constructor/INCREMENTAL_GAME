@@ -185,9 +185,8 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         :attachToLeftOf(reg)
         :centerY(reg)
         :moveRatio(1, 0)
-    local textR = reg
-        :moveUnit(iconR.w)
-        :intersection(reg)
+        :moveUnit(5, 0)
+    local textR = reg:padUnit(iconR.x + iconR.w, 0, 0, 0)
     local t = self:_getInterpolationTime(kind)
 
     if not noDraw then
