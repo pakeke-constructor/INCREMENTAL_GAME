@@ -26,8 +26,8 @@ function upgscene:init()
     ---@type ui.UpgradeDescription|nil
     self.upgradeDescription = nil
 
-    ---@type [string, number]
-    self.lastUpgradeBought = {"", 0} -- {upgradeId, lifetime}
+    ---@type [g.Tree.Upgrade?, number]
+    self.lastUpgradeBought = {nil, 0} -- {upgradeId, lifetime}
 end
 
 
@@ -195,7 +195,7 @@ local function drawUpgradeBoxes(self)
                 if isVisible(upg2) then
                     drawConnector(upg, upg2)
 
-                    if self.lastUpgradeBought[2] > 0 and self.lastUpgradeBought[1] == upg.id and upg2.level == 0 then
+                    if self.lastUpgradeBought[2] > 0 and self.lastUpgradeBought[1] == upg and upg2.level == 0 then
                         toAnimate:add(upg2)
                     end
                 end
@@ -230,7 +230,7 @@ local function drawUpgradeBoxes(self)
             if (not self.dev_editMode) and wasJustClicked then
                 g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
                 if tree:tryBuyUpgrade(upg) and upg.level == 1 then
-                    self.lastUpgradeBought = {upg.id, UNLOCKED_UPGRADE_ANIMATION_DURATION}
+                    self.lastUpgradeBought = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
                 end
                 hoveredUpgrade=nil
             end
