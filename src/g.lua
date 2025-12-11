@@ -548,7 +548,7 @@ g.stats = {}
 -- (if you ever want to quickly search the name of stats, search "sstats")
 g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
 g.stats.HitDamage = g.defineStat("HitDamage", 3)
-g.stats.HarvestArea = g.defineStat("HarvestArea", 10)
+g.stats.HarvestArea = g.defineStat("HarvestArea", 15)
 g.stats.ResourceMultiplier = g.defineStat("ResourceMultiplier", 1)
 g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 1) -- rad/s
 g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1)

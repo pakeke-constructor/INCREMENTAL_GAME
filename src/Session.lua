@@ -153,8 +153,9 @@ end
 function Session.deserialize(data)
     local sess = Session()
 
-    -- Load current prestige
+    -- Load current prestige/level
     sess.prestige = assert(data.prestige) + 0
+    sess.level = assert(data.level) + 0
     sess.playtime = (data.playtime or 0) + 0
     sess.idletime = (data.idletime or 0) + 0
 
@@ -208,6 +209,7 @@ function Session:serialize()
     return {
         scythe = self.scythe,
         prestige = self.prestige,
+        level = self.level,
         playtime = self.playtime,
         idletime = self.idletime,
         resources = self.resources,

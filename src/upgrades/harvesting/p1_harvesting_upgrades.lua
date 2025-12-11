@@ -15,12 +15,12 @@ end
 
 
 defUpgrade("more_damage", "More Damage", {
-    startingUpgrade=true,
-
     getValues = function(self,level)
-        return level*10
+        return level
     end,
-    description = "Deal +%{1}% extra damage to ALL tokens",
+
+    valueFormatter = {"+%d%%"},
+    description = "Deal %{1} extra damage to ALL tokens",
 
     getTokenHitMultiplier = function(self,level)
         local a=self:getValues(level)
@@ -30,15 +30,17 @@ defUpgrade("more_damage", "More Damage", {
 
 
 
-defUpgrade("hit_speed", "Hit Speed", {
+defUpgrade("more_speed", "More Speed", {
     getValues = function(self,level)
-        return level*10
+        return level
     end,
-    description = "+%{1}% hit speed",
+
+    valueFormatter = {"+%d%%"},
+    description = "%{1} hit speed",
 
     getHitSpeedMultiplier = function(self,level)
         local a=self:getValues(level)
-        return 1 + a / 100
+        return 1+(a/100)
     end
 })
 
@@ -46,9 +48,11 @@ defUpgrade("hit_speed", "Hit Speed", {
 
 defUpgrade("more_area", "More Area", {
     getValues = function(self,level)
-        return level*4
+        return level
     end,
-    description = "+%{1}% hit area",
+
+    valueFormatter = {"+%d%%"},
+    description = "%{1} hit area",
 
     getHarvestAreaMultiplier = function(self,level)
         local a=self:getValues(level)

@@ -644,6 +644,7 @@ end
 ---@param self HarvestScene
 function drawXpPopup(self)
     local r = Kirigami(0,0, ui.getScaledUIDimensions())
+    iml.panel(r:get()) -- dont let mouse go below this point
 
     -- number from 0 -> 1
     local progress = math.min(1, self.timeSinceXpPopupOpened / XP_POPUP_FADE_IN_TIME)

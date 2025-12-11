@@ -226,18 +226,39 @@ function rewards.generateRandomRewards()
         end
     end
 
-    local rewardList = {
-        -- generateResourceReward(),
-        -- generateStackedTokenReward(),
-        -- generatePotionReward(),
-        {
-            upgradeId = "more_damage",
-            icon = "more_damage"
+    if sn.level % 10 == 9 then
+        local scy = g.getNextScythe()
+        if scy then
+            return {assert(generateScytheReward())}
+        end
+    end
+
+    local rewardList
+
+    if sn.level % 5 == 0 then
+        -- generate permanent rewards!
+        rewardList = {
+            {
+                upgradeId = "more_damage",
+                icon = "more_damage"
+            },
+            {
+                upgradeId = "more_speed",
+                icon = "more_speed"
+            },
+            {
+                upgradeId = "more_area",
+                icon = "more_area"
+            }
+
         }
-        -- resource-reward
-        -- effect-reward
-        -- OTHER-reward
-    }
+    else
+        rewardList = {
+            generateResourceReward(),
+            generateStackedTokenReward(),
+            generatePotionReward(),
+        }
+    end
 
     for _,rew in ipairs(rewardList) do
         assertRewardIsValid(rew)
