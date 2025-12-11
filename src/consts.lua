@@ -26,8 +26,9 @@ local consts = {
     HARVEST_AREA_LEEWAY = 4, -- Mouse-harvest extends by this amount so it "feels good"
 
 
-    DEFAULT_UPGRADE_PRICE_SCALING = 2,
+    DEFAULT_UPGRADE_PRICE_SCALING = 1,
     -- upgrade-price is multiplied by this amount every level (unless specified)
+    -- 1 => upgrade price doesnt change per level
 
     DEFAULT_UPGRADE_MAX_LEVEL = 10,
 
