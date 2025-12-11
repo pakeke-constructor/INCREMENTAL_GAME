@@ -14,6 +14,12 @@ local upgscene = FreeCameraScene()
 
 local UNLOCKED_UPGRADE_ANIMATION_DURATION = 0.7
 
+local CONTROL_TEXT = table.concat({
+    loc("Click-Hold Background to Pan", nil, {context = "mouse controls on list of upgrades"}),
+    loc("Hover on Upgrades to See More", nil, {context = "mouse controls about an upgrade"}),
+    loc("Click on Upgrades to Buy", nil, {context = "mouse controls about an upgrade"}),
+}, "\n")
+
 
 
 
@@ -523,6 +529,19 @@ function upgscene:draw()
         self.upgradeDescription:draw(descriptionBoxR.x, descriptionBoxR.y)
     else
         self.upgradeDescription = nil
+    end
+
+    -- Draw control tooltip
+    do
+        local font = g.getSmallFont(16)
+        local safeAreaR = g.getHUD():getSafeArea()
+        local nl = 1 + select(2, CONTROL_TEXT:gsub("\n", ""))
+        local controlTextR = safeAreaR:set(nil, nil, nil, font:getHeight() * (1 + nl))
+            :attachToBottomOf(safeAreaR)
+            :moveRatio(0, -1)
+            :moveUnit(2, 10)
+        love.graphics.setColor(1, 1, 1, 0.5)
+        richtext.printRich(CONTROL_TEXT, font, controlTextR.x, controlTextR.y, controlTextR.w, "left")
     end
 
     if consts.DEV_MODE then
