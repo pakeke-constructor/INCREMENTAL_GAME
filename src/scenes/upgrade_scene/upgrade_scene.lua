@@ -22,6 +22,8 @@ function upgscene:init()
     ---@type {x:number,y:number,isAddingConnector:boolean}?
     self.dev_editModeSelection = nil
     self.dev_showDistances = false
+    self.dev_maxLevelInput = ui.newTextBox()
+    self.dev_priceInput = ui.newTextBox()
 
     ---@type ui.UpgradeDescription|nil
     self.upgradeDescription = nil
@@ -316,6 +318,23 @@ end
 end
 
 
+---@param str string
+---@return number?
+local function dev_fromFormattedNumber(str)
+    local last = str:sub(-1,-1)
+    if last:find("%.") then
+        return nil -- no decimals
+    end
+    local mult = 1
+    if last == "k" then mult = 1000 end
+    if last == "m" then mult = 1000000 end
+    local num = str:sub(1,-2)
+    if tonumber(num) then
+        return tonumber(num) * mult
+    end
+    return nil -- failed
+end
+
 
 ---@param self UpgradesScene
 local function drawDevEditModeUI(self)
@@ -366,11 +385,8 @@ local function drawDevEditModeUI(self)
     end
 
     if tree._filename and ui.Button("SAVE TREE", objects.Color.AQUA,objects.Color.BLACK, regs[5]) then
-        local tree = g.getUpgTree()
-        if tree._filename then
-            local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP..tree._filename
-            love.filesystem.write(fname, json.encode(g.getUpgTree():serialize()))
-        end
+        local fname = consts.DEV_UPGRADE_TREE_PATH..consts.FILE_SEP..tree._filename
+        love.filesystem.write(fname, json.encode(g.getUpgTree():serialize()))
     end
 
     local function calculateGrid(itemCount, regionWidth, regionHeight)
@@ -429,12 +445,45 @@ local function drawDevEditModeUI(self)
         end
 
         if ui.Button("CONNECT", {0.1,0.9,0.0}, {0.0,0.6,0.0}, connectButton) then
-            sel.isAddingConnector = true
+            local upg = tree:get(sel.x,sel.y)
+            if upg then
+                sel.isAddingConnector = true
+            end
         end
 
         if ui.Button("MAKE ROOT", objects.Color.DARK_GRAY,objects.Color.BLACK, makeRootButton) then
             local upg = tree:get(sel.x,sel.y)
-            upg.isRoot=true
+            if upg then
+                upg.isRoot=true
+            end
+        end
+
+        -- LEFT SIDEBAR:
+        local upg = tree:get(sel.x,sel.y)
+        if upg then
+        local _,leftbar1 = leftbar:splitVertical(2,5)
+        local leftregs = leftbar1:grid(1,10)
+        lg.setColor(0,0,0,0.4)
+        lg.rectangle("fill", leftbar:get())
+        lg.setColor(1,1,1)
+        local font=g.getSmallFont(16)
+        richtext.printRichContainedNoWrap("maxLevel", font, leftregs[1]:get())
+        self.dev_maxLevelInput:draw(leftregs[2])
+
+        richtext.printRichContainedNoWrap("price", font, leftregs[4]:get())
+        self.dev_priceInput:draw(leftregs[5])
+        local price = dev_fromFormattedNumber(self.dev_priceInput.txt)
+        if price then
+            -- TODO: handle other currencies here.
+            tree:setUpgradeBasePrice(upg, {
+                money = price
+            })
+        end
+
+        local maxLevel = dev_fromFormattedNumber(self.dev_maxLevelInput.txt)
+        if maxLevel then
+            upg.maxLevelOverride = maxLevel
+        end
         end
     end
 

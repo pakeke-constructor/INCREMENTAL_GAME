@@ -312,25 +312,50 @@ function ui.Checkbox(color, region, checked)
 end
 
 
----@param txt string
----@param isFocused boolean
----@param region kirigami.Region
----@return string
----@return boolean
-function ui.TextBox(txt, isFocused, region)
-	if isFocused then
-		txt = txt .. iml.consumeText()
+
+---@class ui.TextBox: objects.Class
+---@field txt string
+---@field isFocused boolean
+local TextBox = objects.Class("ui:TextBox")
+
+function TextBox:init(text, isFocused)
+	self.txt = text or ""
+	self.isFocused = not not isFocused
+end
+
+---@param reg kirigami.Region
+function TextBox:draw(reg)
+	if self.isFocused then
+		local txt = (iml.consumeText() or "")
+		self.txt = self.txt .. txt
 	end
-	if iml.wasJustClicked(region:get()) then
-		isFocused = true
+	if iml.wasJustClicked(reg:get()) then
+		self.isFocused = not self.isFocused
+		if self.isFocused then
+			self.txt = ""
+		end
 	end
-	lg.setColor(1,0.9,0.8)
-	lg.rectangle("fill", region:get())
+	if self.isFocused then
+		if math.floor(love.timer.getTime()*2)%2==0 then
+			lg.setColor(1,0.9,0.8)
+		else
+			lg.setColor(0.8,0.7,0.6)
+		end
+	else
+		lg.setColor(1,0.9,0.8)
+	end
+	lg.rectangle("fill", reg:get())
 	lg.setColor(0,0,0)
-	lg.rectangle("line", region:get())
+	lg.rectangle("line", reg:get())
 	local font=g.getSmallFont(16)
-	richtext.printRichContained(txt,font,region:get())
-	return txt, isFocused
+	lg.setColor(0,0,0)
+	richtext.printRichContained(self.txt,font,reg:get())
+	lg.setColor(1,1,1)
+end
+
+---@return ui.TextBox
+function ui.newTextBox()
+	return TextBox()
 end
 
 

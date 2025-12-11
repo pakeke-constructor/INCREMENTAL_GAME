@@ -70,6 +70,11 @@ end
 _G.json = require("lib.json")
 _G.consts = require("src.consts")
 
+if consts.DEV_MODE then
+    love.keyboard.setTextInput(true)
+end
+
+
 -- Profiler zones
 local profilerStackCount = 0
 if consts.PROFILING then
