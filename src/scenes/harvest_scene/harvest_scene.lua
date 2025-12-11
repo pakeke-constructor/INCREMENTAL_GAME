@@ -705,7 +705,14 @@ end
 end
 
 
+---@param tok g.Token
 function harvest:tokenDestroyed(tok)
+    if not tok.wasSpawnedViaTokenPool then
+        -- We dont want to give XP if it isnt from token-pool;
+        -- (or else its way too OP; trust me)
+        return
+    end
+
     if not (self.xpPopup or self.upgradePopup) then
         local xp = tok.maxHealth
         local mult = getXpMultiplier(self)

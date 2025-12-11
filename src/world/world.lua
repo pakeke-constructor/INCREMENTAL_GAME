@@ -874,7 +874,8 @@ function World:_update(dt)
             if curTime >= (tokenDestroyTime[i] + cooldownTime) then
                 local x,y = g.getRandomPositionForToken()
                 if x and y then
-                    g.spawnToken(tokType, x,y)
+                    local tok = g.spawnToken(tokType, x,y)
+                    tok.wasSpawnedViaTokenPool = true
                     table.remove(tokenDestroyTime, i)
                 end
             end
