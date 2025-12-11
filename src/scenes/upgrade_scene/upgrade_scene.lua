@@ -28,6 +28,9 @@ function upgscene:init()
 
     ---@type [g.Tree.Upgrade?, number]
     self.lastUpgradeBought = {nil, 0} -- {upgradeId, lifetime}
+
+    ---@type iml.Drag|nil
+    self.lmbPan = nil
 end
 
 
@@ -474,6 +477,26 @@ function upgscene:draw()
     love.graphics.setColor(1,1,1)
 
     self:setCamera()
+    do
+        local x, y = self.camera:toWorld(0, 0) --[[@as number]]
+        local x2, y2 = self.camera:toWorld(love.graphics.getDimensions())
+        local w, h = x2 - x, y2 - y
+        local drag = iml.consumeDrag("upgscene:viewport", x, y, w, h, 1)
+
+        if drag then
+            local dx, dy = 0, 0
+            if self.lmbPan then
+                dx = self.lmbPan.dx - drag.dx
+                dy = self.lmbPan.dy - drag.dy
+            end
+
+            local px, py = self.camera:getPos()
+            self.camera:setPos(px + dx, py + dy)
+        end
+
+        self.lmbPan = drag
+    end
+
     local hoveredUpgrade = drawUpgradeBoxes(self)
 
     self:resetCamera()
