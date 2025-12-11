@@ -6,7 +6,7 @@ g.defineScythe("starting_scythe", "Starting Scythe", {
 })
 
 
-g.defineScythe("basic_scythe", "Basic Scythe", {
+g.defineScythe("iron_scythe", "Iron Scythe", {
     harvestArea = 20,
 })
 
@@ -22,6 +22,6 @@ g.defineScythe("amethyst_scythe", "Amethyst Scythe", {
 
 
 g.defineScythe("ruby_scythe", "Ruby Scythe", {
-    harvestArea = 30,
+    harvestArea = 35,
 })
 

@@ -60,7 +60,7 @@ function g.getMainWorld()
 end
 
 function g.getPrestige()
-    return currentSession.prestige
+    return currentSession.prestige or 0
 end
 
 g.isBeingSimulated = simulation.isSimulating
@@ -2068,7 +2068,9 @@ function g.defineScythe(id, name, def)
 
     ---@cast def g.Scythe
     def.type = id
-    def.name = loc(name)
+    def.name = loc(name, {}, {
+        context = "As in, a scythe used for harvesting. Like 'Ruby Scythe' or 'Emerald Scythe' or 'Basic Scythe'"
+    })
     SCYTHES[id] = def
     table.insert(SCYTHE_ORDER,id)
 end
@@ -2084,11 +2086,15 @@ function g.getCurrentScythe()
 end
 
 ---@return string?
+---@return g.Scythe?
 function g.getNextScythe()
     local curr = g.getCurrentScythe()
     for i,sc in ipairs(SCYTHE_ORDER)do
         if sc == curr then
-            return SCYTHE_ORDER[i+1] or nil
+            local id = SCYTHE_ORDER[i+1]
+            if id then
+                return id, g.getScytheInfo(id)
+            end
         end
     end
     return nil

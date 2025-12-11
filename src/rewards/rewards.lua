@@ -56,6 +56,8 @@ local rewards = {}
 ---
 ---@field resources g.Bundle? only for resource-rewards
 ---
+---@field scythe boolean? is this a scythe upgrade
+---
 ---@field effect g.EffectInfo? only for effect-rewards
 ---@field effectDuration number? (also effect-rewards)
 ---
@@ -79,6 +81,7 @@ local function assertRewardIsValid(rew)
     if rew.effect then ct = ct + 1 end
     if rew.upgradeId then ct = ct + 1 end
     if rew.stackedToken then ct = ct + 1 end
+    if rew.scythe then ct = ct + 1 end
     assert(ct == 1, "Invalid reward: Rewards need to be exactly ONE type")
 
     if rew.effect then
@@ -194,11 +197,30 @@ end
 
 
 
+---@return g.Reward?
+local function generateScytheReward()
+    local sid = g.getNextScythe()
+    if sid then
+        local sinfo = g.getScytheInfo(sid)
+        return {
+            scythe = true,
+            icon = sinfo.image
+        }
+    end
+end
+
+
+
 ---@return g.Reward[]
 function rewards.generateRandomRewards()
     -- generates 3 random rewards to choose from
     local sn=g.getSn()
     if g.getPrestige() == 0 then
+        if sn.level == 0 then
+            return {assert(generateScytheReward())}
+        elseif sn.level == 1 then
+           -- uhh idk lol. TODO
+        end
         if sn.level < 4 then
             -- HARD-CODE
         end
@@ -228,6 +250,12 @@ end
 
 
 local PERMANENT_UPGRADE = loc("{wavy amp=0.3 f=2}{o}PERMANENT UPGRADE:{/o}{/wavy}")
+
+
+local NEW_SCYTHE = loc("{wavy amp=0.3 f=2}{o}New Scythe Upgrade:{/o}{/wavy}")
+local SCYTHE_UPGRADE = interp("{wavy amp=0.3 f=2}{o}+%{harvestRadius} harvest radius!{/o}{/wavy}", {
+    context = "As in an upgrade for harvest area: '+4 harvest radius!'"
+})
 
 
 local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff to harvest:{/o}{/wavy}")
@@ -302,6 +330,21 @@ function rewards.drawRewardDescription(rew, r)
         local txt = g.getUpgradeDescription(uinfo, 1, false)
         local effect = "{wavy amp=0.3 f=2}{o}{c r=0.9 g=0.7 b=0.5}"
         richtext.printRichContained(effect.. txt, font, b:get())
+    elseif rew.scythe then
+        local a = main:splitVertical(1,2):attachToTopOf(main)
+        local b,c = main:splitVertical(3,2)
+        richtext.printRichContained(NEW_SCYTHE, font, a:get())
+        local scythe, sinfo = g.getNextScythe()
+        if scythe and sinfo then
+            local currHA = g.getScytheInfo(g.getCurrentScythe()).harvestArea
+            local nextHA = sinfo.harvestArea
+            local diff = nextHA - currHA
+            richtext.printRichContained("{rainbow}{o}" .. sinfo.name, font, b:get())
+            local effect = "{wavy amp=0.3 f=2}{o}{c r=0.9 g=0.7 b=0.5}"
+            richtext.printRichContained(effect.. SCYTHE_UPGRADE({
+                harvestRadius = diff
+            }), font, c:get())
+        end
     else
         -- this shit doesnt need to be translated
         richtext.printRichContained("{o}ERROR. WTF? TELL OLI!{/o}", font, r:get())
@@ -330,6 +373,14 @@ function rewards.selectReward(rew)
         local uinfo = g.getUpgradeInfo(rew.upgradeId)
         local tree = g.getUpgTree()
         tree:addOrUpgradeUnboundUpgrade(uinfo)
+    elseif rew.scythe then
+        local sn = g.getSn()
+        local scythe = g.getNextScythe()
+        if scythe then
+            sn.scythe = scythe
+        else
+            log.error("WTF BRUV? ERROR?")
+        end
     end
 end
 
