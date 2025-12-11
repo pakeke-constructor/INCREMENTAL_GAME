@@ -518,6 +518,18 @@ end
 
 
 
+---@param scname string
+local function makeTransitionTarget(scname)
+    local poi = helper.assert(POI[sceneNamePOIMap[scname]], "invalid scene", scname)
+    g.playUISound("map_zoom_woosh3",1,0.4)
+    return {
+        time = 0,
+        x = poi.x + poi.w / 2,
+        y = poi.y + poi.h / 2,
+        action = makePOIAction(poi),
+        duration = TRANSITION_DURATION
+    }
+end
 
 function map:update(dt)
     self:updateCamera(dt)
@@ -531,20 +543,17 @@ function map:update(dt)
             self.transitionTarget.action = nil
         elseif self.transitionTarget.time >= self.transitionTarget.duration then
             if self.queuedTransitionTargetScene then
-                local poi = helper.assert(POI[sceneNamePOIMap[self.queuedTransitionTargetScene]], "invalid scene", self.queuedTransitionTargetScene)
-                self.transitionTarget = {
-                    time = 0,
-                    x = poi.x + poi.w / 2,
-                    y = poi.y + poi.h / 2,
-                    action = makePOIAction(poi),
-                    duration = TRANSITION_DURATION
-                }
+                self.transitionTarget = makeTransitionTarget(self.queuedTransitionTargetScene)
                 self.queuedTransitionTargetScene = nil
                 g.playUISound("map_zoom_woosh3",1,0.4)
             else
                 self.transitionTarget = nil
             end
         end
+    elseif self.queuedTransitionTargetScene then
+        self.transitionTarget = makeTransitionTarget(self.queuedTransitionTargetScene)
+        self.queuedTransitionTargetScene = nil
+        g.playUISound("map_zoom_woosh3",1,0.4)
     end
 end
 
