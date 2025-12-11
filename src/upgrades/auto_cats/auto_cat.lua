@@ -42,6 +42,18 @@ local function drawHarvestCircle(self)
     return worldutil.drawHarvestCircle(self.x, self.y, self.radius, HARVEST_CIRCLE_INSIDE, HARVEST_CIRCLE_BORDER)
 end
 
+local function makeDrawWithWeapon(itemImage)
+    ---@param ent g.Entity
+    return function(ent)
+        love.graphics.push()
+        love.graphics.translate(ent.x, ent.y)
+        love.graphics.rotate(ent.rot or 0)
+        love.graphics.scale(ent.sx or 1, ent.sy or 1)
+        g.drawImageOffset(itemImage, 12, 4, math.pi / 4, -1, 1, 0.1, 0.9)
+        love.graphics.pop()
+    end
+end
+
 
 
 g.defineEntity("grass_farmer_cat", {
@@ -52,7 +64,8 @@ g.defineEntity("grass_farmer_cat", {
 
     init = randomizeDir,
     update = makeFarmerCatUpdate("grass"),
-    drawBelow = drawHarvestCircle
+    drawBelow = drawHarvestCircle,
+    draw = makeDrawWithWeapon("basic_scythe"),
 })
 
 g.defineEntity("lumberjack_cat", {
@@ -64,6 +77,7 @@ g.defineEntity("lumberjack_cat", {
     init = randomizeDir,
     update = makeFarmerCatUpdate("berry"),
     drawBelow = drawHarvestCircle,
+    draw = makeDrawWithWeapon("steel_scythe"),
 })
 
 
