@@ -323,6 +323,10 @@ function TextBox:init(text, isFocused)
 	self.isFocused = not not isFocused
 end
 
+function TextBox:reset()
+	self.txt = ""
+end
+
 ---@param reg kirigami.Region
 function TextBox:draw(reg)
 	if self.isFocused then

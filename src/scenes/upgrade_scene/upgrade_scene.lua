@@ -257,9 +257,10 @@ local function drawUpgradeBoxes(self)
                 richtext.printRichContained("{o}" .. tostring(dist), g.getSmallFont(16), x-15,y-15, 30,30)
             end
             if self.dev_showPrices then
-                local basePrice = g.formatNumber(tree:getUpgradePrice(upg, 0).money)
+                local num = tree:getUpgradePrice(upg, 0).money
+                local basePrice = num and g.formatNumber(num) or 0
                 lg.setColor(1,1,1)
-                richtext.printRichContained("{o}" .. tostring(basePrice), g.getSmallFont(16), x-15,y-15, 30,30)
+                richtext.printRichContained("{o}{c r=0.9 g=0.6 b=0.3}$" .. tostring(basePrice), g.getSmallFont(16), x-10,y, 20,20)
             end
         end
     end
@@ -292,6 +293,8 @@ local function drawUpgradeBoxes(self)
                     else
                         -- select new:
                         self.dev_editModeSelection = {x=gridX,y=gridY}
+                        self.dev_maxLevelInput:reset()
+                        self.dev_priceInput:reset()
                     end
                 end
                 if iml.isHovered(xx,yy,ww,hh) then
@@ -340,6 +343,9 @@ end
 ---@param str string
 ---@return number?
 local function dev_fromFormattedNumber(str)
+    if str == "" then
+        return nil -- fail
+    end
     local last = str:sub(-1,-1)
     if last:find("%.") then
         return nil -- no decimals
@@ -658,7 +664,7 @@ function upgscene:keypressed(k)
             end
         end
 
-        if k == "1" then
+        if love.keyboard.isDown("lshift") and k == "1" then
             local session = g.getSn()
             local oldTree = session.tree
             local upgradeLevels = {}
