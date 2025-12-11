@@ -14,6 +14,14 @@ local upgscene = FreeCameraScene()
 
 local UNLOCKED_UPGRADE_ANIMATION_DURATION = 0.7
 
+local CONTROL_TEXT = table.concat({
+    loc("Click-Hold Background to Pan", nil, {context = "mouse controls on list of upgrades"}),
+    loc("Hover on Upgrades to See More", nil, {context = "mouse controls about an upgrade"}),
+    loc("Click on Upgrades to Buy", nil, {context = "mouse controls about an upgrade"}),
+}, "\n")
+
+local TUTORIAL_UPGRADES = "{w}{o thickness=2}"..loc("These are permanent {c r=0 g=1 b=0}upgrades{/c}.\nClick to buy!").."{/o}{/w}"
+
 
 
 
@@ -30,6 +38,9 @@ function upgscene:init()
 
     ---@type [g.Tree.Upgrade?, number]
     self.lastUpgradeBought = {nil, 0} -- {upgradeId, lifetime}
+
+    ---@type iml.Drag|nil
+    self.lmbPan = nil
 end
 
 
@@ -205,6 +216,7 @@ local function drawUpgradeBoxes(self)
         end
     end
 
+    local sn = g.getSn()
     for _, upg in ipairs(upgrades) do
         if isVisible(upg) then
             local level = upg.level
@@ -233,6 +245,7 @@ local function drawUpgradeBoxes(self)
                 g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
                 if tree:tryBuyUpgrade(upg) and upg.level == 1 then
                     self.lastUpgradeBought = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
+                    sn.showTutorials.upgrades = false
                 end
                 hoveredUpgrade=nil
             end
@@ -523,6 +536,26 @@ function upgscene:draw()
     love.graphics.setColor(1,1,1)
 
     self:setCamera()
+    do
+        local x, y = self.camera:toWorld(0, 0) --[[@as number]]
+        local x2, y2 = self.camera:toWorld(love.graphics.getDimensions())
+        local w, h = x2 - x, y2 - y
+        local drag = iml.consumeDrag("upgscene:viewport", x, y, w, h, 1)
+
+        if drag then
+            local dx, dy = 0, 0
+            if self.lmbPan then
+                dx = self.lmbPan.dx - drag.dx
+                dy = self.lmbPan.dy - drag.dy
+            end
+
+            local px, py = self.camera:getPos()
+            self.camera:setPos(px + dx, py + dy)
+        end
+
+        self.lmbPan = drag
+    end
+
     local hoveredUpgrade = drawUpgradeBoxes(self)
 
     self:resetCamera()
@@ -533,6 +566,13 @@ function upgscene:draw()
     self:renderMapButton()
 
     g.getHUD():draw({profile = false})
+
+    -- Draw tutorial text if needed
+    if g.getSn().showTutorials.upgrades then
+        local safeArea = g.getHUD():getSafeArea()
+        local tutTextR = safeArea:padRatio(0.1)
+        richtext.printRich(TUTORIAL_UPGRADES, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+    end
 
     if hoveredUpgrade then
         if not self.upgradeDescription or self.upgradeDescription:getUpgrade() ~= hoveredUpgrade then
@@ -549,6 +589,19 @@ function upgscene:draw()
         self.upgradeDescription:draw(descriptionBoxR.x, descriptionBoxR.y)
     else
         self.upgradeDescription = nil
+    end
+
+    -- Draw control tooltip
+    do
+        local font = g.getSmallFont(16)
+        local safeAreaR = g.getHUD():getSafeArea()
+        local nl = 1 + select(2, CONTROL_TEXT:gsub("\n", ""))
+        local controlTextR = safeAreaR:set(nil, nil, nil, font:getHeight() * (1 + nl))
+            :attachToBottomOf(safeAreaR)
+            :moveRatio(0, -1)
+            :moveUnit(2, 10)
+        love.graphics.setColor(1, 1, 1, 0.5)
+        richtext.printRich(CONTROL_TEXT, font, controlTextR.x, controlTextR.y, controlTextR.w, "left")
     end
 
     if consts.DEV_MODE then

@@ -12,7 +12,11 @@ local function init()
         g.newSession()
     end
 
-    g.gotoScene("map_scene")
+    if g.getSn().showTutorials.harvest then
+        g.gotoSceneViaMap("harvest_scene")
+    else
+        g.gotoScene("map_scene")
+    end
 end
 
 local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")

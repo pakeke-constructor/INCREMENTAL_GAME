@@ -454,4 +454,18 @@ end
 
 
 
+---@param x number
+---@param y number
+---@param radius number
+function helper.circleHighlight(x, y, radius)
+    local t = love.timer.getTime() * 1.25 % 2
+    local t1 = helper.EASINGS.sineInOut(helper.clamp(t - 1, 0, 1))
+    local t2 = helper.EASINGS.sineInOut(helper.clamp(t, 0, 1))
+    local a1 = helper.lerp(-math.pi/2, math.pi * 1.5, t1)
+    local a2 = helper.lerp(-math.pi/2, math.pi * 1.5, t2)
+    love.graphics.arc("line", "open", x, y, radius, a1, a2)
+end
+
+
+
 return helper
