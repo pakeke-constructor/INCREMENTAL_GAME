@@ -729,10 +729,7 @@ function harvest:tokenDestroyed(tok)
         local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
         xpParticles:spawnParticle(uiX,uiY, vx,vy)
 
-        local tuts = g.getSn().showTutorials
-        if tuts.harvest then
-            tuts.harvest = false
-        end
+        g.getSn().showTutorials.harvest = false
     end
 end
 
