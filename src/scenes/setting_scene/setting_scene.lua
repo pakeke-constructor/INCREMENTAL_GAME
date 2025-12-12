@@ -313,4 +313,12 @@ function settingscene:_drawLanguageSelector()
     end
 end
 
+
+function settingscene:keyreleased(_k, scancode)
+    if scancode == "escape" then
+        sceneManager.gotoLastScene()
+    end
+end
+
+
 return settingscene
