@@ -228,12 +228,14 @@ function love.load(arg)
 end
 
 function love.quit()
+    log.info("love.quit begin...")
     if consts.DEV_MODE then
         localization.dump()
     end
 
     settings.save()
     g.saveAndInvalidateSession()
+    log.info("love.quit done.")
 end
 
 
