@@ -63,10 +63,8 @@ function FreeCameraScene:renderMapButton()
     local left, right = header:splitHorizontal(7,1)
     right = right:padRatio(0.2)
 
-    local MAIN=objects.Color.WHITE
-    local BASE=objects.Color.GRAY
-    -- TEMPORARY CODE
-    if ui.Button("{o}MAP", MAIN,BASE, right) then
+    g.drawImageContained("map_button", right:get())
+    if iml.wasJustClicked(right:get()) then
         g.gotoScene("map_scene")
     end
 

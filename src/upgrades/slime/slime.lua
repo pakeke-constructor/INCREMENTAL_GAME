@@ -112,6 +112,13 @@ g.defineUpgrade("acidic_slime", "Acidic Slime", {
 
 
 g.defineUpgrade("slime_apocalypse", "Slime Apocalypse", {
+    --[[
+    
+    TODO: CHANGE THIS UPGRADE:
+
+    Every 15 seconds, slime ALL crops on screen!
+    
+    ]]
     drawUI=drawSlime,
     kind="TOKEN_MODIFIER",
 
