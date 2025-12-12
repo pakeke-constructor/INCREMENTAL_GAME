@@ -226,8 +226,8 @@ local function drawUpgradeBoxes(self)
             local price = tree:getUpgradePrice(upg)
             local x, y = getUpgradeGridCoords(upg.x, upg.y)
 
-            local dontDraw = g.getBundleCostRatio(price) < 0.2
-            -- its WAYYY too expensive... just draw black square
+            local dontDraw = false -- and g.getBundleCostRatio(price) < 0.2
+            -- Removed this ^^^^ system, coz its bad.
 
             local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y, dontDraw)
             if (not dontDraw) then
