@@ -21,6 +21,8 @@ end
 
 
 
+local ORBIT_BULGE_DUR = 0.15
+local ORBIT_BULGE_MAG = 0.6
 
 
 g.defineEntity("orbital_knife", {
@@ -33,7 +35,7 @@ g.defineEntity("orbital_knife", {
         radius = 24,
         collision = function(self, tok)
             g.damageToken(tok, 1)
-            g.bulgeEntity(self, 0.2, 1)
+            g.bulgeEntity(self, ORBIT_BULGE_DUR, ORBIT_BULGE_MAG)
         end
     }
 })
@@ -58,7 +60,7 @@ g.defineEntity("orbital_scythe", {
         radius = 24,
         collision = function(self, tok)
             g.damageToken(tok, 2)
-            g.bulgeEntity(self, 0.2, 1)
+            g.bulgeEntity(self, ORBIT_BULGE_DUR, ORBIT_BULGE_MAG)
         end
     }
 })
@@ -80,10 +82,10 @@ g.defineEntity("slime_bucket", {
     hitToken = {
         radius = 24,
         collision = function(self, tok)
-            if love.math.random() <= 0.2 then
+            if love.math.random() <= .2 then
                 g.slimeToken(tok)
             end
-            g.bulgeEntity(self, 0.2, 1)
+            g.bulgeEntity(self, ORBIT_BULGE_DUR, ORBIT_BULGE_MAG)
         end
     },
 })
@@ -124,7 +126,7 @@ g.defineEntity("orbital_star", {
             if love.math.random() <= 0.2 then
                 g.starToken(tok)
             end
-            g.bulgeEntity(self, 0.2, 1)
+            g.bulgeEntity(self, ORBIT_BULGE_DUR, ORBIT_BULGE_MAG)
         end
     },
 })
