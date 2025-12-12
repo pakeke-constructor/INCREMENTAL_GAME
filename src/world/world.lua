@@ -761,7 +761,7 @@ function World:_update(dt)
         end
 
         if e.hitToken then
-            local entCooldown = e.hitToken.cooldown or 0.3
+            local entCooldown = e.hitToken.cooldown or 0.4
             local cd0 = math.min(self.entitiesToHitCooldown[e] or 0, entCooldown)
             local cooldown = math.max(cd0 - dt, 0)
             self.entitiesToHitCooldown[e] = cooldown

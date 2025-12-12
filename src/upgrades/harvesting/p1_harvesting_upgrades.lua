@@ -12,53 +12,68 @@ local function defUpgrade(id,name,tabl)
 end
 
 
+---@class _.upgrades
+local upgrades = {
+    {
+        id = "more_damage",
+        title = "More Damage",
+        desc = "%{1} hit damage",
+        stat = "HitDamage",
+        increase = 0.5
+    },
+    {
+        id = "more_speed",
+        title = "More Speed",
+        desc = "%{1} hit speed",
+        stat = "HitSpeed",
+        increase = 1
+    },
+    {
+        id = "more_area",
+        title = "More Area",
+        desc = "%{1} hit area",
+        stat = "HarvestArea",
+        increase = 2
+    }
+}
+
+for _, u in ipairs(upgrades) do
+    defUpgrade("percentage_"..u.id, u.title, {
+        image = u.id,
+
+        getValues = function(self, level)
+            return level
+        end,
+        valueFormatter = {"+%d%%"},
+        description = u.desc,
+
+        ["get" .. u.stat .. "Multiplier"] = function(self, level)
+            local a = self:getValues(level)
+            return 1 + (a / 100)
+        end
+    })
+
+    defUpgrade("flat_"..u.id, u.title, {
+        image = u.id,
+
+        getValues = function(self, level)
+            return level*u.increase
+        end,
+
+        valueFormatter = {"+%.1f"},
+        description = u.desc,
+
+        ["get" .. u.stat .. "Modifier"] = function(self, level)
+            return self:getValues(level)
+        end
+    })
+end
 
 
-defUpgrade("more_damage", "More Damage", {
-    getValues = function(self,level)
-        return level
-    end,
-
-    valueFormatter = {"+%d%%"},
-    description = "%{1} hit damage",
-
-    getTokenHitMultiplier = function(self,level)
-        local a=self:getValues(level)
-        return 1+(a/100)
-    end
-})
 
 
 
-defUpgrade("more_speed", "More Speed", {
-    getValues = function(self,level)
-        return level
-    end,
 
-    valueFormatter = {"+%d%%"},
-    description = "%{1} hit speed",
-
-    getHitSpeedMultiplier = function(self,level)
-        local a=self:getValues(level)
-        return 1+(a/100)
-    end
-})
-
-
-
-defUpgrade("more_area", "More Area", {
-    getValues = function(self,level)
-        return level
-    end,
-
-    valueFormatter = {"+%d%%"},
-    description = "%{1} hit area",
-
-    getHarvestAreaMultiplier = function(self,level)
-        local a=self:getValues(level)
-        return 1+(a/100)
-    end
-})
 
 
 

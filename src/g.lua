@@ -255,9 +255,15 @@ local suffixes = {
 function g.formatNumber(num)
     local isNegative = num < 0
     num = math.abs(num)
+    local prefix = (isNegative and "-" or "")
 
     if num < 1000 then
-        return (isNegative and "-" or "") .. tostring(math.floor(num))
+        if num < 1 then
+            return prefix .. ("%.2f"):format(num)
+        elseif num < 3 then
+            return prefix .. ("%.1f"):format(num)
+        end
+        return prefix .. tostring(math.floor(num))
     end
 
     for i, suffix in ipairs(suffixes) do
@@ -272,10 +278,10 @@ function g.formatNumber(num)
                 formatted = string.format("%.14g", math.floor(scaled * 100) / 100)
             end
 
-            return (isNegative and "-" or "") .. formatted .. suffix[2]
+            return prefix .. formatted .. suffix[2]
         end
     end
-    return (isNegative and "-" or "") .. tostring(num)
+    return prefix .. tostring(num)
 end
 
 end

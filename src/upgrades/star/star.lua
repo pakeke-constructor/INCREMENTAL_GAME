@@ -1,7 +1,7 @@
 
 
 g.defineUpgrade("star_upgrade", "Starred Crops", {
-    description = "%{1} chance to make a crop starred on spawn.\n(Starred crops earn 3x more resources!)",
+    description = "%{1} chance to make a crop starred on spawn.\n(Starred crops earn 3x more resources, and have 3x health!)",
     kind = "HARVESTING",
     image = "star_upgrade",
 
