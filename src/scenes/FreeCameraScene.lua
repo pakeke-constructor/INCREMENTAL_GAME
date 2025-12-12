@@ -55,16 +55,25 @@ end
 
 
 
+local MAP_BUTTON = "{wavy}{c r=0.9 g=0.8 b=0.85}{o}" .. loc("Back to Map", {}, {
+    context = "A button that leads back to the world-map"
+})
 
 function FreeCameraScene:renderMapButton()
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
     local header,_ = r:splitVertical(1,5)
 
     local left, right = header:splitHorizontal(7,1)
-    right = right:padRatio(0.2)
+    local mapButton = right:padRatio(0.2)
 
-    g.drawImageContained("map_button", right:get())
-    if iml.wasJustClicked(right:get()) then
+    lg.setColor(1,1,1)
+    if iml.isHovered(mapButton:get()) then
+        g.drawImageContained("map_button_hover", mapButton:get())
+    end
+    g.drawImageContained("map_button", mapButton:get())
+    local _,txtR = right:splitVertical(3,1)
+    richtext.printRichContained(MAP_BUTTON, g.getSmallFont(16), txtR:get())
+    if iml.wasJustClicked(mapButton:get()) then
         g.gotoScene("map_scene")
     end
 
