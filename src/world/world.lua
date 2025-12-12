@@ -344,10 +344,18 @@ local function drawEntity(e)
 
     drawShadow(e.shadow, e.x, e.y)
 
+    local sx,sy = e.sx or 1, e.sy or 1
+    if e.bulgeAnimation then
+        local blg = assert(e.bulgeAnimation)
+        local mag = 1 + (blg.time/blg.duration)*blg.magnitude
+        sx = sx * mag
+        sy = sy * mag
+    end
+
     if e.image then
         love.graphics.setColor(1, 1, 1, e.alpha or 1)
         love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
-        g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, e.sx or 1, e.sy or 1)
+        g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, sx,sy)
         love.graphics.setBlendMode("alpha", "alphamultiply")
     end
 
@@ -747,8 +755,13 @@ function World:_update(dt)
             e:update(dt)
         end
 
+        if e.bulgeAnimation then
+            local blg = assert(e.bulgeAnimation)
+            blg.time = math.max(0, blg.time - dt)
+        end
+
         if e.hitToken then
-            local entCooldown = e.hitToken.cooldown or 1
+            local entCooldown = e.hitToken.cooldown or 0.3
             local cd0 = math.min(self.entitiesToHitCooldown[e] or 0, entCooldown)
             local cooldown = math.max(cd0 - dt, 0)
             self.entitiesToHitCooldown[e] = cooldown

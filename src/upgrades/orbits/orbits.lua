@@ -31,8 +31,9 @@ g.defineEntity("orbital_knife", {
     end,
     hitToken = {
         radius = 24,
-        collision = function(_, tok)
+        collision = function(self, tok)
             g.damageToken(tok, 1)
+            g.bulgeEntity(self, 0.2, 1)
         end
     }
 })
@@ -55,8 +56,9 @@ g.defineEntity("orbital_scythe", {
     end,
     hitToken = {
         radius = 24,
-        collision = function(_, tok)
+        collision = function(self, tok)
             g.damageToken(tok, 2)
+            g.bulgeEntity(self, 0.2, 1)
         end
     }
 })
@@ -77,10 +79,11 @@ g.defineEntity("slime_bucket", {
     orbitRing = 2,
     hitToken = {
         radius = 24,
-        collision = function(_, tok)
+        collision = function(self, tok)
             if love.math.random() <= 0.2 then
                 g.slimeToken(tok)
             end
+            g.bulgeEntity(self, 0.2, 1)
         end
     },
 })
@@ -117,10 +120,11 @@ g.defineEntity("orbital_star", {
     orbitRing = 1,
     hitToken = {
         radius = 24,
-        collision = function(_, tok)
+        collision = function(self, tok)
             if love.math.random() <= 0.2 then
                 g.starToken(tok)
             end
+            g.bulgeEntity(self, 0.2, 1)
         end
     },
 })

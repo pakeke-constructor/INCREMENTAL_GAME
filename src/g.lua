@@ -1530,6 +1530,7 @@ do
 ---@field rot number?
 ---@field alpha number?
 ---@field orbitRing integer?
+---@field bulgeAnimation {time: number, magnitude: number, duration:number}?
 ---@field image string?
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
@@ -1599,6 +1600,19 @@ function g.spawnEntity(ename, x,y, ...)
     w.entities:addBuffered(ent)
     return ent
 end
+
+
+---@param ent g.Entity
+---@param duration number
+---@param magnitude number
+function g.bulgeEntity(ent, duration, magnitude)
+    ent.bulgeAnimation = {
+        duration = duration,
+        time = duration,
+        magnitude = magnitude
+    }
+end
+
 
 function g.isEntity(obj)
     local mt = getmetatable(obj)
