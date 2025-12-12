@@ -233,21 +233,33 @@ function rewards.generateRandomRewards()
         end
     end
 
+
+    assert(
+        g.isImage("more_damage") and
+        g.isImage("more_speed") and
+        g.isImage("more_area")
+    )
+    assert(
+        g.getUpgradeInfo("percentage_more_damage") and
+        g.getUpgradeInfo("percentage_more_speed") and
+        g.getUpgradeInfo("percentage_more_area")
+    )
+
     local rewardList
 
     if sn.level % 5 == 0 then
         -- generate permanent rewards!
         rewardList = {
             {
-                upgradeId = "more_damage",
+                upgradeId = "percentage_more_damage",
                 icon = "more_damage"
             },
             {
-                upgradeId = "more_speed",
+                upgradeId = "percentage_more_speed",
                 icon = "more_speed"
             },
             {
-                upgradeId = "more_area",
+                upgradeId = "percentage_more_area",
                 icon = "more_area"
             }
 
