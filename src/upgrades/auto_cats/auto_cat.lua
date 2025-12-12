@@ -65,7 +65,7 @@ g.defineEntity("grass_farmer_cat", {
     init = randomizeDir,
     update = makeFarmerCatUpdate("grass"),
     drawBelow = drawHarvestCircle,
-    draw = makeDrawWithWeapon("basic_scythe"),
+    draw = makeDrawWithWeapon("iron_scythe"),
 })
 
 g.defineEntity("lumberjack_cat", {
