@@ -84,7 +84,8 @@ function Session:init()
         hat = nil,
     }
 
-    self.tree = Tree()
+    local data = assert(json.decode(love.filesystem.read("assets/prestiges/playtest.json")))
+    self.tree = Tree.deserialize(data)
 
     self.unlockedPOI = objects.Set()
 
