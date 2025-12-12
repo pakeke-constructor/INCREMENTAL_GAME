@@ -112,37 +112,30 @@ g.defineUpgrade("acidic_slime", "Acidic Slime", {
 
 
 g.defineUpgrade("slime_apocalypse", "Slime Apocalypse", {
-    --[[
-    
-    TODO: CHANGE THIS UPGRADE:
-
-    Every 15 seconds, slime ALL crops on screen!
-    
-    ]]
     drawUI=drawSlime,
     kind="TOKEN_MODIFIER",
 
     maxLevel = 4,
 
     getValues = function(uinfo,level)
-        return level
+        return 15 - level*2
     end,
 
-    description = "Every second, %{1} random crop(s) becomes slimed!",
+    description = "Every %{1} seconds, ALL crops become slimed!",
 
-    perSecondUpdate = function(self,level)
-        ---@param t g.Token
-        local function notSlimed(t)
-            return not t.slimed
-        end
-        for _=1,level do
-            local tok = g.getRandomToken(notSlimed)
-            if tok then
-                g.slimeToken(tok)
+    perSecondUpdate = function(self,level, seconds)
+        local val = self:getValues(level)
+        if seconds % val == 0 then
+            local world = g.getMainWorld()
+            for _,tok in ipairs(world.tokens) do
+                if not tok.slimed then
+                    g.slimeToken(tok)
+                end
             end
         end
     end,
 })
+
 
 
 
@@ -184,7 +177,7 @@ g.defineUpgrade("slime_fertilizer", "Slime Fertilizer", {
 
     getValues = helper.valueGetter(1),
 
-    description = "Crops that are slimed earn %{1} passively every second",
+    description = "Crops that are slimed earn %{1} {money} passively every second",
 
     perSecondUpdate = function(self,level)
         local world = g.getSn().mainWorld

@@ -607,7 +607,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field valueFormatter ((string|(fun(x:number):string))[])?
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
----@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer))?
+---@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer, seconds:integer))?
 ---@field drawUI (fun(uinfo: g.UpgradeInfo, level:integer, x:number,y:number,w:number,h:number))?
 local g_UpgradeDefinition = {}
 
@@ -1536,7 +1536,7 @@ do
 ---@field blendalphamode love.BlendAlphaMode?
 ---@field init (fun(ent:g.Entity,...:any))?
 ---@field update (fun(ent: g.Entity, dt:number))?
----@field perSecondUpdate (fun(e:g.Entity))?
+---@field perSecondUpdate (fun(e:g.Entity, seconds:integer))?
 ---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?
 ---@field hitToken {radius:number,collision:fun(self:g.Entity,tok:g.Token),cooldown:number?}?

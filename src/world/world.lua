@@ -46,6 +46,7 @@ function World:init()
 
     self.particles = ParticleService()
     self.timer = 0 -- For per second update
+    self.seconds = 0 -- how many seconds have elapsed (perSecondUpdate)
 
     ---@type table<g.ResourceType, g.DataCollector>
     self.dataCollectors = nil
@@ -885,19 +886,21 @@ function World:_update(dt)
     -- Run per second update event bus on upgrades
     self.timer = self.timer + dt
     while self.timer >= 1 do
+        self.seconds = self.seconds + 1
+
         for _, ent in ipairs(self.entities) do
             if ent.perSecondUpdate then
-                ent:perSecondUpdate()
+                ent:perSecondUpdate(self.seconds)
             end
         end
 
         for _, tok in ipairs(self.tokens) do
             if tok.perSecondUpdate then
-                tok:perSecondUpdate()
+                tok:perSecondUpdate(self.seconds)
             end
         end
 
-        g.call("perSecondUpdate")
+        g.call("perSecondUpdate", self.seconds)
         updateResourceDataCollection(self)
         self.timer = self.timer - 1
     end
