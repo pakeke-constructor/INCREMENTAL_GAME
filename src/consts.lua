@@ -5,6 +5,8 @@ local consts = {
 
     DEV_MODE = not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
     PROFILING = false,
+    ANALYTICS_URL = nil,
+    GAME_VERSION = 0,
 
     FILE_LOG_LEVEL = "warn",
     CONSOLE_LOG_LEVEL = "trace",
