@@ -38,7 +38,7 @@ function upgscene:init()
     self.upgradeDescription = nil
 
     ---@type [g.Tree.Upgrade?, number]
-    self.lastUpgradeBought = {nil, 0} -- {upgradeId, lifetime}
+    self.lastUpgradeMaxxed = {nil, 0} -- {upgradeId, lifetime}
 
     ---@type iml.Drag|nil
     self.lmbPan = nil
@@ -209,7 +209,7 @@ local function drawUpgradeBoxes(self)
                 if isVisible(upg2) then
                     drawConnector(upg, upg2)
 
-                    if self.lastUpgradeBought[2] > 0 and self.lastUpgradeBought[1] == upg and upg2.level == 0 then
+                    if self.lastUpgradeMaxxed[2] > 0 and self.lastUpgradeMaxxed[1] == upg and upg2.level == 0 then
                         toAnimate:add(upg2)
                     end
                 end
@@ -236,7 +236,7 @@ local function drawUpgradeBoxes(self)
                 end
 
                 if toAnimate:has(upg) then
-                    drawUnlockedUpgradeAnimation(upg, self.lastUpgradeBought[2])
+                    drawUnlockedUpgradeAnimation(upg, self.lastUpgradeMaxxed[2])
                 end
             end
             if wasJustHovered then
@@ -244,8 +244,9 @@ local function drawUpgradeBoxes(self)
             end
             if (not self.dev_editMode) and wasJustClicked then
                 g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
-                if tree:tryBuyUpgrade(upg) and upg.level == 1 then
-                    self.lastUpgradeBought = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
+                local maxLevel = tree:getUpgradeMaxLevel(upg)
+                if tree:tryBuyUpgrade(upg) and (upg.level == maxLevel) then
+                    self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
                     sn.showTutorials.upgrades = false
                 end
                 hoveredUpgrade=nil
@@ -639,7 +640,7 @@ end
 function upgscene:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
-    self.lastUpgradeBought[2] = math.max(self.lastUpgradeBought[2] - dt, 0)
+    self.lastUpgradeMaxxed[2] = math.max(self.lastUpgradeMaxxed[2] - dt, 0)
 end
 
 
