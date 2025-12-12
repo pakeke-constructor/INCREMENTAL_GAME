@@ -74,6 +74,7 @@ function g.saveAndInvalidateSession()
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
+        analytics.send("end")
         ---@diagnostic disable-next-line: cast-local-type
         currentSession = nil
     end

@@ -138,6 +138,8 @@ _G.ui = require("src.ui.ui")
 _G.g = require("src.g")
 
 _G.worldutil = require("src.world.worldutil")
+
+_G.analytics = require("src.modules.analytics.analytics")
 --[[
 =========
 GLOBALS END
@@ -204,6 +206,7 @@ function love.load(arg)
     sceneManager.loadScenes()
 
     if arg[1] == "--simulate" then
+        analytics.init(nil) -- Explicitly disable analytics
         -- TODO: Setup procgen tree instead of simulating current save
         -- We simulate current save for now to test the API
         if love.filesystem.getInfo("saves/save1.json", "file") then
@@ -219,6 +222,8 @@ function love.load(arg)
     if simulation.isSimulating() then
         sceneManager.gotoScene("harvest_scene")
     else
+        -- TODO: Get actual steam ID
+        analytics.init("0")
         sceneManager.gotoScene("title_scene")
     end
 

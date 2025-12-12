@@ -12,6 +12,8 @@ local function init()
         g.newSession()
     end
 
+    analytics.send("start")
+
     if g.getSn().showTutorials.harvest then
         g.gotoSceneViaMap("harvest_scene")
     else
