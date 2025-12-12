@@ -557,8 +557,8 @@ g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1)
 g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3)
 
 -- World stat
-g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 25)
-g.stats.WorldTileHeight = g.defineStat("WorldTileHeight", 16)
+g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 20)
+g.stats.WorldTileHeight = g.defineStat("WorldTileHeight", 13)
 
 function g.getWorldDimensions()
     local w = math.floor(g.stats.WorldTileWidth * consts.WORLD_TILE_SIZE)

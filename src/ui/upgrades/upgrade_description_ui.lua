@@ -44,7 +44,13 @@ local function autoBuild(self, tree, upg)
 
     if isTokenUpgrade then
         local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
-        if next(tinfo.resources) then
+        local show = false
+        for resId,v in pairs(tinfo.resources) do
+            if v > 0 then
+                show=true
+            end
+        end
+        if show then
             local text = GIVES_RESOURCES
             local actualText = "{yield_scythe}"..text
             self:addDivider()

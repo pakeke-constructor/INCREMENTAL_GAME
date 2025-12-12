@@ -120,7 +120,7 @@ local function generateResourceReward()
     local seconds = math.floor(love.math.random(15,40) / 5) * 5
 
     local resources = {}
-    resources[resId] = tonumber(g.formatNumber(rps*seconds))
+    resources[resId] = rps*seconds
     return assertRewardIsValid({
         icon = "resource_bundle_reward",
         resources = resources
@@ -280,7 +280,7 @@ local SCYTHE_UPGRADE = interp("{wavy amp=0.3 f=2}{o}+%{harvestRadius} harvest ra
 
 
 local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff to harvest:{/o}{/wavy}")
-local STACKED_TOKEN_TOTAL = loc("{o}+%d {%s} total{/o}", {}, {
+local STACKED_TOKEN_TOTAL = loc("{o}+%s {%s} total{/o}", {}, {
     context = "Example usage: (+400 {gold} total), where %d=400 and %s=gold. Please keep the string formatting."
 })
 
@@ -325,7 +325,7 @@ function rewards.drawRewardDescription(rew, r)
     if rew.resources then
         local resTxt = ""
         for resId,v in pairs(rew.resources) do
-            resTxt = resTxt .. "+" .. tostring(v) .. " {" ..resId.. " scale=0.7}"
+            resTxt = resTxt .. "+" .. tostring(g.formatNumber(v)) .. " {" ..resId.. " scale=0.7}"
         end
         resTxt = "{o}" .. resTxt .. "{/o}"
         local a,b = main:splitVertical(1,1)
@@ -342,7 +342,8 @@ function rewards.drawRewardDescription(rew, r)
         local a,b = main:splitVertical(2,3)
         richtext.printRichContained(STACKED_TOKEN, font, a:get())
         -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
-        local txt = (STACKED_TOKEN_TOTAL):format(rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
+        local total = g.formatNumber(rew.stackedTokenResourceAmount*rew.stackedTokenCount)
+        local txt = (STACKED_TOKEN_TOTAL):format(total, rew.stackedTokenResource)
         richtext.printRichContainedNoWrap(txt, font, b:get())
     elseif rew.upgradeId then
         local a,b = main:splitVertical(1,2)

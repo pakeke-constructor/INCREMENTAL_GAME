@@ -126,7 +126,7 @@ g.defineEntity("orbital_star", {
 })
 
 defOrbitalUpgrade("orbital_star", "Orbital Star", {
-    description = "Spawn %{1} star orbiting the mouse, 20% chance to star crops!",
+    description = "Spawn %{1} stars orbiting the mouse, 20% chance to star crops!",
     kind = "HARVESTING",
     maxLevel = 5,
     image = "null_image",
