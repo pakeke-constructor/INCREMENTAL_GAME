@@ -2,7 +2,7 @@
 local COR = 0.5
 local GRAVITY = 5 * 9.81 -- in pixels
 local DECELERATION_X = 8 -- per second
-local EPSILON = 0.1 -- velocity is considered zero if less than this
+local MAX_LIFETIME = 0.8
 
 ---@class GrowthFallingEntity: g.Entity
 ---@field private vx number
@@ -17,6 +17,7 @@ function GrowthFallingEntity:init(growth, ground)
     self.vx = helper.lerp(10, 20, love.math.random()) * (love.math.random(0, 1) * 2 - 1)
     self.vy = -helper.lerp(4, 12, love.math.random())
     self.ground = ground
+    self.lifetime = MAX_LIFETIME - love.math.random()/10
 
     local q = g.getImageQuad(growth)
     local _, _, w, h = q:getViewport()
@@ -37,14 +38,7 @@ function GrowthFallingEntity:update(dt)
         self.y = 2 * self.ground - self.y
     end
 
-    if not self.lifetime then
-        if math.abs(self.y - self.ground) < EPSILON and math.abs(self.vx) < EPSILON and math.abs(self.vy) < EPSILON then
-            self.lifetime = 0.3
-        end
-    end
-
-    local lifetime = self.lifetime or 1000
-    self.alpha = math.max(0, lifetime/0.25) -- make it fade out
+    self.alpha = math.max(0, self.lifetime/0.25) -- make it fade out
 end
 
 function GrowthFallingEntity:drawBelow()
