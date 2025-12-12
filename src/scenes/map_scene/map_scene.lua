@@ -13,7 +13,7 @@ local map = FreeCameraScene()
 
 -- Total duration of transition, including fade in and fade out.
 -- fade in is half the duration and fade out is half of it too.
-local TRANSITION_DURATION = 2
+local TRANSITION_DURATION = 1.2
 -- Target transition scale.
 local TRANSITION_SCALE = 4
 
