@@ -29,6 +29,7 @@ local tokenData = {
     authenticating = false,
 }
 local disableAnalytics = false
+local sendDataLoopRunning = false
 local errorRetries = 0
 
 if not consts.ANALYTICS_URL then
@@ -42,6 +43,7 @@ end
 ---@class _Analytics.SendData
 ---@field public event _Analytics.EventType
 ---@field public playtime integer
+---@field public timestamp integer
 ---@field public game_version integer
 ---@field public scene string
 ---@field public save table
@@ -85,7 +87,7 @@ local function auth()
         local jsonbody = ""
         tokenData.authenticating = false
 
-        if code == 200 and body then
+        if (code == 200 or code == 201) and body then
             success, jsonbody = pcall(json.decode, body)
 
             if success then
@@ -140,12 +142,15 @@ function sendAll()
         return auth()
     end
 
+    sendDataLoopRunning = true
     local tempQueuedSendData = queuedSendData
     -- Make sure to create new temporary queue for this in case data is added
     -- while analytics is being send.
     queuedSendData = {}
 
-    asynchttp.request(function(code, body, headers)
+    asynchttp.request(function(code, body)
+        sendDataLoopRunning = false
+
         if code == 200 then
             -- Good. Perform another re-send if any
             errorRetries = 0
@@ -207,16 +212,16 @@ function analytics.send(event)
 
     local sn = g.getSn()
     local _, scname = sceneManager.getCurrentScene()
-    local sendData = {
+    queuedSendData[#queuedSendData+1] = {
         event = event,
         playtime = math.floor(sn.playtime),
+        timestamp = os.time(),
         game_version = consts.GAME_VERSION,
         scene = scname or "",
         save = sn:serialize()
     }
 
-    local needSendAll = #queuedSendData == 0 and not tokenData.authenticating
-    queuedSendData[#queuedSendData+1] = sendData
+    local needSendAll = not (sendDataLoopRunning or tokenData.authenticating)
     if needSendAll then
         sendAll()
     end

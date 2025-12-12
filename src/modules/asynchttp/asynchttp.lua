@@ -24,6 +24,9 @@ function asynchttp.request(callback, url, options)
         callbacks[id] = nil
         return callback(code, body, headers)
     end
+
+    local param = string_buffer.encode({id, url, options})
+    inChan:push(param)
 end
 
 function asynchttp.finish()
