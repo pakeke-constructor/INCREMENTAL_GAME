@@ -164,6 +164,7 @@ require("src.ev_q_definitions")
 
 
 local simulation = require("src.world.simulation")
+local asynchttp = require("src.modules.asynchttp.asynchttp")
 
 
 
@@ -235,6 +236,7 @@ function love.quit()
 
     settings.save()
     g.saveAndInvalidateSession()
+    asynchttp.finish()
     log.info("love.quit done.")
 end
 
@@ -247,6 +249,7 @@ function love.update(dt)
 
     prof_push("love.update")
 
+    asynchttp.update()
     sfx.update()
     iml.setPointer(love.mouse.getPosition())
 
