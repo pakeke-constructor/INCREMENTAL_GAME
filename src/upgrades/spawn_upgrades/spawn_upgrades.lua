@@ -8,7 +8,7 @@ g.defineToken("manure", "Manure", {
 })
 
 g.defineUpgrade("manure_spawner", "Fertilizer", {
-    description = "When a crop is harvested, %{1} chance to leave behind fertilizer!",
+    description = "When a crop is harvested, %{1} chance to leave behind manure {manure}!",
     kind = "MISC",
     image = "manure",
 
@@ -31,7 +31,7 @@ g.defineUpgrade("manure_spawner", "Fertilizer", {
 })
 
 g.defineUpgrade("manure_spawner_by_cropcount", "Fertilizer+", {
-    description = "for every %{1} crops harvested, spawn a fertilizer.",
+    description = "for every %{1} crops harvested, spawn a manure {manure}.",
     kind = "MISC",
     image = "manure",
     maxLevel = 11,
@@ -60,11 +60,15 @@ g.defineUpgrade("manure_spawner_by_cropcount", "Fertilizer+", {
 ----------------
 
 g.defineUpgrade("tax_deduction", "Tax Deduction", {
-    description = "Earn $1 for every crops spawned.",
+    description = "Earn %{1} {money} every time a crop is spawned.",
     kind = "MISC",
     maxLevel = 1,
 
-    tokenSpawned = function()
-        g.addResource("money", 1)
+    getValues = function (uinfo, level)
+        return level*3
+    end,
+
+    tokenSpawned = function(uinfo, level)
+        g.addResource("money", level*3)
     end
 })
