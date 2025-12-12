@@ -517,10 +517,11 @@ end
 
 ---@param self g.Tree
 ---@param upg g.Tree.Upgrade
-local function hasAnyPurchasedNeighbors(self, upg)
+local function hasAnyFullyPurchasedNeighbors(self, upg)
     local neighs = self:getNeighbors(upg.x, upg.y)
     for _, u in ipairs(neighs) do
-        if (u.level > 0) or (u.isRoot) then
+        local maxLevel = self:getUpgradeMaxLevel(u)
+        if (u.level >= maxLevel) or (u.isRoot) then
             return true
         end
     end
@@ -542,7 +543,7 @@ function Tree:isUpgradeHidden(upg)
         return true
     end
 
-    local isHidden = not hasAnyPurchasedNeighbors(self, upg)
+    local isHidden = not hasAnyFullyPurchasedNeighbors(self, upg)
     return isHidden
 end
 
