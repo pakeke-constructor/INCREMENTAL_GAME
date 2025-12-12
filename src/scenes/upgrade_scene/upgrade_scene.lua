@@ -169,8 +169,9 @@ local function drawUnlockedUpgradeAnimation(upg, lifetime)
     local r = time % (2 * math.pi)
     local r2 = (time * 0.8 + 1) % (2 * math.pi)
     local size = (t ^ 0.6 * (1 - t)) * 200
-    godrays.drawRays(x, y, r, {color = NEW_UPGRADE_RAY_COLOR, rayCount = 6, startWidth = 4, length = size, fadeTo=0})
-    godrays.drawRays(x, y, -r2, {color = NEW_UPGRADE_RAY_COLOR, rayCount = 4, startWidth = 5, length = size, fadeTo=0})
+    local width = (lifetime/UNLOCKED_UPGRADE_ANIMATION_DURATION)*6
+    godrays.drawRays(x, y, r, {color = NEW_UPGRADE_RAY_COLOR, rayCount = 6, startWidth = width+1, length = size, fadeTo=0})
+    godrays.drawRays(x, y, -r2, {color = NEW_UPGRADE_RAY_COLOR, rayCount = 4, startWidth = width, length = size, fadeTo=0})
 end
 
 
