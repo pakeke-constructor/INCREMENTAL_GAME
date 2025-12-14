@@ -72,9 +72,6 @@ end
 
 
 
--- Load the avatar cosmetics
--- TODO: Load these from Steam API instead of hardcoding.
-
 local function ensureLoaded()
     if COSMETIC_INFO then
         return
@@ -85,7 +82,6 @@ local function ensureLoaded()
         image = "happy_cat"
     })
     defineCosmetic("AVATAR", "business_cat", "Business Cat", {})
-    defineCosmetic("AVATAR", "evil_cat", "Evil Cat", {})
     defineCosmetic("AVATAR", "farmer_cat", "Grass Farmer Cat", {})
     defineCosmetic("AVATAR", "lumberjack_cat", "Lumberjack Cat", {})
 
