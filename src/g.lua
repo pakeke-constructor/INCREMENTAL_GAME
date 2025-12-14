@@ -1799,6 +1799,7 @@ function g.slimeToken(tok)
         g.call("tokenSlimed",tok)
     end
     tok.slimed=true
+    worldutil.spawnSTSAnimation("slimed_visual2", tok.x,tok.y, 0.4, 5)
 end
 
 ---@param tok g.Token
