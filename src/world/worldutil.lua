@@ -273,4 +273,41 @@ end
 
 
 
+g.defineEntity("STS_ANIMATION", {
+    drawIndex = 100,
+    draw = function (ent)
+        ---@diagnostic disable-next-line
+        local img = assert(ent._image)
+        ---@diagnostic disable-next-line
+        local dur = ent._duration
+        ---@diagnostic disable-next-line
+        local maxScale = ent._maxScale
+        local sc = helper.remap(ent.lifetime, dur,0, 1, maxScale)
+        lg.setColor(1,1,1, ent.lifetime / dur)
+        g.drawImage(img, ent.x, ent.y, 0, sc,sc)
+    end
+})
+
+---@param image string
+---@param x number
+---@param y number
+---@param duration number
+---@param maxScale number?
+function worldutil.spawnSTSAnimation(image, x, y, duration, maxScale)
+    local e = g.spawnEntity("STS_ANIMATION", x, y)
+    ---@diagnostic disable-next-line
+    e._image = image
+    ---@diagnostic disable-next-line
+    e._duration = duration
+    ---@diagnostic disable-next-line
+    e._maxScale = maxScale or 3
+    e.lifetime = duration
+end
+
+
+
+
+
+
+
 return worldutil

@@ -1538,6 +1538,7 @@ do
 ---@field orbitRing integer?
 ---@field bulgeAnimation {time: number, magnitude: number, duration:number}?
 ---@field image string?
+---@field drawIndex number?
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
 ---@field blendalphamode love.BlendAlphaMode?
@@ -1806,6 +1807,7 @@ function g.starToken(tok)
         g.call("tokenStarred", tok)
     end
     tok.starred = true
+    worldutil.spawnSTSAnimation("star_visual", tok.x,tok.y, 0.5, 9)
 end
 
 

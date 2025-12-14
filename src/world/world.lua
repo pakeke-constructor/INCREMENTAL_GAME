@@ -369,7 +369,9 @@ end
 ---@param a g.Token|g.Entity
 ---@param b g.Token|g.Entity
 local function sortOrder(a, b)
-    return a.y < b.y
+    local indexA = a.y + (a.drawIndex or 0)
+    local indexB = b.y + (b.drawIndex or 0)
+    return indexA < indexB
 end
 
 
