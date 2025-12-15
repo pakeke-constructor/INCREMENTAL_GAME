@@ -246,9 +246,12 @@ local function drawUpgradeBoxes(self)
             if (not self.dev_editMode) and wasJustClicked then
                 g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
                 local maxLevel = tree:getUpgradeMaxLevel(upg)
-                if tree:tryBuyUpgrade(upg) and (upg.level == maxLevel) then
-                    self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
-                    sn.showTutorials.upgrades = false
+                if tree:tryBuyUpgrade(upg) then
+                    if upg.level == maxLevel then
+                        self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
+                        sn.showTutorials.upgrades = false
+                    end
+                    analytics.send("upgrade")
                 end
                 hoveredUpgrade=nil
             end

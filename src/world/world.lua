@@ -22,6 +22,8 @@ local World = objects.Class("g:World")
 -- Minimum hover time before a token can be mined
 -- (Prevents players flicking their mouse all over the screen)
 local MIN_HOVER_TIME = 0.07
+-- How long it should take before sending "update" event to analytics server (in seconds?
+local ANALYTICS_UPDATE_INTERVAL = 60
 
 
 function World:init()
@@ -82,6 +84,8 @@ function World:init()
 
     ---@type table<string, number[]>
     self.tokenDestroyTime = {}
+
+    self.analyticsSendTime = 0
 end
 
 
@@ -918,6 +922,12 @@ function World:_update(dt)
         g.call("perSecondUpdate", self.seconds)
         updateResourceDataCollection(self)
         self.timer = self.timer - 1
+
+        self.analyticsSendTime = self.analyticsSendTime + 1
+        if self.analyticsSendTime >= ANALYTICS_UPDATE_INTERVAL then
+            analytics.send("update")
+            self.analyticsSendTime = 0
+        end
     end
 
     --self.tokens:flush()

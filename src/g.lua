@@ -67,6 +67,7 @@ g.isBeingSimulated = simulation.isSimulating
 
 function g.saveAndInvalidateSession()
     if not g.hasSession() or g.isBeingSimulated() then return end
+    analytics.send("end")
 
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
     if shouldSave then
@@ -74,7 +75,6 @@ function g.saveAndInvalidateSession()
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
-        analytics.send("end")
         ---@diagnostic disable-next-line: cast-local-type
         currentSession = nil
     end

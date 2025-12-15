@@ -26,10 +26,9 @@ local randomValue = love.data.encode("string", "base64", makeRandomValue()) --[[
 local tokenData = {
     token = "",
     expiry = 0,
-    authenticating = false,
 }
 local disableAnalytics = false
-local sendDataLoopRunning = false
+local hasRequestRunning = false
 local errorRetries = 0
 
 if not consts.ANALYTICS_URL then
@@ -80,12 +79,12 @@ local function auth()
         return
     end
 
-    tokenData.authenticating = true
+    hasRequestRunning = true
 
     asynchttp.request(function(code, body)
         local success = false
         local jsonbody = ""
-        tokenData.authenticating = false
+        hasRequestRunning = false
 
         if (code == 200 or code == 201) and body then
             success, jsonbody = pcall(json.decode, body)
@@ -135,21 +134,20 @@ local function auth()
     })
 end
 
-
 function sendAll()
     if love.timer.getTime() >= tokenData.expiry then
         -- Token expired. Re-authenticate.
         return auth()
     end
 
-    sendDataLoopRunning = true
+    hasRequestRunning = true
     local tempQueuedSendData = queuedSendData
     -- Make sure to create new temporary queue for this in case data is added
     -- while analytics is being send.
     queuedSendData = {}
 
     asynchttp.request(function(code, body)
-        sendDataLoopRunning = false
+        hasRequestRunning = false
 
         if code == 200 then
             -- Good. Perform another re-send if any
@@ -189,6 +187,9 @@ function sendAll()
     })
 end
 
+
+
+
 ---@param steamid string?
 function analytics.init(steamid)
     if not consts.ANALYTICS_URL then return end
@@ -201,8 +202,6 @@ function analytics.init(steamid)
     end
     auth()
 end
-
-
 
 ---@param event _Analytics.EventType
 function analytics.send(event)
@@ -221,8 +220,7 @@ function analytics.send(event)
         save = sn:serialize()
     }
 
-    local needSendAll = not (sendDataLoopRunning or tokenData.authenticating)
-    if needSendAll then
+    if not hasRequestRunning then
         sendAll()
     end
 end
