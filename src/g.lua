@@ -346,7 +346,7 @@ function g.getImageQuad(imageName)
 end
 
 
----@param imageName string
+---@param imageName string|love.Quad
 ---@param x number
 ---@param y number
 ---@param r number?
@@ -381,7 +381,7 @@ function g.drawTokenImage(tinfo, x,y, r,sx,sy,kx,ky)
 end
 
 
----@param imageName string
+---@param imageName string|love.Quad
 ---@param x number
 ---@param y number
 ---@param r number?
@@ -392,7 +392,15 @@ end
 ---@param kx number?
 ---@param ky number?
 function g.drawImageOffset(imageName, x,y, r, sx,sy, ox,oy, kx,ky)
-    local quad = g.getImageQuad(imageName)
+    local quad
+    if type(imageName) == "string" then
+        quad = g.getImageQuad(imageName)
+    else
+        if not (imageName.typeOf and imageName:typeOf("Quad")) then
+            error("Expected quad, got: " .. type(imageName) .. " " .. tostring(imageName))
+        end
+        quad = imageName
+    end
     local _,_,w,h = quad:getViewport()
     atlas:draw(quad, x, y, r, sx, sy, (ox or 0.5) * w, (oy or 0.5) * h, kx, ky)
 end
