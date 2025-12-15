@@ -2049,7 +2049,9 @@ local function loadSound(path)
 
         if #basename > 0 then
             local name = basename:sub(1, -#ext - 2)
-            sfx.defineSound(name, path)
+            if name:sub(1,1) ~= "_" then
+                sfx.defineSound(name, path)
+            end
         end
     end
 end
