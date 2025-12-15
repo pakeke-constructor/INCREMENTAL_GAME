@@ -316,7 +316,7 @@ g.defineEntity("SHOCKWAVE_ANIMATION", {
 
         local rad = helper.remap(ent.lifetime, dur,0, 7, maxRad)
         local alpha = ent.lifetime/dur
-        lg.setColor(1,1,1, alpha*2)
+        lg.setColor(1,1,1, math.sqrt(alpha))
 
         local lw=lg.getLineWidth()
         lg.setLineWidth(maxRad/4)
