@@ -82,6 +82,8 @@ function World:init()
 
     ---@type table<string, number[]>
     self.tokenDestroyTime = {}
+
+    self.analyticsSendTime = 0
 end
 
 
@@ -918,6 +920,12 @@ function World:_update(dt)
         g.call("perSecondUpdate", self.seconds)
         updateResourceDataCollection(self)
         self.timer = self.timer - 1
+
+        self.analyticsSendTime = self.analyticsSendTime + 1
+        if self.analyticsSendTime >= consts.ANALYTICS_UPDATE_INTERVAL then
+            analytics.send("update")
+            self.analyticsSendTime = 0
+        end
     end
 
     --self.tokens:flush()

@@ -6,6 +6,11 @@ local consts = {
     DEV_MODE = not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
     PROFILING = false,
 
+    ANALYTICS_URL = nil, -- URL, without trailing slash.
+    -- How long it should take before sending "update" event to analytics server (in seconds)?
+    ANALYTICS_UPDATE_INTERVAL = 60,
+    GAME_VERSION = 0,
+
     FILE_LOG_LEVEL = "warn",
     CONSOLE_LOG_LEVEL = "trace",
 

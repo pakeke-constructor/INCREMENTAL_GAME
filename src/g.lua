@@ -67,6 +67,7 @@ g.isBeingSimulated = simulation.isSimulating
 
 function g.saveAndInvalidateSession()
     if not g.hasSession() or g.isBeingSimulated() then return end
+    analytics.send("end")
 
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
     if shouldSave then
