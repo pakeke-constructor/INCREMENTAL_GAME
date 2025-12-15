@@ -906,6 +906,7 @@ function harvest:update(dt)
             if tok and onSpawn then
                 onSpawn(tok)
             end
+            worldutil.spawnShockwave(tok.x,tok.y, 0.25, 18)
             self:_resetStackTokenAnim()
         end
     else

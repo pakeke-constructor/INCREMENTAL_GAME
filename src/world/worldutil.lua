@@ -306,6 +306,43 @@ end
 
 
 
+g.defineEntity("SHOCKWAVE_ANIMATION", {
+    drawIndex = 100,
+    draw = function (ent)
+        ---@diagnostic disable-next-line
+        local dur = ent._duration
+        ---@diagnostic disable-next-line
+        local maxRad = ent._maxRad
+
+        local rad = helper.remap(ent.lifetime, dur,0, 7, maxRad)
+        local alpha = ent.lifetime/dur
+        lg.setColor(1,1,1, alpha*2)
+
+        local lw=lg.getLineWidth()
+        lg.setLineWidth(maxRad/4)
+        lg.push()
+        lg.circle("line", ent.x,ent.y, rad,rad)
+        lg.pop()
+        lg.setLineWidth(lw)
+    end
+})
+
+---@param x number
+---@param y number
+---@param duration number
+---@param radius number?
+function worldutil.spawnShockwave(x, y, duration, radius)
+    local e = g.spawnEntity("SHOCKWAVE_ANIMATION", x, y)
+    ---@diagnostic disable-next-line
+    e._duration = duration
+    ---@diagnostic disable-next-line
+    e._maxRad = radius or 20
+    e.lifetime = duration
+end
+
+
+
+
 
 
 
