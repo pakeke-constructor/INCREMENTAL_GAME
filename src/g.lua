@@ -259,7 +259,10 @@ function g.formatNumber(num)
     local prefix = (isNegative and "-" or "")
 
     if num < 1000 then
-        if num < 1 then
+        if num == math.floor(num) then
+            -- is integer!
+            return prefix .. ("%d"):format(num)
+        elseif num < 1 then
             return prefix .. ("%.2f"):format(num)
         elseif num < 3 then
             return prefix .. ("%.1f"):format(num)
@@ -2054,7 +2057,9 @@ local function loadSound(path)
 
         if #basename > 0 then
             local name = basename:sub(1, -#ext - 2)
-            sfx.defineSound(name, path)
+            if name:sub(1,1) ~= "_" then
+                sfx.defineSound(name, path)
+            end
         end
     end
 end
