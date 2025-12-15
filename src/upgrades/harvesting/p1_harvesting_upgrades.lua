@@ -17,21 +17,21 @@ local upgrades = {
     {
         id = "more_damage",
         title = "More Damage",
-        desc = "%{1} hit damage",
+        desc = "%{1} scythe damage",
         stat = "HitDamage",
         increase = 0.5
     },
     {
         id = "more_speed",
         title = "More Speed",
-        desc = "%{1} hit speed",
+        desc = "%{1} scythe speed",
         stat = "HitSpeed",
         increase = 1
     },
     {
         id = "more_area",
         title = "More Area",
-        desc = "%{1} hit area",
+        desc = "%{1} area",
         stat = "HarvestArea",
         increase = 2
     }
@@ -82,7 +82,7 @@ defUpgrade("lucky_hit", "Lucky Hit", {
     getValues = function(self,level)
         return level*3
     end,
-    description = "When a token is hit, +%{1}% chance to hit another token",
+    description = "When a crop is hit, +%{1}% chance to hit another crop",
 
     tokenHit = function(self,level)
         local r = love.math.random()
@@ -128,7 +128,7 @@ defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
 
 defUpgrade("more_loot", "More Loot", {
     image = "money", -- TODO: change
-    description = "All tokens have %{1} more health, and earn %{2} more resources.",
+    description = "All crops have %{1} more health, and earn %{2} more resources.",
 
     getValues = function(uinfo, level)
         ---@diagnostic disable-next-line: redundant-return-value
