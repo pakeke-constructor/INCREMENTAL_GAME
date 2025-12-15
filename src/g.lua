@@ -259,7 +259,10 @@ function g.formatNumber(num)
     local prefix = (isNegative and "-" or "")
 
     if num < 1000 then
-        if num < 1 then
+        if num == math.floor(num) then
+            -- is integer!
+            return prefix .. ("%d"):format(num)
+        elseif num < 1 then
             return prefix .. ("%.2f"):format(num)
         elseif num < 3 then
             return prefix .. ("%.1f"):format(num)
