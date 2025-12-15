@@ -160,6 +160,7 @@ local function getTransformedPointer()
     assert(frameState and pointer_x, "?")
     return frameState.transform:inverseTransformPoint(pointer_x, pointer_y)
 end
+iml.getTransformedPointer = getTransformedPointer
 
 
 
