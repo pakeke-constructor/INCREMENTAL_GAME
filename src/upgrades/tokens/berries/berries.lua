@@ -102,7 +102,7 @@ end
 
 local STALK_NAMES = {
     "seedling",
-    "patch",
+    "shrub",
     "sprout",
     "bush",
     "vine",
