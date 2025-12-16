@@ -64,7 +64,7 @@ local function drawExperienceBar(xpBarBaseR)
     -- but this does the job for now.
     local targXP = helper.clamp(sn.xp/sn.xpRequirement, 0, 1)
     local targColor = XP_BAR_GRADIENT[1]:lerp(XP_BAR_GRADIENT[2], targXP) -- FIXME: Do interpolation in Oklab?
-    local xpBarR = xpBarBaseR:padUnit(2)
+    local xpBarR = xpBarBaseR:padUnit(0,2,2,2)
     xpBarR = xpBarR:set(nil, nil, xpBarR.w * targXP)
     if sn.xp >= sn.xpRequirement then
         -- Draw rainbow effect
@@ -177,7 +177,7 @@ function HUD:draw(show)
 
     if show.xpbar then
         local sidebarWidth = self.sidebarR.x + self.sidebarR.w + 4
-        self.xpBarR = Kirigami(sidebarWidth, 0, r.w - sidebarWidth, 8)
+        self.xpBarR = Kirigami(sidebarWidth, 0, r.w - sidebarWidth, 16)
         drawExperienceBar(self.xpBarR)
     end
 
