@@ -1798,8 +1798,8 @@ function g.destroyToken(tok)
     w.tokens:removeBuffered(tok)
 
     local cate = tok.category
-    g.playWorldSound("plop_on_destroy_1", 1.6,2.7, 0.3, 0.4)
-    g.playWorldSound("plop_on_destroy_2", 1.7,0.4, 0.2, 0.3)
+    g.playWorldSound("plop_on_destroy_1", 1.2,2.7, 0.3, 0.4)
+    g.playWorldSound("plop_on_destroy_2", 1.3,0.4, 0.2, 0.3)
     do return true end
     if (cate == "grass") or (cate == "berry") then
         -- todo: this is hacky and not robust, concating the name
@@ -1905,11 +1905,13 @@ function g.hitImmediately(tok)
         g.spawnParticle("xp3", tok.x, tok.y, 2)
     end
 
-    local s = "hit_generic_1"
-    -- hit_generic_1 is the softest and best. Ive tried all of em!
-    g.playWorldSound(s, 1,0.15,0.3,0.05)
+    if love.math.random() < 0.5 then
+        -- hit_generic_1 is the softest and best. Ive tried all of em!
+        g.playWorldSound("hit_generic_1", 1,0.15,0.35,0.05)
+    else
+        g.playWorldSound("hit_generic_2", 1.3,0.07,0.25,0.02)
+    end
 
-    -- todo: rework all this.
     if tok.category == "grass" then
         if love.math.random()<0.5 then
             g.playWorldSound("hit_grass",1,0.2, 0.1)
