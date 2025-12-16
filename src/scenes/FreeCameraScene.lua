@@ -56,14 +56,14 @@ end
 
 
 local MAP_BUTTON = "{wavy}{c r=0.9 g=0.8 b=0.85}{o}" .. loc("Back to Map", {}, {
-    context = "A button that leads back to the world-map"
+    context = "A button that leads back to the game-map"
 })
 
 function FreeCameraScene:renderMapButton()
     local r = Kirigami(0,0,ui.getScaledUIDimensions())
     local header,_ = r:splitVertical(1,5)
 
-    local left, right = header:splitHorizontal(7,1)
+    local left, right = header:moveUnit(0,16):splitHorizontal(7,1)
     local mapButton = right:padRatio(0.2)
 
     lg.setColor(1,1,1)

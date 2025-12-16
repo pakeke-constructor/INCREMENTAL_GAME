@@ -124,6 +124,8 @@ end)
 ---@field public ty number text position
 ---@field public tcolor objects.Color Outline text color (actual text color always white)
 ---@field public price g.Bundle?
+---@field public zoomOx number? zoom offsets, if we wanna zoom to a particular pos
+---@field public zoomOy number? 
 
 ---@class (exact) _POI: _POI.Def
 ---@field public type string
@@ -165,12 +167,14 @@ definePOI("harvest", "Harvest", {
     x = 197, y = 156, w = 144, h = 98,
     highlight = {"harvestarea_windmill", "harvestarea_house", "harvestarea_platform"},
     tx = 262, ty = 169, tcolor = objects.Color("#".."FF0FA569"),
+    zoomOx = -4, zoomOy = 0
 })
 definePOI("upgrade", "Upgrade", {
     scene = "upgrade_scene",
     x = 106, y = 94, w = 91, h = 104,
     highlight = {"upgradearea_dome", "upgradearea_plasmahut"},
     tx = 152, ty = 132, tcolor = objects.Color("#".."FF41D7D7"),
+    zoomOx = -2, zoomOy = 18
 })
 definePOI("fishing", "Fish", {
     scene = "fishing_scene",
@@ -445,8 +449,8 @@ function map:draw()
             if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) and not self.transitionTarget then
                 self.transitionTarget = {
                     time = 0,
-                    x = poi.x + poi.w / 2,
-                    y = poi.y + poi.h / 2,
+                    x = (poi.x + poi.w / 2) + (poi.zoomOx or 0),
+                    y = (poi.y + poi.h / 2) + (poi.zoomOy or 0),
                     action = makePOIAction(poi),
                     duration = TRANSITION_DURATION
                 }
@@ -524,8 +528,8 @@ local function makeTransitionTarget(scname)
     g.playUISound("map_zoom_woosh3",1,0.4)
     return {
         time = 0,
-        x = poi.x + poi.w / 2,
-        y = poi.y + poi.h / 2,
+        x = (poi.x + poi.w / 2) + (poi.zoomOx or 0),
+        y = (poi.y + poi.h / 2) + (poi.zoomOy or 0),
         action = makePOIAction(poi),
         duration = TRANSITION_DURATION
     }
