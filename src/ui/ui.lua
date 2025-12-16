@@ -243,14 +243,20 @@ function ui.Slider(key, direction, slidercol, currentsegment, segments, slidersi
 	assert(slidersize > 0 and slidersize <= 1, "invalid slider size")
 
 	local x, y, w, h = reg:get()
+	local mousepos = nil
 	local drag = iml.consumeDrag(key, x, y, w, h, 1)
+	if drag then
+		mousepos = {drag.endX, drag.endY}
+	elseif iml.isClicked(x, y, w, h, 1, key) then
+		mousepos = {iml.getTransformedPointer()}
+	end
 	local s = helper.clamp(currentsegment, 1, segments)
 
 	-- Select slider color and handle drags
 	local curslidercol = slidercol
-	if drag then
+	if mousepos then
 		curslidercol = multiplyHSVValue(slidercol, 0.5)
-		local mx, my = drag.endX, drag.endY
+		local mx, my = mousepos[1], mousepos[2]
 
 		if direction == "horizontal" then
 			local pos = helper.clamp(mx - x, 0, w)
