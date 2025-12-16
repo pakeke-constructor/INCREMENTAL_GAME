@@ -1798,14 +1798,17 @@ function g.destroyToken(tok)
     w.tokens:removeBuffered(tok)
 
     local cate = tok.category
+    g.playWorldSound("plop_on_destroy_1", 1.6,2.7, 0.3, 0.4)
+    g.playWorldSound("plop_on_destroy_2", 1.7,0.4, 0.2, 0.3)
+    do return true end
     if (cate == "grass") or (cate == "berry") then
         -- todo: this is hacky and not robust, concating the name
         -- what if the sound doesnt exist? (fails at runtime)
         local name = "hit_grass2"
-        g.playWorldSound(name, 1,0.8, 0.1)
+        g.playWorldSound(name, 1,0.4, 0.1)
     else
         local name = "chest_on_destroy_" .. love.math.random(1,3)
-        g.playWorldSound(name, 1,0.5, 0.1)
+        g.playWorldSound(name, 1,0.3, 0.1)
     end
     return true
 end
