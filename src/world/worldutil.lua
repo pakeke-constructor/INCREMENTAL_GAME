@@ -313,10 +313,12 @@ g.defineEntity("SHOCKWAVE_ANIMATION", {
         local dur = ent._duration
         ---@diagnostic disable-next-line
         local maxRad = ent._maxRad
+        ---@diagnostic disable-next-line
+        local c = ent._color or objects.Color.WHITE
 
         local rad = helper.remap(ent.lifetime, dur,0, 7, maxRad)
         local alpha = ent.lifetime/dur
-        lg.setColor(1,1,1, math.sqrt(alpha))
+        lg.setColor(c[1],c[2],c[3], math.sqrt(alpha))
 
         local lw=lg.getLineWidth()
         lg.setLineWidth(maxRad/4)
@@ -331,12 +333,14 @@ g.defineEntity("SHOCKWAVE_ANIMATION", {
 ---@param y number
 ---@param duration number
 ---@param radius number?
-function worldutil.spawnShockwave(x, y, duration, radius)
+---@param color (objects.Color|[number,number,number,number?])?
+function worldutil.spawnShockwave(x, y, duration, radius, color)
     local e = g.spawnEntity("SHOCKWAVE_ANIMATION", x, y)
     ---@diagnostic disable-next-line
     e._duration = duration
     ---@diagnostic disable-next-line
     e._maxRad = radius or 20
+    e._color = color or objects.Color.WHITE
     e.lifetime = duration
 end
 

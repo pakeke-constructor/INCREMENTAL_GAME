@@ -67,9 +67,17 @@ g.defineToken("mushroom_green", "Green Mushroom", {
     maxHealth = 7,
     resources = {},
     description = "When destroyed, spawns 6 grass crops",
-    tokenDestroyed = function()
+    tokenDestroyed = function(tok)
+        local function getPos()
+            local x,y = tok.x + math.random(-40,40), tok.y + math.random(-40,40)
+            x,y = g.clampInsideWorld(x,y)
+            if g.canSpawnTokenHere(x,y, 8) then
+                return x,y
+            end
+        end
+        worldutil.spawnShockwave(tok.x, tok.y, 0.2, 50, objects.Color.LIME)
         for _=1, 6 do
-            local x,y = g.getRandomPositionForToken()
+            local x,y = getPos()
             if x and y then
                 local t = nil
                 local r = love.math.random()

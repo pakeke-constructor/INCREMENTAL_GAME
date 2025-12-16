@@ -1486,6 +1486,39 @@ end
 
 local DEFAULT_MIN_SPACING = 12
 
+
+function g.canSpawnTokenHere(x,y, minSpacing)
+    -- checks whether we are "too close" to another token,
+    --  and whether we could spawn a new token at this pos
+    minSpacing = minSpacing or DEFAULT_MIN_SPACING
+    local world = g.getSn().mainWorld
+
+    local tooClose = false
+    world.tokenPartition:query(x,y, function(tok)
+        local dx = x - tok.x
+        local dy = y - tok.y
+        local distSq = dx*dx + dy*dy
+        if distSq < minSpacing * minSpacing then
+            tooClose = true
+            return true -- stop iteration early
+        end
+    end)
+    return not tooClose
+end
+
+
+---@param x number
+---@param y number
+---@return number
+---@return number
+function g.clampInsideWorld(x,y)
+    local w,h = g.getWorldDimensions()
+    x = helper.clamp(x, 0, w)
+    y = helper.clamp(y, 0, h)
+    return x,y
+end
+
+
 ---@param world g.World
 ---@param x number
 ---@param y number
@@ -1499,19 +1532,8 @@ local function getRandomPos(world, x, y, w, h, minSpacing, maxAttempts)
     for attempt = 1, maxAttempts do
         local px = x + math.random() * w
         local py = y + math.random() * h
-        local tooClose = false
 
-        world.tokenPartition:query(px, py, function(tok)
-            local dx = px - tok.x
-            local dy = py - tok.y
-            local distSq = dx*dx + dy*dy
-            if distSq < minSpacing * minSpacing then
-                tooClose = true
-                return true -- stop iteration early
-            end
-        end)
-
-        if not tooClose then
+        if g.canSpawnTokenHere(x,y, minSpacing) then
             return px, py
         end
     end
