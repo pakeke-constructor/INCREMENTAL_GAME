@@ -111,11 +111,6 @@ end
 -- Upgrade scene
 ----------------
 
-if consts.DEV_MODE and not love.filesystem.isFused() then
-    local srcdir = love.filesystem.getSource().."/src"
-    assert(love.filesystem.mountFullPath(srcdir, "root/src", "readwrite", true))
-end
-
 ---@class _dev.UpgradePosition
 ---@field public x integer
 ---@field public y integer

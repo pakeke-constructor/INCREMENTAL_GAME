@@ -207,6 +207,7 @@ local function generateScytheReward()
             icon = sinfo.image
         }
     end
+    return nil
 end
 
 
