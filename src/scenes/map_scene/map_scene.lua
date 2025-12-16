@@ -291,8 +291,8 @@ local function clampCameraToMap(camera, mapX, mapY, mapW, mapH, ttgt)
 
     -- Adjust zooming
     local scale = math.min(w / mapW, h / mapH)
-    -- Only allow integer scaling with minimum of 1
-    scale = math.max(math.floor(scale), 1)
+    -- scale = math.max(math.floor(scale), 1)  -- OLD CODE: Only allow integer scaling with minimum of 1
+    scale = math.max(scale, 1)
     camera:setZoom(scale * transitionScale)
 end
 
