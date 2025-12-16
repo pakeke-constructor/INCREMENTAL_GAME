@@ -145,8 +145,8 @@ function simulation.start(opts)
         lastExp = g.getSn().xp,
         treeSnapshots = {},
         purchasedUpgradesGraph = {},
-        resourceGraph = {},
-        rpsGraph = {},
+        resourceGraph = {money = {}},
+        rpsGraph = {money = {}},
         newPurchasedUpgradesGraph = {},
         treeSnapshotTime = 0,
         graphCaptureTime = 0
@@ -176,6 +176,8 @@ function simulation.update()
         st.xp = st.xp + dxp
         st.lastExp = sn.xp
         st.time = st.time + dt
+        st.treeSnapshotTime = st.treeSnapshotTime + dt
+        st.graphCaptureTime = st.graphCaptureTime + dt
 
         if sn.xp >= sn.xpRequirement then
             -- Pick random rewards
@@ -183,6 +185,9 @@ function simulation.update()
             rewards.selectReward(helper.randomChoice(r))
             -- Pick upgrade based on strategy
             tryBuyUpgrade(sn.tree, st.buyStrategy)
+            -- HACK: Oh well, this code is MSOT across harvest scene
+            sn.xp = 0
+            sn.level = sn.level + 1
         end
 
         if st.treeSnapshotTime >= SIMULATION_TREE_FREQUENCY then
