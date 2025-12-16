@@ -2,7 +2,7 @@
 
 local MAX_SOURCE_POOL = 4
 
-local MAX_SOUNDS_PER_FRAME = 5
+local MAX_SOUNDS_PER_FRAME = 10
 
 
 ---@class _sfx
