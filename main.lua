@@ -304,7 +304,7 @@ function love.draw()
         love.graphics.print(t, 5, 5)
         love.graphics.setColor(1, 1, 1)
         love.graphics.print(t, 4, 4)
-        print(t)
+        log.info(t)
     end
     love.graphics.setShader()
     if crtActive then
