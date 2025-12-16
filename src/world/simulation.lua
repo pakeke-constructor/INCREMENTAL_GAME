@@ -207,7 +207,7 @@ function simulation.update()
             st.purchasedUpgradesGraph[#st.purchasedUpgradesGraph+1] = {x = sn.worldTime, y = upgrades}
             st.newPurchasedUpgradesGraph[#st.newPurchasedUpgradesGraph+1] = {x = sn.worldTime, y = newUpgrades}
             table.insert(st.resourceGraph.money, {x = sn.worldTime, y = sn.resources.money})
-            table.insert(st.rpsGraph.money, {x = sn.worldTime, y = sn.mainWorld.resourcesPerSecond.money})
+            table.insert(st.rpsGraph.money, {x = sn.worldTime, y = sn.mainWorld.resourcesPerSecond.money or 0})
         end
 
         if st.time >= st.duration then
