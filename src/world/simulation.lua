@@ -167,7 +167,20 @@ function simulation.update()
 
     while true do
         local sn = g.getSn()
+        -- Updat session
         sn:_update(dt)
+
+        -- Pop stacking token
+        local stkTok,onSpawn = g.peekStackedToken()
+        if stkTok then
+            -- Just spawn token immediately. It's _accurate_ enough.
+            assert(g.popStackedToken() == stkTok)
+            local ww, wh = g.getWorldDimensions()
+            local x = helper.lerp(8, ww - 8, love.math.random())
+            local y = helper.lerp(8, wh - 8, love.math.random())
+            local tok = g.spawnToken(stkTok, x, y)
+            if onSpawn then onSpawn(tok) end
+        end
 
         -- Harvest area may reset the XP on level up, so have this to reduce
         -- the inaccuracies of the result
