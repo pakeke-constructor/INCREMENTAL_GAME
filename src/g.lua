@@ -1509,12 +1509,14 @@ end
 
 ---@param x number
 ---@param y number
+---@param leeway number?
 ---@return number
 ---@return number
-function g.clampInsideWorld(x,y)
+function g.clampInsideWorld(x,y, leeway)
+    leeway = leeway or 8
     local w,h = g.getWorldDimensions()
-    x = helper.clamp(x, 0, w)
-    y = helper.clamp(y, 0, h)
+    x = helper.clamp(x, leeway, w - leeway*2)
+    y = helper.clamp(y, leeway, h - leeway*2)
     return x,y
 end
 
