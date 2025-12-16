@@ -270,7 +270,7 @@ function Resources:drawHUD(noDraw)
 
     -- Draw resources
     local BASE_X = 2
-    local BASE_Y = 2
+    local BASE_Y = 34 -- HACKY: hardcoded gap here = level offset
     local freeX = 0
 
     love.graphics.setColor(1, 1, 1)

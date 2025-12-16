@@ -4,6 +4,8 @@ local Profile = require(".ProfileHUD")
 
 
 local SIDEBAR_COLOR = objects.Color("#".."FF14A0CD")
+local SIDEBAR_COLOR2 = objects.Color("#".."FF2358C9")
+
 local SIDEBAR_STRIP = objects.Color("#".."FFFF8CC8")
 -- TODO: Make this auto-computable?
 local SIDEBAR_WIDTH = 86
@@ -15,6 +17,12 @@ local DESC_BACKGROUND_GRADIENT = helper.newGradientMesh(
     objects.Color("#".."ff191e3c")
 )
 local DESC_TEXT_MAX_WIDTH = 200
+
+
+local LEVEL_TEXT = interp("Level %{n}", {
+    context = "As in, the current xp level of the player. Player earns XP to increase their level. e.g. 'Level 5'."
+})
+
 
 
 ---@class g.HUD: objects.Class
@@ -121,12 +129,25 @@ function HUD:draw(show)
     -- Draw sidebar
     -- love.graphics.setColor(SIDEBAR_COLOR)
     lg.setColor(1,1,1)
-    helper.gradientRect("vertical", SIDEBAR_COLOR, objects.Color("#".."FF2358C9"), self.sidebarR:get())
+    helper.gradientRect("vertical", SIDEBAR_COLOR, SIDEBAR_COLOR2, self.sidebarR:get())
     --love.graphics.rectangle("fill", self.sidebar:get())
     love.graphics.setColor(SIDEBAR_STRIP)
     love.graphics.rectangle("fill", self.sidebarR.x + self.sidebarR.w, 0, 2, self.sidebarR.h)
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", self.sidebarR.x + self.sidebarR.w + 2, 0, 2, self.sidebarR.h)
+
+    -- level {x} text
+    do
+    local LEVEL_TXT_H = 32
+    lg.setColor(1,1,1)
+    local lvRegion = self.sidebarR:set(nil,nil,nil,LEVEL_TXT_H):padRatio(0.15)
+    local sn = g.getSn()
+    local lvlText = "{wavy freq=0.3}{o}" .. LEVEL_TEXT({n = g.getSn().level})
+    if sn.xp >= sn.xpRequirement then
+        lvlText = "{rainbow}" .. lvlText
+    end
+    richtext.printRichContained(lvlText, g.getSmallFont(16), lvRegion:get())
+    end
 
     -- Draw resource HUD
     local resHudY = self.resourceHUD:draw(show.resource == false)
