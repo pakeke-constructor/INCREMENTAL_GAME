@@ -37,6 +37,16 @@ local NEW_UPGRADES_AVAILABLE = loc("{outline}New Upgrades Available!{/outline}",
 local TUTORIAL_HARVEST = "{w}{o thickness=2}"..loc("Hover your mouse over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
 
 
+local STORAGE_FULL_TEXT = loc("Your storage is full!", {}, {
+    context = "For example, the player can only store 1000 gold, or 500 logs maximum, and they have reached that limit"
+})
+
+local STORAGE_GOTO_UPGRADES = loc("Go to upgrades ->", {}, {
+    context = "Button that is prompting the player to go to the upgrade-tree"
+})
+
+
+
 
 
 function harvest:init()
@@ -843,6 +853,42 @@ function harvest:draw()
     end
 
     self:renderPause()
+
+    --- Storage is Full text:
+    do
+    local fullResource = nil
+    for _,resId in ipairs(g.RESOURCE_LIST) do
+        local res = g.getResource(resId)
+        local reslim = g.getResourceLimit(resId)
+        if res >= reslim then
+            fullResource = resId
+            break
+        end
+    end
+    if fullResource then
+        local rr = Kirigami(0,0,ui.getScaledUIDimensions()):splitVertical(1,5)
+            :padRatio(0.4,0.2,0.3,0.2)
+            :moveRatio(0,0.5)
+        local img1, rr2, img2 = rr:splitHorizontal(1,7,1)
+        lg.setColor(1,1,1)
+        richtext.printRichContained(
+            "{wavy}{c r=0.8 g=0.1 b=0.05}{o}" .. STORAGE_FULL_TEXT,
+            g.getSmallFont(16), rr2:get()
+        )
+        -- lg.rectangle("line", rr2:get())
+        -- lg.rectangle("line", img1:get())
+        -- lg.rectangle("line", img2:get())
+        local t = love.timer.getTime()
+        local dy = math.sin(t*3)/4
+        g.drawImageContained(fullResource, img1:moveRatio(0, dy):get())
+        g.drawImageContained(fullResource, img2:moveRatio(0, dy):get())
+
+        local r = rr2:padRatio(0.6, 0.5, 0.6, 0.0):attachToBottomOf(rr2):moveUnit(0,8)
+        if ui.Button(STORAGE_GOTO_UPGRADES, objects.Color.CRIMSON, objects.Color.DARK_RED, r) then
+            g.gotoSceneViaMap("upgrade_scene")
+        end
+    end
+    end
 
     ui.endUI()
 end
