@@ -207,16 +207,10 @@ function love.load(arg)
 
     if arg[1] == "--simulate" then
         analytics.init(nil) -- Explicitly disable analytics
-        -- TODO: Setup procgen tree instead of simulating current save
-        -- We simulate current save for now to test the API
-        if love.filesystem.getInfo("saves/save1.json", "file") then
-            g.loadSession("saves/save1.json")
-        else
-            g.newSession()
-        end
+        g.newSession()
         -- This simulates 10 minutes of playtime.
         -- If your machine is fast enough, this should finish in less than 10 seconds.
-        simulation.start(600)
+        simulation.start({duration = 600, buyStrategy = "cheapest"})
     end
 
     if simulation.isSimulating() then
@@ -307,6 +301,14 @@ function love.draw()
         iml.endFrame()
 
         prof_pop()
+    end
+    if simulation.isSimulating() then
+        local t = string.format("Simulating: %.3g", simulation.getProgress() * 100)
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.print(t, 5, 5)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.print(t, 4, 4)
+        print(t)
     end
     love.graphics.setShader()
     if crtActive then

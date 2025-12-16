@@ -1,3 +1,5 @@
+local rewards = require("src.rewards.rewards")
+
 ---@class _Simulation
 local simulation = {}
 
@@ -87,6 +89,33 @@ local function getBestMousePositionInWorld()
     return bestX, bestY
 end
 
+---@param tree g.Tree
+---@param strategy "cheapest"|"random"
+local function tryBuyUpgrade(tree, strategy)
+    ---@type g.Tree.Upgrade[]
+    local affordableUpgrades = {}
+
+    for _, upg in ipairs(tree:getAllUpgrades()) do
+        if tree:canAffordUpgrade(upg) and upg.level < tree:getUpgradeMaxLevel(upg) then
+            affordableUpgrades[#affordableUpgrades+1] = upg
+        end
+    end
+
+    if #affordableUpgrades > 0 then
+        if strategy == "cheapest" then
+            table.sort(affordableUpgrades, function(a, b)
+                -- If we need to sort by multiple currencies, modify this
+                return tree:getUpgradePrice(a).money < tree:getUpgradePrice(b).money
+            end)
+            return tree:tryBuyUpgrade(affordableUpgrades[1])
+        elseif strategy == "random" then
+            return tree:tryBuyUpgrade(helper.randomChoice(affordableUpgrades))
+        end
+    end
+
+    return false
+end
+
 
 ---@class _Simulation.Options
 ---@field public duration number
@@ -147,6 +176,14 @@ function simulation.update()
         st.xp = st.xp + dxp
         st.lastExp = sn.xp
         st.time = st.time + dt
+
+        if sn.xp >= sn.xpRequirement then
+            -- Pick random rewards
+            local r = rewards.generateRandomRewards()
+            rewards.selectReward(helper.randomChoice(r))
+            -- Pick upgrade based on strategy
+            tryBuyUpgrade(sn.tree, st.buyStrategy)
+        end
 
         if st.treeSnapshotTime >= SIMULATION_TREE_FREQUENCY then
             st.treeSnapshotTime = st.treeSnapshotTime - SIMULATION_TREE_FREQUENCY
