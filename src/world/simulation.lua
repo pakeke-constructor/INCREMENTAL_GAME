@@ -3,26 +3,49 @@ local simulation = {}
 
 local SIMULATION_FPS = 60
 local SIMULATION_TIME_BUDGET = 0.01 -- 10ms time budget.
+-- Frequency each second the simulation tree is serialized
+local SIMULATION_TREE_FREQUENCY = 5
+-- Frequency each second the simulation data graph is captured
+local SIMULATION_GRAPH_FREQUENCY = 1
 
 ---@class _Simulation.State
 ---@field public duration number
 ---@field public time number
+---@field public buyStrategy "cheapest"|"random"
 ---@field public lastMouseHitTime number
 ---@field public mouse [number, number]
 ---@field public startResource g.Resources
 ---@field public xp number
 ---@field public lastExp number
+---@field public treeSnapshots _Simulation.Graph<table>[]
+---@field public purchasedUpgradesGraph _Simulation.Graph<integer>[]
+---@field public resourceGraph {money:_Simulation.Graph<number>[]}
+---@field public rpsGraph {money:_Simulation.Graph<number>[]}
+---@field public newPurchasedUpgradesGraph _Simulation.Graph<integer>[]
+---@field public treeSnapshotTime number
+---@field public graphCaptureTime number
 
 ---@private
 ---@type _Simulation.State|nil
 simulation.state = nil
 
----@class _Simulation.Result
+---@class _Simulation.BasicResultInfo
 ---@field public resource g.Resources Resource earned
 ---@field public rps g.Resources Average RPS across whole duration
 ---@field public duration number Simulation duration
 ---@field public xp number XP earned
 ---@field public xpps number Average XP earned across whole duration
+
+---@alias _Simulation.Graph<T> {x:number,y:T}
+
+---@class _Simulation.Result
+---@field public save table
+---@field public finalData _Simulation.BasicResultInfo
+---@field public treeSnapshots _Simulation.Graph<table>[]
+---@field public purchasedUpgradesGraph _Simulation.Graph<integer>[]
+---@field public resourceGraph {money:_Simulation.Graph<number>[]}
+---@field public rpsGraph {money:_Simulation.Graph<number>[]}
+---@field public newPurchasedUpgradesGraph _Simulation.Graph<integer>[]
 
 ---@private
 ---@type _Simulation.Result|nil
@@ -65,15 +88,20 @@ local function getBestMousePositionInWorld()
 end
 
 
+---@class _Simulation.Options
+---@field public duration number
+---@field public buyStrategy "cheapest"|"random"
 
----@param duration number
-function simulation.start(duration)
+---@param opts _Simulation.Options
+function simulation.start(opts)
     assert(not simulation.state, "simulation is in progress")
+    assert(opts.buyStrategy == "cheapest" or opts.buyStrategy == "random", "invalid buy strategy")
 
     local res = g.getResources()
     simulation.state = {
-        duration = duration,
+        duration = opts.duration,
         time = 0,
+        buyStrategy = opts.buyStrategy,
         lastMouseHitTime = 0,
         mouse = {0, 0},
         startResource = {
@@ -85,7 +113,14 @@ function simulation.start(duration)
             fish = res.fish
         },
         xp = 0,
-        lastExp = g.getSn().xp
+        lastExp = g.getSn().xp,
+        treeSnapshots = {},
+        purchasedUpgradesGraph = {},
+        resourceGraph = {},
+        rpsGraph = {},
+        newPurchasedUpgradesGraph = {},
+        treeSnapshotTime = 0,
+        graphCaptureTime = 0
     }
 end
 
@@ -113,6 +148,27 @@ function simulation.update()
         st.lastExp = sn.xp
         st.time = st.time + dt
 
+        if st.treeSnapshotTime >= SIMULATION_TREE_FREQUENCY then
+            st.treeSnapshotTime = st.treeSnapshotTime - SIMULATION_TREE_FREQUENCY
+            st.treeSnapshots[#st.treeSnapshots+1] = {x = sn.worldTime, y = sn.tree:serialize()}
+        end
+
+        if st.graphCaptureTime >= SIMULATION_GRAPH_FREQUENCY then
+            st.graphCaptureTime = st.graphCaptureTime - SIMULATION_GRAPH_FREQUENCY
+            local upgrades = 0
+            local newUpgrades = 0
+
+            for _, upg in ipairs(sn.tree:getAllUpgrades()) do
+                upgrades = upgrades + upg.level
+                newUpgrades = newUpgrades + math.min(upg.level, 1)
+            end
+
+            st.purchasedUpgradesGraph[#st.purchasedUpgradesGraph+1] = {x = sn.worldTime, y = upgrades}
+            st.newPurchasedUpgradesGraph[#st.newPurchasedUpgradesGraph+1] = {x = sn.worldTime, y = newUpgrades}
+            table.insert(st.resourceGraph.money, {x = sn.worldTime, y = sn.resources.money})
+            table.insert(st.rpsGraph.money, {x = sn.worldTime, y = sn.mainWorld.resourcesPerSecond.money})
+        end
+
         if st.time >= st.duration then
             local currentResource = g.getResources()
             local earnedResource = {
@@ -125,17 +181,25 @@ function simulation.update()
 
             -- Done
             simulation.result = {
-                resource = earnedResource,
-                rps = {
-                    money = earnedResource.money / st.time,
-                    fabric = earnedResource.fabric / st.time,
-                    bread = earnedResource.bread / st.time,
-                    juice = earnedResource.juice / st.time,
-                    fish = earnedResource.fish / st.time,
+                save = sn:serialize(),
+                finalData = {
+                    resource = earnedResource,
+                    rps = {
+                        money = earnedResource.money / st.time,
+                        fabric = earnedResource.fabric / st.time,
+                        bread = earnedResource.bread / st.time,
+                        juice = earnedResource.juice / st.time,
+                        fish = earnedResource.fish / st.time,
+                    },
+                    duration = st.time,
+                    xp = st.xp,
+                    xpps = st.xp / st.time
                 },
-                duration = st.time,
-                xp = st.xp,
-                xpps = st.xp / st.time
+                treeSnapshots = st.treeSnapshots,
+                purchasedUpgradesGraph = st.purchasedUpgradesGraph,
+                resourceGraph = st.resourceGraph,
+                rpsGraph = st.rpsGraph,
+                newPurchasedUpgradesGraph = st.newPurchasedUpgradesGraph,
             }
             simulation.state = nil
             return true
@@ -161,6 +225,14 @@ end
 function simulation.getResult()
     assert(simulation.result, "simulation is in progress or not run yet")
     return simulation.result
+end
+
+
+function simulation.getProgress()
+    if not simulation.state then
+        return 1
+    end
+    return simulation.state.time / simulation.state.duration
 end
 
 
