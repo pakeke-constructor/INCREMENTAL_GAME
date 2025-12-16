@@ -486,39 +486,39 @@ local function drawDevEditModeUI(self)
             end
         end
 
-        if ui.Button("MAKE ROOT", objects.Color.DARK_GRAY,objects.Color.BLACK, makeRootButton) then
-            local upg = tree:get(sel.x,sel.y)
+        local upg = tree:get(sel.x,sel.y)
+        local txt = upg and ("ROOT" .. (upg.isRoot and "(currently ON)" or "(currently OFF)"))
+        if upg and ui.Button(txt, objects.Color.DARK_GRAY,objects.Color.BLACK, makeRootButton) then
             if upg then
-                upg.isRoot=true
+                upg.isRoot=not upg.isRoot
             end
         end
 
         -- LEFT SIDEBAR:
-        local upg = tree:get(sel.x,sel.y)
         if upg then
-        local _,leftbar1 = leftbar:splitVertical(2,5)
-        local leftregs = leftbar1:grid(1,10)
-        lg.setColor(0,0,0,0.4)
-        lg.rectangle("fill", leftbar:get())
-        lg.setColor(1,1,1)
-        local font=g.getSmallFont(16)
-        richtext.printRichContainedNoWrap("maxLevel", font, leftregs[1]:get())
-        self.dev_maxLevelInput:draw(leftregs[2])
+            local _,leftbar1 = leftbar:splitVertical(2,5)
+            local leftregs = leftbar1:grid(1,10)
+            lg.setColor(0,0,0,0.4)
+            lg.rectangle("fill", leftbar:get())
+            lg.setColor(1,1,1)
+            local font=g.getSmallFont(16)
+            richtext.printRichContainedNoWrap("maxLevel", font, leftregs[1]:get())
+            self.dev_maxLevelInput:draw(leftregs[2])
 
-        richtext.printRichContainedNoWrap("price", font, leftregs[4]:get())
-        self.dev_priceInput:draw(leftregs[5])
-        local price = dev_fromFormattedNumber(self.dev_priceInput.txt)
-        if price then
-            -- TODO: handle other currencies here.
-            tree:setUpgradeBasePrice(upg, {
-                money = price
-            })
-        end
+            richtext.printRichContainedNoWrap("price", font, leftregs[4]:get())
+            self.dev_priceInput:draw(leftregs[5])
+            local price = dev_fromFormattedNumber(self.dev_priceInput.txt)
+            if price then
+                -- TODO: handle other currencies here.
+                tree:setUpgradeBasePrice(upg, {
+                    money = price
+                })
+            end
 
-        local maxLevel = dev_fromFormattedNumber(self.dev_maxLevelInput.txt)
-        if maxLevel then
-            upg.maxLevelOverride = maxLevel
-        end
+            local maxLevel = dev_fromFormattedNumber(self.dev_maxLevelInput.txt)
+            if maxLevel then
+                upg.maxLevelOverride = maxLevel
+            end
         end
     end
 
