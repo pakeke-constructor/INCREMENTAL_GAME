@@ -94,8 +94,8 @@ local function tryBuyUpgrade(tree, strategy)
     ---@type g.Tree.Upgrade[]
     local affordableUpgrades = {}
 
-    for _, upg in ipairs(tree:getAllUpgrades()) do
-        if tree:canAffordUpgrade(upg) and upg.level < tree:getUpgradeMaxLevel(upg) then
+    for _, upg in ipairs(tree:getUpgradesOnTree()) do
+        if not tree:isUpgradeHidden(upg) and tree:canAffordUpgrade(upg) and upg.level < tree:getUpgradeMaxLevel(upg) then
             affordableUpgrades[#affordableUpgrades+1] = upg
         end
     end
