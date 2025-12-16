@@ -10,7 +10,15 @@ local SIMULATION_TREE_FREQUENCY = 5
 -- Frequency each second the simulation data graph is captured
 local SIMULATION_GRAPH_FREQUENCY = 1
 
----@class _Simulation.State
+---@alias _Simulation.Graph<T> {x:number,y:T}
+
+---@class _Simulation.GraphResult
+---@field public purchasedUpgradesGraph _Simulation.Graph<integer>[]
+---@field public resourceGraph {money:_Simulation.Graph<number>[]}
+---@field public rpsGraph {money:_Simulation.Graph<number>[]}
+---@field public newPurchasedUpgradesGraph _Simulation.Graph<integer>[]
+
+---@class _Simulation.State: _Simulation.GraphResult
 ---@field public duration number
 ---@field public time number
 ---@field public buyStrategy "cheapest"|"random"
@@ -20,10 +28,6 @@ local SIMULATION_GRAPH_FREQUENCY = 1
 ---@field public xp number
 ---@field public lastExp number
 ---@field public treeSnapshots _Simulation.Graph<table>[]
----@field public purchasedUpgradesGraph _Simulation.Graph<integer>[]
----@field public resourceGraph {money:_Simulation.Graph<number>[]}
----@field public rpsGraph {money:_Simulation.Graph<number>[]}
----@field public newPurchasedUpgradesGraph _Simulation.Graph<integer>[]
 ---@field public treeSnapshotTime number
 ---@field public graphCaptureTime number
 
@@ -38,16 +42,11 @@ simulation.state = nil
 ---@field public xp number XP earned
 ---@field public xpps number Average XP earned across whole duration
 
----@alias _Simulation.Graph<T> {x:number,y:T}
-
 ---@class _Simulation.Result
 ---@field public save table
 ---@field public finalData _Simulation.BasicResultInfo
 ---@field public treeSnapshots _Simulation.Graph<table>[]
----@field public purchasedUpgradesGraph _Simulation.Graph<integer>[]
----@field public resourceGraph {money:_Simulation.Graph<number>[]}
----@field public rpsGraph {money:_Simulation.Graph<number>[]}
----@field public newPurchasedUpgradesGraph _Simulation.Graph<integer>[]
+---@field public graphs _Simulation.GraphResult
 
 ---@private
 ---@type _Simulation.Result|nil
@@ -238,10 +237,12 @@ function simulation.update()
                     xpps = st.xp / st.time
                 },
                 treeSnapshots = st.treeSnapshots,
-                purchasedUpgradesGraph = st.purchasedUpgradesGraph,
-                resourceGraph = st.resourceGraph,
-                rpsGraph = st.rpsGraph,
-                newPurchasedUpgradesGraph = st.newPurchasedUpgradesGraph,
+                graphs = {
+                    purchasedUpgradesGraph = st.purchasedUpgradesGraph,
+                    resourceGraph = st.resourceGraph,
+                    rpsGraph = st.rpsGraph,
+                    newPurchasedUpgradesGraph = st.newPurchasedUpgradesGraph,
+                }
             }
             simulation.state = nil
             return true

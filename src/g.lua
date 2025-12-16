@@ -65,6 +65,11 @@ end
 
 g.isBeingSimulated = simulation.isSimulating
 
+function g.delSession()
+    ---@diagnostic disable-next-line: cast-local-type
+    currentSession = nil
+end
+
 function g.saveAndInvalidateSession()
     if not g.hasSession() or g.isBeingSimulated() then return end
     analytics.send("end")
@@ -75,9 +80,9 @@ function g.saveAndInvalidateSession()
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
-        ---@diagnostic disable-next-line: cast-local-type
-        currentSession = nil
     end
+
+    return g.delSession()
 end
 
 

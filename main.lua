@@ -208,9 +208,11 @@ function love.load(arg)
     if arg[1] == "--simulate" then
         analytics.init(nil) -- Explicitly disable analytics
         g.newSession()
-        -- This simulates 10 minutes of playtime.
-        -- If your machine is fast enough, this should finish in less than 10 seconds.
-        simulation.start({duration = 600, buyStrategy = "cheapest"})
+
+        -- Begin simulation
+        local strategy = assert(arg[2], "missing strategy"):lower()
+        local duration = assert(tonumber(arg[3]), "invalid duration")
+        simulation.start({duration = duration, buyStrategy = strategy})
     end
 
     if simulation.isSimulating() then
@@ -254,13 +256,7 @@ function love.update(dt)
 
     if simulation.isSimulating() then
         if simulation.update() then
-            local result = simulation.getResult()
-            print("Simulation data dump")
-            print(json.encode(result))
-
-            -- TODO: We could be doing multiple simulations one after each other.
-            -- But for now, let's quit after it's done.
-            love.event.quit()
+            g.gotoScene("simulation_result_scene")
         end
     elseif g.hasSession() then
         local session = g.getSn()
