@@ -115,6 +115,7 @@ function Resources:update(dt)
         if p.time >= p.tohudTime then
             -- particle hit!
             table.remove(self.particles, i)
+            g.playWorldSound("pop", 1, 0.12, 0.2)
             self.timeSinceChanged[p.kind] = 0
             self.rotationDirection[p.kind] = -self.rotationDirection[p.kind]
         end

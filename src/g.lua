@@ -1797,9 +1797,16 @@ function g.destroyToken(tok)
 
     w.tokens:removeBuffered(tok)
 
-    -- todo: rework/rethink this.
-    -- Each token should have different "sound"
-    g.playWorldSound("pop", 1, 1, 0.15)
+    local cate = tok.category
+    if (cate == "grass") or (cate == "berry") then
+        -- todo: this is hacky and not robust, concating the name
+        -- what if the sound doesnt exist? (fails at runtime)
+        local name = "hit_grass2"
+        g.playWorldSound(name, 1,0.8, 0.1)
+    else
+        local name = "chest_on_destroy_" .. love.math.random(1,3)
+        g.playWorldSound(name, 1,0.5, 0.1)
+    end
     return true
 end
 
@@ -1895,21 +1902,20 @@ function g.hitImmediately(tok)
         g.spawnParticle("xp3", tok.x, tok.y, 2)
     end
 
-    local i = love.math.random(1,3)
-    local s = "hit_generic_"..i
-    g.playWorldSound(s, 1,0.1,0.2,0.2)
+    local s = "hit_generic_1"
+    -- hit_generic_1 is the softest and best. Ive tried all of em!
+    g.playWorldSound(s, 1,0.15,0.3,0.05)
 
     -- todo: rework all this.
     if tok.category == "grass" then
-        if love.math.random()<0.3 then
-            g.playWorldSound("hit_grass",1,0.15, 0.1)
+        if love.math.random()<0.5 then
+            g.playWorldSound("hit_grass",1,0.2, 0.1)
         else
-            g.playWorldSound("hit_grass2",1,0.15, 0.1)
+            g.playWorldSound("hit_grass2",1,0.3, 0.1)
         end
-    elseif love.math.random()<0.5 then
-        g.playWorldSound("hit_billiard", 1, 0.18, 0.3)
     else
         g.playWorldSound("hit_soft", 1, 0.18, 0.3)
+        -- g.playWorldSound("hit_billiard", 1, 0.18, 0.3)
     end
 end
 
