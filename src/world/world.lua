@@ -690,10 +690,14 @@ function World:_update(dt)
     end
 
     local tree = g.getUpgTree()
+
+    local spawnEntityCounts = {--[[
+        [upgradeId] -> 
+    ]]}
     for _, upg in ipairs(tree:getAllUpgrades()) do
-        local upgradeId = upg.id
+        local upgId = upg.id
         local ulevel = upg.level
-        local uinfo = g.getUpgradeInfo(upgradeId)
+        local uinfo = g.getUpgradeInfo(upgId)
 
         if uinfo.spawnEntity then
             local ecount = 0
@@ -704,36 +708,40 @@ function World:_update(dt)
                     ecount = 1
                 end
             end
+            spawnEntityCounts[upgId] = (spawnEntityCounts[upgId] or 0) + ecount
+        end
+    end
 
-            local diff = self:_countEntityUpgrades(upgradeId) - ecount
+    for upgradeId, ecount in pairs(spawnEntityCounts) do
+        local uinfo = g.getUpgradeInfo(upgradeId)
+        local diff = self:_countEntityUpgrades(upgradeId) - ecount
 
-            if diff ~= 0 then
-                -- Ensure set exist
-                if not self.upgradeEntities[upgradeId] then
-                    self.upgradeEntities[upgradeId] = objects.BufferedSet()
-                end
-
-                if diff < 0 then
-                    -- Spawn more entities
-                    for _ = 1, -diff do
-                        local ent = uinfo:spawnEntity()
-                        self.upgradeEntities[upgradeId]:addBuffered(ent)
-                    end
-                else
-                    -- Remove excess entities
-                    for _, e in ipairs(self.upgradeEntities[upgradeId]) do
-                        if diff == 0 then
-                            break
-                        end
-
-                        self.upgradeEntities[upgradeId]:removeBuffered(e) -- do not disappoint ipairs
-                        self.entities:removeBuffered(e)
-                        diff = diff - 1 -- if it's 0, then this loop stops
-                    end
-                end
-
-                self.upgradeEntities[upgradeId]:flush()
+        if diff ~= 0 then
+            -- Ensure set exist
+            if not self.upgradeEntities[upgradeId] then
+                self.upgradeEntities[upgradeId] = objects.BufferedSet()
             end
+
+            if diff < 0 then
+                -- Spawn more entities
+                for _ = 1, -diff do
+                    local ent = uinfo:spawnEntity()
+                    self.upgradeEntities[upgradeId]:addBuffered(ent)
+                end
+            else
+                -- Remove excess entities
+                for _, e in ipairs(self.upgradeEntities[upgradeId]) do
+                    if diff == 0 then
+                        break
+                    end
+
+                    self.upgradeEntities[upgradeId]:removeBuffered(e) -- do not disappoint ipairs
+                    self.entities:removeBuffered(e)
+                    diff = diff - 1 -- if it's 0, then this loop stops
+                end
+            end
+
+            self.upgradeEntities[upgradeId]:flush()
         end
     end
 
