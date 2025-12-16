@@ -692,7 +692,7 @@ function World:_update(dt)
     local tree = g.getUpgTree()
 
     local spawnEntityCounts = {--[[
-        [upgradeId] -> 
+        [upgradeId] -> how many entities should exist
     ]]}
     for _, upg in ipairs(tree:getAllUpgrades()) do
         local upgId = upg.id
