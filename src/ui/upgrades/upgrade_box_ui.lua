@@ -42,6 +42,7 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
 
     local maxLevel = tree:getUpgradeMaxLevel(upg)
     local hasBought = level > 0
+    local isMaxLevel = upg.level >= maxLevel
     local canAfford = level < maxLevel and tree:canAffordUpgrade(upg, level+1)
 
     ------------------------------
@@ -52,7 +53,7 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
     if uinfo.kind == "TOKEN" then
         if canAfford then
             frame = "upgradeborder_token_golden"
-        elseif hasBought then
+        elseif isMaxLevel then
             frame = "upgradeborder_token"
         else
             frame = "upgradeborder_token_gray"
@@ -61,12 +62,12 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
         if canAfford then
             background = "upgradebackground_golden"
             frame = "upgradeborder_golden"
-        elseif hasBought then
+        elseif isMaxLevel then
             background = "upgradebackground_upgrade"
             frame = "upgradeborder_upgrade"
         else
             background = "upgradebackground_gray"
-            frame = "upgradeborder_gray"
+            frame = "upgradeborder_cantafford"
         end
     end
 
@@ -137,7 +138,11 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
         if level == tree:getUpgradeMaxLevel(upg) then
             append = "{c r=0.1 g=0.7 b=0}"
         end
-        richtext.printRich("{o thickness=1}"..append..tostring(level), font, math.floor(cx+w/4), math.floor(cy), 0xfffff, "left")
+        local txtDy = 0
+        if not isMaxLevel then
+            txtDy = math.sin(love.timer.getTime()*4) - 1
+        end
+        richtext.printRich("{o thickness=1}"..append..tostring(level), font, math.floor(cx+w/4), math.floor(cy)+txtDy, 0xfffff, "left")
     end
 
     return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h), iml.wasJustHovered(x,y,w,h)
