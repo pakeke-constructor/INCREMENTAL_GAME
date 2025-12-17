@@ -8,8 +8,8 @@ local count = {}
 ---@param name string
 ---@param stat string
 ---@param amount number
----@param iscroprespawn boolean? (only for token respawn time, requires specialization)
-local function defStatPotion(i, id, stat, name, amount, iscroprespawn)
+---@param isCropRespawn boolean? (only for token respawn time, requires specialization)
+local function defStatPotion(i, id, stat, name, amount, isCropRespawn)
     local newId = id .. "_" .. tostring(i)
     local image = id .. "_potion"
 
@@ -22,7 +22,7 @@ local function defStatPotion(i, id, stat, name, amount, iscroprespawn)
     ---@cast key string
 
     local effectDescription
-    if iscroprespawn then
+    if isCropRespawn then
         effectDescription = interp("%{amount:d}% " .. name)
     else
         effectDescription = interp("+%{amount} " .. name)
@@ -31,7 +31,7 @@ local function defStatPotion(i, id, stat, name, amount, iscroprespawn)
     g.defineEffect(newId, realName, {
         image = image,
         isDebuff = false,
-        description = effectDescription({amount = iscroprespawn and (math.log(amount, 2) * 100) or amount}),
+        description = effectDescription({amount = isCropRespawn and (math.log(amount, 2) * 100) or amount}),
 
         ---@diagnostic disable-next-line
         [key] = function(duration, ...)
