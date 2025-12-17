@@ -899,7 +899,7 @@ end
 
 function harvest:update(dt)
     self:updateCamera(dt)
-    g.getHUD():update(dt / 5)
+    g.getHUD():update(dt)
 
     if self.xpPopup then
         popupParticles:update(dt)
