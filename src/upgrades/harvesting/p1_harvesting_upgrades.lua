@@ -73,6 +73,23 @@ end
 
 
 
+defUpgrade("critical_damage", "Critical Damage", {
+    --[[
+    TODO!!
+    We should have more upgrades related to critical-strikes.
+    ]]
+    description = "%{1} chance of hitting token with 10x more damage.",
+    getValues = function(uinfo, level)
+        return 1 + (level - 1) / 2
+    end,
+    valueFormatter = {"%.14g%%"},
+
+    getTokenHitMultiplier = function(uinfo, level)
+        local val = uinfo:getValues(level) / 100
+        return love.math.random() <= val and 10 or 1
+    end
+})
+
 
 
 
@@ -102,30 +119,6 @@ defUpgrade("lucky_hit", "Lucky Hit", {
 
 
 
-
-defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
-    maxLevel = 3,
-
-    getValues = function(self,level)
-        return level*10
-    end,
-    description = "Every second, +%{1}% chance to spawn a spinning axe",
-
-    perSecondUpdate = function(self,level)
-        local r = love.math.random()
-        local a=self:getValues(level)
-        local chance = (a/100)
-        if r < chance then
-            local x,y = g.getRandomPositionForToken()
-            if x and y then
-                g.spawnEntity("spinning_axe", x,y)
-            end
-        end
-    end
-})
-
-
-
 defUpgrade("more_loot", "More Loot", {
     image = "money", -- TODO: change
     description = "All crops have %{1} more health, and earn %{2} more resources.",
@@ -149,19 +142,27 @@ defUpgrade("more_loot", "More Loot", {
 
 
 
-defUpgrade("critical_damage", "Critical Damage", {
-    description = "%{1} chance of hitting token with 10x more damage.",
-    getValues = function(uinfo, level)
-        return 1 + (level - 1) / 2
-    end,
-    valueFormatter = {"%.14g%%"},
 
-    getTokenHitMultiplier = function(uinfo, level)
-        local val = uinfo:getValues(level) / 100
-        return love.math.random() <= val and 10 or 1
+defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
+    maxLevel = 3,
+
+    getValues = function(self,level)
+        return level*10
+    end,
+    description = "Every second, +%{1}% chance to spawn a spinning axe",
+
+    perSecondUpdate = function(self,level)
+        local r = love.math.random()
+        local a=self:getValues(level)
+        local chance = (a/100)
+        if r < chance then
+            local x,y = g.getRandomPositionForToken()
+            if x and y then
+                g.spawnEntity("spinning_axe", x,y)
+            end
+        end
     end
 })
-
 
 
 defUpgrade("bomb_rain", "Bomb Rain", {
