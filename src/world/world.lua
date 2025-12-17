@@ -889,15 +889,6 @@ function World:_update(dt)
             end
         end
 
-        -- if tokType == "grass_1" then
-        --     print("___ FRAME ___")
-        --     print("ct: ", ct)
-        --     print("toSpawn: ", toSpawn)
-        --     for k, v in pairs(buf) do
-        --         print("buf:",k,v)
-        --     end
-        -- end
-
         if #buf > math.max(toSpawn, 0) then
             -- Too many tokens! truncate table.
             -- (this can happen if there are tokens queued for respawn, 
