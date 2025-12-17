@@ -68,6 +68,8 @@ function harvest:init()
 
     -- This background is not part of the texture atlas so it needs to be loaded manually
     self.background = love.graphics.newImage("src/scenes/harvest_scene/background_harvest.png")
+
+    self.worldScale = 1
 end
 
 
@@ -897,7 +899,7 @@ end
 
 function harvest:update(dt)
     self:updateCamera(dt)
-    g.getHUD():update(dt)
+    g.getHUD():update(dt / 5)
 
     if self.xpPopup then
         popupParticles:update(dt)
@@ -926,6 +928,7 @@ function harvest:update(dt)
     local scale = math.min(sw / worldW, sh / worldH)
     -- Only do integer scaling
     scale = math.floor(math.max(scale, 1))
+    self.worldScale = scale
     local zf = self:zoomFromScale(scale)
     self:setZoom(zf)
 
