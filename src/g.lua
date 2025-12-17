@@ -1526,21 +1526,20 @@ function g.clampInsideWorld(x,y, leeway)
 end
 
 
----@param world g.World
 ---@param x number
 ---@param y number
 ---@param w number
 ---@param h number
 ---@param minSpacing number?
 ---@param maxAttempts integer?
-local function getRandomPos(world, x, y, w, h, minSpacing, maxAttempts)
+local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
     maxAttempts = maxAttempts or 20
     minSpacing = minSpacing or DEFAULT_MIN_SPACING
     for attempt = 1, maxAttempts do
         local px = x + math.random() * w
         local py = y + math.random() * h
 
-        if g.canSpawnTokenHere(x,y, minSpacing) then
+        if g.canSpawnTokenHere(px,py, minSpacing) then
             return px, py
         end
     end
@@ -1710,7 +1709,7 @@ local g_Token = {}
 function g.getRandomPositionForToken(guarantee)
     local worldW, worldH = g.getWorldDimensions()
     local pad=4
-    local x, y = getRandomPos(g.getMainWorld(), pad,pad, worldW-pad*2,worldH-pad*2)
+    local x, y = getRandomPos(pad,pad, worldW-pad*2,worldH-pad*2)
 
     if not (x and y) and guarantee then
         x = helper.lerp(pad, worldW - pad, love.math.random())
