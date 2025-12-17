@@ -1818,10 +1818,14 @@ function g.destroyToken(tok)
         end
     end
 
-    if not w.tokenDestroyTime[tok.type] then
-        w.tokenDestroyTime[tok.type] = {}
+    if tok.wasSpawnedViaTokenPool then
+        -- if it was spawned via token-pool, then we should record its destroyTime!
+        --  (this way, world.lua will spawn it back in future)
+        if not w.tokenDestroyTime[tok.type] then
+            w.tokenDestroyTime[tok.type] = {}
+        end
+        table.insert(w.tokenDestroyTime[tok.type], g.getWorldTime())
     end
-    table.insert(w.tokenDestroyTime[tok.type], g.getWorldTime())
 
     w.tokens:removeBuffered(tok)
 
