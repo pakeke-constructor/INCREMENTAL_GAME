@@ -8,8 +8,7 @@ local count = {}
 ---@param name string
 ---@param stat string
 ---@param amount number
----@param isCropRespawn boolean? (only for token respawn time, requires specialization)
-local function defStatPotion(i, id, stat, name, amount, isCropRespawn)
+local function defStatPotion(i, id, stat, name, amount)
     local newId = id .. "_" .. tostring(i)
     local image = id .. "_potion"
 
@@ -17,26 +16,16 @@ local function defStatPotion(i, id, stat, name, amount, isCropRespawn)
     count[id] = ct + 1
 
     local realName = name .. " ("..ct..")"
-
-    local key
-    ---@cast key string
-
-    local effectDescription
-    if isCropRespawn then
-        key = tostring("get" .. stat .. "Multiplier")
-        effectDescription = interp("%{amount:d}% " .. name)
-    else
-        key = tostring("get" .. stat .. "Modifier")
-        effectDescription = interp("+%{amount} " .. name)
-    end
+    local statInfo = g.VALID_STATS[stat]
+    local effectDescription = interp("+%{amount} " .. name)
 
     g.defineEffect(newId, realName, {
         image = image,
         isDebuff = false,
-        description = effectDescription({amount = isCropRespawn and (math.log(amount, 2) * 100) or amount}),
+        description = effectDescription({amount = amount}),
 
         ---@diagnostic disable-next-line
-        [key] = function(duration, ...)
+        [statInfo.addQuestion] = function(duration, ...)
             return amount
         end
     })
@@ -62,5 +51,15 @@ end
 
 local speedreduction = {0.7, 0.45, 0.2}
 for i, v in ipairs(speedreduction) do
-    defStatPotion(i, "faster_spawn", "TokenRespawnTime", "Crop Respawn Time", v, true)
+    local effectDescription = interp("%{amount:d}% Crop Respawn Time")
+    g.defineEffect("faster_spawn_"..i, "Crop Respawn Time ("..i..")", {
+        image = "faster_spawn_potion",
+        isDebuff = false,
+        description = effectDescription({amount = math.log(v, 2) * 100}),
+
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        [g.VALID_STATS.TokenRespawnTime.multQuestion] = function()
+            return v
+        end
+    })
 end
