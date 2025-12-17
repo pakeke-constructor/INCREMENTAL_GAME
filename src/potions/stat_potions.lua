@@ -18,13 +18,15 @@ local function defStatPotion(i, id, stat, name, amount, isCropRespawn)
 
     local realName = name .. " ("..ct..")"
 
-    local key = tostring("get" .. stat .. "Modifier")
+    local key
     ---@cast key string
 
     local effectDescription
     if isCropRespawn then
+        key = tostring("get" .. stat .. "Multiplier")
         effectDescription = interp("%{amount:d}% " .. name)
     else
+        key = tostring("get" .. stat .. "Modifier")
         effectDescription = interp("+%{amount} " .. name)
     end
 
