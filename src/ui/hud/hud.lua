@@ -92,27 +92,9 @@ end
 ---@param x number
 ---@param y number
 local function drawRewardsUI(upg, x, y)
-    local font = g.getSmallFont(16)
     local uinfo = g.getUpgradeInfo(upg.id)
-
     local desc = g.getUpgradeDescription(uinfo, upg.level, false)
-    local width, lines = font:getWrap(richtext.stripEffects(desc), DESC_TEXT_MAX_WIDTH)
-
-    local boxR = Kirigami(0, 0, width, #lines * font:getHeight())
-    local boxBaseR = boxR:padUnit(-12):set(x, y)
-    boxR = boxR:center(boxBaseR)
-
-    -- Draw gradient background
-    do
-        love.graphics.setColor(1, 1, 1)
-        local a, b, c, d = boxBaseR:padUnit(3):get()
-        love.graphics.draw(DESC_BACKGROUND_GRADIENT, a, b, 0, c, d)
-    end
-    love.graphics.setColor(SIDEBAR_COLOR)
-    ui.drawPanel(boxBaseR:get())
-
-    love.graphics.setColor(1, 1, 1)
-    richtext.printRich(desc, font, boxR.x, boxR.y, boxR.w, "center")
+    return helper.tooltip(desc, x, y)
 end
 
 local REWARDS_TEXT = assert(richtext.parseRichText(

@@ -468,4 +468,41 @@ end
 
 
 
+local TOOLTIP_BACKGROUND_GRADIENT = helper.newGradientMesh(
+    "horizontal",
+    objects.Color("#".."FF14465A"),
+    objects.Color("#".."ff191e3c")
+)
+local TOOLTIP_TEXT_MAX_WIDTH = 200
+local TOOLTIP_COLOR = objects.Color("#".."FF14A0CD")
+---@param text string
+---@param x number
+---@param y number
+---@param ox number?
+---@param oy number?
+function helper.tooltip(text, x, y, ox, oy)
+    ox = ox or 0
+    oy = oy or 0
+    local font = g.getSmallFont(16)
+    local width, lines = font:getWrap(richtext.stripEffects(text), TOOLTIP_TEXT_MAX_WIDTH)
+
+    local boxR = Kirigami(0, 0, width, #lines * font:getHeight())
+    local boxBaseR = boxR:padUnit(-12):set(x - boxR.w * ox, y - boxR.h * oy)
+    boxR = boxR:center(boxBaseR)
+
+    -- Draw gradient background
+    do
+        love.graphics.setColor(1, 1, 1)
+        local a, b, c, d = boxBaseR:padUnit(3):get()
+        love.graphics.draw(TOOLTIP_BACKGROUND_GRADIENT, a, b, 0, c, d)
+    end
+    love.graphics.setColor(TOOLTIP_COLOR)
+    ui.drawPanel(boxBaseR:get())
+
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRich(text, font, boxR.x, boxR.y, boxR.w, "center")
+end
+
+
+
 return helper
