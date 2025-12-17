@@ -16,6 +16,9 @@ from numpy.typing import NDArray
 DRY_RUN = False  # Set to true to only list assets to be processed.
 QUANTIZE_IN_RGB = False  # If True, quantize in RGB instead of Oklab
 PALETTE_PATH = "assets/palette.png"  # Relative to main.lua
+BLACKLIST = [  # List of assets to be excluded
+    "src/modules/vignette/vignette.png",
+]
 # End of Configurable thing
 
 MAIN_DIR = find_game_root()
@@ -65,9 +68,20 @@ def quantize_image_smolsize(img: NDArray[numpy.float32], palette: NDArray[numpy.
     return quantized
 
 
+_blacklist = set(map(pathlib.Path, BLACKLIST))
+
+
+def filter_blacklist(file: str):
+    try:
+        pathobj = pathlib.Path(file).relative_to(MAIN_DIR)
+        return pathobj not in _blacklist
+    except ValueError:
+        return True
+
+
 def transform_images(pathglob: str, pal: NDArray[numpy.float32], recursive: bool = True):
     tobeglob = MAIN_DIR / pathglob
-    files = glob.glob(str(tobeglob), recursive=recursive)
+    files = list(filter(filter_blacklist, glob.glob(str(tobeglob), recursive=recursive)))
     success = 0
     failed = 0
 
