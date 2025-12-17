@@ -54,9 +54,6 @@ function Session:init()
     for _,resId in ipairs(g.RESOURCE_LIST) do
         self.resources[resId] = 0
         self.resourceUnlocks[resId] = false
-        if consts.DEV_MODE then
-            self.resources[resId] = 1000000000
-        end
     end
     self.resourceUnlocks["money"] = true
 

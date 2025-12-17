@@ -1,3 +1,5 @@
+local sceneManager = require("src.scenes.sceneManager")
+
 ---@class g.hud.Resources: objects.Class
 local Resources = objects.Class("g.hud:Resources")
 
@@ -311,6 +313,16 @@ local lerp = helper.lerp
 function Resources:drawParticles()
     prof_push("Resources:drawParticles")
     love.graphics.setColor(1,1,1)
+
+    -- HACK: Ensure particle scale matches harvest area scale
+    local worldScale = 1
+    local uiScale = ui.getUIScaling()
+    local sc, scname = sceneManager.getCurrentScene()
+    if scname == "harvest_scene" then
+        ---@cast sc HarvestScene
+        worldScale = sc.worldScale
+    end
+
     for _, particle in ipairs(self.particles) do
         local x = particle.x
         local y = particle.y
@@ -321,7 +333,7 @@ function Resources:drawParticles()
             -- Spawning
             local time = -(particle.time + AFTERSPAWN_ANIMATION_DELAY)
             local t = 1 - helper.clamp(time / SPAWN_ANIMATION_DURATION, 0, 1)
-            scale = helper.clamp(particle.spawnEasing(t), 0, 1)
+            scale = lerp(0, worldScale / uiScale, particle.spawnEasing(t))
         else
             -- Moving to HUD
             local t = particle.time / particle.tohudTime
@@ -330,6 +342,7 @@ function Resources:drawParticles()
 
             x = lerp(particle.x, self.poses[particle.kind][1], easeX)
             y = lerp(particle.y, self.poses[particle.kind][2], easeY)
+            scale = lerp(worldScale / uiScale, 1, particle.spawnEasing(t))
         end
 
         g.drawImage(particle.image, x, y, particle.rot, scale)
