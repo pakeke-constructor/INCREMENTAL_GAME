@@ -135,7 +135,7 @@ local EFFECT_COLORS = {
 
 function harvest:_drawActiveEffects()
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
-    local effectIconR = Kirigami(0, 70, 24, 24)
+    local effectIconR = Kirigami(0, 96, 24, 24)
         :attachToRightOf(r)
         :moveRatio(-1, 0)
         :moveUnit(-8, 0)
@@ -162,6 +162,11 @@ function harvest:_drawActiveEffects()
         local time = math.floor(duration)
         local seconds = time % 60
         local minutes = math.floor(time / 60)
+        if time < 5 then
+            love.graphics.setColor(1, 0, 0)
+        else
+            love.graphics.setColor(1, 1, 1)
+        end
         richtext.printRich(
             string.format("{w amp=0.3}{o}%02d:%02d{/o}{/w}", minutes, seconds),
             font,
