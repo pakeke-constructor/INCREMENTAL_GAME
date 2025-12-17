@@ -14,7 +14,7 @@ from numpy.typing import NDArray
 
 # Configurable thing
 DRY_RUN = False  # Set to true to only list assets to be processed.
-QUANTIZE_IN_RGB = True  # If True, quantize in RGB instead of Oklab
+QUANTIZE_IN_RGB = False  # If True, quantize in RGB instead of Oklab
 PALETTE_PATH = "assets/palette.png"  # Relative to main.lua
 # End of Configurable thing
 
@@ -93,7 +93,8 @@ def transform_images(pathglob: str, pal: NDArray[numpy.float32], recursive: bool
                 quantized = oklab2rgb(quantized_oklab)
 
             # Ok, save.
-            image_pil_palletted = numpy_float32_to_pil(quantized)
+            quantized_rgba = numpy.dstack((quantized, image_numpy[:, :, 3]))
+            image_pil_palletted = numpy_float32_to_pil(quantized_rgba)
             image_pil_palletted.save(file)
 
             tqdm.tqdm.write("✅ Success")

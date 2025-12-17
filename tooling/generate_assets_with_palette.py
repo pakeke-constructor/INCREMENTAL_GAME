@@ -9,7 +9,7 @@ from util import find_game_root
 
 from numpy.typing import NDArray
 
-QUANTIZE_IN_RGB = True  # If True, quantize in RGB instead of Oklab
+QUANTIZE_IN_RGB = False  # If True, quantize in RGB instead of Oklab
 PALETTE_PATH = "assets/palette.png"  # Relative to main.lua
 
 
