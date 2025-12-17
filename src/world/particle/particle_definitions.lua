@@ -97,9 +97,10 @@ Particle definitions go below this line,
 
 ---@param prefix string
 ---@param len integer
-local function makeFrames(prefix, len)
+---@param start integer?
+local function makeFrames(prefix, len, start)
     local t = {}
-    for i=1,len do
+    for i=(start or 1),len do
         table.insert(t, prefix .. tostring(i))
     end
     return t
@@ -153,7 +154,7 @@ function initParticles()
     end
 
     local grass = defineParticle("grass", {
-        frames = makeFrames("grass_particle_", 3),
+        frames = makeFrames("grass_particle_", 3, 0),
         lifetime = 0.3,
         emissionArea = {
             distribution = "ellipse",
