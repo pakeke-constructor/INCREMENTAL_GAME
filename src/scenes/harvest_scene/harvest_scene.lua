@@ -124,28 +124,26 @@ local EFFECT_COLORS = {
     [true] = {
         BG = objects.Color("#".."FF592404"),
         FG = objects.Color("#".."FFcF280E"),
-        DESC = objects.Color("#".."FFF4AEAB")
     },
     [false] = {
         BG = objects.Color("#".."FF1C4A1C"),
         FG = objects.Color("#".."FF75D963"),
-        DESC = objects.Color("#".."FF79BBDF")
     },
 }
 
 function harvest:_drawActiveEffects()
     local r = Kirigami(0, 0, ui.getScaledUIDimensions())
-    local effectIconR = Kirigami(0, 70, 24, 24)
+    local effectIconR = Kirigami(0, 96, 24, 24)
         :attachToRightOf(r)
         :moveRatio(-1, 0)
         :moveUnit(-8, 0)
 
     local font = g.getSmallFont(16)
+    local tooltipDrawn = nil
     for eff, duration in g.getMainWorld():_iterateActiveEffects() do
         local effInfo = g.getEffectInfo(eff)
         local bgcolor = EFFECT_COLORS[effInfo.isDebuff].BG
         local fgcolor = EFFECT_COLORS[effInfo.isDebuff].FG
-        local desccolor = EFFECT_COLORS[effInfo.isDebuff].DESC
 
         -- Draw icon
         local x, y = effectIconR:getCenter()
@@ -162,6 +160,11 @@ function harvest:_drawActiveEffects()
         local time = math.floor(duration)
         local seconds = time % 60
         local minutes = math.floor(time / 60)
+        if time < 5 then
+            love.graphics.setColor(1, 0, 0)
+        else
+            love.graphics.setColor(1, 1, 1)
+        end
         richtext.printRich(
             string.format("{w amp=0.3}{o}%02d:%02d{/o}{/w}", minutes, seconds),
             font,
@@ -172,59 +175,18 @@ function harvest:_drawActiveEffects()
         )
 
         if iml.isHovered(effectIconR:get()) then
-            -- Calculate description info data for drawing
-            local bigFont = g.getBigFont(16)
-            local titleWidth = bigFont:getWidth(richtext.stripEffects(effInfo.name))
             local description = effInfo.description or ""
-            local width, lines = font:getWrap(
-                richtext.stripEffects(effInfo.description or ""),
-                math.max(titleWidth, 200)
-            )
-            local height = bigFont:getHeight() + 8 + #lines * font:getHeight()
-
-            -- Draw description
-            local PADDING = 4
-            local descWidth = 2 * PADDING + width
-            local descHeight = 2 * PADDING + height
-            local descX = effectIconR.x - descWidth - 4
-            local descY = effectIconR.y + effectIconR.h
-            love.graphics.setColor(helper.multiplyAlpha(bgcolor, 0.7))
-            love.graphics.rectangle("fill", descX, descY, descWidth, descHeight)
-            love.graphics.setColor(fgcolor)
-            love.graphics.rectangle("line", descX, descY, descWidth, descHeight)
-
-            local yoff = 0
-            love.graphics.setColor(1, 1, 1)
-            richtext.printRich(
-                "{o}"..effInfo.name.."{/o}",
-                bigFont,
-                descX + PADDING,
-                descY + PADDING,
-                width,
-                "right"
-            )
-            yoff = yoff + bigFont:getHeight()
-            love.graphics.setColor(1, 1, 1, 0.7)
-            love.graphics.line(
-                descX + PADDING + 4,
-                descY + PADDING + yoff + 4,
-                descX + descWidth - PADDING - 4,
-                descY + PADDING + yoff + 4
-            )
-            yoff = yoff + 8
-            love.graphics.setColor(desccolor)
-            richtext.printRich(
-                "{o}"..description.."{/o}",
-                font,
-                descX + PADDING,
-                descY + PADDING + yoff,
-                width,
-                "right"
-            )
+            if #description > 0 then
+                tooltipDrawn = {description = description, x = effectIconR.x, y = effectIconR.y + effectIconR.h}
+            end
         end
 
         -- Next
         effectIconR = effectIconR:moveRatio(0, 1):moveUnit(0, 4)
+    end
+
+    if tooltipDrawn then
+        helper.tooltip(tooltipDrawn.description, tooltipDrawn.x, tooltipDrawn.y, 1, 0)
     end
 end
 

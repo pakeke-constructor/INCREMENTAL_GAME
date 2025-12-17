@@ -16,10 +16,7 @@ local function defStatPotion(i, id, stat, name, amount)
     count[id] = ct + 1
 
     local realName = name .. " ("..ct..")"
-
-    local key = tostring("get" .. stat .. "Modifier")
-    ---@cast key string
-
+    local statInfo = g.VALID_STATS[stat]
     local effectDescription = interp("+%{amount} " .. name)
 
     g.defineEffect(newId, realName, {
@@ -28,7 +25,7 @@ local function defStatPotion(i, id, stat, name, amount)
         description = effectDescription({amount = amount}),
 
         ---@diagnostic disable-next-line
-        [key] = function(duration, ...)
+        [statInfo.addQuestion] = function(duration, ...)
             return amount
         end
     })
@@ -52,3 +49,17 @@ for i = 1, #areas do
     defStatPotion(i, "harvest_area", "HarvestArea", "Area", areas[i])
 end
 
+local speedreduction = {0.7, 0.45, 0.2}
+for i, v in ipairs(speedreduction) do
+    local effectDescription = interp("%{amount:d}% Crop Respawn Time")
+    g.defineEffect("faster_spawn_"..i, "Crop Respawn Time ("..i..")", {
+        image = "faster_spawn_potion",
+        isDebuff = false,
+        description = effectDescription({amount = math.log(v, 2) * 100}),
+
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        [g.VALID_STATS.TokenRespawnTime.multQuestion] = function()
+            return v
+        end
+    })
+end
