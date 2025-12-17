@@ -81,7 +81,10 @@ function World:init()
     self.playerAvatar = nil
 
     ---@type table<string, number[]>
-    self.tokenDestroyTime = {}
+    self.tokenDestroyTime = {--[[
+        tracks WHEN tokens were destroyed, in seconds
+        [tokType] -> {12.3, 434.2, 38.1, 12.28, 111.07, 39.08}
+    ]]}
 
     self.analyticsSendTime = 0
 end
@@ -874,32 +877,44 @@ function World:_update(dt)
     for tokType, poolCount in pairs(self.tokenPool.tokens) do
         local ct = self.tokenCounts[tokType] or 0
         local toSpawn = poolCount - ct
-        local tokenDestroyTime = self.tokenDestroyTime[tokType] or {}
-        self.tokenDestroyTime[tokType] = tokenDestroyTime
+        self.tokenDestroyTime[tokType] = self.tokenDestroyTime[tokType] or {}
+        local buf = self.tokenDestroyTime[tokType]
 
         local cooldownTime = g.stats.TokenRespawnTime * math.abs(g.ask("getPerTokenRespawnTimeMultiplier", tokType))
 
-        if #tokenDestroyTime > math.max(toSpawn, 0) then
-            -- Truncate table.
-            table.sort(tokenDestroyTime)
-            -- math.max, as toSpawn can be negative if token pool decreases
-            while #tokenDestroyTime > math.max(toSpawn, 0) do
-                table.remove(tokenDestroyTime)
-            end
-        elseif #tokenDestroyTime < toSpawn then
+        if #buf < toSpawn then
             -- #destroyTime + tokenCount is less than tokenPool. Spawn more
-            for i = 1, toSpawn - #tokenDestroyTime do
-                tokenDestroyTime[#tokenDestroyTime+1] = curTime + 0.1 * i - cooldownTime
+            for i = 1, toSpawn - #buf do
+                buf[#buf+1] = curTime + 0.1 * i - cooldownTime
             end
         end
 
-        for i = #tokenDestroyTime, 1, -1 do
-            if curTime >= (tokenDestroyTime[i] + cooldownTime) then
+        -- if tokType == "grass_1" then
+        --     print("___ FRAME ___")
+        --     print("ct: ", ct)
+        --     print("toSpawn: ", toSpawn)
+        --     for k, v in pairs(buf) do
+        --         print("buf:",k,v)
+        --     end
+        -- end
+
+        if #buf > math.max(toSpawn, 0) then
+            -- Too many tokens! truncate table.
+            -- (this can happen if there are tokens queued for respawn, 
+            --  but then another system, eg green-mushroom, spawns new stuff immediately)
+            table.sort(buf)
+            while #buf > math.max(toSpawn, 0) do
+                table.remove(buf)
+            end
+        end
+
+        for i = #buf, 1, -1 do
+            if curTime >= (buf[i] + cooldownTime) then
                 local x,y = g.getRandomPositionForToken()
                 if x and y then
                     local tok = g.spawnToken(tokType, x,y)
                     tok.wasSpawnedViaTokenPool = true
-                    table.remove(tokenDestroyTime, i)
+                    table.remove(buf, i)
                 end
             end
         end
@@ -933,7 +948,7 @@ function World:_update(dt)
         end
     end
 
-    --self.tokens:flush()
+    self.tokens:flush()
 
     self.particles:update(dt)
     self:_updateDamageNumbers(dt)

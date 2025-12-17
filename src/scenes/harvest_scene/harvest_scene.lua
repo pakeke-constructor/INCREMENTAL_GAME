@@ -867,7 +867,7 @@ function harvest:draw()
             break
         end
     end
-    if fullResource then
+    if fullResource and (not isAnyPopupOpen(self)) then
         local rr = Kirigami(0,0,ui.getScaledUIDimensions()):splitVertical(1,5)
             :padRatio(0.4,0.2,0.3,0.2)
             :moveRatio(0,0.5)
