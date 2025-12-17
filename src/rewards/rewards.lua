@@ -136,6 +136,7 @@ for i=1,3 do
     table.insert(statPots, "hit_speed_" .. i)
     table.insert(statPots, "hit_damage_" .. i)
     table.insert(statPots, "harvest_area_" .. i)
+    table.insert(statPots, "faster_spawn_" .. i)
 end
 
 ---@return g.Reward
