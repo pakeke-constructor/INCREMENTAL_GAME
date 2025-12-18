@@ -84,7 +84,9 @@ function text.stripEffects(txt)
 end
 
 local drawRichText = require(".draw_rich_text")
-text.printRich = drawRichText
+text.printRich = drawRichText.draw
+text.getWidth = drawRichText.getWidth
+text.getWrap = drawRichText.getWrap
 
 ---@param txt text.ParsedText|string
 ---@param font love.Font
@@ -134,7 +136,7 @@ function text.printRichContained(txt, font, x,y,w,h)
     local scale = math.min(w/tw, h/th)
     local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
 
-    drawRichText(parsed, font, drawX, drawY, tw, "left", 0, scale, scale, tw / 2, th / 2)
+    drawRichText.draw(parsed, font, drawX, drawY, tw, "left", 0, scale, scale, tw / 2, th / 2)
 end
 
 
@@ -157,7 +159,7 @@ function text.printRichContainedNoWrap(txt, font, x,y,w,h)
     local scale = math.min(limit/tw, h/th)
     local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
 
-    drawRichText(parsed, font, drawX, drawY, limit/scale, "left", 0, scale, scale, tw / 2, th / 2)
+    drawRichText.draw(parsed, font, drawX, drawY, limit/scale, "left", 0, scale, scale, tw / 2, th / 2)
 end
 
 

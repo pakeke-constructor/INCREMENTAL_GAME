@@ -2,6 +2,28 @@ local Pass = require(".Pass")
 local parser = require(".parser")
 local defaultEffectGroup = require(".defaultEffectGroup")
 
+---@param pass text.Pass
+---@param txt text.ParsedText
+local function insertToTextPass(pass, txt)
+    for _, data in ipairs(txt) do
+        if type(data) == "table" then
+            local effectName = data[1]
+            local isImage = defaultEffectGroup:getType(effectName) == "IMAGE"
+            if isImage then
+                pass:addImage(defaultEffectGroup:getImageInfo(effectName), data.scale)
+            else
+                pass:addEffect(data)
+            end
+        else
+            for _, c in utf8.codes(data) do
+                pass:add(utf8.char(c))
+            end
+        end
+    end
+
+    pass:add(nil) -- flush
+end
+
 -- ---@type text.Pass
 -- local pass = Pass(nil, 0, "left", nil)
 local drawRichText
@@ -46,27 +68,29 @@ function drawRichText(txt, font, x, y, limit, align, rot, sx, sy, ox, oy, kx, ky
 
     local r, g, b, a = love.graphics.getColor()
     local pass = Pass(font, limit, align, {r, g, b, a})
-
-    for _, data in ipairs(assert(parser.ensure(txt))) do
-        if type(data) == "table" then
-            local effectName = data[1]
-            local isImage = defaultEffectGroup:getType(effectName) == "IMAGE"
-            if isImage then
-                pass:addImage(defaultEffectGroup:getImageInfo(effectName), data.scale)
-            else
-                pass:addEffect(data)
-            end
-        else
-            for _, c in utf8.codes(data) do
-                pass:add(utf8.char(c))
-            end
-        end
-    end
-
-    pass:add(nil) -- flush
+    insertToTextPass(pass, assert(parser.ensure(txt)))
 
     love.graphics.pop()
     return true
 end
 
-return drawRichText
+---@param text string|text.ParsedText
+---@param font love.Font
+---@param maxwidth number
+local function getWrap(text, font, maxwidth)
+    local pass = Pass(font, maxwidth, "left", nil)
+    insertToTextPass(pass, assert(parser.ensure(text)))
+    return pass:getWrap()
+end
+
+---@param text string|text.ParsedText
+---@param font love.Font
+local function getWidth(text, font)
+    return (getWrap(text, font, 2147483647))
+end
+
+return {
+    draw = drawRichText,
+    getWrap = getWrap,
+    getWidth = getWidth,
+}
