@@ -68,6 +68,9 @@ text.parsedToString = parser.tostring
 text.escapeRichTextSyntax = parser.escape
 
 ---Clear tags on rich text.
+---
+---**Warning**: Using this function in conjunction with `Font:getWidth`/`Font:getWrap` is **deprecated**!
+---Use `richtext.getWidth` and `richtext.getWrap` for that instead.
 ---@param txt text.ParsedText|string
 ---@return string
 function text.stripEffects(txt)
