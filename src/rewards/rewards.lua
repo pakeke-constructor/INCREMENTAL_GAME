@@ -116,7 +116,7 @@ end
 ---@return g.Reward
 local function generateResourceReward()
     local resId = getRandomUnlockedResource()
-    local rps = math.max(1, g.getResourcesPerSecond(resId))
+    local rps = math.max(3, g.getResourcesPerSecond(resId))
     local seconds = math.floor(love.math.random(15,40) / 5) * 5
 
     local resources = {}
@@ -161,7 +161,7 @@ do
 ---@param resId string
 ---@return g.Reward
 local function generateStacked(resId)
-    local rps = g.getResourcesPerSecond(resId)
+    local rps = math.max(g.getResourcesPerSecond(resId), 3)
     local resAmount = math.max(1, 5*(math.floor(rps*3 / 5)))
     return assertRewardIsValid{
         ---@param tok g.Token
