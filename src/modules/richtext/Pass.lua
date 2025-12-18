@@ -47,7 +47,7 @@ function Pass:init(font, maxwidth, alignment, color)
     if self.bufferedLine then
         table.clear(self.bufferedLine)
     else
-        ---@type (string|{texture:love.Texture,quad?:love.Quad,scale?:number})[]
+        ---@type (string|{texture:love.Texture,quad?:love.Quad,scale:number})[]
         self.bufferedLine = {}
     end
 
@@ -113,6 +113,26 @@ end
 
 
 
+---@param tex {texture:love.Texture, quad?:love.Quad}
+---@param fontH number
+local function getImageScale(tex, fontH)
+    local h
+    if tex.quad then
+        h = select(4, tex.quad:getViewport()) --[[@as number]]
+    else
+        h = tex.texture:getHeight()
+    end
+
+    return (fontH / h)
+end
+
+
+---@param x number
+---@param y number
+---@param fontH number
+---@param tex love.Texture
+---@param quad love.Quad|nil
+---@param scale number
 local function drawImageInline(x,y, fontH, tex, quad, scale)
     local _,w,h
     if quad then
@@ -120,9 +140,6 @@ local function drawImageInline(x,y, fontH, tex, quad, scale)
     else
         w,h = tex:getDimensions()
     end
-
-    local sc = (fontH / h)
-    scale = (scale or 1) * sc
 
     local o = fontH/2
     if quad then
@@ -200,12 +217,12 @@ function Pass:flushLine()
                 if self.draw then
                     drawImageInline(prevX+offsetX, offsetY, self.fontHeight, char.texture, char.quad, scale)
                 end
-                prevX = prevX + width * (char.scale or 1)
+                prevX = prevX + width * scale
             end
         end
 
         self.currentLineStartIndex = self.currentLineStartIndex + #self.bufferedLine
-        self.maxPossibleWidth = math.max(self.maxPossibleWidth, prevX + self.bufferedLineWidth)
+        self.maxPossibleWidth = math.max(self.maxPossibleWidth, self.bufferedLineWidth)
         self.bufferedLineWidth = 0
         table.clear(self.bufferedLine)
     end
@@ -266,7 +283,8 @@ function Pass:addImage(texdata, scale)
     else
         imageWidth = texdata.texture:getWidth()
     end
-    imageWidth = imageWidth * (scale or 1)
+    local actualScale = (scale or 1) * getImageScale(texdata, self.fontHeight)
+    imageWidth = imageWidth * actualScale
 
     -- Check if we need to flush the current word first
     if #self.bufferedWord > 0 then
@@ -274,18 +292,16 @@ function Pass:addImage(texdata, scale)
     end
 
     -- Check if adding this image would exceed max width
-    if self.bufferedLineWidth + imageWidth > self.maxWidth then
-        if self.bufferedLineWidth > 0 then
-            -- Flush current line first
-            self:flushLine()
-        end
+    if self.bufferedLineWidth > 0 and self.bufferedLineWidth + imageWidth > self.maxWidth then
+        -- Flush current line first
+        self:flushLine()
     end
 
     -- Add the image to the buffered line
     self.bufferedLine[#self.bufferedLine + 1] = {
         texture = texdata.texture,
         quad = texdata.quad,
-        scale = scale or 1
+        scale = actualScale
     }
 
     -- Update line width
