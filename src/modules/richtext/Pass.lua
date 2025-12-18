@@ -9,10 +9,10 @@ local Pass = objects.Class("text:Pass")
 ---@param font love.Font
 ---@param maxwidth number
 ---@param alignment love.AlignMode
----@param color number[]?
+---@param color number[]? pass nil to compute only max width and wrapping
 function Pass:init(font, maxwidth, alignment, color)
     assert(alignment ~= "justify", "TODO justify support")
-    self.color = color
+    self.color = color or objects.Color.WHITE
     self.font = font
     self.maxWidth = maxwidth
     self.align = alignment
@@ -24,6 +24,7 @@ function Pass:init(font, maxwidth, alignment, color)
     self.addedCharacterIndex = 1 -- absolute
     self.currentLineStartIndex = 0 -- absolute
     self.currentLine = 0
+    self.draw = not not color
 
     if self.kerningCache then
         table.clear(self.kerningCache)
@@ -70,7 +71,7 @@ if false then
     ---@param font love.Font
     ---@param maxwidth number
     ---@param alignment love.AlignMode
-    ---@param color number[]?
+    ---@param color number[]? pass nil to compute only max width and wrapping
     ---@return text.Pass
     ---@diagnostic disable-next-line: cast-local-type, missing-return
     function Pass(font, maxwidth, alignment, color) end
@@ -176,7 +177,7 @@ function Pass:flushLine()
                 self.character:setPosition(offsetX + prevX + kerning, offsetY)
                 prevX = prevX + kerning + self:getCharacterWidth(char)
 
-                if self.color then
+                if self.draw then
                     -- Apply effects
                     if self.lastEffectApplied then
                         for _, eff in ipairs(self.lastEffectApplied) do
@@ -196,7 +197,7 @@ function Pass:flushLine()
                     width = char.texture:getWidth()
                 end
 
-                if self.color then
+                if self.draw then
                     drawImageInline(prevX+offsetX, offsetY, self.fontHeight, char.texture, char.quad, scale)
                 end
                 prevX = prevX + width * (char.scale or 1)
