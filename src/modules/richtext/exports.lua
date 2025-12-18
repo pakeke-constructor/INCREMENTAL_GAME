@@ -68,10 +68,8 @@ text.parsedToString = parser.tostring
 text.escapeRichTextSyntax = parser.escape
 
 ---Clear tags on rich text.
----
----**Warning**: Using this function in conjunction with `Font:getWidth`/`Font:getWrap` is **deprecated**!
----Use `richtext.getWidth` and `richtext.getWrap` for that instead.
 ---@param txt text.ParsedText|string
+---@deprecated Use `richtext.getWidth` or `richtext.getWrap` instead.
 ---@return string
 function text.stripEffects(txt)
     local parsed = assert(parser.ensure(txt))
@@ -103,11 +101,10 @@ text.getWrap = drawRichText.getWrap
 function text.printRichCentered(txt, font, x, y, limit, align, rot, sx, sy)
     strTc(txt)
     local parsed = assert(parser.ensure(txt))
-    local clear = text.stripEffects(txt)
-    local width, wrap = font:getWrap(clear, limit)
+    local width, wrap = text.getWrap(txt, parsed, limit)
 
     local ox = width / 2
-    local oy = #wrap * font:getHeight() / 2
+    local oy = wrap * font:getHeight() / 2
     return drawRichText(parsed, font, x, y, limit, align, rot, sx, sy, ox, oy)
 end
 
@@ -154,9 +151,8 @@ end
 function text.printRichContainedNoWrap(txt, font, x,y,w,h)
     strTc(txt)
     local parsed = assert(parser.ensure(txt))
-    local strippedTxt = text.stripEffects(txt)
-
-    local tw, th = font:getWidth(strippedTxt), font:getHeight()
+    local tw = text.getWidth(parsed, font)
+    local th = font:getHeight()
 
     local limit = w
     local scale = math.min(limit/tw, h/th)
