@@ -68,8 +68,10 @@ text.parsedToString = parser.tostring
 text.escapeRichTextSyntax = parser.escape
 
 ---Clear tags on rich text.
+---
+---**Warning:** This removes image from the text. If you use this with `Font:getWidth`/`Font:getWrap`, the image size
+---may not be taken into account. If that's undesired, use `richtext.getWidth` or `richtext.getWrap` instead!
 ---@param txt text.ParsedText|string
----@deprecated Use `richtext.getWidth` or `richtext.getWrap` instead.
 ---@return string
 function text.stripEffects(txt)
     local parsed = assert(parser.ensure(txt))
