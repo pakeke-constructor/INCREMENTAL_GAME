@@ -60,8 +60,18 @@ end
 ---@generic T
 ---@param name string Effect name.
 ---@return {texture:love.Texture,quad?:love.Quad}
+---@return number width
+---@return number height
 function EffectGroup:getImageInfo(name)
-    return self.imageList[name]
+    local _
+    local w, h = 0,0
+    local info = assert(self.imageList[name])
+    if info.quad then
+        _,_,w,h = info.quad:getViewport()
+    else
+        w,h = info.texture:getDimensions()
+    end
+    return info, w,h
 end
 
 
