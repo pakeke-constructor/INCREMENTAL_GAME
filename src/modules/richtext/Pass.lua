@@ -9,10 +9,10 @@ local Pass = objects.Class("text:Pass")
 ---@param font love.Font
 ---@param maxwidth number
 ---@param alignment love.AlignMode
----@param color number[]
+---@param color number[]? pass nil to compute only max width and wrapping
 function Pass:init(font, maxwidth, alignment, color)
     assert(alignment ~= "justify", "TODO justify support")
-    self.color = color
+    self.color = color or objects.Color.WHITE
     self.font = font
     self.maxWidth = maxwidth
     self.align = alignment
@@ -20,9 +20,11 @@ function Pass:init(font, maxwidth, alignment, color)
     self.bufferedLineWidth = 0
     self.bufferedWordWidth = 0
     self.bufferingWhitespace = false
+    self.maxPossibleWidth = 0
     self.addedCharacterIndex = 1 -- absolute
     self.currentLineStartIndex = 0 -- absolute
     self.currentLine = 0
+    self.draw = not not color
 
     if self.kerningCache then
         table.clear(self.kerningCache)
@@ -63,6 +65,16 @@ function Pass:init(font, maxwidth, alignment, color)
     end
     self.lastEffectApplied = nil
     self.lastEffectIndexAt = 0
+end
+
+if false then
+    ---@param font love.Font
+    ---@param maxwidth number
+    ---@param alignment love.AlignMode
+    ---@param color number[]? pass nil to compute only max width and wrapping
+    ---@return text.Pass
+    ---@diagnostic disable-next-line: cast-local-type, missing-return
+    function Pass(font, maxwidth, alignment, color) end
 end
 
 ---@param left string|{texture:love.Texture}
@@ -165,24 +177,35 @@ function Pass:flushLine()
                 self.character:setPosition(offsetX + prevX + kerning, offsetY)
                 prevX = prevX + kerning + self:getCharacterWidth(char)
 
-                -- Apply effects
-                if self.lastEffectApplied then
-                    for _, eff in ipairs(self.lastEffectApplied) do
-                        eff.func(eff.args, self.character)
+                if self.draw then
+                    -- Apply effects
+                    if self.lastEffectApplied then
+                        for _, eff in ipairs(self.lastEffectApplied) do
+                            eff.func(eff.args, self.character)
+                        end
                     end
+
+                    -- Draw character
+                    self.character:draw(self.color[1], self.color[2], self.color[3], self.color[4] or 1)
                 end
-
-                -- Draw character
-                self.character:draw(self.color[1], self.color[2], self.color[3], self.color[4] or 1)
-
             else -- if a table! (image)
                 local scale = char.scale
-                drawImageInline(prevX+offsetX, offsetY, self.fontHeight, char.texture, char.quad, scale)
-                prevX = prevX + self.fontHeight
+                local width
+                if char.quad then
+                    width = select(3, char.quad:getViewport()) --[[@as number]]
+                else
+                    width = char.texture:getWidth()
+                end
+
+                if self.draw then
+                    drawImageInline(prevX+offsetX, offsetY, self.fontHeight, char.texture, char.quad, scale)
+                end
+                prevX = prevX + width * (char.scale or 1)
             end
         end
 
         self.currentLineStartIndex = self.currentLineStartIndex + #self.bufferedLine
+        self.maxPossibleWidth = math.max(self.maxPossibleWidth, prevX + self.bufferedLineWidth)
         self.bufferedLineWidth = 0
         table.clear(self.bufferedLine)
     end
@@ -237,7 +260,13 @@ function Pass:addImage(texdata, scale)
     This has been vibe-coded, and needs testing.
     ]]
 
-    local imageWidth = self.fontHeight * (scale or 1)
+    local imageWidth
+    if texdata.quad then
+        imageWidth = select(3, texdata.quad:getViewport()) --[[@as number]]
+    else
+        imageWidth = texdata.texture:getWidth()
+    end
+    imageWidth = imageWidth * (scale or 1)
 
     -- Check if we need to flush the current word first
     if #self.bufferedWord > 0 then
@@ -372,6 +401,11 @@ function Pass:addEffect(effectInfo)
             self.lastEffectIndexAt = self.addedCharacterIndex
         end
     end
+end
+
+---@return number, integer
+function Pass:getWrap()
+    return self.maxPossibleWidth, math.max(self.currentLine, 1)
 end
 
 return Pass
