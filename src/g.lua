@@ -576,6 +576,7 @@ g.stats.ResourceMultiplier = g.defineStat("ResourceMultiplier", 1)
 g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 2) -- rad/s
 g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1)
 g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 40)
+g.stats.AutoCatRadiusMultiplier = g.defineStat("AutoCatRadiusMultiplier", 1)
 g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1)
 g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3)
 

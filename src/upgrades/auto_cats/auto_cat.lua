@@ -10,6 +10,12 @@ local function randomizeDir(self)
     self.dirY = love.math.random(0, 1) * 2 - 1
 end
 
+
+local function getRadius(self)
+    return self.radius * g.stats.AutoCatRadiusMultiplier
+end
+
+
 ---@param targetCategory g.Category
 local function makeFarmerCatUpdate(targetCategory)
     ---@param tok g.Token
@@ -28,7 +34,8 @@ local function makeFarmerCatUpdate(targetCategory)
         worldutil.updateWaddleAnimation(self, self.dirX,self.dirY)
 
         -- Try harvest
-        g.iterateTokensInArea(self.x, self.y, self.radius + consts.HARVEST_AREA_LEEWAY, tokenHitter)
+        local rad = getRadius(self) + consts.HARVEST_AREA_LEEWAY
+        g.iterateTokensInArea(self.x, self.y, rad, tokenHitter)
     end
 
     return farmerCatUpdate
@@ -39,7 +46,7 @@ local HARVEST_CIRCLE_BORDER = {.9,.9,.9,0.8}
 
 ---@param self FarmerCatEntity
 local function drawHarvestCircle(self)
-    return worldutil.drawHarvestCircle(self.x, self.y, self.radius, HARVEST_CIRCLE_INSIDE, HARVEST_CIRCLE_BORDER)
+    return worldutil.drawHarvestCircle(self.x, self.y, getRadius(self), HARVEST_CIRCLE_INSIDE, HARVEST_CIRCLE_BORDER)
 end
 
 local function makeDrawWithWeapon(itemImage)
@@ -121,10 +128,10 @@ defineFarmerCat("lumberjack_cat", "Lumberjack Cat", {
 
 
 g.defineUpgrade("cat_in_boots", "Cats in Boots", {
-    description = "Automatic cats move %{1} faster",
+    description = "All cats move %{1} faster!",
     kind = "HARVESTING",
 
-    getValues = helper.percentageGetter(15),
+    getValues = helper.percentageGetter(25),
     valueFormatter = {"%d%%"},
 
     getAutoCatMoveSpeedMultiplier = function(uinfo, level)
@@ -132,3 +139,18 @@ g.defineUpgrade("cat_in_boots", "Cats in Boots", {
         return 1+(a/100)
     end
 })
+
+
+g.defineUpgrade("slab_of_salmon", "Slab of Salmon", {
+    description = "All cats have %{1} bigger radius!",
+    kind = "HARVESTING",
+
+    getValues = helper.percentageGetter(20),
+    valueFormatter = {"%d%%"},
+
+    getAutoCatRadiusMultiplierMultiplier = function(uinfo, level)
+        local a=uinfo:getValues(level)
+        return 1+(a/100)
+    end
+})
+
