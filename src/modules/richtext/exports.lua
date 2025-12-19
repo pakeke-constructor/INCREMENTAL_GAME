@@ -67,29 +67,18 @@ end
 text.parsedToString = parser.tostring
 text.escapeRichTextSyntax = parser.escape
 
----Clear tags on rich text.
----
----**Warning:** This removes image from the text. If you use this with `Font:getWidth`/`Font:getWrap`, the image size
----may not be taken into account. If that's undesired, use `richtext.getWidth` or `richtext.getWrap` instead!
----@param txt text.ParsedText|string
----@return string
-function text.stripEffects(txt)
-    local parsed = assert(parser.ensure(txt))
-    local result = {}
-
-    for _, data in ipairs(parsed) do
-        if type(data) == "string" then
-            result[#result+1] = data
-        end
-    end
-
-    return table.concat(result)
-end
-
 local drawRichText = require(".draw_rich_text")
 text.printRich = drawRichText.draw
 text.getWidth = drawRichText.getWidth
 text.getWrap = drawRichText.getWrap
+
+---Clear tags on rich text.
+---@param txt text.ParsedText|string
+---@deprecated use `richtext.getWidth` or `richtext.getWrap` instead!
+function text.stripEffects(txt)
+    local parsed = assert(parser.ensure(txt))
+    return drawRichText.strip(parsed)
+end
 
 ---@param txt text.ParsedText|string
 ---@param font love.Font
