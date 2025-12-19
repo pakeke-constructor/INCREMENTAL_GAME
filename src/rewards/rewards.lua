@@ -105,11 +105,23 @@ local function assertRewardIsValid(rew)
     helper.assert(REWARD_TYPE[rew.type], "invalid reward type", rew.type)
     assert(rew.icon)
 
-    if rew.type == "effect" then
+    if rew.type == "permanent" then
+        ---@cast rew g.PermanentReward
+        assert(rew.upgradeId, "Need upgrade id")
+        g.getUpgradeInfo(rew.upgradeId) -- assertion
+    elseif rew.type == "resource" then
+        ---@cast rew g.ResourceReward
+        assert(rew.resources, "Need resources")
+        for k in pairs(rew.resources) do
+            g.getResourceInfo(k) -- assertion
+        end
+    elseif rew.type == "effect" then
         ---@cast rew g.EffectReward
+        assert(rew.effect, "Need effect ID")
         assert(rew.duration, "Effects need a duration")
     elseif rew.type == "token" then
         ---@cast rew g.TokenReward
+        assert(rew.token, "stackedToken need token")
         assert(rew.count, "stackedToken rewards need a count")
     end
 
