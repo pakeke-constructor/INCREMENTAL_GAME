@@ -2,25 +2,19 @@
 -- Fertilizer
 -------------
 
-g.defineToken("manure", "Manure", {
+g.defineToken("residue", "Residue", {
     maxHealth = 5,
-    image = "residue1",
+    image = "residue",
     shadow = "shadow_small",
+    category = "grass",
     resources = {money = 1},
-
-    perSecondUpdate = function(tok)
-        -- just to avoid manure clogging up the screen
-        if love.math.random() < 0.5 then
-            g.damageToken(tok, 1)
-        end
-    end
 })
 
 
-g.defineUpgrade("manure_spawner", "Fertilizer", {
-    description = "When a crop is harvested, %{1} chance to leave behind manure {manure}!",
+g.defineUpgrade("fertilizer", "Fertilizer", {
+    description = "When a crop is harvested, %{1} chance to leave behind residue {residue}!",
     kind = "MISC",
-    image = "manure",
+    image = "residue",
 
     getValues = helper.percentageGetter(5),
     valueFormatter = {"%d%%"},
@@ -29,26 +23,26 @@ g.defineUpgrade("manure_spawner", "Fertilizer", {
     ---@param level integer
     ---@param tok g.Token
     tokenDestroyed = function(uinfo, level, tok)
-        if tok.type == "manure" then
+        if tok.type == "residue" then
             return
         end
 
         local chance = uinfo:getValues(level) / 100
         if love.math.random() <= chance then
-            worldutil.spawnTokenNearPosition("manure", tok.x, tok.y, 16)
+            worldutil.spawnTokenNearPosition("residue", tok.x, tok.y, 16)
         end
     end
 })
 
 
-g.defineUpgrade("manure_spawner_by_cropcount", "Fertilizer+", {
-    description = "for every %{1} crops harvested, spawn a manure {manure}.",
+g.defineUpgrade("fertilizer_spawner_by_cropcount", "Fertilizer+", {
+    description = "for every %{1} crops harvested, spawn residue {residue}.",
     kind = "MISC",
     image = "fertilizer_plus",
     maxLevel = 11,
 
     getValues = function(uinfo, level)
-        return 21 - level
+        return 24 - level*4
     end,
 
     ---@param uinfo g.UpgradeInfo
@@ -58,7 +52,7 @@ g.defineUpgrade("manure_spawner_by_cropcount", "Fertilizer+", {
         local count = uinfo:getValues(level)
 
         if g.getMetric("totalTokensHarvested") % count == 0 then
-            worldutil.spawnTokenNearPosition("manure", tok.x, tok.y, 16)
+            worldutil.spawnTokenNearPosition("residue", tok.x, tok.y, 16)
         end
     end
 })
