@@ -32,3 +32,24 @@ defUpgrade("more_loot", "More Loot", {
 })
 
 
+
+
+defUpgrade("land_deed", "Land deed", {
+    description = "All crops earn %{1} resources. Increases size of harvest area",
+
+    getValues = function(uinfo, level)
+        ---@diagnostic disable-next-line: redundant-return-value
+        return level+1
+    end,
+    valueFormatter = {"%dx"},
+
+    getTokenResourceMultiplier = function(uinfo, level)
+        return level
+    end,
+    getWorldTileSizeMultiplier = function(uinfo, level)
+        local m = 1+(level)/4
+        return m
+    end
+})
+
+

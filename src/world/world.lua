@@ -395,9 +395,9 @@ function World:_draw()
     -- love.graphics.rectangle("line", 0,0, w,h)
     prof_push("draw_tiles")
     love.graphics.setColor(1, 1, 1)
-    local wtw = g.stats.WorldTileWidth - 1
-    local wth = g.stats.WorldTileHeight - 1
+
     local wtz = consts.WORLD_TILE_SIZE
+    local wtw, wth = g.getWorldTileDimensions()
     local atlas = g.getAtlas()
     for y = 0, wth do
         for x = 0, wtw do

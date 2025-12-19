@@ -581,12 +581,29 @@ g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1)
 g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3)
 
 -- World stat
-g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 20)
-g.stats.WorldTileHeight = g.defineStat("WorldTileHeight", 13)
+g.stats.WorldTileSize = g.defineStat("WorldTileSize", 20)
 
+-- OLD CODE:
+-- g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 20)
+-- g.stats.WorldTileHeight = g.defineStat("WorldTileHeight", 13)
+
+---@return integer
+---@return integer
+function g.getWorldTileDimensions()
+    -- the size of dimensions in TILES.
+    local sze = g.stats.WorldTileSize
+    local wtw = math.floor((sze * 20/20) + 0.5)
+    local wth = math.floor((sze * 13/20) + 0.5)
+    return wtw, wth
+end
+
+
+---@return number
+---@return number
 function g.getWorldDimensions()
-    local w = math.floor(g.stats.WorldTileWidth * consts.WORLD_TILE_SIZE)
-    local h = math.floor(g.stats.WorldTileHeight * consts.WORLD_TILE_SIZE)
+    local wtw,wth = g.getWorldTileDimensions()
+    local w = math.floor(wtw * consts.WORLD_TILE_SIZE)
+    local h = math.floor(wth * consts.WORLD_TILE_SIZE)
     return w, h
 end
 
