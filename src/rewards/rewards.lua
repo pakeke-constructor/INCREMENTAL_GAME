@@ -181,7 +181,7 @@ do
 
 
 ---@param resId g.ResourceType
-local function generateStackedChest(resId)
+local function generateStackedChestToken(resId)
     local rps = math.max(g.getResourcesPerSecond(resId), 3)
     local resAmount = math.max(1, 5*(math.floor(rps*3 / 5)))
     ---@type g.TokenReward
@@ -204,6 +204,19 @@ local function generateStackedChest(resId)
     return assertRewardIsValid(rew)
 end
 
+---@param toktype string
+local function generateStackedGenericToken(toktype)
+    local tokinfo = g.getTokenInfo(toktype)
+    ---@type g.TokenReward
+    local rew = {
+        type = "token",
+        token = tokinfo,
+        count = math.floor(math.random(8, 20) / 2) * 2,
+        icon = tokinfo.image,
+    }
+    return assertRewardIsValid(rew)
+end
+
 function generateStackedTokenReward()
     local lv = g.getSn().level
     -- IDEA: spawn stackedToken bombs here?
@@ -213,10 +226,10 @@ function generateStackedTokenReward()
     -- IDEALLY, it should be stuff that is scaling-agnostic
 
     if love.math.random() < 0.4 then
-        return generateStackedChest("money")
+        return generateStackedChestToken("money")
     end
 
-    return generateStackedChest(getRandomUnlockedResource())
+    return generateStackedChestToken(getRandomUnlockedResource())
 end
 
 end
@@ -325,6 +338,9 @@ local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff to harvest:{/o}{/wa
 local STACKED_TOKEN_TOTAL = loc("{o}+%s {%s} total{/o}", {}, {
     context = "Example usage: (+400 {gold} total), where %d=400 and %s=gold. Please keep the string formatting."
 })
+local STACKED_TOKEN_TOTAL2 = interp("%{tokens} total", {
+    context = "Example result: \"+200 Money +200 Juice total\". The %{tokens} is \"+200 Money +200 Juice\" in that example."
+})
 
 
 local POTION = loc("{wavy amp=0.3 f=2}{o}POTION!{/o}{/wavy}")
@@ -335,6 +351,23 @@ local GIVE_EFFECT = interp("{o}Grants {c r=0.6 g=0.7 b=1}%{str}{/c} for %{second
 local RESOURCE_BUNDLE = loc("{wavy amp=0.3 f=2}{o}Free resources:{/o}{/wavy}", {}, {
     context = "A bundle of free resources"
 })
+
+
+
+---@param bundle g.Bundle
+---@param count integer
+local function generateTotalResourcesText(bundle, count)
+    local text = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        if bundle[resId] then
+            local resInfo = g.getResourceInfo(resId)
+            text[#text+1] = "+"..g.formatNumber(bundle[resId] * count)
+            text[#text+1] = "{"..resInfo.image.."}"
+        end
+    end
+
+    return table.concat(text, " ")
+end
 
 
 
@@ -367,11 +400,7 @@ function rewards.drawRewardDescription(rew, r)
     main = main:padRatio(0.3)
     if rew.type == "resource" then
         ---@cast rew g.ResourceReward
-        local resTxt = ""
-        for resId,v in pairs(rew.resources) do
-            resTxt = resTxt .. "+" .. tostring(g.formatNumber(v)) .. " {" ..resId.. " scale=0.7}"
-        end
-        resTxt = "{o}" .. resTxt .. "{/o}"
+        local resTxt = "{o}" .. generateTotalResourcesText(rew.resources, 1) .. "{/o}"
         local a,b = main:splitVertical(1,1)
         richtext.printRichContainedNoWrap(RESOURCE_BUNDLE, font, a:get())
         richtext.printRichContainedNoWrap(resTxt, font, b:get())
@@ -388,9 +417,21 @@ function rewards.drawRewardDescription(rew, r)
         local a,b = main:splitVertical(2,3)
         richtext.printRichContained(STACKED_TOKEN, font, a:get())
         -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
-        local total = g.formatNumber(rew.resource.amount*rew.count)
-        local txt = (STACKED_TOKEN_TOTAL):format(total, rew.resource.id)
-        richtext.printRichContainedNoWrap(txt, font, b:get())
+        local txt
+        if rew.resource then
+            txt = STACKED_TOKEN_TOTAL2 {
+                tokens = generateTotalResourcesText({[rew.resource.id] = rew.resource.amount}, rew.count)
+            }
+        else
+            txt = rew.token.description
+
+            if not txt then
+                txt = STACKED_TOKEN_TOTAL2 {
+                    tokens = generateTotalResourcesText(rew.token.resources, rew.count)
+                }
+            end
+        end
+        richtext.printRichContainedNoWrap("{o}"..txt.."{/o}", font, b:get())
     elseif rew.type == "permanent" then
         ---@cast rew g.PermanentReward
         local a,b = main:splitVertical(1,2)
