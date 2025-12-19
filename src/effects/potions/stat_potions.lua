@@ -80,7 +80,7 @@ for i, v in ipairs(xpmul) do
 end
 
 local goldminemul = {1.1, 1.2, 1.5}
-for i, v in ipairs(xpmul) do
+for i, v in ipairs(goldminemul) do
     local effectDescription = interp("x%{amount:.14g}% Money From Crops")
     local mul = {money = v}
     g.defineEffect("goldmine_"..i, "Goldmine ("..i..")", {

@@ -181,6 +181,8 @@ for i=1,3 do
     table.insert(statPots, "hit_damage_" .. i)
     table.insert(statPots, "harvest_area_" .. i)
     table.insert(statPots, "faster_spawn_" .. i)
+    table.insert(statPots, "xp_" .. i)
+    table.insert(statPots, "goldmine_" .. i)
 end
 
 function generatePotionReward()
