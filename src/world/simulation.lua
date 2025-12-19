@@ -202,6 +202,20 @@ function simulation.update()
             sn.level = sn.level + 1
         end
 
+        -- Also buy upgrades if any resource is full.
+        local anyResourceFull = nil
+        for _,resId in ipairs(g.RESOURCE_LIST) do
+            local res = g.getResource(resId)
+            local reslim = g.getResourceLimit(resId)
+            if res >= reslim then
+                anyResourceFull = true
+                break
+            end
+        end
+        if anyResourceFull then
+            tryBuyUpgrade(sn.tree, st.buyStrategy)
+        end
+
         if st.treeSnapshotTime >= SIMULATION_TREE_FREQUENCY then
             st.treeSnapshotTime = st.treeSnapshotTime - SIMULATION_TREE_FREQUENCY
             st.treeSnapshots[#st.treeSnapshots+1] = {x = sn.worldTime, y = sn.tree:serialize()}
