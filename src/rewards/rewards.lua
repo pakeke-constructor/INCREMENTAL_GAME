@@ -91,10 +91,9 @@ local REWARD_TYPE = {
 ---@class g.TokenReward: g.Reward
 ---@field type "token"
 ---@field token g.TokenInfo gives a stacked-token reward immediately
----@field count number
----@field resource string
----@field resourceAmount number
----@field spawnFunc fun(tok:g.Token)
+---@field count integer
+---@field resource {id:g.ResourceType, amount:number}? If the resource is modified on spawn, specify correct total amount here
+---@field spawnFunc? fun(tok:g.Token)
 
 
 
@@ -112,8 +111,6 @@ local function assertRewardIsValid(rew)
     elseif rew.type == "token" then
         ---@cast rew g.TokenReward
         assert(rew.count, "stackedToken rewards need a count")
-        assert(rew.resource, "need a resource")
-        assert(rew.resourceAmount, "need resourceAmount")
     end
 
     return rew
@@ -134,7 +131,6 @@ local function getRandomUnlockedResource()
 end
 
 
----@return g.ResourceReward
 local function generateResourceReward()
     local resId = getRandomUnlockedResource()
     local rps = math.max(3, g.getResourcesPerSecond(resId))
@@ -142,11 +138,13 @@ local function generateResourceReward()
 
     local resources = {}
     resources[resId] = rps*seconds
-    return assertRewardIsValid({
+    ---@type g.ResourceReward
+    local rew = {
         type = "resource",
         icon = "resource_bundle_reward",
         resources = resources
-    })
+    }
+    return assertRewardIsValid(rew)
 end
 
 
@@ -161,16 +159,17 @@ for i=1,3 do
     table.insert(statPots, "faster_spawn_" .. i)
 end
 
----@return g.EffectReward
 function generatePotionReward()
     local potionId = helper.randomChoice(statPots)
     local einfo = g.getEffectInfo(potionId)
-    return assertRewardIsValid({
+    ---@type g.EffectReward
+    local rew = {
         type = "effect",
         effect = einfo,
         duration = 20 + love.math.random(-5, 5),
         icon = einfo.image
-    })
+    }
+    return assertRewardIsValid(rew)
 end
 
 end
@@ -181,12 +180,12 @@ local generateStackedTokenReward
 do
 
 
----@param resId string
----@return g.TokenReward
-local function generateStacked(resId)
+---@param resId g.ResourceType
+local function generateStackedChest(resId)
     local rps = math.max(g.getResourcesPerSecond(resId), 3)
     local resAmount = math.max(1, 5*(math.floor(rps*3 / 5)))
-    return assertRewardIsValid {
+    ---@type g.TokenReward
+    local rew = {
         type = "token",
         ---@param tok g.Token
         spawnFunc = function(tok)
@@ -196,10 +195,13 @@ local function generateStacked(resId)
         end,
         token = g.getTokenInfo("chest_"..resId),
         count = math.floor(math.random(8, 20) / 2) * 2,
-        resourceAmount = resAmount,
-        resource = resId,
+        resource = {
+            id = resId,
+            amount = resAmount
+        },
         icon = "chest_"..resId
     }
+    return assertRewardIsValid(rew)
 end
 
 function generateStackedTokenReward()
@@ -211,10 +213,10 @@ function generateStackedTokenReward()
     -- IDEALLY, it should be stuff that is scaling-agnostic
 
     if love.math.random() < 0.4 then
-        return generateStacked("money")
+        return generateStackedChest("money")
     end
 
-    return generateStacked(getRandomUnlockedResource())
+    return generateStackedChest(getRandomUnlockedResource())
 end
 
 end
@@ -386,8 +388,8 @@ function rewards.drawRewardDescription(rew, r)
         local a,b = main:splitVertical(2,3)
         richtext.printRichContained(STACKED_TOKEN, font, a:get())
         -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
-        local total = g.formatNumber(rew.resourceAmount*rew.count)
-        local txt = (STACKED_TOKEN_TOTAL):format(total, rew.resource)
+        local total = g.formatNumber(rew.resource.amount*rew.count)
+        local txt = (STACKED_TOKEN_TOTAL):format(total, rew.resource.id)
         richtext.printRichContainedNoWrap(txt, font, b:get())
     elseif rew.type == "permanent" then
         ---@cast rew g.PermanentReward
