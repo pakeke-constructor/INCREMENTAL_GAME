@@ -74,8 +74,7 @@ local function autoBuild(self, tree, upg)
     local price = tree:getUpgradePrice(upg)
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if price[resId] and price[resId]>0 then
-            self.priceText[#self.priceText+1] = {resId, g.formatNumber(price[resId])}
-            self.priceImageCount = self.priceImageCount + 1
+            self.priceInfo[#self.priceInfo+1] = {resId, g.formatNumber(price[resId])}
         end
     end
 end
@@ -114,11 +113,7 @@ function UpgradeDescription:init(tree, upg)
         }
     }
     ---@type [g.ResourceType,string][]
-    self.priceText = {}
-    -- richText.stripEffects also strips image identifier
-    -- so it's gone when passed through Font:getWidth()
-    -- This means we have to track manually how many images it is.
-    self.priceImageCount = 0
+    self.priceInfo = {}
 
     self.titleBackgroundGradient = helper.newGradientMesh("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
     self.backgroundGradient = helper.newGradientMesh("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
@@ -392,8 +387,7 @@ function UpgradeDescription:_getPriceTagDimensions(canAfford)
     local ptagQH = select(4, g.getImageQuad("pricetag_can_afford"):getViewport()) --[[@as number]]
     local ptagText = self:_createPriceTagString(canAfford)
 
-    local ptagWidth = self.largeFont:getWidth(richtext.stripEffects(ptagText))
-        + self.priceImageCount * 32
+    local ptagWidth = richtext.getWidth(ptagText, self.largeFont)
         + CONTENT_PADDING * 2
         + 8
     return ptagWidth, ptagQH, ptagText
@@ -406,13 +400,13 @@ function UpgradeDescription:_createPriceTagString(canAfford)
     local price = self.tree:getUpgradePrice(self.upg)
     local alpha = canAfford and 1 or 0.75
 
-    for _, pt in ipairs(self.priceText) do
+    for _, pt in ipairs(self.priceInfo) do
         local resInfo = g.getResourceInfo(pt[1])
         local col = objects.Color.BLACK
         if g.isResourceUnlocked(pt[1]) then
             col = objects.Color.WHITE
         end
-        result[#result+1] = helper.wrapRichtextColor(col, " {"..resInfo.image.."}")
+        result[#result+1] = helper.wrapRichtextColor(col, " {"..resInfo.image.."} ")
 
         local textcol
         if g.getResource(pt[1]) >= price[pt[1]] then
