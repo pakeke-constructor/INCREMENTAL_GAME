@@ -51,11 +51,11 @@ end
 
 local speedreduction = {0.7, 0.45, 0.2}
 for i, v in ipairs(speedreduction) do
-    local effectDescription = interp("%{amount:d}% Crop Respawn Time")
+    local effectDescription = interp("-%{amount:d}% crop respawn time")
     g.defineEffect("faster_spawn_"..i, "Crop Respawn Time ("..i..")", {
         image = "faster_spawn_potion",
         isDebuff = false,
-        description = effectDescription({amount = math.floor(math.log(v, 2) * 10) * 10}),
+        description = effectDescription({amount = (1 - v) * 100}),
 
         ---@diagnostic disable-next-line: assign-type-mismatch
         [g.VALID_STATS.TokenRespawnTime.multQuestion] = function()
