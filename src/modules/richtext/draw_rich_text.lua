@@ -74,13 +74,47 @@ function drawRichText(txt, font, x, y, limit, align, rot, sx, sy, ox, oy, kx, ky
     return true
 end
 
+---@param txt text.ParsedText
+local function stripEffects(txt)
+    local result = {}
+
+    for _, data in ipairs(txt) do
+        if type(data) == "string" then
+            result[#result+1] = data
+        end
+    end
+
+    return table.concat(result)
+end
+
+---@param txt text.ParsedText
+local function hasImageInParsed(txt)
+    for _, data in ipairs(txt) do
+        if type(data) == "table" then
+            local effectName = data[1]
+            if defaultEffectGroup:getType(effectName) == "IMAGE" then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
 ---@param text string|text.ParsedText
 ---@param font love.Font
 ---@param maxwidth number
 local function getWrap(text, font, maxwidth)
-    local pass = Pass(font, maxwidth, "left", nil)
-    insertToTextPass(pass, assert(parser.ensure(text)))
-    return pass:getWrap()
+    local parsed = assert(parser.ensure(text))
+    if hasImageInParsed(parsed) then
+        local pass = Pass(font, maxwidth, "left", nil)
+        insertToTextPass(pass, parsed)
+        return pass:getWrap()
+    else
+        local unparsed = stripEffects(parsed)
+        local width, lines = font:getWrap(unparsed, maxwidth)
+        return width, #lines
+    end
 end
 
 ---@param text string|text.ParsedText
@@ -93,4 +127,5 @@ return {
     draw = drawRichText,
     getWrap = getWrap,
     getWidth = getWidth,
+    strip = stripEffects,
 }
