@@ -229,17 +229,24 @@ local function generateStackedChestToken(resId)
 end
 
 ---@param toktype string
-local function generateStackedGenericToken(toktype)
+---@param count integer
+local function generateStackedGenericToken(toktype, count)
     local tokinfo = g.getTokenInfo(toktype)
     ---@type g.TokenReward
     local rew = {
         type = "token",
         token = tokinfo,
-        count = math.floor(math.random(8, 20) / 2) * 2,
+        count = count,
         icon = tokinfo.image,
     }
     return assertRewardIsValid(rew)
 end
+
+local HORDE = {
+    "mushroom_red",
+    "mushroom_green",
+    "mushroom_blue"
+}
 
 function generateStackedTokenReward()
     local lv = g.getSn().level
@@ -250,7 +257,8 @@ function generateStackedTokenReward()
     -- IDEALLY, it should be stuff that is scaling-agnostic
 
     if love.math.random() < 0.4 then
-        return generateStackedChestToken("money")
+        --return generateStackedChestToken("money")
+        return generateStackedGenericToken(helper.randomChoice(HORDE), 10)
     end
 
     return generateStackedChestToken(getRandomUnlockedResource())
