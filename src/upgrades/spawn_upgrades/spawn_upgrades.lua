@@ -4,8 +4,16 @@
 
 g.defineToken("manure", "Manure", {
     maxHealth = 5,
-    resources = {money = 1}
+    resources = {money = 1},
+
+    perSecondUpdate = function(tok)
+        -- just to avoid manure clogging up the screen
+        if love.math.random() < 0.5 then
+            g.damageToken(tok, 1)
+        end
+    end
 })
+
 
 g.defineUpgrade("manure_spawner", "Fertilizer", {
     description = "When a crop is harvested, %{1} chance to leave behind manure {manure}!",
@@ -30,10 +38,11 @@ g.defineUpgrade("manure_spawner", "Fertilizer", {
     end
 })
 
+
 g.defineUpgrade("manure_spawner_by_cropcount", "Fertilizer+", {
     description = "for every %{1} crops harvested, spawn a manure {manure}.",
     kind = "MISC",
-    image = "manure",
+    image = "fertilizer_plus",
     maxLevel = 11,
 
     getValues = function(uinfo, level)
