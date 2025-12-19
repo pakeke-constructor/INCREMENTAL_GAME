@@ -60,12 +60,15 @@ local rewards = {}
 ---| "effect"
 ---Stacked Token
 ---| "token"
+---Instant, with custom behavior
+---| "instant"
 local REWARD_TYPE = {
     permanent = true,
     resource = true,
     scythe = true,
     effect = true,
-    token = true
+    token = true,
+    instant = true,
 }
 
 ---@class g.Reward
@@ -95,6 +98,11 @@ local REWARD_TYPE = {
 ---@field resource {id:g.ResourceType, amount:number}? If the resource is modified on spawn, specify correct total amount here
 ---@field spawnFunc? fun(tok:g.Token)
 
+---@class g.InstantReward: g.Reward
+---@field type "instant"
+---@field description string
+---@field func function
+
 
 
 ---@generic T: g.Reward
@@ -123,6 +131,10 @@ local function assertRewardIsValid(rew)
         ---@cast rew g.TokenReward
         assert(rew.token, "stackedToken need token")
         assert(rew.count, "stackedToken rewards need a count")
+    elseif rew.type == "instant" then
+        ---@cast rew g.InstantReward
+        assert(rew.description, "instant need description")
+        assert(rew.func, "instant need function")
     end
 
     return rew
@@ -467,6 +479,9 @@ function rewards.drawRewardDescription(rew, r)
                 harvestRadius = diff
             }), font, c:get())
         end
+    elseif rew.type == "instant" then
+        ---@cast rew g.InstantReward
+        richtext.printRichContained("{o}"..rew.description.."{/o}", font, r:get())
     else
         -- this shit doesnt need to be translated
         richtext.printRichContained("{o}ERROR. WTF? TELL OLI!{/o}", font, r:get())
@@ -507,6 +522,9 @@ function rewards.selectReward(rew)
         else
             log.error("WTF BRUV? ERROR?")
         end
+    elseif rew.type == "instant" then
+        ---@cast rew g.InstantReward
+        rew.func()
     end
 end
 
