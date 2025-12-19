@@ -108,7 +108,7 @@ local function getWrap(text, font, maxwidth)
     local parsed = assert(parser.ensure(text))
     if hasImageInParsed(parsed) then
         local pass = Pass(font, maxwidth, "left", nil)
-        insertToTextPass(pass, assert(parser.ensure(text)))
+        insertToTextPass(pass, parsed)
         return pass:getWrap()
     else
         local unparsed = stripEffects(parsed)
