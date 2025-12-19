@@ -227,7 +227,11 @@ end
 
 local generatePotionReward
 do
-local statPots = {}
+local statPots = {
+    "grass_1_infestation",
+    "grass_2_infestation",
+    "knife_swarm",
+}
 for i=1,3 do
     table.insert(statPots, "hit_speed_" .. i)
     table.insert(statPots, "hit_damage_" .. i)
@@ -254,7 +258,7 @@ end
 
 
 local generateStackedTokenReward
--- https://youtu.be/dQw4w9WgXcQ?si=7ZmxRrDo3EFVD9gi
+-- https://youtu.be/dQw4w9WgXcQ
 do
 
 
@@ -311,7 +315,6 @@ function generateStackedTokenReward()
     -- IDEALLY, it should be stuff that is scaling-agnostic
 
     if love.math.random() < 0.4 then
-        --return generateStackedChestToken("money")
         return generateStackedGenericToken(helper.randomChoice(HORDE), 10)
     end
 
@@ -543,7 +546,9 @@ function rewards.drawRewardDescription(rew, r)
         end
     elseif rew.type == "instant" then
         ---@cast rew g.InstantReward
-        richtext.printRichContained("{o}"..rew.description.."{/o}", font, r:get())
+        local a, b = main:splitVertical(1,1)
+        richtext.printRichContained("{o}"..rew.name.."{/o}", font, a:get())
+        richtext.printRichContained("{o}"..rew.description.."{/o}", font, b:get())
     else
         -- this shit doesnt need to be translated
         richtext.printRichContained("{o}ERROR. WTF? TELL OLI!{/o}", font, r:get())
