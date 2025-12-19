@@ -63,3 +63,18 @@ for i, v in ipairs(speedreduction) do
         end
     })
 end
+
+local xpmul = {0.2, 0.4, 1}
+for i, v in ipairs(xpmul) do
+    local effectDescription = interp("+%{amount:d}% XP Multiplier")
+    g.defineEffect("xp_"..i, "XP ("..i..")", {
+        image = "xp_potion",
+        isDebuff = false,
+        description = effectDescription({amount = v * 100}),
+
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        [g.VALID_STATS.XpMultiplier.multQuestion] = function()
+            return 1 + v
+        end
+    })
+end
