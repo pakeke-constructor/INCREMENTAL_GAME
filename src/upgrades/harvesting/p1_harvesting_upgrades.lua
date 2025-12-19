@@ -19,7 +19,7 @@ local upgrades = {
         title = "More Damage",
         desc = "%{1} scythe damage",
         stat = "HitDamage",
-        increase = 0.5
+        increase = 0.3
     },
     {
         id = "more_speed",
@@ -53,6 +53,21 @@ for _, u in ipairs(upgrades) do
         end
     })
 
+    defUpgrade("big_percentage_"..u.id, u.title, {
+        image = u.id,
+
+        getValues = function(self, level)
+            return level*5
+        end,
+        valueFormatter = {"+%d%%"},
+        description = u.desc,
+
+        ["get" .. u.stat .. "Multiplier"] = function(self, level)
+            local a = self:getValues(level)
+            return 1 + (a / 100)
+        end
+    })
+
     defUpgrade("flat_"..u.id, u.title, {
         image = u.id,
 
@@ -71,27 +86,44 @@ end
 
 
 
+---@class _.p1harv.CATEGORIES
+local CATEGORIES = {
+    {category = "grass", image="grass_3", name="Grass Crops"},
+    {category = "berry", image="red_berry", name="Berry Crops"},
+    {category = "fish", image="fish", name="Fish"},
+}
 
 
-defUpgrade("critical_damage", "Critical Damage", {
-    --[[
-    TODO!!
-    We should have more upgrades related to critical-strikes.
-    ]]
-    description = "%{1} chance of hitting token with 10x more damage.",
-    getValues = function(uinfo, level)
-        return 1 + (level - 1) / 2
-    end,
-    valueFormatter = {"%.14g%%"},
+for _, c in ipairs(CATEGORIES) do
+    assert(g.isImage(c.image))
 
-    getTokenHitMultiplier = function(uinfo, level)
-        local val = uinfo:getValues(level) / 100
-        return love.math.random() <= val and 10 or 1
-    end
-})
+    defUpgrade(c.category .. "_damage_upgrade", "Weaker "..c.name, {
+        image = "null_image",
+        getValues = function(self, level)
+            return level*10
+        end,
+        valueFormatter = {"+%d%%"},
+        description =  "ALL " .. c.name .. " take %{1} extra damage!",
 
+        getTokenDamageMultiplier = function(self, level)
+            local a = self:getValues(level)
+            return 1 + (a / 100)
+        end,
 
+        drawUI = function (uinfo, level, x, y, w, h)
+            local t1 = love.timer.getTime()*2
 
+            local cx,cy = x+w/2, y+h/2
+            local rad = w/6
+
+            local x1,y1 = cx+5, cy-rad*math.cos(t1)
+            local x2,y2 = cx-5, cy+rad*math.cos(t1)
+
+            g.drawImage("upgrade_damage_icon", x2,y2)
+            g.drawImage(c.image, x1,y1)
+        end
+    })
+end
 
 
 

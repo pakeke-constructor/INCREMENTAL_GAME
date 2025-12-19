@@ -1007,6 +1007,7 @@ end
 ---| "mushroom"
 ---| "chest"
 ---| "slime"
+---| "fish"
 
 ---@type table<g.Category, true|nil>
 g.CATEGORIES = {
@@ -1015,6 +1016,7 @@ g.CATEGORIES = {
     mushroom = true,
     chest = true,
     slime = true,
+    fish = true,
 }
 
 -- g.getTokensDestroyedInCategory
