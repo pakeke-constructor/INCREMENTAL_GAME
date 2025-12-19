@@ -100,6 +100,7 @@ local REWARD_TYPE = {
 
 ---@class g.InstantReward: g.Reward
 ---@field type "instant"
+---@field name string
 ---@field description string
 ---@field func function
 
@@ -133,6 +134,7 @@ local function assertRewardIsValid(rew)
         assert(rew.count, "stackedToken rewards need a count")
     elseif rew.type == "instant" then
         ---@cast rew g.InstantReward
+        assert(rew.name, "instant need name")
         assert(rew.description, "instant need description")
         assert(rew.func, "instant need function")
     end
@@ -169,6 +171,56 @@ local function generateResourceReward()
         resources = resources
     }
     return assertRewardIsValid(rew)
+end
+
+
+---@type g.InstantReward[]
+local INSTANT_REWARDS = {
+    {
+        type = "instant",
+        icon = "slime_token",
+        name = loc "Slime Apocalypse",
+        description = loc "Slime all crops!",
+        func = function()
+            for _, tok in ipairs(g.getMainWorld().tokens) do
+                ---@cast tok g.Token
+                g.slimeToken(tok)
+            end
+        end
+    },
+    {
+        type = "instant",
+        icon = "amethyst_scythe",
+        name = loc "Grim Reaper",
+        description = loc "Harvest all crops!",
+        func = function()
+            for _, tok in ipairs(g.getMainWorld().tokens) do
+                ---@cast tok g.Token
+                g.damageToken(tok, 2147483647)
+            end
+        end
+    },
+    {
+        type = "instant",
+        icon = "star_upgrade",
+        name = loc "Eclipse",
+        description = loc "Star 1/3 of crops!",
+        func = function()
+            ---@type g.Token[]
+            local toks = {}
+            for _, tok in ipairs(g.getMainWorld().tokens) do
+                toks[#toks+1] = tok
+            end
+            helper.shuffle(toks)
+            for i = 1, math.floor(#toks / 3) do
+                g.starToken(toks[i])
+            end
+        end
+    },
+}
+
+local function generateInstantReward()
+    return helper.randomChoice(INSTANT_REWARDS)
 end
 
 
@@ -343,7 +395,7 @@ function rewards.generateRandomRewards()
         }
     else
         rewardList = {
-            generateResourceReward(),
+            helper.randomChoice({generateResourceReward, generateInstantReward})(),
             generateStackedTokenReward(),
             generatePotionReward(),
         }
