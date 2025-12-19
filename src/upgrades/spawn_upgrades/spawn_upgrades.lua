@@ -4,6 +4,8 @@
 
 g.defineToken("manure", "Manure", {
     maxHealth = 5,
+    image = "residue1",
+    shadow = "shadow_small",
     resources = {money = 1},
 
     perSecondUpdate = function(tok)

@@ -192,7 +192,7 @@ end
 ---@param damage number?
 function worldutil.explosion(x,y,damage)
     g.spawnEntity("small_explosion_animation", x,y)
-    g.playWorldSound("small_explosion", 1,0.3,0.35)
+    g.playWorldSound("small_explosion", 1.2,0.2,0.35,0.05)
     if damage then
         g.iterateTokensInArea(x,y, 80, function(tok)
             g.damageToken(tok,damage)
