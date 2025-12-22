@@ -79,9 +79,9 @@ for i, v in ipairs(xpmul) do
     })
 end
 
-local goldminemul = {1.1, 1.2, 1.5}
+local goldminemul = {1.5, 2.5}
 for i, v in ipairs(goldminemul) do
-    local effectDescription = interp("x%{amount:.14g}% Money From Crops")
+    local effectDescription = interp("x%{amount:.14g} Resource Multiplier")
     local mul = {money = v}
     g.defineEffect("goldmine_"..i, "Goldmine ("..i..")", {
         image = "goldmine_potion",
