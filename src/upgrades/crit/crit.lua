@@ -119,7 +119,7 @@ for _, resId in ipairs(g.RESOURCE_LIST)do
         image = resId,
         description = "{CRIT}Critical hits{/CRIT} earn %{1} {" .. resId .. "}!",
         getValues = function(uinfo, level)
-            return level * 4
+            return level * 3
         end,
         valueFormatter = {"%d"},
 
@@ -132,7 +132,9 @@ for _, resId in ipairs(g.RESOURCE_LIST)do
 
         tokenCrit = function (uinfo, level, tok)
             local val = uinfo:getValues(level)
-            g.addResource(resId, val)
+            g.addResourceFrom(tok, {
+                [resId]=val
+            })
         end,
         drawUI=drawUI
     })
