@@ -60,9 +60,9 @@ defUpgrade("crit_knives", "Critical Knives", {
     maxLevel = 3,
 
     tokenCrit = function (uinfo, level, tok)
-        local val = uinfo:getValues(level) / 100
+        local val = uinfo:getValues(level)
         for _=1,val do
-            worldutil.spawnKnife(tok.x,tok.y, nil, 20)
+            worldutil.spawnKnife(tok.x,tok.y, nil, 26)
         end
     end,
     drawUI=drawUI

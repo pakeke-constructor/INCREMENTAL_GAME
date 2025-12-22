@@ -79,7 +79,7 @@ for i, v in ipairs(xpmul) do
     })
 end
 
-local goldminemul = {1.5, 2.5}
+local goldminemul = {1.3, 1.4, 1.5}
 for i, v in ipairs(goldminemul) do
     local effectDescription = interp("x%{amount:.14g} Resource Multiplier")
     local mul = {money = v}

@@ -142,14 +142,20 @@ end
 function text.printRichContainedNoWrap(txt, font, x,y,w,h)
     strTc(txt)
     local parsed = assert(parser.ensure(txt))
-    local tw = text.getWidth(parsed, font)
+    local stripped = drawRichText.strip(parsed)
+    local tw = font:getWidth(stripped)
+    --local tw = text.getWidth(parsed, font)
     local th = font:getHeight()
 
     local limit = w
     local scale = math.min(limit/tw, h/th)
     local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
 
-    drawRichText.draw(parsed, font, drawX, drawY, limit/scale, "left", 0, scale, scale, tw / 2, th / 2)
+    -- HACK: 
+    -- Without the +0.0001, text wraps when it shouldnt
+    drawRichText.draw(parsed, font, drawX, drawY, limit/scale+0.0001, "left", 0, scale, scale, tw / 2, th / 2)
+
+    -- (old code ==>) drawRichText.draw(parsed, font, drawX, drawY, limit/scale, "left", 0, scale, scale, tw / 2, th / 2)
 end
 
 

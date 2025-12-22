@@ -468,8 +468,8 @@ local STACKED_TOKEN_TOTAL2 = interp("%{tokens} total", {
 
 
 local POTION = loc("{wavy amp=0.3 f=2}{o}POTION!{/o}{/wavy}")
-local GIVE_EFFECT = interp("{o}Grants {c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!{/o}", {
-    context = "A temporary potion effect / positive status effect. Example: 'Grants +2 Damage for 15 seconds!'"
+local GIVE_EFFECT = interp("{o}{c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!{/o}", {
+    context = "A temporary potion effect / positive status effect. Example: '+2 Damage for 15 seconds!'"
 })
 
 local RESOURCE_BUNDLE = loc("{wavy amp=0.3 f=2}{o}Free resources:{/o}{/wavy}", {}, {
@@ -530,9 +530,9 @@ function rewards.drawRewardDescription(rew, r)
         richtext.printRichContainedNoWrap(resTxt, font, b:get())
     elseif rew.type == "effect" then
         ---@cast rew g.EffectReward
-        local a,b = main:splitVertical(1,2)
+        local a,b = main:splitVertical(1,4)
         richtext.printRichContained(POTION, font, a:get())
-        richtext.printRichContained(GIVE_EFFECT({
+        richtext.printRichContainedNoWrap(GIVE_EFFECT({
             str = rew.effect.description,
             seconds = rew.duration
         }), font, b:get())
@@ -581,8 +581,8 @@ function rewards.drawRewardDescription(rew, r)
     elseif rew.type == "instant" then
         ---@cast rew g.InstantReward
         local a, b = main:splitVertical(1,1)
-        richtext.printRichContained("{o}"..rew.name.."{/o}", font, a:get())
-        richtext.printRichContained("{o}"..rew.description.."{/o}", font, b:get())
+        richtext.printRichContainedNoWrap("{o}"..rew.name.."{/o}", font, a:get())
+        richtext.printRichContainedNoWrap("{o}"..rew.description.."{/o}", font, b:get())
     else
         -- this shit doesnt need to be translated
         richtext.printRichContained("{o}ERROR. WTF? TELL OLI!{/o}", font, r:get())
