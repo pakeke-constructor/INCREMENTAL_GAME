@@ -29,8 +29,8 @@ function KnifeEntity:init(rot, leeway)
         local dx,dy=0,0
         dx = leeway * math.cos(rot)
         dy = leeway * math.sin(rot)
-        self.x = self.x + leeway
-        self.y = self.y + leeway
+        self.x = self.x + dx
+        self.y = self.y + dy
     end
 
 end

@@ -14,9 +14,10 @@ g.defineEffect("knife_swarm", "Knife Swarm", {
             y = h * love.math.random()
         end
 
-        local roff = helper.lerp(0, 2 * math.pi, love.math.random())
-        for i = 1, 10 do
-            g.spawnEntity("knife", x, y, i * 2 * math.pi / 10 + roff)
+        local CT=50
+        for i = 1, CT do
+            local rot = i*2*math.pi/CT
+            worldutil.spawnKnife(x,y, rot, 26)
         end
     end
 })

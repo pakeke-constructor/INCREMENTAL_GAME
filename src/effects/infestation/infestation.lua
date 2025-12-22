@@ -15,5 +15,5 @@ local function defInfest(toktype, name, count)
     })
 end
 
-defInfest("grass_1", "Grass (I) Infestation", 15)
-defInfest("grass_2", "Grass (II) Infestation", 10)
+defInfest("grass_1", "Grass (I) Infestation", 30)
+defInfest("grass_2", "Grass (II) Infestation", 20)

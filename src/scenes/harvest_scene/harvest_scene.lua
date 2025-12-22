@@ -962,6 +962,8 @@ function harvest:keyreleased(k)
             if next then
                 sn.scythe = next
             end
+        elseif k=="8" then
+            g.grantEffect("knife_swarm", 15)
         end
     end
 end

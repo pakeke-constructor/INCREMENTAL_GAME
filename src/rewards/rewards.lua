@@ -219,7 +219,40 @@ local INSTANT_REWARDS = {
             end
         end
     },
+    {
+        type = "instant",
+        icon = "grass_1",
+        name = loc "Grass (I)",
+        description = loc "+30 {grass_1} crops for 15 seconds!",
+        func = function()
+            ---@type g.Token[]
+            g.grantEffect("grass_1_infestation", 15)
+        end
+    },
+    {
+        type = "instant",
+        icon = "grass_2",
+        name = loc "Grass (II)",
+        description = loc "+20 {grass_2} crops for 15 seconds!",
+        func = function()
+            ---@type g.Token[]
+            g.grantEffect("grass_2_infestation", 15)
+        end
+    },
+    {
+        type = "instant",
+        icon = "knife",
+        name = loc "Knife swarm!",
+        description = loc "Shoots out knives for 15 seconds!",
+        func = function()
+            ---@type g.Token[]
+            g.grantEffect("knife_swarm", 15)
+        end
+    }
 }
+
+
+
 
 local function generateInstantReward()
     return helper.randomChoice(INSTANT_REWARDS)
@@ -229,11 +262,9 @@ end
 
 local generatePotionReward
 do
-local statPots = {
-    "grass_1_infestation",
-    "grass_2_infestation",
-    "knife_swarm",
-}
+
+local statPots = {}
+
 for i=1,3 do
     table.insert(statPots, "hit_speed_" .. i)
     table.insert(statPots, "hit_damage_" .. i)
