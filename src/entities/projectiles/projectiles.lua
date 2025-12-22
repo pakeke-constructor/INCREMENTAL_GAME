@@ -12,17 +12,27 @@ local KnifeEntity = {
     hitToken = {
         radius = 16,
         collision = function(ent, tok)
-            g.damageToken(tok, 1)
+            g.damageToken(tok, g.stats.KnifeDamage)
             ent.lifetime = 0 -- Destroy
         end
     }
 }
 
-function KnifeEntity:init(rot)
+function KnifeEntity:init(rot, leeway)
     rot = rot or helper.lerp(0, 2 * math.pi, love.math.random())
     self.rot = rot + ROT_OFFSET
     self.vx = math.cos(rot) * SPEED
     self.vy = math.sin(rot) * SPEED
+    if leeway then
+        -- leeway can be used to ensure that if we spawn knife on 
+        -- top of a token, it doesnt hit the token
+        local dx,dy=0,0
+        dx = leeway * math.cos(rot)
+        dy = leeway * math.sin(rot)
+        self.x = self.x + leeway
+        self.y = self.y + leeway
+    end
+
 end
 
 function KnifeEntity:update(dt)

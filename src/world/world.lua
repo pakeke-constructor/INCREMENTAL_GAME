@@ -166,6 +166,14 @@ local function updateToken(tok,dt)
     if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceHit then
         g.hitImmediately(tok)
     end
+
+    local ww,wh = g.getWorldDimensions()
+    local outOfBounds = (tok.x < 0 or tok.x > ww) or (tok.y<0 or tok.y>wh)
+    if outOfBounds then
+        -- token is out of bounds; destroy.
+        -- (prevents softlocks when world-dimensions decrease)
+        g.destroyToken(tok)
+    end
 end
 
 
@@ -347,7 +355,9 @@ local function drawEntity(e)
         e:drawBelow()
     end
 
-    drawShadow(e.shadow, e.x, e.y)
+    if e.shadow ~= false then
+        drawShadow(e.shadow, e.x, e.y)
+    end
 
     local sx,sy = e.sx or 1, e.sy or 1
     if e.bulgeAnimation then

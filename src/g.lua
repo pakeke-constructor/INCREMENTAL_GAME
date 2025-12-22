@@ -579,6 +579,9 @@ g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 40)
 g.stats.AutoCatRadiusMultiplier = g.defineStat("AutoCatRadiusMultiplier", 1)
 g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1)
 g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3)
+g.stats.CritChance = g.defineStat("CritChance", 0) -- should start at 0
+g.stats.CritDamageMultiplier = g.defineStat("CritDamageMultiplier", 10)
+g.stats.KnifeDamage = g.defineStat("KnifeDamage", 1)
 
 -- World stat
 g.stats.WorldTileSize = g.defineStat("WorldTileSize", 20)
@@ -644,7 +647,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field description string?
 ---@field getPriceOverride (fun(uinfo:g.UpgradeInfo, level:integer): g.Bundle)?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
----@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number)?
+---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number,number?,number?,number?)?
 ---@field valueFormatter ((string|(fun(x:number):string))[])?
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
@@ -1588,7 +1591,7 @@ do
 ---@field x number
 ---@field y number
 ---@field id integer
----@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
+---@field shadow (false|"shadow_medium"|"shadow_small"|"shadow_big")?
 ---@field sx number?
 ---@field sy number?
 ---@field ox number?
@@ -1949,7 +1952,12 @@ function g.hitImmediately(tok)
     local hitMult = g.ask("getTokenHitMultiplier", tok)
     tok.timeSinceHit = 0
     g.call("tokenHit", tok)
-    g.damageToken(tok, hitMult * g.stats.HitDamage)
+    local dmg = hitMult * g.stats.HitDamage
+    g.damageToken(tok, dmg)
+
+    if love.math.random() < g.stats.CritChance then
+        g.critToken(tok, dmg)
+    end
 
     local r = love.math.random()
     if r < 0.333 then
@@ -1978,6 +1986,19 @@ function g.hitImmediately(tok)
         -- g.playWorldSound("hit_billiard", 1, 0.18, 0.3)
     end
 end
+
+
+local CRIT = loc("{c r=1 g=0.3 b=0.2}{o}CRIT!", {}, {
+    context = "As in, an abbreviation for a critical hit"
+})
+
+function g.critToken(tok, dmg)
+    dmg = dmg * g.stats.CritDamageMultiplier
+    tok.health = tok.health - dmg
+    g.call("tokenCrit", tok, dmg)
+    worldutil.spawnText(CRIT, tok.x, tok.y-8, 0.45, 10)
+end
+
 
 
 ---@param x number
@@ -2240,6 +2261,8 @@ g.COLORS = {
     },
 
     SHADOW = objects.Color(0,0,0,0.4),
+
+    CRIT = objects.Color("#" .. "FFA43929"),
 
     CANT_AFFORD = objects.Color("#".."FFD72D2D"),
     CAN_AFFORD = objects.Color("#".."FF73FF73"),

@@ -294,6 +294,9 @@ g.defineEntity("STS_ANIMATION", {
 ---@param duration number
 ---@param maxScale number?
 function worldutil.spawnSTSAnimation(image, x, y, duration, maxScale)
+    if g.isBeingSimulated() then
+        return -- dont spawn when simulation mode
+    end
     local e = g.spawnEntity("STS_ANIMATION", x, y)
     ---@diagnostic disable-next-line
     e._image = image
@@ -335,6 +338,9 @@ g.defineEntity("SHOCKWAVE_ANIMATION", {
 ---@param radius number?
 ---@param color (objects.Color|[number,number,number,number?])?
 function worldutil.spawnShockwave(x, y, duration, radius, color)
+    if g.isBeingSimulated() then
+        return -- dont shockwave when simulation mode
+    end
     local e = g.spawnEntity("SHOCKWAVE_ANIMATION", x, y)
     ---@diagnostic disable-next-line
     e._duration = duration
@@ -344,6 +350,58 @@ function worldutil.spawnShockwave(x, y, duration, radius, color)
     e.lifetime = duration
 end
 
+
+
+g.defineEntity("TEXT_ANIMATION", {
+    drawIndex = 100,
+    shadow = false,
+    draw = function (ent)
+        ---@diagnostic disable-next-line
+        local dur = ent._duration
+        ---@diagnostic disable-next-line
+        local text = ent._text
+        ---@diagnostic disable-next-line
+        local moveDistance = ent._moveDistance
+
+        local yOffset = helper.remap(math.max(ent.lifetime*2-dur, 0), dur,0, 0, moveDistance)
+        local alpha = 1
+
+        lg.setColor(1, 1, 1, alpha)
+        local f = g.getSmallFont(16)
+        local sc = 1.2
+        richtext.printRichCentered(text, assert(f), ent.x, ent.y - yOffset, 5000, "left", 0, sc)
+    end
+})
+
+---@param text string
+---@param x number
+---@param y number
+---@param duration number?
+---@param moveDistance number?
+function worldutil.spawnText(text, x, y, duration, moveDistance)
+    if g.isBeingSimulated() then
+        return -- dont spawn text when simulation mode
+    end
+    local e = g.spawnEntity("TEXT_ANIMATION", x, y)
+    ---@diagnostic disable-next-line
+    e._text = text
+    ---@diagnostic disable-next-line
+    e._duration = duration or 1.0
+    ---@diagnostic disable-next-line
+    e._moveDistance = moveDistance or 20
+    e.lifetime = duration or 1.0
+end
+
+
+
+
+---@param x number
+---@param y number
+---@param rot number?
+---@param leeway number?
+function worldutil.spawnKnife(x, y, rot, leeway)
+    g.spawnEntity("knife", x,y,rot, leeway)
+end
 
 
 
