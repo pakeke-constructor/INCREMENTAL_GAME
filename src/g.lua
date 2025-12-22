@@ -1238,6 +1238,7 @@ end
 -- that ARENT q-bus or ev-bus. (eg ignore them)
 local SPECIAL_FUNCTIONS = {
     getValues = true,
+    isHidden = true,
     getEntityCount = true,
     spawnEntity = true,
     getPriceOverride = true,

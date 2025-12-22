@@ -112,3 +112,30 @@ defUpgrade("crit_lightning", "Critical Lightning", {
     drawUI=drawUI
 })
 
+
+
+for _, resId in ipairs(g.RESOURCE_LIST)do
+    defUpgrade("crit_loot_"..resId, "Critical Loot!", {
+        image = resId,
+        description = "{CRIT}Critical hits{/CRIT} earn %{1} {" .. resId .. "}!",
+        getValues = function(uinfo, level)
+            return level * 4
+        end,
+        valueFormatter = {"%d"},
+
+        maxLevel = 5,
+
+        isHidden = function (uinfo)
+            local shouldBeVisible = g.isResourceUnlocked(resId)
+            return not shouldBeVisible
+        end,
+
+        tokenCrit = function (uinfo, level, tok)
+            local val = uinfo:getValues(level)
+            g.addResource(resId, val)
+        end,
+        drawUI=drawUI
+    })
+end
+
+
