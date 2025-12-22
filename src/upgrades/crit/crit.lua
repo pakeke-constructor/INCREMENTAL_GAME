@@ -23,20 +23,24 @@ end
 
 
 local function drawUI(uinfo, level, x, y, w, h)
-    local t1 = love.timer.getTime()/2
+    local t1 = love.timer.getTime()*3
 
-    local cx,cy = x, y+h/2
-    local rad = w/4
+    local cx,cy = x+w*0.8, y+h/4
+    local bx,by = x+w*0.2, y+h*3/4
+    local rad = w/16
 
     local x1,y1 = cx, cy+rad*math.cos(t1)
+    local x2,y2 = bx, by+rad*math.sin(t1)
 
-    g.drawImage("crit_strike_symbol", x1,y1)
+    --g.drawImage("crit_strike_symbol", x1,y1)
+    g.drawImage("crit_strike_symbol_2", x1,y1)
+    g.drawImage("crit_strike_symbol_2", x2,y2)
 end
 
 
 
 defUpgrade("crit_strike_chance", "Critical Strikes", {
-    description = "When hitting a crop, %{1} chance to {CRIT}CRITICAL-HIT{/CRIT}, dealing 10x damage!",
+    description = "When hitting a crop, %{1} chance to {CRIT}Critical-Hit{/CRIT}, dealing 10x damage!",
     getValues = function(uinfo, level)
         return level
     end,
@@ -69,4 +73,42 @@ defUpgrade("crit_knives", "Critical Knives", {
 })
 
 
+
+
+
+defUpgrade("crit_slime", "Critical Slime", {
+    description = "When a crop is {CRIT}Critically hit{/CRIT}, slime it!",
+    getValues = function(uinfo, level)
+        return 1
+    end,
+    valueFormatter = {"%d"},
+
+    maxLevel = 1,
+
+    tokenCrit = function (uinfo, level, tok)
+        g.slimeToken(tok)
+    end,
+    drawUI=drawUI
+})
+
+
+
+defUpgrade("crit_lightning", "Critical Lightning", {
+    image = "lightning_icon",
+    description = "{CRIT}Critical hits{/CRIT} spawn %{1} lightning chains!",
+    getValues = function(uinfo, level)
+        return level
+    end,
+    valueFormatter = {"%d"},
+
+    maxLevel = 5,
+
+    tokenCrit = function (uinfo, level, tok)
+        local val = uinfo:getValues(level)
+        for i=1,val do
+            worldutil.spawnLightning(tok.x, tok.y, 4, 4)
+        end
+    end,
+    drawUI=drawUI
+})
 
