@@ -49,51 +49,96 @@ local lg=love.graphics
 local rewards = {}
 
 
+---@alias g.RewardType
+---Permanent Rewards
+---| "permanent"
+---Free Resources
+---| "resource"
+---Scythe Upgrades
+---| "scythe"
+---Potions/Temporary Effects
+---| "effect"
+---Stacked Token
+---| "token"
+---Instant, with custom behavior
+---| "instant"
+local REWARD_TYPE = {
+    permanent = true,
+    resource = true,
+    scythe = true,
+    effect = true,
+    token = true,
+    instant = true,
+}
 
 ---@class g.Reward
----
----@field upgradeId string? The id of a permanent reward
----
----@field resources g.Bundle? only for resource-rewards
----
----@field scythe boolean? is this a scythe upgrade
----
----@field effect g.EffectInfo? only for effect-rewards
----@field effectDuration number? (also effect-rewards)
----
----@field stackedToken g.TokenInfo? gives a stacked-token reward immediately
----@field stackedTokenCount number?
----@field stackedTokenResource string?
----@field stackedTokenResourceAmount number?
----@field stackedTokenSpawnFunc fun(tok:g.Token)?
----
 ---@field icon string
-local Reward = {}
+---@field type g.RewardType
+
+---@class g.PermanentReward: g.Reward
+---@field type "permanent"
+---@field upgradeId string The id of a permanent reward
+
+---@class g.ResourceReward: g.Reward
+---@field type "resource"
+---@field resources g.Bundle only for resource-rewards
+
+---@class g.ScytheReward: g.Reward
+---@field type "scythe"
+
+---@class g.EffectReward: g.Reward
+---@field type "effect"
+---@field effect g.EffectInfo only for effect-rewards
+---@field duration number (also effect-rewards)
+
+---@class g.TokenReward: g.Reward
+---@field type "token"
+---@field token g.TokenInfo gives a stacked-token reward immediately
+---@field count integer
+---@field resource {id:g.ResourceType, amount:number}? If the resource is modified on spawn, specify correct total amount here
+---@field spawnFunc? fun(tok:g.Token)
+
+---@class g.InstantReward: g.Reward
+---@field type "instant"
+---@field name string
+---@field description string
+---@field func function
 
 
 
-
----@param rew g.Reward
----@return g.Reward
+---@generic T: g.Reward
+---@param rew T
+---@return T
 local function assertRewardIsValid(rew)
-    local ct = 0
-    if rew.resources then ct = ct + 1 end
-    if rew.effect then ct = ct + 1 end
-    if rew.upgradeId then ct = ct + 1 end
-    if rew.stackedToken then ct = ct + 1 end
-    if rew.scythe then ct = ct + 1 end
-    assert(ct == 1, "Invalid reward: Rewards need to be exactly ONE type")
-
-    if rew.effect then
-        assert(rew.effectDuration, "Effects need a duration")
-    end
-    if rew.stackedToken then
-        assert(rew.stackedTokenCount, "stackedToken rewards need a count")
-        assert(rew.stackedTokenResource, "need a resource")
-        assert(rew.stackedTokenResourceAmount, "need resourceAmount")
-    end
-
+    ---@cast rew g.Reward
+    helper.assert(REWARD_TYPE[rew.type], "invalid reward type", rew.type)
     assert(rew.icon)
+
+    if rew.type == "permanent" then
+        ---@cast rew g.PermanentReward
+        assert(rew.upgradeId, "Need upgrade id")
+        g.getUpgradeInfo(rew.upgradeId) -- assertion
+    elseif rew.type == "resource" then
+        ---@cast rew g.ResourceReward
+        assert(rew.resources, "Need resources")
+        for k in pairs(rew.resources) do
+            g.getResourceInfo(k) -- assertion
+        end
+    elseif rew.type == "effect" then
+        ---@cast rew g.EffectReward
+        assert(rew.effect, "Need effect ID")
+        assert(rew.duration, "Effects need a duration")
+    elseif rew.type == "token" then
+        ---@cast rew g.TokenReward
+        assert(rew.token, "stackedToken need token")
+        assert(rew.count, "stackedToken rewards need a count")
+    elseif rew.type == "instant" then
+        ---@cast rew g.InstantReward
+        assert(rew.name, "instant need name")
+        assert(rew.description, "instant need description")
+        assert(rew.func, "instant need function")
+    end
+
     return rew
 end
 
@@ -112,8 +157,6 @@ local function getRandomUnlockedResource()
 end
 
 
-
----@return g.Reward
 local function generateResourceReward()
     local resId = getRandomUnlockedResource()
     local rps = math.max(3, g.getResourcesPerSecond(resId))
@@ -121,64 +164,148 @@ local function generateResourceReward()
 
     local resources = {}
     resources[resId] = rps*seconds
-    return assertRewardIsValid({
+    ---@type g.ResourceReward
+    local rew = {
+        type = "resource",
         icon = "resource_bundle_reward",
         resources = resources
-    })
+    }
+    return assertRewardIsValid(rew)
+end
+
+
+---@type g.InstantReward[]
+local INSTANT_REWARDS = {
+    {
+        type = "instant",
+        icon = "slime_token",
+        name = loc "Slime Apocalypse",
+        description = loc "Slime all crops!",
+        func = function()
+            for _, tok in ipairs(g.getMainWorld().tokens) do
+                ---@cast tok g.Token
+                g.slimeToken(tok)
+            end
+        end
+    },
+    {
+        type = "instant",
+        icon = "amethyst_scythe",
+        name = loc "Grim Reaper",
+        description = loc "Harvest all crops!",
+        func = function()
+            for _, tok in ipairs(g.getMainWorld().tokens) do
+                ---@cast tok g.Token
+                g.damageToken(tok, 2147483647)
+            end
+        end
+    },
+    {
+        type = "instant",
+        icon = "star_upgrade",
+        name = loc "Eclipse",
+        description = loc "Star 1/3 of crops!",
+        func = function()
+            ---@type g.Token[]
+            local toks = {}
+            for _, tok in ipairs(g.getMainWorld().tokens) do
+                toks[#toks+1] = tok
+            end
+            helper.shuffle(toks)
+            for i = 1, math.floor(#toks / 3) do
+                g.starToken(toks[i])
+            end
+        end
+    },
+}
+
+local function generateInstantReward()
+    return helper.randomChoice(INSTANT_REWARDS)
 end
 
 
 
 local generatePotionReward
 do
-local statPots = {}
+local statPots = {
+    "grass_1_infestation",
+    "grass_2_infestation",
+    "knife_swarm",
+}
 for i=1,3 do
     table.insert(statPots, "hit_speed_" .. i)
     table.insert(statPots, "hit_damage_" .. i)
     table.insert(statPots, "harvest_area_" .. i)
     table.insert(statPots, "faster_spawn_" .. i)
+    table.insert(statPots, "xp_" .. i)
+    table.insert(statPots, "goldmine_" .. i)
 end
 
----@return g.Reward
 function generatePotionReward()
     local potionId = helper.randomChoice(statPots)
     local einfo = g.getEffectInfo(potionId)
-    return assertRewardIsValid({
+    ---@type g.EffectReward
+    local rew = {
+        type = "effect",
         effect = einfo,
-        effectDuration = 20 + love.math.random(-5, 5),
+        duration = 20 + love.math.random(-5, 5),
         icon = einfo.image
-    })
+    }
+    return assertRewardIsValid(rew)
 end
 
 end
 
 
 local generateStackedTokenReward
--- https://youtu.be/dQw4w9WgXcQ?si=7ZmxRrDo3EFVD9gi
+-- https://youtu.be/dQw4w9WgXcQ
 do
 
 
----@param resId string
----@return g.Reward
-local function generateStacked(resId)
+---@param resId g.ResourceType
+local function generateStackedChestToken(resId)
     local rps = math.max(g.getResourcesPerSecond(resId), 3)
     local resAmount = math.max(1, 5*(math.floor(rps*3 / 5)))
-    return assertRewardIsValid{
+    ---@type g.TokenReward
+    local rew = {
+        type = "token",
         ---@param tok g.Token
-        stackedTokenSpawnFunc = function(tok)
+        spawnFunc = function(tok)
             tok.resources = {
                 [resId] = resAmount
             }
         end,
-        stackedToken = g.getTokenInfo("chest_"..resId),
-        stackedTokenCount = math.floor(math.random(8, 20) / 2) * 2,
-        stackedTokenResourceAmount = resAmount,
-        stackedTokenResource = resId,
+        token = g.getTokenInfo("chest_"..resId),
+        count = math.floor(math.random(8, 20) / 2) * 2,
+        resource = {
+            id = resId,
+            amount = resAmount
+        },
         icon = "chest_"..resId
     }
+    return assertRewardIsValid(rew)
 end
 
----@return g.Reward
+---@param toktype string
+---@param count integer
+local function generateStackedGenericToken(toktype, count)
+    local tokinfo = g.getTokenInfo(toktype)
+    ---@type g.TokenReward
+    local rew = {
+        type = "token",
+        token = tokinfo,
+        count = count,
+        icon = tokinfo.image,
+    }
+    return assertRewardIsValid(rew)
+end
+
+local HORDE = {
+    "mushroom_red",
+    "mushroom_green",
+    "mushroom_blue"
+}
+
 function generateStackedTokenReward()
     local lv = g.getSn().level
     -- IDEA: spawn stackedToken bombs here?
@@ -188,23 +315,23 @@ function generateStackedTokenReward()
     -- IDEALLY, it should be stuff that is scaling-agnostic
 
     if love.math.random() < 0.4 then
-        return generateStacked("money")
+        return generateStackedGenericToken(helper.randomChoice(HORDE), 10)
     end
 
-    return generateStacked(getRandomUnlockedResource())
+    return generateStackedChestToken(getRandomUnlockedResource())
 end
 
 end
 
 
 
----@return g.Reward?
+---@return g.ScytheReward?
 local function generateScytheReward()
     local sid = g.getNextScythe()
     if sid then
         local sinfo = g.getScytheInfo(sid)
         return {
-            scythe = true,
+            type = "scythe",
             icon = sinfo.image
         }
     end
@@ -253,14 +380,17 @@ function rewards.generateRandomRewards()
         -- generate permanent rewards!
         rewardList = {
             {
+                type = "permanent",
                 upgradeId = "percentage_more_damage",
                 icon = "more_damage"
             },
             {
+                type = "permanent",
                 upgradeId = "percentage_more_speed",
                 icon = "more_speed"
             },
             {
+                type = "permanent",
                 upgradeId = "percentage_more_area",
                 icon = "more_area"
             }
@@ -268,7 +398,7 @@ function rewards.generateRandomRewards()
         }
     else
         rewardList = {
-            generateResourceReward(),
+            helper.randomChoice({generateResourceReward, generateInstantReward})(),
             generateStackedTokenReward(),
             generatePotionReward(),
         }
@@ -297,6 +427,9 @@ local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff to harvest:{/o}{/wa
 local STACKED_TOKEN_TOTAL = loc("{o}+%s {%s} total{/o}", {}, {
     context = "Example usage: (+400 {gold} total), where %d=400 and %s=gold. Please keep the string formatting."
 })
+local STACKED_TOKEN_TOTAL2 = interp("%{tokens} total", {
+    context = "Example result: \"+200 Money +200 Juice total\". The %{tokens} is \"+200 Money +200 Juice\" in that example."
+})
 
 
 local POTION = loc("{wavy amp=0.3 f=2}{o}POTION!{/o}{/wavy}")
@@ -307,6 +440,23 @@ local GIVE_EFFECT = interp("{o}Grants {c r=0.6 g=0.7 b=1}%{str}{/c} for %{second
 local RESOURCE_BUNDLE = loc("{wavy amp=0.3 f=2}{o}Free resources:{/o}{/wavy}", {}, {
     context = "A bundle of free resources"
 })
+
+
+
+---@param bundle g.Bundle
+---@param count integer
+local function generateTotalResourcesText(bundle, count)
+    local text = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        if bundle[resId] then
+            local resInfo = g.getResourceInfo(resId)
+            text[#text+1] = "+"..g.formatNumber(bundle[resId] * count)
+            text[#text+1] = "{"..resInfo.image.."}"
+        end
+    end
+
+    return table.concat(text, " ")
+end
 
 
 
@@ -323,12 +473,13 @@ function rewards.drawRewardDescription(rew, r)
     lg.setColor(1,1,1)
     lg.rectangle("fill", icon:padRatio(0.1):get())
     do
-    if rew.stackedToken then
+    if rew.type == "token" then
+        ---@cast rew g.TokenReward
         local txt
         icon, txt = icon:splitHorizontal(1,1)
         local x,y,w,h = icon:get()
         g.drawImageContained(rew.icon, x,y,w,h, math.sin(time)/14)
-        richtext.printRichContained("{o}x"..tostring(rew.stackedTokenCount), font, txt:moveUnit(0,math.sin(time)*4):get())
+        richtext.printRichContained("{o}x"..tostring(rew.count), font, txt:moveUnit(0,math.sin(time)*4):get())
     else
         local x,y,w,h = icon:padRatio(0.4):get()
         g.drawImageContained(rew.icon, x,y,w,h, math.sin(time)/14)
@@ -336,37 +487,49 @@ function rewards.drawRewardDescription(rew, r)
     end
 
     main = main:padRatio(0.3)
-    if rew.resources then
-        local resTxt = ""
-        for resId,v in pairs(rew.resources) do
-            resTxt = resTxt .. "+" .. tostring(g.formatNumber(v)) .. " {" ..resId.. " scale=0.7}"
-        end
-        resTxt = "{o}" .. resTxt .. "{/o}"
+    if rew.type == "resource" then
+        ---@cast rew g.ResourceReward
+        local resTxt = "{o}" .. generateTotalResourcesText(rew.resources, 1) .. "{/o}"
         local a,b = main:splitVertical(1,1)
         richtext.printRichContainedNoWrap(RESOURCE_BUNDLE, font, a:get())
         richtext.printRichContainedNoWrap(resTxt, font, b:get())
-    elseif rew.effect then
+    elseif rew.type == "effect" then
+        ---@cast rew g.EffectReward
         local a,b = main:splitVertical(1,2)
         richtext.printRichContained(POTION, font, a:get())
         richtext.printRichContained(GIVE_EFFECT({
             str = rew.effect.description,
-            seconds = rew.effectDuration
+            seconds = rew.duration
         }), font, b:get())
-    elseif rew.stackedToken then
+    elseif rew.type == "token" then
+        ---@cast rew g.TokenReward
         local a,b = main:splitVertical(2,3)
         richtext.printRichContained(STACKED_TOKEN, font, a:get())
         -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
-        local total = g.formatNumber(rew.stackedTokenResourceAmount*rew.stackedTokenCount)
-        local txt = (STACKED_TOKEN_TOTAL):format(total, rew.stackedTokenResource)
-        richtext.printRichContainedNoWrap(txt, font, b:get())
-    elseif rew.upgradeId then
+        local txt
+        if rew.resource then
+            txt = STACKED_TOKEN_TOTAL2 {
+                tokens = generateTotalResourcesText({[rew.resource.id] = rew.resource.amount}, rew.count)
+            }
+        else
+            txt = rew.token.description
+
+            if not txt then
+                txt = STACKED_TOKEN_TOTAL2 {
+                    tokens = generateTotalResourcesText(rew.token.resources, rew.count)
+                }
+            end
+        end
+        richtext.printRichContainedNoWrap("{o}"..txt.."{/o}", font, b:get())
+    elseif rew.type == "permanent" then
+        ---@cast rew g.PermanentReward
         local a,b = main:splitVertical(1,2)
         richtext.printRichContained(PERMANENT_UPGRADE, font, a:get())
         local uinfo = g.getUpgradeInfo(rew.upgradeId)
         local txt = g.getUpgradeDescription(uinfo, 1, false)
         local effect = "{wavy amp=0.3 f=2}{o}{c r=0.9 g=0.7 b=0.5}"
         richtext.printRichContained(effect.. txt, font, b:get())
-    elseif rew.scythe then
+    elseif rew.type == "scythe" then
         local a = main:splitVertical(1,2):attachToTopOf(main)
         local b,c = main:splitVertical(3,2)
         richtext.printRichContained(NEW_SCYTHE, font, a:get())
@@ -381,6 +544,11 @@ function rewards.drawRewardDescription(rew, r)
                 harvestRadius = diff
             }), font, c:get())
         end
+    elseif rew.type == "instant" then
+        ---@cast rew g.InstantReward
+        local a, b = main:splitVertical(1,1)
+        richtext.printRichContained("{o}"..rew.name.."{/o}", font, a:get())
+        richtext.printRichContained("{o}"..rew.description.."{/o}", font, b:get())
     else
         -- this shit doesnt need to be translated
         richtext.printRichContained("{o}ERROR. WTF? TELL OLI!{/o}", font, r:get())
@@ -393,23 +561,27 @@ end
 function rewards.selectReward(rew)
     assertRewardIsValid(rew)
 
-    if rew.resources then
+    if rew.type == "resource" then
+        ---@cast rew g.ResourceReward
         g.addResources(rew.resources)
-    elseif rew.effect then
-        assert(rew.effectDuration)
-        g.grantEffect(rew.effect.type, rew.effectDuration)
+    elseif rew.type == "effect" then
+        ---@cast rew g.EffectReward
+        assert(rew.duration)
+        g.grantEffect(rew.effect.type, rew.duration)
         -- g.stackPotionToken(rew.effectDuration, einfo)
-    elseif rew.stackedToken then
-        for _=1, rew.stackedTokenCount do
+    elseif rew.type == "token" then
+        ---@cast rew g.TokenReward
+        for _=1, rew.count do
             local w,h = ui.getScaledUIDimensions()
             local sx,sy = w/2 + love.math.random(-100,100), h/2 + love.math.random(-100,100)
-            g.stackToken(rew.stackedToken.type, sx,sy)
+            g.stackToken(rew.token.type, sx,sy)
         end
-    elseif rew.upgradeId then
+    elseif rew.type == "permanent" then
+        ---@cast rew g.PermanentReward
         local uinfo = g.getUpgradeInfo(rew.upgradeId)
         local tree = g.getUpgTree()
         tree:addOrUpgradeUnboundUpgrade(uinfo)
-    elseif rew.scythe then
+    elseif rew.type == "scythe" then
         local sn = g.getSn()
         local scythe = g.getNextScythe()
         if scythe then
@@ -417,6 +589,9 @@ function rewards.selectReward(rew)
         else
             log.error("WTF BRUV? ERROR?")
         end
+    elseif rew.type == "instant" then
+        ---@cast rew g.InstantReward
+        rew.func()
     end
 end
 

@@ -51,15 +51,45 @@ end
 
 local speedreduction = {0.7, 0.45, 0.2}
 for i, v in ipairs(speedreduction) do
-    local effectDescription = interp("%{amount:d}% Crop Respawn Time")
+    local effectDescription = interp("-%{amount:d}% crop respawn time")
     g.defineEffect("faster_spawn_"..i, "Crop Respawn Time ("..i..")", {
         image = "faster_spawn_potion",
         isDebuff = false,
-        description = effectDescription({amount = math.log(v, 2) * 100}),
+        description = effectDescription({amount = (1 - v) * 100}),
 
         ---@diagnostic disable-next-line: assign-type-mismatch
         [g.VALID_STATS.TokenRespawnTime.multQuestion] = function()
             return v
+        end
+    })
+end
+
+local xpmul = {0.2, 0.4, 1}
+for i, v in ipairs(xpmul) do
+    local effectDescription = interp("+%{amount:d}% XP Multiplier")
+    g.defineEffect("xp_"..i, "XP ("..i..")", {
+        image = "xp_potion",
+        isDebuff = false,
+        description = effectDescription({amount = v * 100}),
+
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        [g.VALID_STATS.XpMultiplier.multQuestion] = function()
+            return 1 + v
+        end
+    })
+end
+
+local goldminemul = {1.5, 2.5}
+for i, v in ipairs(goldminemul) do
+    local effectDescription = interp("x%{amount:.14g} Resource Multiplier")
+    local mul = {money = v}
+    g.defineEffect("goldmine_"..i, "Goldmine ("..i..")", {
+        image = "goldmine_potion",
+        isDebuff = false,
+        description = effectDescription({amount = v}),
+
+        getTokenResourceMultiplier = function()
+            return mul
         end
     })
 end
