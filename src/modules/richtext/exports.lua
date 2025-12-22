@@ -92,11 +92,11 @@ end
 function text.printRichCentered(txt, font, x, y, limit, align, rot, sx, sy)
     strTc(txt)
     local parsed = assert(parser.ensure(txt))
-    local width, wrap = text.getWrap(txt, parsed, limit)
+    local width, wrap = text.getWrap(txt, font, limit)
 
     local ox = width / 2
     local oy = wrap * font:getHeight() / 2
-    return drawRichText(parsed, font, x, y, limit, align, rot, sx, sy, ox, oy)
+    return drawRichText.draw(parsed, font, x, y, limit, align, rot, sx, sy, ox, oy)
 end
 
 
