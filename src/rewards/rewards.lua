@@ -95,6 +95,7 @@ local REWARD_TYPE = {
 ---@field type "token"
 ---@field token g.TokenInfo gives a stacked-token reward immediately
 ---@field count integer
+---@field description string?
 ---@field resource {id:g.ResourceType, amount:number}? If the resource is modified on spawn, specify correct total amount here
 ---@field spawnFunc? fun(tok:g.Token)
 
@@ -132,6 +133,7 @@ local function assertRewardIsValid(rew)
         ---@cast rew g.TokenReward
         assert(rew.token, "stackedToken need token")
         assert(rew.count, "stackedToken rewards need a count")
+        assert(rew.resource or rew.description, "stackedToken rewards need either description, or resource")
     elseif rew.type == "instant" then
         ---@cast rew g.InstantReward
         assert(rew.name, "instant need name")
@@ -180,7 +182,7 @@ local INSTANT_REWARDS = {
         type = "instant",
         icon = "slime_token",
         name = loc "Slime Apocalypse",
-        description = loc "Slime all crops!",
+        description = loc "Slime all crops!\n(Slimed crops take extra damage!)",
         func = function()
             for _, tok in ipairs(g.getMainWorld().tokens) do
                 ---@cast tok g.Token
@@ -192,7 +194,7 @@ local INSTANT_REWARDS = {
         type = "instant",
         icon = "amethyst_scythe",
         name = loc "Grim Reaper",
-        description = loc "Harvest all crops!",
+        description = loc "Harvests all crops instantly!",
         func = function()
             for _, tok in ipairs(g.getMainWorld().tokens) do
                 ---@cast tok g.Token
@@ -204,7 +206,7 @@ local INSTANT_REWARDS = {
         type = "instant",
         icon = "star_upgrade",
         name = loc "Eclipse",
-        description = loc "Star 1/3 of crops!",
+        description = loc "Stars all crops!\n(Starred crops earn triple resources!)",
         func = function()
             ---@type g.Token[]
             local toks = {}
@@ -288,34 +290,36 @@ end
 
 ---@param toktype string
 ---@param count integer
-local function generateStackedGenericToken(toktype, count)
+---@param desc string
+local function generateStackedGenericToken(toktype, count, desc)
     local tokinfo = g.getTokenInfo(toktype)
     ---@type g.TokenReward
     local rew = {
         type = "token",
         token = tokinfo,
+        description = desc,
         count = count,
         icon = tokinfo.image,
     }
     return assertRewardIsValid(rew)
 end
 
+
 local HORDE = {
-    "mushroom_red",
-    "mushroom_green",
-    "mushroom_blue"
+    {"mushroom_red", desc=loc("Red mushrooms that explode!")},
+    {"mushroom_green", desc=loc("Green mushrooms that spawn grass!")},
+    {"mushroom_blue", desc=loc("Blue mushrooms that spawn lightning!")},
 }
 
 function generateStackedTokenReward()
     local lv = g.getSn().level
     -- IDEA: spawn stackedToken bombs here?
 
-    -- IDEA: stackedToken mushrooms?
-
     -- IDEALLY, it should be stuff that is scaling-agnostic
 
-    if love.math.random() < 0.4 then
-        return generateStackedGenericToken(helper.randomChoice(HORDE), 10)
+    if love.math.random() < 1 then--0.4 then
+        local h = helper.randomChoice(HORDE)
+        return generateStackedGenericToken(h[1], 10, h.desc)
     end
 
     return generateStackedChestToken(getRandomUnlockedResource())
@@ -423,7 +427,7 @@ local SCYTHE_UPGRADE = interp("{wavy amp=0.3 f=2}{o}+%{harvestRadius} harvest ra
 })
 
 
-local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff to harvest:{/o}{/wavy}")
+local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff:{/o}{/wavy}")
 local STACKED_TOKEN_TOTAL = loc("{o}+%s {%s} total{/o}", {}, {
     context = "Example usage: (+400 {gold} total), where %d=400 and %s=gold. Please keep the string formatting."
 })
@@ -512,8 +516,7 @@ function rewards.drawRewardDescription(rew, r)
                 tokens = generateTotalResourcesText({[rew.resource.id] = rew.resource.amount}, rew.count)
             }
         else
-            txt = rew.token.description
-
+            txt = assert(rew.description)
             if not txt then
                 txt = STACKED_TOKEN_TOTAL2 {
                     tokens = generateTotalResourcesText(rew.token.resources, rew.count)

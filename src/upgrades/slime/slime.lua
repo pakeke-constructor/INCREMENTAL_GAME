@@ -18,7 +18,7 @@ Slime grenade: Crops that are slimed have a 10% chance to explode when destroyed
 g.defineToken("slime_token", "Slime", {
     particles = "slime",
     category = "slime",
-    description = "When destroyed, covers surrounding crops in slime!",
+    description = "When destroyed, covers surrounding crops in slime!\n(Slimed crops take extra damage)",
     resources = {money = 0},
     maxHealth = 4,
     maxLevel=3,

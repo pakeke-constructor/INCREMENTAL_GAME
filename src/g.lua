@@ -1903,6 +1903,9 @@ function g.damageToken(tok, dmg)
     local dmgMult = g.ask("getTokenDamageMultiplier", tok)
     local dmgMod = g.ask("getTokenDamageModifier", tok)
     dmg = (dmg + dmgMod) * dmgMult
+    if tok.slimed then
+        dmg = dmg * 1.2
+    end
     local displayDmg = math.min(dmg, math.max(tok.health, 0))
 
     -- Ensure lagged health number is updated first before tok.health
