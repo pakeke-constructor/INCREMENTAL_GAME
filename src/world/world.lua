@@ -657,13 +657,14 @@ local function tryUpdateDecorations(self)
 
     --====== add big-splotch decorations:  ======
     local BIGPAD=30
-    local col2 = objects.Color("#" .. "FF32B569")
-    for i=1,20 do
+    local darkcol = objects.Color("#" .. "FF26A95D")
+    local lightcol = objects.Color("#" .. "FF32B569")
+    for i=1,40 do
         table.insert(self.decorations, {
             x = math.floor(helper.lerp(BIGPAD, w, love.math.random())),
             y = math.floor(helper.lerp(BIGPAD, h, love.math.random())),
             image = "decor_big_" .. love.math.random(1,4),
-            color = col2
+            color = darkcol
         })
     end
 
@@ -671,13 +672,23 @@ local function tryUpdateDecorations(self)
     -- local originalCol = "#" .. "ff2bae62"
     -- local col = objects.Color("#" .. "FF1E954F")
     local PAD=12
-    local col = objects.Color("#" .. "FF26A95D")
-    for i=1,100 do
+    for i=1,60 do
         table.insert(self.decorations, {
             x = math.floor(helper.lerp(PAD, w, love.math.random())),
             y = math.floor(helper.lerp(PAD, h, love.math.random())),
             image = "decor_splotch_" .. love.math.random(1,5),
-            color = col
+            color = darkcol
+        })
+    end
+
+    local TPAD=30
+    local col3 = objects.Color("#" .. "FF32B569")
+    for i=1,30 do
+        table.insert(self.decorations, {
+            x = math.floor(helper.lerp(TPAD, w, love.math.random())),
+            y = math.floor(helper.lerp(TPAD, h, love.math.random())),
+            image = "decor_tex_" .. love.math.random(1,5),
+            color = lightcol
         })
     end
 end
