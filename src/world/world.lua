@@ -6,6 +6,9 @@ The world is a container for tokens and entities.
 
 ]]
 
+local subpixel = require("src.modules.subpixel")
+
+
 local ParticleService = require(".particle.ParticleService")
 local DataCollector = require(".data_collector")
 local table_clear = require("table.clear")
@@ -646,18 +649,35 @@ local function tryUpdateDecorations(self)
     if tw == ls.x and th == ls.y then
         return -- Nothing to generate; return early.
     end
-    self.lastSeenDimensions = {x=tw, y=th}
 
-    local PAD=10
-    local w,h = g.getWorldDimensions()
-    -- add splotch decorations:
+    self.lastSeenDimensions = {x=tw, y=th}
     self.decorations = {}
+
+    local w,h = g.getWorldDimensions()
+
+    --====== add big-splotch decorations:  ======
+    local BIGPAD=30
+    local col2 = objects.Color("#" .. "FF32B569")
+    for i=1,20 do
+        table.insert(self.decorations, {
+            x = math.floor(helper.lerp(BIGPAD, w, love.math.random())),
+            y = math.floor(helper.lerp(BIGPAD, h, love.math.random())),
+            image = "decor_big_" .. love.math.random(1,4),
+            color = col2
+        })
+    end
+
+    --====== add splotch decorations:  ======
+    -- local originalCol = "#" .. "ff2bae62"
+    -- local col = objects.Color("#" .. "FF1E954F")
+    local PAD=12
+    local col = objects.Color("#" .. "FF26A95D")
     for i=1,100 do
         table.insert(self.decorations, {
-            x = helper.lerp(PAD, w-PAD, love.math.random()),
-            y = helper.lerp(PAD, h-PAD, love.math.random()),
+            x = math.floor(helper.lerp(PAD, w, love.math.random())),
+            y = math.floor(helper.lerp(PAD, h, love.math.random())),
             image = "decor_splotch_" .. love.math.random(1,5),
-            color = {0,0,0, 0.2}
+            color = col
         })
     end
 end
