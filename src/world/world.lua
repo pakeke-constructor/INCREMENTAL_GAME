@@ -10,6 +10,13 @@ local ParticleService = require(".particle.ParticleService")
 local DataCollector = require(".data_collector")
 local table_clear = require("table.clear")
 
+---@class g.World.Decor
+---@field x number
+---@field y number
+---@field image string
+local Decor
+
+
 ---@class g.World: objects.Class
 ---@field entities objects.BufferedSet
 ---@field tokens objects.BufferedSet
@@ -64,17 +71,6 @@ function World:init()
 
     -- Create tile atlas
     self.tilemap = helper.splitTileImage("harvestarea_tilemap", consts.WORLD_TILE_SIZE)
-    -- For decor tile, we want it to be flat so pickRandom do the job.
-    do
-        local decorTilemap = helper.splitTileImage("decorationgrass_tilemap", consts.WORLD_TILE_SIZE)
-        ---@type love.Quad[]
-        self.decorTilemap = {}
-        for _, tmaps in ipairs(decorTilemap) do
-            for _, tquad in ipairs(tmaps) do
-                self.decorTilemap[#self.decorTilemap+1] = tquad
-            end
-        end
-    end
 
     -- Player avatar. Cannot initialize it in here due to cyclic dependency with g.spawnEntity and this world.
     ---@type g.Entity|nil
@@ -87,6 +83,10 @@ function World:init()
     ]]}
 
     self.analyticsSendTime = 0
+
+    -- decorations:
+    self.lastSeenDimensions = {x=0,y=0}
+    self.decorations = {}
 end
 
 
@@ -466,21 +466,20 @@ function World:_draw()
 
             -- Draw tile
             love.graphics.draw(atlas, targetQuad, x * wtz, y * wtz)
-
-            -- Draw decoration
-            -- Why we do this hash you ask? So we can place random decoration
-            -- in respect to tile X and tile Y.
-            local hashpos = (x+499)*hash(x, y)
-            hashpos = helper.hashInteger(hashpos) % 65536
-            if hashpos / 65535 <= 0.1 then
-                local noise = helper.hashInteger(hashpos) % 65536
-                local index = math.floor(noise / 65535 * #self.decorTilemap + 0.5)
-                index = helper.clamp(index, 1, #self.decorTilemap)
-                love.graphics.draw(atlas, self.decorTilemap[index], x * wtz, y * wtz)
-            end
         end
     end
     prof_pop() -- prof_push("draw_tiles")
+
+    prof_push("draw_world_decor")
+    -- Draw decoration:
+    -- Hashing to provide pseudorandom+deterministic decoration placement
+    for _,decor in ipairs(self.decorations) do
+        if decor.color then
+            lg.setColor(decor.color)
+        end
+        g.drawImage(decor.image, decor.x, decor.y)
+    end
+    prof_pop()
 
     ---@type (g.Token|g.Entity)[]
     local objlist = {}
@@ -639,8 +638,36 @@ function World:_updateTokenCount()
 end
 
 
+
+---@param self g.World
+local function tryUpdateDecorations(self)
+    local tw,th = g.getWorldTileDimensions()
+    local ls = self.lastSeenDimensions
+    if tw == ls.x and th == ls.y then
+        return -- Nothing to generate; return early.
+    end
+    self.lastSeenDimensions = {x=tw, y=th}
+
+    local PAD=10
+    local w,h = g.getWorldDimensions()
+    -- add splotch decorations:
+    self.decorations = {}
+    for i=1,100 do
+        table.insert(self.decorations, {
+            x = helper.lerp(PAD, w-PAD, love.math.random()),
+            y = helper.lerp(PAD, h-PAD, love.math.random()),
+            image = "decor_splotch_" .. love.math.random(1,5),
+            color = {0,0,0, 0.2}
+        })
+    end
+end
+
+
+
 ---@param dt number
 function World:_update(dt)
+    tryUpdateDecorations(self)
+
     self.entities:flush()
     self.tokens:flush()
 
