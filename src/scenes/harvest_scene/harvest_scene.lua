@@ -1044,8 +1044,7 @@ function harvest:keyreleased(k)
         s.paused = not s.paused
     elseif consts.DEV_MODE then
         if k=="1" then
-            local t = g.spawnToken("grass_4", 10,10)
-            worldutil.initializeFlyingToken(t, 1)
+            g.summonBoss("pumpkin_boss")
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do

@@ -274,7 +274,7 @@ end
 
 
 g.defineEntity("STS_ANIMATION", {
-    drawIndex = 100,
+    drawOrder = 100,
     draw = function (ent)
         ---@diagnostic disable-next-line
         local img = assert(ent._image)
@@ -310,7 +310,7 @@ end
 
 
 g.defineEntity("SHOCKWAVE_ANIMATION", {
-    drawIndex = 100,
+    drawOrder = 100,
     draw = function (ent)
         ---@diagnostic disable-next-line
         local dur = ent._duration
@@ -353,7 +353,7 @@ end
 
 
 g.defineEntity("TEXT_ANIMATION", {
-    drawIndex = 100,
+    drawOrder = 100,
     shadow = false,
     draw = function (ent)
         ---@diagnostic disable-next-line

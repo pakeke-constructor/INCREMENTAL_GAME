@@ -512,20 +512,21 @@ local WING_FLAP_SPEED = 3
 
 local WING_ROT_OFFSET = -0.4
 local WING_ROTATION = math.pi / 2
+local WING_DEFAULT_DISTANCE = 10
 
 ---@param x number
 ---@param y number
 ---@param time number
 ---@param wingImage string?
 ---@param scale number?
-function helper.drawWings(x,y, time, wingImage, scale)
+function helper.drawWings(x,y, time, wingImage, scale, wingDistance)
     wingImage = wingImage or "wing_visual"
     scale=scale or 1
     love.graphics.push("all")
     local t = time * WING_FLAP_SPEED
     local dy = 5 * math.sin(t + 0.5)
     local r = WING_ROTATION * ((math.sin(t) + 1)/2) + WING_ROT_OFFSET
-    local offset = 10
+    local offset = wingDistance or WING_DEFAULT_DISTANCE
     -- if imageShadow then
     --     love.graphics.setColor(0,0,0, 0.4)
     --     g.drawImage(wingImage, x + offset + o, y + dy + o, r, sx,sy, kx,ky)

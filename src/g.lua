@@ -476,6 +476,7 @@ end
 g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
 g.walkDirectory("src/entities", loadImage)
+g.walkDirectory("src/bosses", loadImage)
 g.walkDirectory("src/scythes", loadImage)
 g.walkDirectory("src/rewards", loadImage)
 g.walkDirectory("src/effects", loadImage)
@@ -669,10 +670,12 @@ local g_UpgradeDefinition = {}
 ---@field maxHealth number
 ---@field resources g.Bundle
 ---@field image string?
+---@field bossfight {prestige:integer}? boss for prestige-0 will upgrade -> prestige-1
 ---@field maxLevel integer?
 ---@field growths {stalk:string,growth:string}?
 ---@field flight {vx:number,vy:number}?
 ---@field description string?
+---@field drawOrder number?
 ---@field particles string?
 ---@field category g.Category?
 ---@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
@@ -1618,7 +1621,7 @@ do
 ---@field orbitRing integer?
 ---@field bulgeAnimation {time: number, magnitude: number, duration:number}?
 ---@field image string?
----@field drawIndex number?
+---@field drawOrder number?
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
 ---@field blendalphamode love.BlendAlphaMode?
@@ -2112,6 +2115,46 @@ function g.popStackedToken()
 end
 
 
+
+
+-- functions for bosses:
+do
+---@type table<string, true>
+local VALID_BOSSES = {}
+
+---@type table<integer, g.TokenInfo>
+local PRESTIGE_TO_BOSS = {}
+
+---@param id string
+---@param prestige integer
+---@param def g.TokenDefinition
+function g.defineBoss(id, prestige, def)
+    def.bossfight = {prestige=prestige}
+    g.defineToken(id, "boss " .. prestige, def)
+    PRESTIGE_TO_BOSS[prestige] = g.getTokenInfo(id)
+    VALID_BOSSES[id] = true
+end
+
+function g.summonBoss(bossId)
+    assert(VALID_BOSSES[bossId])
+    local tok = g.spawnToken(bossId, 0,0)
+    worldutil.initializeFlyingToken(tok, consts.BOSSFIGHT_DURATION)
+end
+
+---@param prestige integer
+---@return g.TokenInfo?
+function g.getBossForPrestige(prestige)
+    return (PRESTIGE_TO_BOSS[prestige])
+end
+
+--- returns the boss token, if there's a bossfight happening
+---@return g.Token?
+function g.getBossToken()
+    local w = g.getMainWorld()
+    return w.bossToken
+end
+
+end
 
 
 local hud = HUD()

@@ -23,6 +23,7 @@ local Decor
 ---@class g.World: objects.Class
 ---@field entities objects.BufferedSet
 ---@field tokens objects.BufferedSet
+---@field bossToken g.Token?
 ---@field tokensToHoverTime {[table]: number}
 ---@field tokenPartition objects.Partition
 ---@field mouseX number?
@@ -50,6 +51,8 @@ function World:init()
     self.tokensToHoverTime = ({--[[
         [token] -> hover_time_accumulated
     ]]})
+
+    self.bossToken = nil
 
     ---@type table<g.Entity, number?>
     self.entitiesToHitCooldown = setmetatable({}, {__mode = "k"})
@@ -410,8 +413,8 @@ end
 ---@param a g.Token|g.Entity
 ---@param b g.Token|g.Entity
 local function sortOrder(a, b)
-    local indexA = a.y + (a.drawIndex or 0)
-    local indexB = b.y + (b.drawIndex or 0)
+    local indexA = a.y + (a.drawOrder or 0)
+    local indexB = b.y + (b.drawOrder or 0)
     return indexA < indexB
 end
 
@@ -666,6 +669,9 @@ function World:_updateTokenCount()
     for _, t in ipairs(self.tokens) do
         ---@cast t g.Token
         self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
+        if t.bossfight then
+            self.bossToken = t
+        end
     end
 end
 

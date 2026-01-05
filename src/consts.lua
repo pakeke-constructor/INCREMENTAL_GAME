@@ -39,6 +39,8 @@ local consts = {
 
     MAX_HIT_DURATION = 0.125,
 
+    BOSSFIGHT_DURATION = 10,
+
     TEST = true,
 
     LAGGED_HEALTHBAR_DURATION = 0.3, -- the "healtbar lag" on tokens, (purely visual effect)
