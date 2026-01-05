@@ -453,8 +453,10 @@ end
 do
 local SAMPLES = 3
 
+--- initializes a flying token, which will fly off-screen in a random
+--- direction. (prioritizes long distances)
 ---@param tok g.Token
----@param duration number How long it takes to travel across world.
+---@param duration number How long it takes to travel off screen
 function worldutil.initializeFlyingTokenWithPos(tok, duration)
     local x, y = tok.x, tok.y
 

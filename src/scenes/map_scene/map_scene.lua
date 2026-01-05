@@ -282,7 +282,6 @@ local function clampCameraToMap(camera, mapX, mapY, mapW, mapH, ttgt)
     local posX = mapX + mapW / 2
     local posY = mapY + mapH / 2
 
-    local transitionT = 0
     local transitionScale = 1
     if ttgt then
         local t = 1 - math.abs(1 - helper.clamp(ttgt.time / ttgt.duration, 0, 1) * 2)
