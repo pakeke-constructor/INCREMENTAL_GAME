@@ -404,8 +404,9 @@ function worldutil.spawnKnife(x, y, rot, leeway)
 end
 
 
+
 ---@param tok g.Token
----@param duration number
+---@param duration number How long it takes to travel across world.
 function worldutil.initializeFlyingToken(tok, duration)
     local r=love.math.random
 
@@ -422,13 +423,15 @@ function worldutil.initializeFlyingToken(tok, duration)
         local worldEndY = helper.lerp(0.1*hh, 0.9*hh, r())
         tokX, tokY = (r()<0.5 and -leeway or ww+leeway), startY
         endX, endY = (tokX < 0 and ww+leeway or -leeway), worldEndY
-        wdx,wdy = ww, (worldEndY-startY)  -- Fixed: wdx should be ww (crossing world width)
+        local wendX = helper.clamp(endX, 0, ww)
+        wdx,wdy = (wendX-helper.clamp(tokX, 0, ww)), (worldEndY-startY)
     else
         local startX = helper.lerp(0.1*ww, 0.9*ww, r())
         local worldEndX = helper.lerp(0.1*ww, 0.9*ww, r())
         tokX, tokY = startX, (r()<0.5 and -leeway or hh+leeway)
         endX, endY = worldEndX, (tokY < 0 and hh+leeway or -leeway)
-        wdx,wdy = (worldEndX-startX), hh
+        local wendY = helper.clamp(endY, 0, hh)
+        wdx,wdy = (worldEndX-startX), (wendY-helper.clamp(tokY, 0, hh))
     end
 
     local vx, vy = wdx / duration, wdy / duration
@@ -439,6 +442,7 @@ function worldutil.initializeFlyingToken(tok, duration)
         vx = vx, vy = vy
     }
 end
+
 
 
 
