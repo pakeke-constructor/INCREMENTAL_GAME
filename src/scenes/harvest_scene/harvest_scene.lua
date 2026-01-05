@@ -565,102 +565,7 @@ local function closeXpPopup(self)
 end
 
 
-local STATS_TO_SHOW = {"HitSpeed", "HitDamage", "HarvestArea"}
-local STATS_TITLE_TEXT = "{o thickness=2}"..loc("Stats").."{/o}"
-local CROPS_TITLE_TEXT = "{o thickness=2}"..loc("Crop List").."{/o}"
-local TOKEN_IMAGE_SCALE = 1
-local STATS_WIDTH = 200
 
-local STATS_BACKGROUND = helper.newGradientMesh(
-    "vertical",
-    objects.Color("#".."ff02acc9"),
-    objects.Color("#".."ffac02c9")
-)
-
----@param self HarvestScene
-local function drawStatsAndTokenPool(self)
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
-    local mainR = Kirigami(0, 0, STATS_WIDTH, r.h)
-        :attachToRightOf(r)
-        :moveRatio(-1, 0)
-        :padUnit(8)
-
-    local statsR, tokensR = mainR:padRatio(0.1):splitVertical(1, 1)
-    local titleFont = g.getBigFont(32)
-
-    love.graphics.setColor(1, 1, 1)
-    do
-        local x, y, w, h = mainR:padUnit(4):get()
-        love.graphics.draw(STATS_BACKGROUND, x, y, 0, w, h)
-    end
-    ui.drawPanel(mainR:get())
-
-    -- Do stats layout and drawing
-    do
-        local titleR = statsR:set(nil, nil, nil, titleFont:getHeight())
-        local statFont = g.getSmallFont(16)
-        local statBaseGridR = statsR:padUnit(4, titleFont:getHeight() + 8, 4, 8)
-            :set(nil, nil, nil, (statFont:getHeight() + 2) * #STATS_TO_SHOW)
-        local statGrid = statBaseGridR:grid(1, #STATS_TO_SHOW)
-
-        richtext.printRichContainedNoWrap(STATS_TITLE_TEXT, titleFont, titleR:get())
-
-        love.graphics.setColor(0, 0, 0, 0.3)
-        helper.quickRoundedRectangle("fill", 4, statBaseGridR:padUnit(-4))
-        love.graphics.setColor(1, 1, 1)
-
-        for i, cellR in ipairs(statGrid) do
-            local statName = g.VALID_STATS[STATS_TO_SHOW[i]].name
-            local statValue = math.floor(g.stats[STATS_TO_SHOW[i]] * 100 + 0.5) / 100 -- rounding to 2 nearest decimal
-            local nameR, valueR = cellR:splitHorizontal(5, 2)
-            richtext.printRichContainedNoWrap(statName, statFont, nameR:get())
-            richtext.printRichContainedNoWrap(tostring(statValue), statFont, valueR:get())
-        end
-    end
-
-    love.graphics.setColor(1, 1, 1)
-    -- Do crop pool layout and drawing
-    do
-        local CELL_PADDING = 4
-
-        local titleR = tokensR:set(nil, nil, nil, titleFont:getHeight())
-
-        local tokenPoolInfo = {}
-        local tokenPool = g.getMainWorld().tokenPool.tokens
-
-        for _, toktype in ipairs(g.TOKEN_LIST) do
-            local amount = tokenPool[toktype] or 0
-            if amount > 0 then
-                tokenPoolInfo[#tokenPoolInfo+1] = {toktype, amount}
-            end
-        end
-
-        local cellSize = 16 * TOKEN_IMAGE_SCALE + CELL_PADDING * 2
-        local tokenBaseGridR = tokensR:padUnit(0, titleFont:getHeight() + 8, 0, 8)
-        local columns = math.floor(tokenBaseGridR.w / cellSize)
-        local rows = math.ceil(#tokenPoolInfo / columns)
-        local tokenPoolGridR = tokenBaseGridR:padUnit((tokenBaseGridR.w - columns * cellSize) / 2, 0)
-            :set(nil, nil, nil, rows * cellSize)
-        local tokenPoolGrid = tokenPoolGridR:grid(columns, rows)
-        local amountFont = g.getSmallFont(16)
-
-        love.graphics.setColor(0, 0, 0, 0.3)
-        helper.quickRoundedRectangle("fill", 4, tokenPoolGridR:padUnit(-4))
-        love.graphics.setColor(1, 1, 1)
-
-        richtext.printRichContainedNoWrap(CROPS_TITLE_TEXT, titleFont, titleR:get())
-        for i, tpi in ipairs(tokenPoolInfo) do
-            local gridR = tokenPoolGrid[i]
-            local x, y = gridR:getCenter()
-            love.graphics.setColor(0, 0, 0, 0.3)
-            helper.quickRoundedRectangle("fill", 2, gridR:padUnit(CELL_PADDING / 2))
-            love.graphics.setColor(1, 1, 1)
-            g.drawTokenIcon(tpi[1], x, y, 0, TOKEN_IMAGE_SCALE, TOKEN_IMAGE_SCALE)
-
-            richtext.printRich("{o}"..tpi[2].."{/o}", amountFont, gridR.x, gridR.y + gridR.h - 12, gridR.w, "right")
-        end
-    end
-end
 
 
 
@@ -718,12 +623,13 @@ end
 ---@param self HarvestScene
 function drawXpPopup(self)
     local r = Kirigami(0,0, ui.getScaledUIDimensions())
+    local hud = g.getHUD()
     iml.panel(r:get()) -- dont let mouse go below this point
 
     -- number from 0 -> 1
     local progress = math.min(1, self.timeSinceXpPopupOpened / XP_POPUP_FADE_IN_TIME)
 
-    local _, mid, _ = r:padUnit(0, 0, STATS_WIDTH, 0):splitVertical(1,8,1)
+    local _, mid, _ = r:padUnit(0, 0, hud.statsWidth, 0):splitVertical(1,8,1)
     local _,popup = mid:splitHorizontal(1,8,1)
     popup = popup:padRatio(0.1 + (1-progress))
 
@@ -767,7 +673,7 @@ function drawXpPopup(self)
         drawReward(i)
     end
 
-    drawStatsAndTokenPool(self)
+    hud:drawStatsAndTokenPool()
 
     if rewardClaimed then
         g.playUISound("xp_level_up2", 1.2, 1)
@@ -812,10 +718,6 @@ end
 local function isAnyPopupOpen(self)
     return self.xpPopup or self.upgradePopup
 end
-
-
-local STATS_PANEL_COLOR = objects.Color("#".."ffe3ae10")
-local STATS_PANEL_TEXT = "{o}"..loc("Stats", nil, {context = "area to hover to show game statistics"}).."{/o}"
 
 
 function harvest:draw()
@@ -883,32 +785,10 @@ function harvest:draw()
         xpbar=true
     })
 
-    if not g.isBeingSimulated() then
-        if sess.showTutorials.harvest then
-            local safeArea = g.getHUD():getSafeArea()
-            local tutTextR = safeArea:padRatio(0.1)
-            richtext.printRich(TUTORIAL_HARVEST, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
-        end
-
-        if not isAnyPopupOpen(self) then
-            -- Code quality not stonks 📉
-            local sidebarWithoutProfileR = hud.sidebarR:set(nil, nil, nil, select(2, hud.profileHUD:getStackTokenPos()) - 4)
-            local sidebarHoverR = Kirigami(0, 0, 72, 24)
-                :attachToBottomOf(sidebarWithoutProfileR)
-                :centerX(sidebarWithoutProfileR)
-                :moveRatio(0, -1)
-                :moveUnit(0, -12)
-
-            love.graphics.setColor(STATS_PANEL_COLOR)
-            ui.drawSingleColorPanel(sidebarHoverR:get())
-
-            love.graphics.setColor(1, 1, 1)
-            richtext.printRichContained(STATS_PANEL_TEXT, g.getSmallFont(16), sidebarHoverR:get())
-
-            if iml.isHovered(sidebarHoverR:get()) then
-                drawStatsAndTokenPool(self)
-            end
-        end
+    if not g.isBeingSimulated() and sess.showTutorials.harvest then
+        local safeArea = g.getHUD():getSafeArea()
+        local tutTextR = safeArea:padRatio(0.1)
+        richtext.printRich(TUTORIAL_HARVEST, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
     end
 
     self:_drawActiveEffects()
