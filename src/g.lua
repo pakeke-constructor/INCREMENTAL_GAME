@@ -614,7 +614,7 @@ end
 function g.getWorldEdgeLeeway()
     -- Roughly, the distance from world-island-edge to screen-edges
     -- (NOT ENTIRELY ACCURATE; ESTIMATE.)
-    return 250
+    return 150
 end
 
 
