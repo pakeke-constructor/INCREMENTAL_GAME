@@ -1027,6 +1027,7 @@ function g.addResourceFrom(tok, bundle)
 
     bundle = g.addBundles(bundle, mod)
     bundle = g.multBundles(bundle, mult)
+    bundle = g.multBundles(bundle, 1 + g.getMainWorld().combo * consts.COMBO_MULTIPLIER)
 
     g.addResources(bundle)
 
@@ -1732,8 +1733,11 @@ end
 ---@field image string
 ---@field resources g.Bundle
 ---@field timeSinceHitStart number Time since last `tryHitToken` is initiated (it's not immediately hit).
+---@field lastHitStartByPlayer boolean
 ---@field timeSinceHit number Time since `tryHitToken` actually hits the token.
+---@field lastHitByPlayer boolean
 ---@field timeSinceDamaged number
+---@field lastDamageByPlayer boolean
 ---@field timeAlive number
 ---@field drawToken (fun(tok: g.Token, x:number,y:number, rot:number?,sx:number?,sy:number?,kx:number?,ky:number?))?
 ---@field slimed boolean?
@@ -1812,6 +1816,9 @@ function g.spawnToken(tokType, x,y)
         timeSinceHitStart = 0xffffffffff,
         timeSinceHit = 0xffffffffff,
         timeSinceDamaged = 0xfffffffff,
+        lastHitStartByPlayer = false,
+        lastHitByPlayer = false,
+        lastDamageByPlayer = false,
     }, tokenMts[tokType])
     ---@cast tok g.Token
     tok.maxHealth = tabl.maxHealth * g.ask("getTokenMaxHealthMultiplier", tok)
@@ -1860,8 +1867,9 @@ end
 
 
 ---@param tok g.Token
+---@param wasPlayer boolean?
 ---@return boolean
-function g.destroyToken(tok)
+function g.destroyToken(tok, wasPlayer)
     if tok.___destroyed then
         -- already been destroyed.
         return false
@@ -1872,6 +1880,12 @@ function g.destroyToken(tok)
         g.incrementMetric(name)
     end
     g.incrementMetric("totalTokensHarvested")
+
+    if wasPlayer then
+        local world = g.getMainWorld()
+        world.combo = world.combo + 1
+        world.comboTimeout = world:_getComboDuration()
+    end
 
     g.call("tokenDestroyed", tok)
 
@@ -1935,7 +1949,8 @@ end
 
 ---@param tok g.Token
 ---@param dmg number
-function g.damageToken(tok, dmg)
+---@param wasPlayer boolean?
+function g.damageToken(tok, dmg, wasPlayer)
     if tok.health <= 0 then
         return
     end
@@ -1955,6 +1970,8 @@ function g.damageToken(tok, dmg)
 
     -- Now update tok.health
     tok.health = math.max(tok.health - dmg, 0)
+    tok.timeSinceDamaged = 0
+    tok.lastDamageByPlayer = not not wasPlayer
     g.call("tokenDamaged", tok, dmg)
 
     currentSession.mainWorld:_spawnDamageNumber(
@@ -1964,7 +1981,6 @@ function g.damageToken(tok, dmg)
         g.COLORS.DAMAGE_NUMBERS_BY_CATEGORY[tok.category] or objects.Color.WHITE
     )
 
-    tok.timeSinceDamaged = 0
 end
 
 
@@ -1982,21 +1998,25 @@ function g.isBeingHit(tok)
 end
 
 ---@param tok g.Token
-function g.tryHitToken(tok)
+---@param wasPlayer boolean?
+function g.tryHitToken(tok, wasPlayer)
     if tok.health > 0 and not g.isBeingHit(tok) then
         tok.timeSinceHitStart = 0
+        tok.lastHitStartByPlayer = not not wasPlayer
         g.call("tokenHitStart", tok)
     end
 end
 
 ---@param tok g.Token
-function g.hitImmediately(tok)
+---@param wasPlayer boolean?
+function g.hitImmediately(tok, wasPlayer)
     -- hits a token immediately; no checks, no buildup.
     local hitMult = g.ask("getTokenHitMultiplier", tok)
     tok.timeSinceHit = 0
+    tok.lastHitByPlayer = not not wasPlayer
     g.call("tokenHit", tok)
     local dmg = hitMult * g.stats.HitDamage
-    g.damageToken(tok, dmg)
+    g.damageToken(tok, dmg, wasPlayer)
 
     if love.math.random() < g.stats.CritChance then
         g.critToken(tok, dmg)

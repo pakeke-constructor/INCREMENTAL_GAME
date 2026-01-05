@@ -93,6 +93,9 @@ function World:init()
     -- decorations:
     self.lastSeenDimensions = {x=0,y=0}
     self.decorations = {}
+
+    self.combo = 0
+    self.comboTimeout = 0
 end
 
 
@@ -113,7 +116,7 @@ local function updateHarvestCircle(self, dt)
         self.tokensToHoverTime[tok] = (self.tokensToHoverTime[tok] or 0) + dt
 
         if self.tokensToHoverTime[tok] >= MIN_HOVER_TIME then
-            g.tryHitToken(tok)
+            g.tryHitToken(tok, true)
         end
     end)
 
@@ -177,12 +180,12 @@ local function updateToken(tok,dt)
     end
 
     if tok.health <= 0 then
-        g.destroyToken(tok)
+        g.destroyToken(tok, tok.lastDamageByPlayer)
         return
     end
 
     if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceHit then
-        g.hitImmediately(tok)
+        g.hitImmediately(tok, tok.lastHitStartByPlayer)
     end
 
     local ww,wh = g.getWorldDimensions()
@@ -677,6 +680,12 @@ end
 
 
 
+function World:_getComboDuration()
+    return helper.clamp(helper.remap(self.combo, 1, 100, 5, 1), 1, 5)
+end
+
+
+
 ---@param self g.World
 local function tryUpdateDecorations(self)
     local tw,th = g.getWorldTileDimensions()
@@ -1024,6 +1033,12 @@ function World:_update(dt)
                 end
             end
         end
+    end
+
+    -- Update combo
+    self.comboTimeout = math.max(self.comboTimeout - dt, 0)
+    if self.comboTimeout <= 0 then
+        self.combo = 0
     end
 
     -- Run per second update event bus on upgrades
