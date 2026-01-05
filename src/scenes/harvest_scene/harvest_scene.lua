@@ -585,7 +585,7 @@ local function drawStatsAndTokenPool(self)
         :moveRatio(-1, 0)
         :padUnit(8)
 
-    local statsR, tokensR = mainR:padUnit(8):splitVertical(1, 1)
+    local statsR, tokensR = mainR:padRatio(0.1):splitVertical(1, 1)
     local titleFont = g.getBigFont(32)
 
     love.graphics.setColor(1, 1, 1)
