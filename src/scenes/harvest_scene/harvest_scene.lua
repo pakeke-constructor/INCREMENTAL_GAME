@@ -861,6 +861,13 @@ function harvest:draw()
     end
     end
 
+    -- Combo text
+    if world.combo > 0 then
+        -- TODO: Implement
+        local mx, my = ui.getMouse()
+        love.graphics.print(world.combo.." combo ("..world.comboTimeout..")", mx, my, 0, 0.25, 0.25)
+    end
+
     ui.endUI()
 end
 
