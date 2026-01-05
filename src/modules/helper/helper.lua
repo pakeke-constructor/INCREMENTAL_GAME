@@ -546,6 +546,31 @@ end
 
 
 
+--- Returns random position on edge of rectangle
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param r number
+---@return number
+---@return number
+function helper.getRandomPositionOnEdge(x, y, w, h, r)
+    r = r or love.math.random()
+    local perimeter = 2 * (w + h)
+    local distance = r * perimeter
+    if distance < w then
+        return x + distance, y
+    elseif distance < (w + h) then
+        return x + w, y + (distance - w)
+    elseif distance < (2 * w + h) then
+        return x + w - (distance - w - h), y + h
+    else
+        return x, y + h - (distance - 2 * w - h)
+    end
+end
+
+
+
 ---@param x number
 ---@param y number
 ---@param x1 number
