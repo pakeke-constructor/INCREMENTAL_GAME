@@ -534,25 +534,27 @@ end
 
 
 
-local strTc = typecheck.assert("string")
+local defineStatTc = typecheck.assert("string", "number", "string")
 
----@type table<string, {addQuestion: string, multQuestion:string, startingValue: number}>
+---@type table<string, {addQuestion: string, multQuestion:string, startingValue: number, name: string}>
 g.VALID_STATS = {}
 
----@param name string
+---@param id string
 ---@param startingValue number
+---@param name string
 ---@return number
-function g.defineStat(name, startingValue)
-    strTc(name)
-    assert(not g.VALID_STATS[name], "Redefined stat")
-    assert(name:sub(1,1):upper() == name:sub(1,1), "Stats must have first letter capitalized")
-    local addQ = "get" .. name .. "Modifier"
+function g.defineStat(id, startingValue, name)
+    defineStatTc(id, startingValue, name)
+    assert(not g.VALID_STATS[id], "Redefined stat")
+    assert(id:sub(1,1):upper() == id:sub(1,1), "Stats must have first letter capitalized")
+    local addQ = "get" .. id .. "Modifier"
     g.defineQuestion(addQ, reducers.ADD, 0)
-    local multQ = "get" .. name .. "Multiplier"
+    local multQ = "get" .. id .. "Multiplier"
     g.defineQuestion(multQ, reducers.MULTIPLY, 1)
-    g.VALID_STATS[name]={
+    g.VALID_STATS[id]={
         addQuestion = addQ, multQuestion = multQ,
-        startingValue = startingValue
+        startingValue = startingValue,
+        name = name and loc(name, nil, {context = "A stats"}) or id,
     }
     return 0
 end
@@ -569,22 +571,22 @@ g.stats = {}
 
 -- SSTATS 
 -- (if you ever want to quickly search the name of stats, search "sstats")
-g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
-g.stats.HitDamage = g.defineStat("HitDamage", 1)
-g.stats.HarvestArea = g.defineStat("HarvestArea", 15)
-g.stats.ResourceMultiplier = g.defineStat("ResourceMultiplier", 1)
-g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 2) -- rad/s
-g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1)
-g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 40)
-g.stats.AutoCatRadiusMultiplier = g.defineStat("AutoCatRadiusMultiplier", 1)
-g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1)
-g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3)
-g.stats.CritChance = g.defineStat("CritChance", 0) -- should start at 0
-g.stats.CritDamageMultiplier = g.defineStat("CritDamageMultiplier", 10)
-g.stats.KnifeDamage = g.defineStat("KnifeDamage", 1)
+g.stats.HitSpeed = g.defineStat("HitSpeed", 5, "Hit Speed")
+g.stats.HitDamage = g.defineStat("HitDamage", 1, "Hit Damage")
+g.stats.HarvestArea = g.defineStat("HarvestArea", 15, "Harvest Area")
+g.stats.ResourceMultiplier = g.defineStat("ResourceMultiplier", 1, "Resource Gain Multiplier")
+g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 2, "Entity Orbit Speed") -- rad/s
+g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1, "XP Gain Multiplier")
+g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 40, "Farmer Cats Move Speed")
+g.stats.AutoCatRadiusMultiplier = g.defineStat("AutoCatRadiusMultiplier", 1, "Farmer Cats Harvest Area")
+g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1, "Lightninig Damage Multiplier")
+g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3, "Crop Respawn Time")
+g.stats.CritChance = g.defineStat("CritChance", 0, "Critical Hit Chance") -- should start at 0
+g.stats.CritDamageMultiplier = g.defineStat("CritDamageMultiplier", 10, "Crirical Damage Multiplier")
+g.stats.KnifeDamage = g.defineStat("KnifeDamage", 1, "Knife Damage")
 
 -- World stat
-g.stats.WorldTileSize = g.defineStat("WorldTileSize", 20)
+g.stats.WorldTileSize = g.defineStat("WorldTileSize", 20, "World Size")
 
 -- OLD CODE:
 -- g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 20)
@@ -726,6 +728,7 @@ end
 ---@field public image string
 ---@field public color [number, number, number, number?] Used by resource HUD
 ---@field public startingLimit number?
+---@field public limitStatName string
 
 ---@type g.ResourceType[]
 g.RESOURCE_LIST = {}
@@ -738,7 +741,7 @@ local RESOURCES = {}
 ---@param tabl g._ResourceDefinition
 function g.defineResource(resId, tabl)
     RESOURCES[resId] = tabl
-    g.defineStat(tabl.limitStat, tabl.startingLimit or 100)
+    g.defineStat(tabl.limitStat, tabl.startingLimit or 100, tabl.limitStatName)
     table.insert(g.RESOURCE_LIST, resId)
     richtext.defineImage(tabl.image, g.getAtlas(), g.getImageQuad(tabl.image))
 end
@@ -747,27 +750,32 @@ end
 g.defineResource("money", {
     image="money",
     limitStat="MoneyLimit",
+    limitStatName="Money Limit",
     startingLimit=1000,
     color = {0.71, 0.55, 0.02},
 })
 g.defineResource("juice", {
     image="juice",
     limitStat="JuiceLimit",
+    limitStatName="Juice Limit",
     color=objects.Color("#".."FF8A2E59")
 })
 g.defineResource("fabric", {
     image="fabric",
     limitStat="FabricLimit",
+    limitStatName="Fabric Limit",
     color=objects.Color("#".."FFF353FB")
 })
 g.defineResource("bread", {
     image="bread",
     limitStat="BreadLimit",
+    limitStatName="Bread Limit",
     color=objects.Color("#".."FFB78652")
 })
 g.defineResource("fish", {
     image="fish",
     limitStat="FishLimit",
+    limitStatName="Fish Limit",
     color=objects.Color("#".."FF305FCD")
 })
 
