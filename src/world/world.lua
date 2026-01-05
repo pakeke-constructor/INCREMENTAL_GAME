@@ -566,6 +566,12 @@ function TokenPool:init()
     self.tokens = {}
 end
 
+if false then
+    ---@return g.TokenPool
+    ---@diagnostic disable-next-line: cast-local-type, missing-return
+    function TokenPool() end
+end
+
 function TokenPool:add(tokenId, amount)
     self.tokens[tokenId] = (self.tokens[tokenId] or 0) + (amount or 1)
 end
