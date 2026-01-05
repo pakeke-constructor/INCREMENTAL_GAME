@@ -566,8 +566,8 @@ end
 
 
 local STATS_TO_SHOW = {"HitSpeed", "HitDamage", "HarvestArea"}
-local STATS_TITLE_TEXT = "{o}"..loc("Stats").."{/o}"
-local CROPS_TITLE_TEXT = "{o}"..loc("Crop List").."{/o}"
+local STATS_TITLE_TEXT = "{o thickness=2}"..loc("Stats").."{/o}"
+local CROPS_TITLE_TEXT = "{o thickness=2}"..loc("Crop List").."{/o}"
 local TOKEN_IMAGE_SCALE = 1
 local STATS_WIDTH = 200
 
