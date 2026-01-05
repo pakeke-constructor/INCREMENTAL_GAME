@@ -551,7 +551,7 @@ end
 ---@param y number
 ---@param w number
 ---@param h number
----@param r number
+---@param r number?
 ---@return number
 ---@return number
 function helper.getRandomPositionOnEdge(x, y, w, h, r)

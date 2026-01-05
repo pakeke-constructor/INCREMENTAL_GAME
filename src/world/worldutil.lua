@@ -449,4 +449,39 @@ end
 
 
 
+-- worldutil.initializeFlyingTokenWithPos(tok, duration)
+do
+local SAMPLES = 3
+
+---@param tok g.Token
+---@param duration number How long it takes to travel across world.
+function worldutil.initializeFlyingTokenWithPos(tok, duration)
+    local x, y = tok.x, tok.y
+
+    local ww, hh = g.getWorldDimensions()
+
+    -- Sample X random points on world perimeter, keep the furthest.
+    -- (This ensures token doesnt just spawn, then travel off-screen)
+    local targetX, targetY
+    local bestDist = 0
+
+    for _ = 1, SAMPLES do
+        local tx, ty = helper.getRandomPositionOnEdge(0, 0, ww, hh)
+        local dist = math.sqrt((tx - x)^2 + (ty - y)^2)
+        if dist > bestDist then
+            bestDist = dist
+            targetX, targetY = tx, ty
+        end
+    end
+    -- Calculate velocity to reach target in given duration
+    local vx = (targetX - x) / duration
+    local vy = (targetY - y) / duration
+    tok.flight = {
+        vx = vx, vy = vy
+    }
+end
+
+end
+
+
 return worldutil

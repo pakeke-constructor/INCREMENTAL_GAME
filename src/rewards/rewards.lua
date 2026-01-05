@@ -307,6 +307,7 @@ local function generateStackedChestToken(resId)
             tok.resources = {
                 [resId] = resAmount
             }
+            worldutil.initializeFlyingTokenWithPos(tok, 8 + love.math.random()*3)
         end,
         token = g.getTokenInfo("chest_"..resId),
         count = math.floor(math.random(8, 20) / 2) * 2,
@@ -331,6 +332,9 @@ local function generateStackedGenericToken(toktype, count, desc)
         description = desc,
         count = count,
         icon = tokinfo.image,
+        spawnFunc = function (tok)
+            worldutil.initializeFlyingTokenWithPos(tok, 8 + love.math.random()*3)
+        end
     }
     return assertRewardIsValid(rew)
 end
@@ -345,6 +349,8 @@ local HORDE = {
 function generateStackedTokenReward()
     local lv = g.getSn().level
     -- IDEA: spawn stackedToken bombs here?
+
+    do return generateStackedChestToken(getRandomUnlockedResource()) end
 
     -- IDEALLY, it should be stuff that is scaling-agnostic
     if love.math.random() < 0.4 then
