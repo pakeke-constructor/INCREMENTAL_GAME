@@ -122,21 +122,27 @@ local function updateHarvestCircle(self, dt)
 end
 
 
+
+---@param x number
+---@param y number
 function World:_enableMouseHarvester(x,y)
     self.mouseX = x
     self.mouseY = y
 end
 
+function World:_disableMouseHarvester()
+    -- disables mouse harvester
+    -- (e.g. if we are in upgrade-scene, or rewards open)
+    self.mouseX = nil
+    self.mouseY = nil
+end
+
 
 function World:_isPlayerCurrentlyHarvesting()
-    -- HACK:
     -- when the player's mouse-harvester is off-screen,
-    -- (Eg when the player isnt in the scene, or when a popup is open,)
     -- we say that the player isn't harvesting.
-    if not self.mouseX then
-        return false
-    end
-    return (self.mouseX > -100)
+    -- (Eg when the player isnt in the scene, or when a popup is open,)
+    return not not (self.mouseX and self.mouseY)
 end
 
 

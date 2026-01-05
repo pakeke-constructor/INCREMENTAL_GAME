@@ -731,7 +731,7 @@ function harvest:draw()
     local world = g.getMainWorld()
 
     if isAnyPopupOpen(self) then
-        world:_enableMouseHarvester()
+        world:_disableMouseHarvester()
     elseif not g.isBeingSimulated() then
         local cx,cy = self.camera:toWorld(love.mouse.getPosition())
         world:_enableMouseHarvester(cx,cy)
