@@ -814,6 +814,10 @@ local function isAnyPopupOpen(self)
 end
 
 
+local STATS_PANEL_COLOR = objects.Color("#".."ffe3ae10")
+local STATS_PANEL_TEXT = "{o}"..loc("Stats", nil, {context = "area to hover to show game statistics"}).."{/o}"
+
+
 function harvest:draw()
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
@@ -874,14 +878,37 @@ function harvest:draw()
     end
     lg.setColor(1,1,1)
     xpParticles:draw()
-    g.getHUD():draw({
+    local hud = g.getHUD()
+    hud:draw({
         xpbar=true
     })
 
-    if not g.isBeingSimulated() and sess.showTutorials.harvest then
-        local safeArea = g.getHUD():getSafeArea()
-        local tutTextR = safeArea:padRatio(0.1)
-        richtext.printRich(TUTORIAL_HARVEST, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+    if not g.isBeingSimulated() then
+        if sess.showTutorials.harvest then
+            local safeArea = g.getHUD():getSafeArea()
+            local tutTextR = safeArea:padRatio(0.1)
+            richtext.printRich(TUTORIAL_HARVEST, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+        end
+
+        if not isAnyPopupOpen(self) then
+            -- Code quality not stonks 📉
+            local sidebarWithoutProfileR = hud.sidebarR:set(nil, nil, nil, select(2, hud.profileHUD:getStackTokenPos()) - 4)
+            local sidebarHoverR = Kirigami(0, 0, 72, 24)
+                :attachToBottomOf(sidebarWithoutProfileR)
+                :centerX(sidebarWithoutProfileR)
+                :moveRatio(0, -1)
+                :moveUnit(0, -12)
+
+            love.graphics.setColor(STATS_PANEL_COLOR)
+            ui.drawSingleColorPanel(sidebarHoverR:get())
+
+            love.graphics.setColor(1, 1, 1)
+            richtext.printRichContained(STATS_PANEL_TEXT, g.getSmallFont(16), sidebarHoverR:get())
+
+            if iml.isHovered(sidebarHoverR:get()) then
+                drawStatsAndTokenPool(self)
+            end
+        end
     end
 
     self:_drawActiveEffects()
