@@ -286,10 +286,11 @@ local function clampCameraToMap(camera, mapX, mapY, mapW, mapH, ttgt)
     local transitionScale = 1
     if ttgt then
         local t = 1 - math.abs(1 - helper.clamp(ttgt.time / ttgt.duration, 0, 1) * 2)
-        transitionT = t--helper.EASINGS.sineOut(t)
-        posX = helper.lerp(posX, ttgt.x, transitionT)
-        posY = helper.lerp(posY, ttgt.y, transitionT)
-        transitionScale = helper.lerp(1, TRANSITION_SCALE, transitionT)
+        local tt = helper.EASINGS.easeInCubic(t)
+        local tt2 = helper.EASINGS.sineIn(t)
+        posX = helper.lerp(posX, ttgt.x, tt2)
+        posY = helper.lerp(posY, ttgt.y, tt2)
+        transitionScale = helper.lerp(1, TRANSITION_SCALE, tt)
     end
     camera:setPos(posX, posY)
 
