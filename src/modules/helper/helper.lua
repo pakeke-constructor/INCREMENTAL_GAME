@@ -505,4 +505,62 @@ end
 
 
 
+-- helper.drawWings
+do
+
+local WING_FLAP_SPEED = 3
+
+local WING_ROT_OFFSET = -0.4
+local WING_ROTATION = math.pi / 2
+
+---@param x number
+---@param y number
+---@param time number
+---@param wingImage string?
+---@param scale number?
+function helper.drawWings(x,y, time, wingImage, scale)
+    wingImage = wingImage or "wing_visual"
+    scale=scale or 1
+    love.graphics.push("all")
+    local t = time * WING_FLAP_SPEED
+    local dy = 5 * math.sin(t + 0.5)
+    local r = WING_ROTATION * ((math.sin(t) + 1)/2) + WING_ROT_OFFSET
+    local offset = 10
+    -- if imageShadow then
+    --     love.graphics.setColor(0,0,0, 0.4)
+    --     g.drawImage(wingImage, x + offset + o, y + dy + o, r, sx,sy, kx,ky)
+    --     g.drawImage(wingImage, x - offset - o, y + dy + o, -r, sx*-1,sy, kx,ky)
+    -- end
+
+    love.graphics.setColor(1,1,1)
+    g.drawImage(wingImage, x + offset, y + dy, r, scale,scale)
+    g.drawImage(wingImage, x - offset, y + dy, -r, -scale,scale)
+
+    love.graphics.pop()
+end
+
+end
+
+
+
+
+
+
+---@param x number
+---@param y number
+---@param x1 number
+---@param y1 number
+---@param w1 number
+---@param h1 number
+---@param leeway number?
+---@return boolean
+function helper.isInsideRect(x, y, x1, y1, w1, h1, leeway)
+    leeway = leeway or 0
+    local xOk = x >= (x1 - leeway) and x <= (x1 + w1 + leeway)
+    local yOk = y >= (y1 - leeway) and y <= (y1 + h1 + leeway)
+    return xOk and yOk
+end
+
+
+
 return helper

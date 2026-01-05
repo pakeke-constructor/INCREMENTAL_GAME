@@ -610,6 +610,13 @@ function g.getWorldDimensions()
     return w, h
 end
 
+---@return number
+function g.getWorldEdgeLeeway()
+    -- Roughly, the distance from world-island-edge to screen-edges
+    -- (NOT ENTIRELY ACCURATE; ESTIMATE.)
+    return 250
+end
+
 
 
 ---@alias g.ResourceType "money"|"fabric"|"bread"|"juice"|"fish"
@@ -662,6 +669,7 @@ local g_UpgradeDefinition = {}
 ---@field image string?
 ---@field maxLevel integer?
 ---@field growths {stalk:string,growth:string}?
+---@field flight {vx:number,vy:number}?
 ---@field description string?
 ---@field particles string?
 ---@field category g.Category?
@@ -1809,6 +1817,37 @@ function g.spawnToken(tokType, x,y)
 end
 
 
+
+
+-- difference between delete/destroy:
+--[[
+Destroy = delete + earn resources, particles, etc.
+Delete = delete instantly. Nothing else.
+]]
+
+---@param tok g.Token
+---@return boolean
+function g.deleteToken(tok)
+    local w = g.getMainWorld()
+    if tok.___destroyed then
+        return false -- already been destroyed.
+    end
+    tok.___destroyed = true
+
+    if tok.wasSpawnedViaTokenPool then
+        -- if it was spawned via token-pool, then we should record its destroyTime!
+        --  (this way, world.lua will spawn it back in future)
+        if not w.tokenDestroyTime[tok.type] then
+            w.tokenDestroyTime[tok.type] = {}
+        end
+        table.insert(w.tokenDestroyTime[tok.type], g.getWorldTime())
+    end
+
+    w.tokens:removeBuffered(tok)
+    return true
+end
+
+
 ---@param tok g.Token
 ---@return boolean
 function g.destroyToken(tok)
@@ -1816,7 +1855,6 @@ function g.destroyToken(tok)
         -- already been destroyed.
         return false
     end
-    tok.___destroyed = true
 
     if tok.category then
         local name = "totalCategoryHarvested_"..tok.category
@@ -1824,7 +1862,6 @@ function g.destroyToken(tok)
     end
     g.incrementMetric("totalTokensHarvested")
 
-    local w = g.getMainWorld()
     g.call("tokenDestroyed", tok)
 
     g.addResourceFrom(tok, tok.resources)
@@ -1842,16 +1879,7 @@ function g.destroyToken(tok)
         end
     end
 
-    if tok.wasSpawnedViaTokenPool then
-        -- if it was spawned via token-pool, then we should record its destroyTime!
-        --  (this way, world.lua will spawn it back in future)
-        if not w.tokenDestroyTime[tok.type] then
-            w.tokenDestroyTime[tok.type] = {}
-        end
-        table.insert(w.tokenDestroyTime[tok.type], g.getWorldTime())
-    end
-
-    w.tokens:removeBuffered(tok)
+    g.deleteToken(tok)
 
     local cate = tok.category
     -- g.playWorldSound("plop_on_destroy_1", 1.2,2.7, 0.3, 0.4)

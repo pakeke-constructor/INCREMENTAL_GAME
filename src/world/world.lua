@@ -163,6 +163,12 @@ local function updateToken(tok,dt)
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
     tok.timeSinceHit = tok.timeSinceHit + dt
 
+    if tok.flight then
+        local vx,vy = tok.flight.vx, tok.flight.vy
+        tok.x = tok.x + vx*dt
+        tok.y = tok.y + vy*dt
+    end
+
     if tok.update then
         tok:update(dt)
     end
@@ -177,11 +183,15 @@ local function updateToken(tok,dt)
     end
 
     local ww,wh = g.getWorldDimensions()
-    local outOfBounds = (tok.x < 0 or tok.x > ww) or (tok.y<0 or tok.y>wh)
-    if outOfBounds then
+    local leeway = 0
+    if tok.flight then
+        leeway = 200
+    end
+    local outOfBounds = not helper.isInsideRect(tok.x,tok.y, 0,0,ww,wh, leeway)
+    if outOfBounds and (not tok.flight) then
         -- token is out of bounds; destroy.
         -- (prevents softlocks when world-dimensions decrease)
-        g.destroyToken(tok)
+        g.deleteToken(tok)
     end
 end
 
@@ -325,6 +335,13 @@ local function drawToken(tok)
     love.graphics.setColor(1,1,1)
     if tok.drawBelow then
         tok:drawBelow()
+    end
+
+    if tok.flight then
+        -- draw wings
+        local flapSpeed = ((tok.id%6 + 8) / 8)
+        local t = love.timer.getTime()*flapSpeed + tok.id*71.23324
+        helper.drawWings(tok.x, tok.y, t)
     end
 
     love.graphics.setColor(1,1,1)

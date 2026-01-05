@@ -404,7 +404,45 @@ function worldutil.spawnKnife(x, y, rot, leeway)
 end
 
 
+---@param tok g.Token
+---@param duration number
+function worldutil.initializeFlyingToken(tok, duration)
+    local r=love.math.random
 
+    local leeway = g.getWorldEdgeLeeway()
+    local ww,hh = g.getWorldDimensions()
+    local cx,cy = ww/2,hh/2
+
+    local x1,y1,x2,y2 = -leeway,-leeway, ww+leeway, hh+leeway
+
+    local isVert = r()<0.3--higher chance to move horizontal
+
+    local tokX,tokY = 0,0
+
+    local b = r()<0.5
+    if isVert then
+        tokX,tokY = (b and x1 or x2), helper.lerp(y1,y2, r())
+    else
+        tokX, tokY = helper.lerp(x1, x2, r()), (b and y1 or y2)
+    end
+
+    local wR = ww/6
+    local hR = hh/6
+    local cxR = cx + helper.lerp(-wR,wR, r())
+    local cyR = cy + helper.lerp(-hR,hR, r())
+    local dx,dy = (cxR-tokX), (cyR-tokY)
+
+    local speed = (isVert and hh or ww) / duration
+    local dist = math.sqrt(dx*dx + dy*dy)
+    local vx = (dx / dist) * speed
+    local vy = (dy / dist) * speed
+
+    tok.x = tokX
+    tok.y = tokY
+    tok.flight = {
+        vx = vx, vy = vy
+    }
+end
 
 
 
