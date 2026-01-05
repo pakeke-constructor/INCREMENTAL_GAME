@@ -945,7 +945,7 @@ function harvest:keyreleased(k)
     elseif consts.DEV_MODE then
         if k=="1" then
             local t = g.spawnToken("grass_4", 10,10)
-            worldutil.initializeFlyingToken(t, 4)
+            worldutil.initializeFlyingToken(t, 1)
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do

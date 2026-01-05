@@ -404,7 +404,6 @@ function worldutil.spawnKnife(x, y, rot, leeway)
 end
 
 
-
 ---@param tok g.Token
 ---@param duration number How long it takes to travel across world.
 function worldutil.initializeFlyingToken(tok, duration)
@@ -417,24 +416,29 @@ function worldutil.initializeFlyingToken(tok, duration)
 
     local tokX,tokY, endX, endY
 
-    local wdx,wdy = 0,0
     if isVert then
         local startY = helper.lerp(0.1*hh, 0.9*hh, r())
         local worldEndY = helper.lerp(0.1*hh, 0.9*hh, r())
         tokX, tokY = (r()<0.5 and -leeway or ww+leeway), startY
         endX, endY = (tokX < 0 and ww+leeway or -leeway), worldEndY
-        local wendX = helper.clamp(endX, 0, ww)
-        wdx,wdy = (wendX-helper.clamp(tokX, 0, ww)), (worldEndY-startY)
     else
         local startX = helper.lerp(0.1*ww, 0.9*ww, r())
         local worldEndX = helper.lerp(0.1*ww, 0.9*ww, r())
         tokX, tokY = startX, (r()<0.5 and -leeway or hh+leeway)
         endX, endY = worldEndX, (tokY < 0 and hh+leeway or -leeway)
-        local wendY = helper.clamp(endY, 0, hh)
-        wdx,wdy = (worldEndX-startX), (wendY-helper.clamp(tokY, 0, hh))
     end
 
-    local vx, vy = wdx / duration, wdy / duration
+    -- Total distance the token travels
+    local dx, dy = endX - tokX, endY - tokY
+    -- Distance across the primary world dimension
+    local worldDist = isVert and ww or hh
+    -- Speed to cross world dimension in 'duration' time
+    local speed = worldDist / duration
+    -- Total path length
+    local pathLength = math.sqrt(dx*dx + dy*dy)
+    -- Time to travel the full path at this speed
+    local totalTime = pathLength / speed
+    local vx, vy = dx / totalTime, dy / totalTime
 
     tok.x = tokX
     tok.y = tokY
@@ -442,7 +446,6 @@ function worldutil.initializeFlyingToken(tok, duration)
         vx = vx, vy = vy
     }
 end
-
 
 
 
