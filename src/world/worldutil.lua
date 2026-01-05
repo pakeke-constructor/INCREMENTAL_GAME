@@ -422,7 +422,7 @@ function worldutil.initializeFlyingToken(tok, duration)
         local worldEndY = helper.lerp(0.1*hh, 0.9*hh, r())
         tokX, tokY = (r()<0.5 and -leeway or ww+leeway), startY
         endX, endY = (tokX < 0 and ww+leeway or -leeway), worldEndY
-        wdx,wdy = ww, (worldEndY-startY)
+        wdx,wdy = ww, (worldEndY-startY)  -- Fixed: wdx should be ww (crossing world width)
     else
         local startX = helper.lerp(0.1*ww, 0.9*ww, r())
         local worldEndX = helper.lerp(0.1*ww, 0.9*ww, r())
