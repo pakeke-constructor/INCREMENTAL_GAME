@@ -347,8 +347,7 @@ function generateStackedTokenReward()
     -- IDEA: spawn stackedToken bombs here?
 
     -- IDEALLY, it should be stuff that is scaling-agnostic
-
-    if love.math.random() < 1 then--0.4 then
+    if love.math.random() < 0.4 then
         local h = helper.randomChoice(HORDE)
         return generateStackedGenericToken(h[1], 10, h.desc)
     end
@@ -608,7 +607,7 @@ function rewards.selectReward(rew)
         for _=1, rew.count do
             local w,h = ui.getScaledUIDimensions()
             local sx,sy = w/2 + love.math.random(-100,100), h/2 + love.math.random(-100,100)
-            g.stackToken(rew.token.type, sx,sy)
+            g.stackToken(rew.token.type, sx,sy, rew.spawnFunc)
         end
     elseif rew.type == "permanent" then
         ---@cast rew g.PermanentReward
