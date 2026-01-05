@@ -1073,6 +1073,8 @@ end
 
 function harvest:leave(k)
     closeUpgradePopup(self)
+    local w = g.getMainWorld()
+    w:_disableMouseHarvester()
 end
 
 

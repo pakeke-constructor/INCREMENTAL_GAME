@@ -142,7 +142,7 @@ function World:_isPlayerCurrentlyHarvesting()
     -- when the player's mouse-harvester is off-screen,
     -- we say that the player isn't harvesting.
     -- (Eg when the player isnt in the scene, or when a popup is open,)
-    return not not (self.mouseX and self.mouseY)
+    return not not self.mouseX
 end
 
 
@@ -724,6 +724,12 @@ end
 
 
 
+---@param tok g.Token
+---@param isPlayerCurrentlyHarvesting boolean
+local function shouldIncludeToken(tok, isPlayerCurrentlyHarvesting)
+    return isPlayerCurrentlyHarvesting or (not tok.flight)
+end
+
 ---@param dt number
 function World:_update(dt)
     tryUpdateDecorations(self)
@@ -759,10 +765,14 @@ function World:_update(dt)
     g.call("depopulateTokenPool", tp)
     self.tokenPool = tp
 
+    local isPlayerCurrentlyHarvesting = self:_isPlayerCurrentlyHarvesting()
+
     self.tokenPartition:clear()
     for _, t in ipairs(self.tokens) do
-        ---@cast t g.Token
-        self.tokenPartition:add(t, t.x,t.y)
+        -- dont include flying tokens when player isnt there.
+        if shouldIncludeToken(t, isPlayerCurrentlyHarvesting) then
+            self.tokenPartition:add(t, t.x,t.y)
+        end
     end
     self:_updateTokenCount()
 
@@ -783,7 +793,9 @@ function World:_update(dt)
 
     -- Update token
     for _, tok in ipairs(self.tokens) do
-        updateToken(tok,dt)
+        if shouldIncludeToken(tok, isPlayerCurrentlyHarvesting) then
+            updateToken(tok, dt)
+        end
     end
 
     local tree = g.getUpgTree()
@@ -1021,7 +1033,9 @@ function World:_update(dt)
 
         for _, tok in ipairs(self.tokens) do
             if tok.perSecondUpdate then
-                tok:perSecondUpdate(self.seconds)
+                if shouldIncludeToken(tok, isPlayerCurrentlyHarvesting) then
+                    tok:perSecondUpdate(self.seconds)
+                end
             end
         end
 

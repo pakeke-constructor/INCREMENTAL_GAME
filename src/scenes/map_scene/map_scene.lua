@@ -559,6 +559,9 @@ function map:update(dt)
         self.queuedTransitionTargetScene = nil
         g.playUISound("map_zoom_woosh3",1,0.4)
     end
+
+    local w = g.getMainWorld()
+    w:_disableMouseHarvester()
 end
 
 
