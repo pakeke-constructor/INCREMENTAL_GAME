@@ -563,4 +563,15 @@ end
 
 
 
+---Avoids doing `do local x,y,w,h=reg:get() lg.rectangle(mode,x,y,w,h,radius,radius) end`
+---@param mode love.DrawMode
+---@param radius number
+---@param reg kirigami.Region
+function helper.quickRoundedRectangle(mode, radius, reg)
+    local x, y, w, h = reg:get()
+    return love.graphics.rectangle(mode, x, y, w, h, radius, radius)
+end
+
+
+
 return helper
