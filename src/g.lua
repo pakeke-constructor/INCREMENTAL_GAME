@@ -2125,11 +2125,26 @@ local VALID_BOSSES = {}
 ---@type table<integer, g.TokenInfo>
 local PRESTIGE_TO_BOSS = {}
 
+
+---@param tok g.Token
+---@param prestige integer
+local function killBoss(tok, prestige)
+    -- boss has been SLAIN;
+    -- => increase prestige
+    -- => create popup (harvestScene)
+    if g.getPrestige()~=prestige then
+        log.error("wat??")
+        return -- wtf? what happened here?
+    end
+    
+end
+
 ---@param id string
 ---@param prestige integer
 ---@param def g.TokenDefinition
 function g.defineBoss(id, prestige, def)
     def.bossfight = {prestige=prestige}
+    def.tokenDestroyed = killBoss
     g.defineToken(id, "boss " .. prestige, def)
     PRESTIGE_TO_BOSS[prestige] = g.getTokenInfo(id)
     VALID_BOSSES[id] = true

@@ -23,19 +23,13 @@ local pworld = particles.newParticlesWorld({
     drawParticle = function (p)
         local lt = p.lifetime
         local ox = math.sin(lt*3)*4
-        
-        -- Dark purple color
         lg.setColor(0.4, 0.1, 0.5)
-        
-        -- Shrink as particle ages
         local scale = 1 - (lt / PARTICLE_LIFETIME)
-        
         if p.id % 2 == 0 then
             g.drawImage("pixel_circle_r16", p.x+ox, p.y-lt*5, 0, scale, scale)
         else
             g.drawImage("pixel_circle_r9", p.x+ox, p.y-lt*5, 0, scale, scale)
         end
-        
         lg.setColor(1, 1, 1, 1)
     end,
 
@@ -44,7 +38,8 @@ local pworld = particles.newParticlesWorld({
     end,
 })
 
--- Particle spawn parameters
+
+
 local PARTICLE_SPAWN_RADIUS = 30
 local PARTICLE_VY_MIN = -60
 local PARTICLE_VY_MAX = -100
@@ -81,3 +76,4 @@ g.defineBoss("pumpkin_boss", 0, {
         pworld:draw()
     end
 })
+
