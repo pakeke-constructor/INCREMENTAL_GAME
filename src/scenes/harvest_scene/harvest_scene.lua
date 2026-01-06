@@ -838,7 +838,7 @@ end
 ---@param self HarvestScene
 local function drawComboVisual(self)
     local world = g.getMainWorld()
-    local mx, my = self.camera:toWorld(love.mouse.getPosition())
+    local mx, my = ui.getMouse()
 
     local mul = "x"..tostring(math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100)
     local font = g.getSmallFont(16)
@@ -847,10 +847,12 @@ local function drawComboVisual(self)
     local ratio = world.comboTimeout / combodur
     local ratioScale = math.min(1, helper.remap(ratio, 1,0, 2,0.3))
     local joltScale = math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.4, 1), 1)
-    local scale = ratioScale*joltScale
+    local scale = ratioScale*joltScale*1.5
 
-    -- Draw progress bar
-    local ha = g.stats.HarvestArea
+    -- ha = harvestArea scaled to UI
+    local uis = ui.getUIScaling()
+    local ha = g.stats.HarvestArea * self.camera:getZoom() / uis
+
 
     local mulTxt = "{o}"..mul.."{/o}"
     local w = richtext.getWidth("x1.11", font)
@@ -858,20 +860,30 @@ local function drawComboVisual(self)
 
     -- Calculate bar dimensions
     local barWidth = w * scale
-    local barHeight = 4
+    local barHeight = 7
     local barX = mx - barWidth / 2
-    local barY = my - ha - h * scale - barHeight - 6
+    local barY = my - ha - h * scale - barHeight - 6*scale
 
     -- Draw progress bar background
-    love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
-    love.graphics.rectangle("fill", barX, barY, barWidth, barHeight)
+    lg.setColor(0.2, 0.2, 0.2, 0.8)
+    lg.rectangle("fill", barX, barY, barWidth, barHeight)
+    lg.setColor(0,0,0)
+    lg.setLineWidth(2)
+    lg.rectangle("line", barX, barY, barWidth, barHeight)
 
     -- Draw progress bar fill
-    love.graphics.setColor(1, 0.8, 0.2)
-    love.graphics.rectangle("fill", barX, barY, barWidth * ratio, barHeight)
+    if ratio < 0.3 then
+        lg.setColor(1, 0.3, 0.1)
+    elseif ratio < 0.6 then
+        lg.setColor(0.6, 0.5, 0.2)
+    else
+        lg.setColor(0.2, 0.8, 0.2)
+    end
+    local rr = Kirigami(barX, barY, barWidth * ratio, barHeight)
+    lg.rectangle("fill", rr:padUnit(1):get())
 
     -- Draw text
-    love.graphics.setColor(1, 1, 1)
+    lg.setColor(1, 1, 1)
     richtext.printRich(
         mulTxt, font,
         mx, my-ha,
@@ -913,10 +925,6 @@ function harvest:draw()
     end
 
     world:_draw()
-
-    if world.combo > 2 and not isAnyPopupOpen(self) then
-        drawComboVisual(self)
-    end
 
     local sess = g.getSn()
 
@@ -965,6 +973,10 @@ function harvest:draw()
         drawXpPopup(self)
     elseif self.upgradePopup then
         drawUpgradePopup(self)
+    end
+
+    if world.combo > 2 and not isAnyPopupOpen(self) then
+        drawComboVisual(self)
     end
 
     -- show stats in dev-mode
