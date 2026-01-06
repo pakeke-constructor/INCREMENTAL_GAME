@@ -59,6 +59,9 @@ function harvest:init()
     self.xpPopup = false
     self.xpRewards = {}
 
+    self.timeSinceBossPopupOpened = 0
+    self.bossPopup = false
+
     self.timeSinceUpgradePopupOpened = 0
     self.upgradePopup = false
 
@@ -539,6 +542,17 @@ end
 
 
 
+local function openBossPopup(self)
+    -- call this when a boss is killed.
+    self.bossPopup = true
+    self.timeSinceBossPopupOpened = 0
+end
+
+
+
+
+
+
 ---@return boolean
 local function canAffordAnyUpgrades()
     local tree = g.getUpgTree()
@@ -556,8 +570,7 @@ local function closeXpPopup(self)
     self.timeSinceXpPopupOpened = 0
     self.timeTakenThisLevel = 0
     local sn = g.getSn()
-    sn.xp = 0
-    sn.level = sn.level + 1
+    sn:levelUp()
     if canAffordAnyUpgrades() then
         openUpgradePopup(self)
     end
@@ -569,6 +582,78 @@ local function getResourceMultiplierFromCombo()
 end
 
 
+
+local drawBossPopup
+do
+
+local BOSS_SLAIN = loc("{wavy}{o}Boss has been slain!")
+local PRESTIGE_COMPLETE_N = interp("{o}{c r=0.2 g=0.9 b=0.6}Prestige {n} completed.")
+local PROGRESS_RESET = loc("{o}By progressing, ALL upgrades are reset.")
+local OK_TEXT = loc("{o}Prestige!",nil,{
+    context="As in, a button that progresses to the next level/prestige."
+})
+
+local BOSS_POPUP_FADE_IN_TIME = 0.7
+
+
+---@param self HarvestScene
+function drawBossPopup(self)
+    local r = ui.getScreenRegion()
+    iml.panel(r:get()) -- dont let mouse go below this point
+
+    -- number from 0 -> 1
+    local progress = math.min(1, self.timeSinceBossPopupOpened / BOSS_POPUP_FADE_IN_TIME)
+
+    local _, mid, _ = r:splitVertical(1,8,1)
+    local _,popup = mid:splitHorizontal(1,8,1)
+    popup = popup:padRatio(0.1 + (1-progress))
+
+    drawFancyBackgroundShit(progress, mid:getCenter())
+
+    local panelArea, buttonArea = popup:splitVertical(3, 1)
+    panelArea = panelArea:padRatio(0.2)
+    buttonArea = buttonArea:padRatio(0.5, 0.3, 0.5, 0.3)
+
+    lg.setColor(1,1,1)
+    local col1 = objects.Color("#".."FF1F0252")
+    local col2 = objects.Color("#".."FF08012C")
+    helper.gradientRect("horizontal", col1, col2, panelArea:get())
+    ui.drawPanel(panelArea:get())
+
+    local bossSlainTxt, prestigeCompleteTxt, progressResetTxt = panelArea
+        :padRatio(0.2)
+        :splitVertical(1,1,1)
+
+    love.graphics.setColor(1, 1, 1)
+    local prestige = g.getPrestige()
+    local f = g.getSmallFont(16)
+    richtext.printRichContained(BOSS_SLAIN, f, bossSlainTxt:get())
+    richtext.printRichContained(PRESTIGE_COMPLETE_N({n=prestige}), f, prestigeCompleteTxt:get())
+    richtext.printRichContained(PROGRESS_RESET, f, progressResetTxt:get())
+
+    if iml.wasJustHovered(buttonArea:get()) then
+        g.playUISound("ui_tick", 1.6, 0.65, 0, 0)
+    end
+
+    local buttonCol1 = objects.Color("#FF9F14F6")
+    local buttonCol2 = objects.Color("#FF3B12A4")
+    if iml.isHovered(buttonArea:get()) then
+        buttonCol2 = buttonCol1
+    end
+
+    helper.gradientRect("horizontal", buttonCol1, buttonCol2, buttonArea:padUnit(4):get())
+    ui.drawPanel(buttonArea:get())
+
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRichContained(OK_TEXT, f, buttonArea:get())
+
+    if iml.wasJustClicked(buttonArea:get()) then
+        g.playUISound("ui_click_basic", 1.4, 0.8)
+        g.prestigeSession()
+    end
+end
+
+end
 
 
 
@@ -693,7 +778,7 @@ end
 
 ---@param self HarvestScene
 local function isAnyPopupOpen(self)
-    return self.xpPopup or self.upgradePopup
+    return self.xpPopup or self.upgradePopup or self.bossPopup
 end
 
 
@@ -822,7 +907,9 @@ function harvest:draw()
     end
 
     self:_drawActiveEffects()
-    if self.xpPopup then
+    if self.bossPopup then
+        drawBossPopup(self)
+    elseif self.xpPopup then
         drawXpPopup(self)
     elseif self.upgradePopup then
         drawUpgradePopup(self)
@@ -929,7 +1016,9 @@ function harvest:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
 
-    if self.xpPopup then
+    if self.bossPopup then
+        self.timeSinceBossPopupOpened = self.timeSinceBossPopupOpened + dt
+    elseif self.xpPopup then
         popupParticles:update(dt)
         self.timeSinceXpPopupOpened = self.timeSinceXpPopupOpened + dt
     elseif self.upgradePopup then
@@ -1010,7 +1099,8 @@ function harvest:keyreleased(k)
         s.paused = not s.paused
     elseif consts.DEV_MODE then
         if k=="1" then
-            g.summonBoss("pumpkin_boss")
+            openBossPopup(self)
+            -- g.summonBoss("pumpkin_boss")
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do
@@ -1051,6 +1141,11 @@ end
 
 function harvest:getTokenResourceMultiplier()
     return isAnyPopupOpen(self) and 1 or getResourceMultiplierFromCombo()
+end
+
+
+function harvest:bossSlain()
+    openBossPopup(self)
 end
 
 

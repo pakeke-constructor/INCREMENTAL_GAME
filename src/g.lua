@@ -40,6 +40,19 @@ function g.hasSession()
 end
 
 
+function g.prestigeSession()
+    -- WARNING: this function has FAR REACHING CONSEQUENCES.
+    -- will reset upgrades, and do a tonne of other crazy bullshit.
+    local s = Session()
+    local curr = currentSession
+
+    s.prestige = curr.prestige
+    -- todo: complete this.
+end
+
+
+
+
 ---@return g.Session
 function g.getSn()
     return assert(currentSession, "session not loaded")
@@ -2130,17 +2143,13 @@ local VALID_BOSSES = {}
 local PRESTIGE_TO_BOSS = {}
 
 
----@param tok g.Token
 ---@param prestige integer
-local function killBoss(tok, prestige)
-    -- boss has been SLAIN;
-    -- => increase prestige
-    -- => create popup (harvestScene)
+local function killBoss(prestige)
     if g.getPrestige()~=prestige then
         log.error("wat??")
         return -- wtf? what happened here?
     end
-    
+    g.call("bossSlain")
 end
 
 ---@param id string

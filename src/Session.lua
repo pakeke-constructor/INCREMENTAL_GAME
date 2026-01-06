@@ -47,6 +47,7 @@ function Session:init()
     -- (only increments when player is INSIDE harvest-scene)
 
     self.level = 0 -- when xp > xpRequirement, level up!
+    self.totalLevel = 0 -- (keeps track across levels from previous prestiges too.)
 
     self.resources = {}
     self.resourceUnlocks = {}
@@ -106,6 +107,10 @@ if false then
 end
 
 
+
+function Session:prestige()
+
+end
 
 
 local function calculateXPRequirement()
@@ -167,6 +172,13 @@ function Session:_update(dt)
     self.xpRequirement = calculateXPRequirement()
 
     prof_pop()
+end
+
+
+function Session:levelUp()
+    self.level = self.level + 1
+    self.totalLevel = self.totalLevel + 1
+    self.xp = 0
 end
 
 
