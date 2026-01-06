@@ -191,7 +191,7 @@ local function updateToken(tok,dt)
         leeway = 200
     end
     local outOfBounds = not helper.isInsideRect(tok.x,tok.y, 0,0,ww,wh, leeway)
-    if outOfBounds and (not tok.flight) then
+    if outOfBounds then
         -- token is out of bounds; destroy.
         -- (prevents softlocks when world-dimensions decrease)
         g.deleteToken(tok)
