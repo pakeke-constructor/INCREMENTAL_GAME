@@ -565,6 +565,11 @@ local function closeXpPopup(self)
 end
 
 
+local function getResourceMultiplierFromCombo()
+    return 1 + g.getMainWorld().combo * consts.COMBO_MULTIPLIER
+end
+
+
 
 
 
@@ -687,6 +692,28 @@ end
 end
 
 
+---@param self HarvestScene
+local function isAnyPopupOpen(self)
+    return self.xpPopup or self.upgradePopup
+end
+
+
+---@type table<integer, boolean>
+local COMBO_POPUP_MAP = setmetatable({
+    [5] = true,
+    [10] = true,
+    [20] = true,
+    [50] = true,
+    [100] = true,
+    -- If you need to change the multiplier, change it here.
+    -- By defualt it's "for every multiple of 100 combo"
+}, {__index = function(_, k) return k > 0 and k % 100 == 0 end})
+local COMBO_POPUP_TEXT = interp(
+    "COMBO: x%{mul} Resources!",
+    {context = "Text popup shown when destroying many crops in short amount of time"}
+)
+
+
 ---@param tok g.Token
 function harvest:tokenDestroyed(tok)
     if not tok.wasSpawnedViaTokenPool then
@@ -695,7 +722,7 @@ function harvest:tokenDestroyed(tok)
         return
     end
 
-    if not (self.xpPopup or self.upgradePopup) then
+    if not isAnyPopupOpen(self) then
         local xp = tok.maxHealth
         local mult = getXpMultiplier(self)
         local sn = g.getSn()
@@ -711,12 +738,16 @@ function harvest:tokenDestroyed(tok)
 
         g.getSn().showTutorials.harvest = false
     end
-end
 
-
----@param self HarvestScene
-local function isAnyPopupOpen(self)
-    return self.xpPopup or self.upgradePopup
+    local world = g.getMainWorld()
+    if COMBO_POPUP_MAP[world.combo] then
+        local x = world.mouseX or 0
+        local y = world.mouseY or 0
+        local mul = math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100
+        local r, g, b = objects.Color.HSVtoRGB((world.combo / 49 * 360) % 360, 1, 1)
+        local text = string.format("{c r=%.14g g=%.14g b=%.14g}{o}%s{/o}{/c}", r, g, b, COMBO_POPUP_TEXT({mul = mul}))
+        worldutil.spawnText(text, x, y, 0.3, 25)
+    end
 end
 
 
@@ -994,6 +1025,11 @@ end
 function harvest:getHarvestAreaModifier()
     local scythe = g.getScytheInfo(g.getCurrentScythe())
     return scythe.harvestArea
+end
+
+
+function harvest:getTokenResourceMultiplier()
+    return isAnyPopupOpen(self) and 1 or getResourceMultiplierFromCombo()
 end
 
 
