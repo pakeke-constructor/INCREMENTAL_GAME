@@ -376,6 +376,7 @@ local GLOBAL_SCALE_INCREMENT = 0.25
 local globalScaleTransform = love.math.newTransform()
 local globalScale = 1
 local gw, gh = 800, 600
+local rootKirigami = Kirigami(0, 0, 800, 600)
 
 local function updateGlobalScaleAutomatic()
 	local w, h = lg.getDimensions()
@@ -388,6 +389,9 @@ local function updateGlobalScaleAutomatic()
 		globalScaleTransform:reset():scale(globalScale)
 		gw = w
 		gh = h
+
+		-- Note: We can't call ui.getScaledUIDimensions() here
+		rootKirigami = Kirigami(0, 0, w / globalScale, h / globalScale)
 	end
 end
 
@@ -405,6 +409,12 @@ end
 function ui.getUIScalingTransform()
 	updateGlobalScaleAutomatic()
     return globalScaleTransform
+end
+
+---Return whole safe area, scaled by UI. Meant to be used in UI drawing code.
+function ui.getScreenRegion()
+	updateGlobalScaleAutomatic()
+	return rootKirigami
 end
 
 ---@return number

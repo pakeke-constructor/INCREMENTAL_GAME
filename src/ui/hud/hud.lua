@@ -39,7 +39,7 @@ function HUD:init()
     self.xpBarR = Kirigami(0, 0, 0, 0)
     self.resourceHUD = Resources()
     self.profileHUD = Profile()
-    self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
+    self.freeArea = ui.getScreenRegion()
     self.statsWidth = 200 -- hardcode but harvest_scene needs this
 end
 
@@ -110,7 +110,7 @@ function HUD:draw(show)
     prof_push("HUD:draw")
 
     show = show or {}
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
 
     -- Draw sidebar
     -- love.graphics.setColor(SIDEBAR_COLOR)
@@ -249,7 +249,7 @@ local STATS_BACKGROUND = helper.newGradientMesh(
 function HUD:drawStatsAndTokenPool()
     assert(g.hasSession())
 
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local mainR = Kirigami(0, 0, self.statsWidth, r.h)
         :attachToRightOf(r)
         :moveRatio(-1, 0)

@@ -899,7 +899,7 @@ local function drawDevUI(scene)
     end
 
     local finalText = "{o}"..table.concat(textTab, "\n").."{/o}"
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local textR = regionFromText(font, 500, finalText)
         :attachToBottomOf(r)
         :attachToLeftOf(r)

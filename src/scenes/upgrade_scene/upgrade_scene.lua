@@ -369,7 +369,7 @@ end
 
 ---@param self UpgradesScene
 local function drawDevEditModeUI(self)
-    local region = Kirigami(0,0,ui.getScaledUIDimensions())
+    local region = ui.getScreenRegion()
     local leftbar, _, sidebar = region:splitHorizontal(1,4,1)
     local _, bigSidebar = region:splitHorizontal(3,2)
     lg.setColor(1,1,1)
@@ -528,7 +528,7 @@ end
 
 ---@param self UpgradesScene
 local function drawDevUI(self)
-    local region = Kirigami(0,0,ui.getScaledUIDimensions())
+    local region = ui.getScreenRegion()
     local header, body,editname = region:splitVertical(2,9,1)
     local _
     _,header,_ = header:splitHorizontal(1,2,1)
@@ -602,7 +602,7 @@ function upgscene:draw()
             self.upgradeDescription = UpgradeDescription(g.getUpgTree(), hoveredUpgrade)
         end
 
-        local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+        local r = ui.getScreenRegion()
         local mx, my = ui.getMouse()
         local descriptionBoxR = Kirigami(0, 0, self.upgradeDescription:getDimensions())
             :set(mx + 14, my - 3)

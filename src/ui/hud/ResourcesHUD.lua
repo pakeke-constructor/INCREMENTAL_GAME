@@ -95,7 +95,7 @@ function Resources:init()
         juice = 1
     }
 
-    self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
+    self.freeArea = ui.getScreenRegion()
 end
 
 if false then
@@ -268,7 +268,7 @@ end
 function Resources:drawHUD(noDraw)
     if not g.hasSession() then return 0 end
 
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
 
     -- Draw resources
     local BASE_X = 2

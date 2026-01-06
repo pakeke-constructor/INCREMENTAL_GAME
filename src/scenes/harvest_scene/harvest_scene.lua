@@ -132,7 +132,7 @@ local EFFECT_COLORS = {
 }
 
 function harvest:_drawActiveEffects()
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local effectIconR = Kirigami(0, 96, 24, 24)
         :attachToRightOf(r)
         :moveRatio(-1, 0)
@@ -274,7 +274,7 @@ local GOLD = objects.Color("#".."FFFAE06B")
 ---@param cx number
 ---@param cy number
 local function drawFancyBackgroundShit(progress, cx, cy)
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
 
     do
     local x,y,w,h = r:get()
@@ -408,7 +408,7 @@ end
 
 
 local function drawUpgradePopup(self)
-    local r = Kirigami(0,0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local cx,cy = r:getCenter()
 
     -- number from 0 -> 1
@@ -478,7 +478,6 @@ local xpParticles = particles.newParticlesWorld({
     updateParticle = function (p, dt)
         local ACCELLERATION = 300
         local TARG_VEL = 300
-        local w,h = ui.getScaledUIDimensions()
         local hud = g.getHUD()
         local targX,targY = hud:getXPBarStartPos()
         local vx,vy = p.vx,p.vy
@@ -627,7 +626,7 @@ end
 
 ---@param self HarvestScene
 function drawXpPopup(self)
-    local r = Kirigami(0,0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local hud = g.getHUD()
     iml.panel(r:get()) -- dont let mouse go below this point
 
@@ -834,7 +833,7 @@ function harvest:draw()
         prof_push("debug stats")
 
         love.graphics.setColor(1, 1, 1)
-        local r = Kirigami(0,0,ui.getScaledUIDimensions())
+        local r = ui.getScreenRegion()
         local _,right = r:splitHorizontal(6,1)
         local N=20
         local regions = right:grid(1,N)
@@ -868,7 +867,7 @@ function harvest:draw()
         end
     end
     if fullResource and (not isAnyPopupOpen(self)) then
-        local rr = Kirigami(0,0,ui.getScaledUIDimensions()):splitVertical(1,5)
+        local rr = ui.getScreenRegion():splitVertical(1,5)
             :padRatio(0.4,0.2,0.3,0.2)
             :moveRatio(0,0.5)
         local img1, rr2, img2 = rr:splitHorizontal(1,7,1)

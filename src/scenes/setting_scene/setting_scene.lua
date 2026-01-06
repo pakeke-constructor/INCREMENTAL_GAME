@@ -126,7 +126,7 @@ function settingscene:draw()
 
     -- Prep layout
     local w, h = ui.getScaledUIDimensions()
-    local r = Kirigami(0, 0, w, h)
+    local r = ui.getScreenRegion()
     local titleR, contentR, bottomR = r:splitVertical(72, h - 72 - 64, 64)
 
     -- Draw title
@@ -271,7 +271,7 @@ end
 
 function settingscene:_drawLanguageSelector()
     local SELECTION_BUTTON_SIZE = 40
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local panelR = r
         :padRatio(0.1)
         :shrinkToMultipleOf(SELECTION_BUTTON_SIZE)
