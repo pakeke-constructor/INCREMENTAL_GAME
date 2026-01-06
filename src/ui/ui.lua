@@ -378,20 +378,34 @@ local globalScale = 1
 local gw, gh = 800, 600
 local rootKirigami = Kirigami(0, 0, 800, 600)
 
+local function recalculateEverything()
+	local w,h = lg.getDimensions()
+	local wscale = w / 600
+	local hscale = h / 400
+	local scale = math.min(wscale, hscale)
+	local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
+	globalScale = math.max(gscale, 1)
+	globalScaleTransform:reset():scale(globalScale)
+	gw = w
+	gh = h
+	rootKirigami = Kirigami(0, 0, w / globalScale, h / globalScale)
+end
+
+
+local function ensureRootKirigamiCorrect()
+	local w,h = ui.getScaledUIDimensions()
+	local rk = rootKirigami
+	if rk.x~=0 or rk.y~=0 or rk.w~=w or rk.h~=h then
+		-- oops, its invalid somehow! recalculate
+		recalculateEverything()
+	end
+end
+
+
 local function updateGlobalScaleAutomatic()
 	local w, h = lg.getDimensions()
 	if w ~= gw or h ~= gh then
-		local wscale = w / 600
-		local hscale = h / 400
-		local scale = math.min(wscale, hscale)
-		local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
-		globalScale = math.max(gscale, 1)
-		globalScaleTransform:reset():scale(globalScale)
-		gw = w
-		gh = h
-
-		-- Note: We can't call ui.getScaledUIDimensions() here
-		rootKirigami = Kirigami(0, 0, w / globalScale, h / globalScale)
+		recalculateEverything()
 	end
 end
 
@@ -413,7 +427,7 @@ end
 
 ---Return whole safe area, scaled by UI. Meant to be used in UI drawing code.
 function ui.getScreenRegion()
-	updateGlobalScaleAutomatic()
+	ensureRootKirigamiCorrect()
 	return rootKirigami
 end
 
