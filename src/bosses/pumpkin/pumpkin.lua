@@ -7,40 +7,48 @@ local particles = require("src.modules.particles.particles")
 ---@type godrays.RayBundle
 local RAY1 = {
     rayCount = 5,
-    color = objects.Color.BLACK,
+    color = objects.Color("#".."FF380547"),
     startWidth = 5,
-    length = 100,
-    divisions = 5,
+    length = 60,
+    divisions = 40,
     growRate = 0.3,
 }
 
----@type godrays.RayBundle
-local RAY2 = {
-    rayCount = 3,
-    color = objects.Color.BLACK,
-    startWidth = 10,
-    length = 40,
-    divisions = 5,
-    growRate = 0.2,
-}
 
+
+
+local PARTICLE_LIFETIME = 0.5
 
 local pworld = particles.newParticlesWorld({
     drawParticle = function (p)
         local lt = p.lifetime
         local ox = math.sin(lt*3)*4
+        
+        -- Dark purple color
+        lg.setColor(0.4, 0.1, 0.5)
+        
+        -- Shrink as particle ages
+        local scale = 1 - (lt / PARTICLE_LIFETIME)
+        
         if p.id % 2 == 0 then
-            g.drawImage("pixel_circle_r6", p.x+ox,p.y-lt*5)
+            g.drawImage("pixel_circle_r16", p.x+ox, p.y-lt*5, 0, scale, scale)
         else
-            g.drawImage("pixel_circle_r5", p.x+ox,p.y-lt*5)
+            g.drawImage("pixel_circle_r9", p.x+ox, p.y-lt*5, 0, scale, scale)
         end
+        
+        lg.setColor(1, 1, 1, 1)
     end,
 
     getParticleDuration = function (p)
-        return 0.35
+        return PARTICLE_LIFETIME
     end,
 })
 
+-- Particle spawn parameters
+local PARTICLE_SPAWN_RADIUS = 30
+local PARTICLE_VY_MIN = -60
+local PARTICLE_VY_MAX = -100
+local PARTICLE_VX_RANGE = 40
 
 g.defineBoss("pumpkin_boss", 0, {
     maxHealth = 100000,
@@ -49,19 +57,27 @@ g.defineBoss("pumpkin_boss", 0, {
 
     update = function (tok, dt)
         pworld:update(dt)
+        if love.math.random()/60 < dt then
+            local angle = love.math.random() * math.pi * 2
+            local dist = love.math.random() * PARTICLE_SPAWN_RADIUS
+            local px = tok.x + math.cos(angle) * dist
+            local py = tok.y + math.sin(angle) * dist
+            local vx = (love.math.random() - 0.5) * 2 * PARTICLE_VX_RANGE
+            local vy = PARTICLE_VY_MIN + love.math.random() * (PARTICLE_VY_MAX - PARTICLE_VY_MIN)
+            pworld:spawnParticle(px, py, vx, vy)
+        end
     end,
 
     drawBelow = function (tok)
-        lg.setColor(0,0,0,0.5)
+        -- shadow:
+        lg.setColor(0, 0, 0, 0.5)
         g.drawImage("pumpkin_boss", tok.x, tok.y + 18)
-        lg.setColor(1,1,1)
+        lg.setColor(1, 1, 1)
+
+        -- rays:
+        local t = love.timer.getTime()
+        godrays.drawRays(tok.x, tok.y, t*0.7, RAY1)
 
         pworld:draw()
-        local t = love.timer.getTime()
-        -- godrays.drawRays(tok.x, tok.y, t+0.7, RAY1)
-        -- godrays.drawRays(tok.x, tok.y, -t-0.7, RAY1)
-        -- godrays.drawRays(tok.x, tok.y, t*0.7, RAY2)
     end
 })
-
-
