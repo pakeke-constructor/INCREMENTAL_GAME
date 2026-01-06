@@ -694,7 +694,13 @@ end
 
 
 function World:_getComboDuration()
-    return helper.clamp(helper.remap(self.combo, 1, 100, 5, 1), 1, 5)
+    if self.combo < 10 then
+        return 5
+    elseif self.combo < 50 then
+        return helper.remap(self.combo, 10, 50, 4, 1)
+    end
+    local dur = helper.remap(self.combo, 50, 200, 1, 0.1)
+    return helper.clamp(dur, 0.1, 1)
 end
 
 
