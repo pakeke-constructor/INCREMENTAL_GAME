@@ -893,10 +893,32 @@ function harvest:draw()
     end
 
     -- Combo text
-    if world.combo > 0 then
-        -- TODO: Implement
+    if world.combo > 0 and not isAnyPopupOpen(self) then
         local mx, my = ui.getMouse()
-        love.graphics.print(world.combo.." combo ("..world.comboTimeout..")", mx, my, 0, 0.25, 0.25)
+        local mul = "x"..tostring(math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100)
+        local font = g.getSmallFont(16)
+        local width = font:getWidth(mul)
+        local combodur = world:_getComboDuration()
+        local scale = math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.25, 1), 1) * 1.5
+
+        -- Draw progress bar
+        local pbarBaseR = Kirigami(mx - 24, my - 8 - 10, 48, 10)
+        love.graphics.setColor(0, 0, 0, 0.6)
+        love.graphics.rectangle("fill", pbarBaseR:get())
+        love.graphics.setColor(0, 1, 0.5)
+        local pbarR = pbarBaseR:padUnit(3)
+        love.graphics.rectangle("fill", pbarR:set(nil, nil, pbarR.w * world.comboTimeout / combodur):get())
+
+        -- Draw text
+        love.graphics.setColor(1, 1, 1)
+        richtext.printRich(
+            "{o}"..mul.."{/o}", font,
+            pbarBaseR.x + pbarBaseR.w / 2,
+            pbarBaseR.y,
+            width, "center", 0,
+            scale, scale,
+            width / 2, font:getHeight()
+        )
     end
 
     ui.endUI()
