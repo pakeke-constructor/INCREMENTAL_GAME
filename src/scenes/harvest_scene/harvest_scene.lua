@@ -853,8 +853,22 @@ local function drawComboVisual(self)
     local ha = g.stats.HarvestArea
 
     local mulTxt = "{o}"..mul.."{/o}"
-    local w = richtext.getWidth(mulTxt, font)
+    local w = richtext.getWidth("x1.11", font)
     local h = font:getHeight()/2
+
+    -- Calculate bar dimensions
+    local barWidth = w * scale
+    local barHeight = 4
+    local barX = mx - barWidth / 2
+    local barY = my - ha - h * scale - barHeight - 6
+
+    -- Draw progress bar background
+    love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
+    love.graphics.rectangle("fill", barX, barY, barWidth, barHeight)
+
+    -- Draw progress bar fill
+    love.graphics.setColor(1, 0.8, 0.2)
+    love.graphics.rectangle("fill", barX, barY, barWidth * ratio, barHeight)
 
     -- Draw text
     love.graphics.setColor(1, 1, 1)
