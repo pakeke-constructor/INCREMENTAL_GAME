@@ -1812,9 +1812,6 @@ function g.spawnToken(tokType, x,y)
         timeSinceHitStart = 0xffffffffff,
         timeSinceHit = 0xffffffffff,
         timeSinceDamaged = 0xfffffffff,
-        lastHitStartByPlayer = false,
-        lastHitByPlayer = false,
-        lastDamageByPlayer = false,
     }, tokenMts[tokType])
     ---@cast tok g.Token
     tok.maxHealth = tabl.maxHealth * g.ask("getTokenMaxHealthMultiplier", tok)

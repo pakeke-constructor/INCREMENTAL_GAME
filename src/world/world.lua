@@ -115,7 +115,7 @@ local function updateHarvestCircle(self, dt)
         self.tokensToHoverTime[tok] = (self.tokensToHoverTime[tok] or 0) + dt
 
         if self.tokensToHoverTime[tok] >= MIN_HOVER_TIME then
-            g.tryHitToken(tok, true)
+            g.tryHitToken(tok)
         end
     end)
 
