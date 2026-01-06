@@ -853,7 +853,7 @@ local function drawComboVisual(self)
     local ha = g.stats.HarvestArea
 
     local mulTxt = "{o}"..mul.."{/o}"
-    local w = richtext.getWidth(mulTxt, font)+2
+    local w = richtext.getWidth(mulTxt, font)
     local h = font:getHeight()/2
 
     -- Draw text
