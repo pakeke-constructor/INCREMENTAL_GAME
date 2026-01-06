@@ -39,7 +39,7 @@ local consts = {
 
     MAX_HIT_DURATION = 0.125,
 
-    BOSSFIGHT_DURATION = 10,
+    BOSSFIGHT_DURATION = 4,
 
     TEST = true,
 
