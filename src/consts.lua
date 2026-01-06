@@ -52,7 +52,10 @@ local consts = {
     DEFAULT_BACKGROUND_AVATAR = "white",
     DEFAULT_SCYTHE = "starting_scythe",
 
-    ORBIT_RING_DISTANCE = 20 -- Radius of each orbit ring.
+    ORBIT_RING_DISTANCE = 20, -- Radius of each orbit ring.
+
+    -- Resource multipler on combo increase
+    COMBO_MULTIPLIER = 0.01,
 }
 
 
