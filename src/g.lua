@@ -6,6 +6,7 @@
 local reducers = require("src.modules.reducers")
 
 local Session = require("src.Session")
+local Tree = require("src.upgrades.Tree")
 local HUD = require("src.ui.hud.hud")
 
 
@@ -40,14 +41,45 @@ function g.hasSession()
 end
 
 
+---@param prestige integer
+---@return g.Tree
+function g.loadPrestigeTree(prestige)
+    local fname = "assets/prestiges/prestige_" .. prestige .. ".json"
+    local data,er = love.filesystem.read(fname)
+    assert(data,er)
+    local tabl = assert(json.decode(data))
+    return Tree.deserialize(tabl)
+end
+
+do
+local finalPrestige = 0
+for p=0,500 do
+    local fname = "assets/prestiges/prestige_" .. tostring(p) .. ".json"
+    if not love.filesystem.getInfo(fname) then
+        -- welp, we ran out of prestige files!
+        break
+    end
+    finalPrestige = p
+end
+
+function g.getFinalPrestige()
+    return finalPrestige
+end
+
+end
+
+
 function g.prestigeSession()
     -- WARNING: this function has FAR REACHING CONSEQUENCES.
     -- will reset upgrades, and do a tonne of other resets.
-    local new = Session()
     local curr = currentSession
+    local new = Session()
+
+    local prestige = math.min(g.getFinalPrestige(), curr.prestige + 1)
+    new.tree = (g.loadPrestigeTree(prestige))
 
     -- copy over the important stuff:
-    new.prestige = curr.prestige + 1
+    new.prestige = prestige
     new.totalLevel = curr.totalLevel -- keep total-level tracking.
     new.avatar = curr.avatar
     new.totalLevel = curr.totalLevel -- keep total-level tracking.

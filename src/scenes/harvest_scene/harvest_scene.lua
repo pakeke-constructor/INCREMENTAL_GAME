@@ -830,7 +830,7 @@ function harvest:tokenDestroyed(tok)
         local mul = math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100
         local r, g, b = objects.Color.HSVtoRGB((world.combo / 49 * 360) % 360, 1, 1)
         local text = string.format("{c r=%.14g g=%.14g b=%.14g}{o}%s{/o}{/c}", r, g, b, COMBO_POPUP_TEXT({mul = mul}))
-        worldutil.spawnText(text, x, y, 1.2, 10)
+        worldutil.spawnText(text, x, y, 1.4, 10)
     end
 end
 
@@ -900,8 +900,7 @@ function harvest:draw()
 
     world:_draw()
 
-    -- if world.combo > 3 and not isAnyPopupOpen(self) then
-    if true then
+    if world.combo > 2 and not isAnyPopupOpen(self) then
         drawComboVisual(self)
     end
 

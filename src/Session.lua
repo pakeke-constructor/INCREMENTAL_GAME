@@ -82,8 +82,7 @@ function Session:init()
         hat = nil,
     }
 
-    local data = assert(json.decode(love.filesystem.read("assets/prestiges/playtest.json")))
-    self.tree = Tree.deserialize(data)
+    self.tree = Tree()
 
     self.unlockedPOI = objects.Set()
 
@@ -106,11 +105,6 @@ if false then
     function Session() end
 end
 
-
-
-function Session:prestige()
-
-end
 
 
 local function calculateXPRequirement()
