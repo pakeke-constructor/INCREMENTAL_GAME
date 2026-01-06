@@ -19,6 +19,7 @@ local DESC_BACKGROUND_GRADIENT = helper.newGradientMesh(
 local DESC_TEXT_MAX_WIDTH = 200
 
 local STATS_PANEL_COLOR = objects.Color("#".."ffe3ae10")
+local STATS_PANEL_HOVER_COLOR = objects.Color("#"..  "FFCD7306")
 local STATS_PANEL_TEXT = "{o}"..loc("Stats", nil, {context = "area to hover to show game statistics"}).."{/o}"
 
 local LEVEL_TEXT = interp("Level %{n}", {
@@ -195,13 +196,17 @@ function HUD:draw(show)
             :moveRatio(0, -1)
             :moveUnit(0, -12)
 
-        love.graphics.setColor(STATS_PANEL_COLOR)
+        local isStatsHovered = iml.isHovered(sidebarHoverR:get())
+        if isStatsHovered then
+            love.graphics.setColor(STATS_PANEL_HOVER_COLOR)
+        else
+            love.graphics.setColor(STATS_PANEL_COLOR)
+        end
         ui.drawSingleColorPanel(sidebarHoverR:get())
 
         love.graphics.setColor(1, 1, 1)
         richtext.printRichContained(STATS_PANEL_TEXT, g.getSmallFont(16), sidebarHoverR:get())
-
-        if iml.isHovered(sidebarHoverR:get()) then
+        if isStatsHovered then
             self:drawStatsAndTokenPool()
         end
     end

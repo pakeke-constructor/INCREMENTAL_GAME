@@ -692,8 +692,8 @@ local function tryUpdateDecorations(self)
 
     --====== add big-splotch decorations:  ======
     local BIGPAD=30
-    local darkcol = objects.Color("#" .. "FF26A95D")
-    local lightcol = objects.Color("#" .. "FF32B569")
+    local darkcol = objects.Color("#" .. "FF20A362")
+    local lightcol = objects.Color("#" .. "FF35BA64")
     for i=1,40 do
         table.insert(self.decorations, {
             x = math.floor(helper.lerp(BIGPAD, w, love.math.random())),
