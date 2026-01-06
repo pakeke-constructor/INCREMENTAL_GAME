@@ -6,12 +6,11 @@ The world is a container for tokens and entities.
 
 ]]
 
-local subpixel = require("src.modules.subpixel")
-
 
 local ParticleService = require(".particle.ParticleService")
 local DataCollector = require(".data_collector")
 local table_clear = require("table.clear")
+local sceneManager = require("src.scenes.sceneManager")
 
 ---@class g.World.Decor
 ---@field x number
@@ -93,6 +92,9 @@ function World:init()
     -- decorations:
     self.lastSeenDimensions = {x=0,y=0}
     self.decorations = {}
+
+    self.combo = 0
+    self.comboTimeout = 0
 end
 
 
@@ -644,10 +646,24 @@ local function selectNearestToken(x, y, maxRadius, toks)
 end
 
 
+
+local function isInHarvestScene()
+    return select(2, sceneManager.getCurrentScene()) == "harvest_scene"
+end
+
+
 ---@return fun(table: table<string, integer>, index?: string):string
 ---@return integer
 function World:iterateTokenPool()
     return pairs(self.tokenPool.tokens)
+end
+
+
+function World:_incrementCombo()
+    if isInHarvestScene() and self:_isPlayerCurrentlyHarvesting() then
+        self.combo = self.combo + 1
+        self.comboTimeout = self:_getComboDuration()
+    end
 end
 
 
@@ -673,6 +689,12 @@ function World:_updateTokenCount()
             self.bossToken = t
         end
     end
+end
+
+
+
+function World:_getComboDuration()
+    return helper.clamp(helper.remap(self.combo, 1, 100, 5, 1), 1, 5)
 end
 
 
@@ -1023,6 +1045,15 @@ function World:_update(dt)
                     table.remove(buf, i)
                 end
             end
+        end
+    end
+
+    -- Update combo
+    do
+        local dtmul = self:_isPlayerCurrentlyHarvesting() and 1 or 0
+        self.comboTimeout = isInHarvestScene() and math.max(self.comboTimeout - dt * dtmul, 0) or 0
+        if self.comboTimeout <= 0 then
+            self.combo = 0
         end
     end
 

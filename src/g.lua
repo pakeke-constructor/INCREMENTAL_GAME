@@ -1955,7 +1955,12 @@ function g.damageToken(tok, dmg)
 
     -- Now update tok.health
     tok.health = math.max(tok.health - dmg, 0)
+    tok.timeSinceDamaged = 0
     g.call("tokenDamaged", tok, dmg)
+
+    if tok.health <= 0 then
+        currentSession.mainWorld:_incrementCombo()
+    end
 
     currentSession.mainWorld:_spawnDamageNumber(
         displayDmg,
@@ -1964,7 +1969,6 @@ function g.damageToken(tok, dmg)
         g.COLORS.DAMAGE_NUMBERS_BY_CATEGORY[tok.category] or objects.Color.WHITE
     )
 
-    tok.timeSinceDamaged = 0
 end
 
 
