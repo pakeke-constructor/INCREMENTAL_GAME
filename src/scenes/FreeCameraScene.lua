@@ -60,7 +60,7 @@ local MAP_BUTTON = "{wavy}{c r=0.9 g=0.8 b=0.85}{o}" .. loc("Back to Map", {}, {
 })
 
 function FreeCameraScene:renderMapButton()
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local header,_ = r:splitVertical(1,5)
 
     local left, right = header:moveUnit(0,16):splitHorizontal(7,1)
@@ -107,7 +107,7 @@ local PAUSE_TEXT = "{w}{o thickness=2}"..loc("PAUSED").."{/o}{/w}"
 
 function FreeCameraScene:renderPause()
     if g.hasSession() and g.getSn().paused then
-        local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+        local r = ui.getScreenRegion()
         iml.panel(r:get()) -- Prevent propagation to bottom panels
 
         love.graphics.setColor(0, 0, 0, 0.6)

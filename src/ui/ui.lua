@@ -387,9 +387,11 @@ local function updateGlobalScaleAutomatic()
 		local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
 		globalScale = math.max(gscale, 1)
 		globalScaleTransform:reset():scale(globalScale)
-		rootKirigami = Kirigami(0, 0, ui.getScaledUIDimensions())
 		gw = w
 		gh = h
+
+		-- Note: We can't call ui.getScaledUIDimensions() here
+		rootKirigami = Kirigami(0, 0, w / globalScale, h / globalScale)
 	end
 end
 
@@ -410,7 +412,8 @@ function ui.getUIScalingTransform()
 end
 
 ---Return whole safe area, scaled by UI. Meant to be used in UI drawing code.
-function ui.getRootKirigami()
+function ui.getScreenRegion()
+	updateGlobalScaleAutomatic()
 	return rootKirigami
 end
 

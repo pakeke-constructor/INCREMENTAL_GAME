@@ -85,7 +85,7 @@ function title:draw()
     titleBackground.draw()
 
     -- Prepare layout
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local topR, bottomR = r:splitVertical(1, 1)
 
     -- Draw title text

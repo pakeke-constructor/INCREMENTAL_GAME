@@ -91,7 +91,7 @@ local filters = {
 
 ---@param mapButtonR kirigami.Region
 function custom:_drawUI(mapButtonR)
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
 
     -- Compute right center cosmetic category.
     local categoryHeight = (CATEGORY_SIZE + CATEGORY_DIVIDER) * #CATEGORIES - CATEGORY_DIVIDER

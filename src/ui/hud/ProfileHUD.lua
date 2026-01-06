@@ -17,7 +17,7 @@ local TOHUD_ANIMATION_DURATION = 0.4
 function Profile:init()
     ---@type g.hud._TokenParticle[]
     self.inflightTokens = {}
-    self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
+    self.freeArea = ui.getScreenRegion()
     self.tokenQueuePos = {x = 0, y = 0}
 end
 
@@ -50,7 +50,7 @@ local MAX_NUMBER_OF_TOKEN_TYPES = 6
 ---@param sidebarWidth number
 ---@param noDraw boolean?
 function Profile:draw(sidebarWidth, noDraw)
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local profileBaseR = Kirigami(0, 0, sidebarWidth, sidebarWidth)
         :attachToBottomOf(r)
         :attachToLeftOf(r)

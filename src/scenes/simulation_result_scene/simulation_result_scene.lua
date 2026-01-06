@@ -124,7 +124,7 @@ function simresult:draw()
     love.graphics.setLineStyle("smooth")
     love.graphics.setLineWidth(2)
 
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
 
     if self.mode == 0 then
         local grid = r:grid(2, 2)

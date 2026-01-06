@@ -75,7 +75,7 @@ local SPINNING_FISH = lg.newImage("src/scenes/fishing_scene/spinning_orange_fish
 
 ---@param self FishingScene
 local function drawReelMeter(self)
-    local r,_ = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r,_ = ui.getScreenRegion()
     _,r = r:splitVertical(3,2)
     _,r = r:splitHorizontal(1,2)
     r = r:padRatio(0.3,0.7,0.4,0.7)
@@ -156,7 +156,7 @@ function fishing:drawUI()
 
     local buttonR, castR, hireFishercatR
     do
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local r2,_
     _,r2 = r:splitVertical(1,2)
     _,r2 = r2:splitHorizontal(1,1)
