@@ -830,8 +830,41 @@ function harvest:tokenDestroyed(tok)
         local mul = math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100
         local r, g, b = objects.Color.HSVtoRGB((world.combo / 49 * 360) % 360, 1, 1)
         local text = string.format("{c r=%.14g g=%.14g b=%.14g}{o}%s{/o}{/c}", r, g, b, COMBO_POPUP_TEXT({mul = mul}))
-        worldutil.spawnText(text, x, y, 0.3, 25)
+        worldutil.spawnText(text, x, y, 1.2, 10)
     end
+end
+
+
+---@param self HarvestScene
+local function drawComboVisual(self)
+    local world = g.getMainWorld()
+    local mx, my = self.camera:toWorld(love.mouse.getPosition())
+
+    local mul = "x"..tostring(math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100)
+    local font = g.getSmallFont(16)
+    local width = font:getWidth(mul)
+    local combodur = world:_getComboDuration()
+    local ratio = world.comboTimeout / combodur
+    local ratioScale = math.min(1, helper.remap(ratio, 1,0, 2,0.3))
+    local joltScale = math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.4, 1), 1)
+    local scale = ratioScale*joltScale
+
+    -- Draw progress bar
+    local ha = g.stats.HarvestArea
+
+    local mulTxt = "{o}"..mul.."{/o}"
+    local w = richtext.getWidth(mulTxt, font)+2
+    local h = font:getHeight()/2
+
+    -- Draw text
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRich(
+        mulTxt, font,
+        mx, my-ha,
+        width, "center", 0,
+        scale, scale,
+        width / 2, font:getHeight()
+    )
 end
 
 
@@ -866,6 +899,12 @@ function harvest:draw()
     end
 
     world:_draw()
+
+    -- if world.combo > 3 and not isAnyPopupOpen(self) then
+    if true then
+        drawComboVisual(self)
+    end
+
     local sess = g.getSn()
 
     if not g.isBeingSimulated() then
@@ -976,35 +1015,6 @@ function harvest:draw()
             g.gotoSceneViaMap("upgrade_scene")
         end
     end
-    end
-
-    -- Combo text
-    if world.combo > 0 and not isAnyPopupOpen(self) then
-        local mx, my = ui.getMouse()
-        local mul = "x"..tostring(math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100)
-        local font = g.getSmallFont(16)
-        local width = font:getWidth(mul)
-        local combodur = world:_getComboDuration()
-        local scale = math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.25, 1), 1) * 1.5
-
-        -- Draw progress bar
-        local pbarBaseR = Kirigami(mx - 24, my - 8 - 10, 48, 10)
-        love.graphics.setColor(0, 0, 0, 0.6)
-        love.graphics.rectangle("fill", pbarBaseR:get())
-        love.graphics.setColor(0, 1, 0.5)
-        local pbarR = pbarBaseR:padUnit(3)
-        love.graphics.rectangle("fill", pbarR:set(nil, nil, pbarR.w * world.comboTimeout / combodur):get())
-
-        -- Draw text
-        love.graphics.setColor(1, 1, 1)
-        richtext.printRich(
-            "{o}"..mul.."{/o}", font,
-            pbarBaseR.x + pbarBaseR.w / 2,
-            pbarBaseR.y,
-            width, "center", 0,
-            scale, scale,
-            width / 2, font:getHeight()
-        )
     end
 
     ui.endUI()

@@ -128,7 +128,7 @@ function HUD:draw(show)
     lg.setColor(1,1,1)
     local lvRegion = self.sidebarR:set(nil,nil,nil,LEVEL_TXT_H):padRatio(0.15)
     local sn = g.getSn()
-    local lvlText = "{wavy freq=0.3}{o}" .. LEVEL_TEXT({n = g.getSn().level})
+    local lvlText = "{wavy freq=0.3}{o}" .. LEVEL_TEXT({n = g.getSn().totalLevel})
     if sn.xp >= sn.xpRequirement then
         lvlText = "{rainbow}" .. lvlText
     end

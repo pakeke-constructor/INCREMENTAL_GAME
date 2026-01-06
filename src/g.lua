@@ -42,12 +42,20 @@ end
 
 function g.prestigeSession()
     -- WARNING: this function has FAR REACHING CONSEQUENCES.
-    -- will reset upgrades, and do a tonne of other crazy bullshit.
-    local s = Session()
+    -- will reset upgrades, and do a tonne of other resets.
+    local new = Session()
     local curr = currentSession
 
-    s.prestige = curr.prestige
-    -- todo: complete this.
+    -- copy over the important stuff:
+    new.prestige = curr.prestige + 1
+    new.totalLevel = curr.totalLevel -- keep total-level tracking.
+    new.avatar = curr.avatar
+    new.totalLevel = curr.totalLevel -- keep total-level tracking.
+    new.showTutorials = {harvest=false, upgrades=false}
+    new.unlockedPOI = objects.Set(curr.unlockedPOI)
+    new.fisherCatCount = curr.fisherCatCount
+
+    currentSession = new
 end
 
 
