@@ -215,10 +215,9 @@ function HUD:draw(show)
 end
 
 function HUD:getSafeArea()
-    local w, h = ui.getScaledUIDimensions()
-    local x2 = self.sidebarR.x + self.sidebarR.w
-    return Kirigami(x2, self.xpBarR.h, w - x2, h - self.xpBarR.h)
-        :intersection(self.profileHUD:getSafeArea())
+    local result = ui.getScreenRegion()
+    return result:padUnit(self.sidebarR.w + 4, self.xpBarR.y + self.xpBarR.h, 0, 0)
+        :intersection(result)
 end
 
 function HUD:getXPBarStartPos()
