@@ -4,6 +4,9 @@
 local consts = {
 
     DEV_MODE = not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
+    EMULATE_TOUCH = os.getenv("INCREMENTAL_GAME_EMULATE_TOUCH") == "1",
+    IS_MOBILE = false, -- Set later
+
     PROFILING = false,
 
     ANALYTICS_URL = nil, -- URL, without trailing slash.
@@ -58,6 +61,8 @@ local consts = {
     COMBO_MULTIPLIER = 0.01,
 }
 
+local os = love.system.getOS()
+consts.IS_MOBILE = os == "Android" or os == "iOS" or consts.EMULATE_TOUCH
 
 
 return consts
