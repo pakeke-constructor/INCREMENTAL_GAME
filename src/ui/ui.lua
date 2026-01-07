@@ -377,6 +377,11 @@ local globalScaleTransform = love.math.newTransform()
 local globalScale = 1
 local gw, gh = 800, 600
 local rootKirigami = Kirigami(0, 0, 800, 600)
+local rootKirigamiUnsafe = Kirigami(0, 0, 800, 600)
+
+-- Second copy to ensure no tampering
+local rootKirigamiCopy = Kirigami(0, 0, 800, 600)
+local rootKirigamiUnsafeCopy = Kirigami(0, 0, 800, 600)
 
 local function recalculateEverything()
 	local w,h = lg.getDimensions()
@@ -388,23 +393,37 @@ local function recalculateEverything()
 	globalScaleTransform:reset():scale(globalScale)
 	gw = w
 	gh = h
-	rootKirigami = Kirigami(0, 0, w / globalScale, h / globalScale)
-end
 
-
-local function ensureRootKirigamiCorrect()
-	local w,h = ui.getScaledUIDimensions()
-	local rk = rootKirigami
-	if rk.x~=0 or rk.y~=0 or rk.w~=w or rk.h~=h then
-		-- oops, its invalid somehow! recalculate
-		recalculateEverything()
-	end
+	-- Recalculate region
+	local sx, sy, sw, sh = love.window.getSafeArea()
+	rootKirigamiUnsafe = Kirigami(0, 0, w / globalScale, h / globalScale)
+	rootKirigamiUnsafeCopy = rootKirigamiUnsafe:set()
+	rootKirigami = Kirigami(sx / globalScale, sy / globalScale, sw / globalScale, sh / globalScale)
+	rootKirigamiCopy = rootKirigami:set()
 end
 
 
 local function updateGlobalScaleAutomatic()
 	local w, h = lg.getDimensions()
 	if w ~= gw or h ~= gh then
+		recalculateEverything()
+	end
+end
+
+
+local function ensureRootKirigamiCorrect()
+	updateGlobalScaleAutomatic()
+	if
+		rootKirigami.x ~= rootKirigamiCopy.x or
+		rootKirigami.y ~= rootKirigamiCopy.y or
+		rootKirigami.w ~= rootKirigamiCopy.w or
+		rootKirigami.h ~= rootKirigamiCopy.h or
+		rootKirigamiUnsafe.x ~= rootKirigamiUnsafeCopy.x or
+		rootKirigamiUnsafe.y ~= rootKirigamiUnsafeCopy.y or
+		rootKirigamiUnsafe.w ~= rootKirigamiUnsafeCopy.w or
+		rootKirigamiUnsafe.h ~= rootKirigamiUnsafeCopy.h
+	then
+		-- oops, its invalid somehow! recalculate
 		recalculateEverything()
 	end
 end
@@ -426,9 +445,10 @@ function ui.getUIScalingTransform()
 end
 
 ---Return whole safe area, scaled by UI. Meant to be used in UI drawing code.
-function ui.getScreenRegion()
+---@param fullarea boolean? Return the full area instead of the safe area?
+function ui.getScreenRegion(fullarea)
 	ensureRootKirigamiCorrect()
-	return rootKirigami
+	return fullarea and rootKirigamiUnsafe or rootKirigami
 end
 
 ---@return number
@@ -452,9 +472,16 @@ function ui.startUI()
 	iml.pushTransform(t)
 end
 
+local simulatedSafeArea = pcall(string.dump, love.window.getSafeArea)
+
 function ui.endUI()
 	assert(uiPushed, "attempt to call endUI before startUI")
 	uiPushed = false
+
+    if simulatedSafeArea then
+        ui.debugRegion(ui.getScreenRegion())
+    end
+
 	iml.popTransform()
 	lg.pop()
 	prof_pop() -- prof_push("ui")
