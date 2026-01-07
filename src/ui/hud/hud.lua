@@ -51,8 +51,8 @@ end
 
 ---@param dt number
 function HUD:update(dt)
-    local _, h = ui.getScaledUIDimensions()
-    self.sidebarR = self.sidebarR:set(0, 0, SIDEBAR_WIDTH, h)
+    local fullR = ui.getScreenRegion(true)
+    self.sidebarR = ui.getScreenRegion():set(nil, nil, SIDEBAR_WIDTH, fullR.h)
     self.resourceHUD:update(dt)
     self.profileHUD:update(dt)
 end
@@ -113,10 +113,8 @@ function HUD:draw(show)
     local r = ui.getScreenRegion()
 
     -- Draw sidebar
-    -- love.graphics.setColor(SIDEBAR_COLOR)
     lg.setColor(1,1,1)
-    helper.gradientRect("vertical", SIDEBAR_COLOR, SIDEBAR_COLOR2, self.sidebarR:get())
-    --love.graphics.rectangle("fill", self.sidebar:get())
+    helper.gradientRect("vertical", SIDEBAR_COLOR, SIDEBAR_COLOR2, self.sidebarR:padUnit(-r.x, -r.y, 0, 0):get())
     love.graphics.setColor(SIDEBAR_STRIP)
     love.graphics.rectangle("fill", self.sidebarR.x + self.sidebarR.w, 0, 2, self.sidebarR.h)
     love.graphics.setColor(0, 0, 0)
@@ -142,7 +140,7 @@ function HUD:draw(show)
     local rewards = g.getUpgTree():getUnboundUpgrades()
     if #rewards > 0 then
         love.graphics.setColor(1, 1, 1)
-        richtext.printRich(REWARDS_TEXT, g.getSmallFont(16), 0, resHudY - 2, self.sidebarR.w, "center")
+        richtext.printRich(REWARDS_TEXT, g.getSmallFont(16), self.sidebarR.x, self.sidebarR.y + resHudY - 2, self.sidebarR.w, "center")
 
         local rows = math.ceil(#rewards / 3)
         local gridBaseR = Kirigami(0, resHudY + 16, REWARD_CELL_SIZE * 3, REWARD_CELL_SIZE * rows)
@@ -183,8 +181,10 @@ function HUD:draw(show)
     self.profileHUD:draw(SIDEBAR_WIDTH, show.profile == false)
 
     if show.xpbar then
-        local sidebarWidth = self.sidebarR.x + self.sidebarR.w + 4
-        self.xpBarR = Kirigami(sidebarWidth, 0, r.w - sidebarWidth, 16)
+        --local sidebarWidth = self.sidebarR.x + self.sidebarR.w + 4
+        --self.xpBarR = Kirigami(sidebarWidth, 0, r.w - sidebarWidth, 16)
+        local sidebarWidth = r.w - self.sidebarR.w
+        self.xpBarR = Kirigami(self.sidebarR.x + self.sidebarR.w + 4, 0, sidebarWidth - 4, 16)
         drawExperienceBar(self.xpBarR)
     end
 

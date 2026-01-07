@@ -433,6 +433,7 @@ function ui.getUIScaling()
 	return globalScale
 end
 
+---Note: If you want to use this for UI placement, you may want `ui.getScreenRegion` instead.
 function ui.getScaledUIDimensions()
 	local w, h = lg.getDimensions()
 	local s = ui.getUIScaling()
