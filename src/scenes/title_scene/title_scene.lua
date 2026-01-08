@@ -9,7 +9,8 @@ local function init()
     if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") and arg[1] ~= "--simulate" then
         g.loadSession("saves/save1.json")
     else
-        g.newSession()
+        local sn = g.newSession()
+        sn.tree = g.loadPrestigeTree(0)
     end
 
     analytics.send("start")

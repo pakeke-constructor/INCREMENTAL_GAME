@@ -25,8 +25,10 @@ local g = {}
 ---@type g.Session
 local currentSession
 
+---@return g.Session
 function g.newSession()
     currentSession = Session()
+    return currentSession
 end
 
 ---@param path string
