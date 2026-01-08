@@ -1004,8 +1004,6 @@ function harvest:draw()
         prof_pop() -- prof_push("debug stats")
     end
 
-    self:renderPause()
-
     --- Storage is Full text:
     do
     local fullResource = nil
@@ -1041,6 +1039,8 @@ function harvest:draw()
         end
     end
     end
+
+    self:renderPause()
 
     ui.endUI()
 end
