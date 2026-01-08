@@ -716,6 +716,9 @@ end
 
 
 
+local REWARD_ITEM_COL1 = objects.Color("#" .. "FF9F14F6")
+local REWARD_ITEM_COL2 = objects.Color("#" .. "FF3B12A4")
+local REWARD_ITEM_GRADIENT = helper.newGradientMesh("horizontal", REWARD_ITEM_COL1, REWARD_ITEM_COL2)
 
 ---@param self HarvestScene
 function drawXpPopup(self)
@@ -746,23 +749,27 @@ function drawXpPopup(self)
     local p = 0.2
     local rewardClaimed = false
 
-    local function drawReward(i)
+    for i, rew in ipairs(self.xpRewards) do
         prof_push("drawReward "..i)
 
-        local rrr = regions[i]
-        local rew = self.xpRewards[i]
-        rrr = rrr:padRatio(p)
-        local col1 = objects.Color("#" .. "FF9F14F6")
-        local col2 = objects.Color("#" .. "FF3B12A4")
+        local rrr = regions[i]:padRatio(p)
         if iml.isHovered(rrr:get()) then
-            col2 = col1
+            lg.setColor(REWARD_ITEM_COL1)
+            lg.rectangle("fill", rrr:padUnit(4):get())
+            lg.setColor(1, 1, 1)
+        else
+            local x, y, w, h = rrr:padUnit(4):get()
+            lg.draw(REWARD_ITEM_GRADIENT, x, y, 0, w, h)
         end
         if iml.wasJustHovered(rrr:get()) then
     		g.playUISound("ui_tick", 1.6,0.65, 0,0)
         end
-        helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
         ui.drawPanel(rrr:get())
+
+        prof_push("rewards.drawRewardDescription "..rew.type)
         rewards.drawRewardDescription(rew, rrr)
+        prof_pop()
+
         if iml.wasJustClicked(rrr:get()) and (not rewardClaimed) then
 		    g.playUISound("ui_click_basic", 1.4,0.8)
             rewardClaimed = true
@@ -770,10 +777,6 @@ function drawXpPopup(self)
         end
 
         prof_pop()
-    end
-
-    for i=1, #self.xpRewards do
-        drawReward(i)
     end
 
     hud:drawStatsAndTokenPool()
