@@ -248,6 +248,8 @@ local STATS_BACKGROUND = helper.newGradientMesh(
 function HUD:drawStatsAndTokenPool()
     assert(g.hasSession())
 
+    prof_push("HUD:drawStatsAndTokenPool()")
+
     local r = ui.getScreenRegion()
     local mainR = Kirigami(0, 0, self.statsWidth, r.h)
         :attachToRightOf(r)
@@ -329,6 +331,8 @@ function HUD:drawStatsAndTokenPool()
             richtext.printRich("{o}"..tpi[2].."{/o}", amountFont, gridR.x, gridR.y + gridR.h - 12, gridR.w, "right")
         end
     end
+
+    prof_pop()
 end
 
 return HUD

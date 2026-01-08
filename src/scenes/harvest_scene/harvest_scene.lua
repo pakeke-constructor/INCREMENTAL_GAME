@@ -411,6 +411,8 @@ end
 
 
 local function drawUpgradePopup(self)
+    prof_push("drawUpgradePopup")
+
     local r = ui.getScreenRegion()
     local cx,cy = r:getCenter()
 
@@ -472,6 +474,8 @@ local function drawUpgradePopup(self)
     if button(stayHarvest:padRatio(0.6,0.5,0.6,0.5), CLOSE, red1,red2) then
         closeUpgradePopup(self)
     end
+
+    prof_pop()
 end
 
 
@@ -598,6 +602,8 @@ local BOSS_POPUP_FADE_IN_TIME = 0.7
 
 ---@param self HarvestScene
 function drawBossPopup(self)
+    prof_push("drawBossPopup")
+
     local r = ui.getScreenRegion()
     iml.panel(r:get()) -- dont let mouse go below this point
 
@@ -651,6 +657,8 @@ function drawBossPopup(self)
         g.playUISound("ui_click_basic", 1.4, 0.8)
         g.prestigeSession()
     end
+
+    prof_pop()
 end
 
 end
@@ -711,6 +719,8 @@ end
 
 ---@param self HarvestScene
 function drawXpPopup(self)
+    prof_push("drawXpPopup")
+
     local r = ui.getScreenRegion()
     local hud = g.getHUD()
     iml.panel(r:get()) -- dont let mouse go below this point
@@ -737,6 +747,8 @@ function drawXpPopup(self)
     local rewardClaimed = false
 
     local function drawReward(i)
+        prof_push("drawReward "..i)
+
         local rrr = regions[i]
         local rew = self.xpRewards[i]
         rrr = rrr:padRatio(p)
@@ -756,6 +768,8 @@ function drawXpPopup(self)
             rewardClaimed = true
             rewards.selectReward(rew)
         end
+
+        prof_pop()
     end
 
     for i=1, #self.xpRewards do
@@ -770,6 +784,8 @@ function drawXpPopup(self)
     end
 
     end
+
+    prof_pop()
 end
 
 
@@ -954,7 +970,11 @@ function harvest:draw()
         self:renderMapButton()
     end
     lg.setColor(1,1,1)
+
+    prof_push("xpParticles:draw")
     xpParticles:draw()
+    prof_pop()
+
     local hud = g.getHUD()
     hud:draw({
         xpbar=true
