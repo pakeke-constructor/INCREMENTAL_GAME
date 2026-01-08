@@ -119,6 +119,9 @@ local function calculateXPRequirement()
         totalTokenHP = totalTokenHP + (tinfo.maxHealth * count)
     end
 
+    -- this ensures that with no tokens, there isnt continuous levelUp
+    totalTokenHP = math.max(totalTokenHP, 1)
+
     local level = g.getSn().level
     if level <= 1 then
         return math.ceil(totalTokenHP * 1.8)
