@@ -201,8 +201,7 @@ definePOI("quest", "Town", {
     price = {money = 7000},
 })
 definePOI("boss", "Challenges", {
-    -- TODO: scene
-    scene = "",
+    scene = "boss_scene",
     x = 391, y = 168, w = 98, h = 90,
     highlight = {"bossarea_statue"},
     tx = 441, ty = 175, tcolor = objects.Color("#".."FF7891A5"),
