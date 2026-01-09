@@ -277,6 +277,8 @@ local GOLD = objects.Color("#".."FFFAE06B")
 ---@param cx number
 ---@param cy number
 local function drawFancyBackgroundShit(progress, cx, cy)
+    prof_push("drawFancyBackgroundShit")
+
     local r = ui.getScreenRegion()
 
     do
@@ -288,104 +290,108 @@ local function drawFancyBackgroundShit(progress, cx, cy)
     lg.draw(GRADIENT_IMG, x, y, 0, sx, sy, 0, 0)
     end
 
-    love.graphics.setColor(1,1,1)
-    popupParticles:draw()
-    if popupParticles:getParticleCount() < 340 then
-        local a = love.timer.getTime()*3-- math.random()*2*math.pi
-        if love.math.random()<0.5 then
-            a = a+math.pi
+    if not consts.IS_MOBILE then
+        love.graphics.setColor(1,1,1)
+        popupParticles:draw()
+        if popupParticles:getParticleCount() < 340 then
+            local a = love.timer.getTime()*3-- math.random()*2*math.pi
+            if love.math.random()<0.5 then
+                a = a+math.pi
+            end
+            local mag = 180 + math.random()*30
+            local vx = math.cos(a) * mag
+            local vy = math.sin(a) * mag
+            popupParticles:spawnParticle(cx,cy, vx,vy)
         end
-        local mag = 180 + math.random()*30
-        local vx = math.cos(a) * mag
-        local vy = math.sin(a) * mag
-        popupParticles:spawnParticle(cx,cy, vx,vy)
+
+        do
+        local t = (love.timer.getTime()*1) % 1
+        local R = (r.w/5) * progress
+        local r1 = R*t
+        local r2 = R + R*t
+        local r3 = R*2 + R*t
+        lg.setLineWidth(10)
+        local lw=lg.getLineWidth()
+        lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.7)
+        lg.circle("line", cx,cy, r1)
+        lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.6)
+        lg.circle("line", cx,cy, r2)
+        lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.5)
+        lg.circle("line", cx,cy, r3)
+        lg.setLineWidth(lw)
+        end
+
+        local time = love.timer.getTime()/2
+        local DIVISIONS = 120
+        godrays.drawRays(cx,cy, time*1.3, {
+            rayCount = 5,
+            color = GOLD,
+            --color = {0.3,1,0.7},
+            startWidth = 15,
+            divisions = DIVISIONS,
+            growRate = 0.1,
+            length = r.w * 0.7 * progress,
+            fadeTo=0.3
+        })
+
+        godrays.drawRays(cx,cy, time*-1.2, {
+            rayCount = 3,
+            color = GOLD,
+            startWidth = 7,
+            divisions = DIVISIONS,
+            growRate = 0.15,
+            length = r.w * 0.5 * progress,
+            fadeTo=0.0
+        })
+
+        do
+        local spd=-0.7
+        godrays.drawRays(cx,cy, time*spd, {
+            rayCount = 3,
+            color = {GOLD[1],GOLD[2],GOLD[3],0.5},
+            -- color = {0.7,1,0.3},
+            startWidth = 20,
+            divisions = DIVISIONS,
+            growRate = 0.3,
+            length = r.w * 0.7 * progress,
+            fadeTo=0.3
+        })
+        godrays.drawRays(cx,cy, time*spd, {
+            rayCount = 3,
+            color = GOLD,
+            -- color = {0.7,1,0.3},
+            startWidth = 12,
+            divisions = DIVISIONS,
+            growRate = 0.3,
+            length = r.w * 0.7 * progress,
+            fadeTo=0.3
+        })
+        end
+
+        godrays.drawRays(cx,cy, 2 + time*1.3, {
+            rayCount = 4,
+            color = GOLD,
+            -- color = {0.7,1,0.3},
+            startWidth = 9,
+            divisions = DIVISIONS,
+            growRate = 0.3,
+            length = r.w * 0.7 * progress,
+            fadeTo=0.3
+        })
+
+        godrays.drawRays(cx,cy, time*0.7, {
+            rayCount = 2,
+            color = GOLD,
+            -- color = {0.1,0.1,0.9},
+            startWidth = 8,
+            divisions = DIVISIONS,
+            growRate = 0.2,
+            length = r.w * 0.9 * progress,
+            fadeTo=0.4
+        })
     end
 
-    do
-    local t = (love.timer.getTime()*1) % 1
-    local R = (r.w/5) * progress
-    local r1 = R*t
-    local r2 = R + R*t
-    local r3 = R*2 + R*t
-    lg.setLineWidth(10)
-    local lw=lg.getLineWidth()
-    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.7)
-    lg.circle("line", cx,cy, r1)
-    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.6)
-    lg.circle("line", cx,cy, r2)
-    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.5)
-    lg.circle("line", cx,cy, r3)
-    lg.setLineWidth(lw)
-    end
-
-    local time = love.timer.getTime()/2
-    local DIVISIONS = 120
-    godrays.drawRays(cx,cy, time*1.3, {
-        rayCount = 5,
-        color = GOLD,
-        --color = {0.3,1,0.7},
-        startWidth = 15,
-        divisions = DIVISIONS,
-        growRate = 0.1,
-        length = r.w * 0.7 * progress,
-        fadeTo=0.3
-    })
-
-    godrays.drawRays(cx,cy, time*-1.2, {
-        rayCount = 3,
-        color = GOLD,
-        startWidth = 7,
-        divisions = DIVISIONS,
-        growRate = 0.15,
-        length = r.w * 0.5 * progress,
-        fadeTo=0.0
-    })
-
-    do
-    local spd=-0.7
-    godrays.drawRays(cx,cy, time*spd, {
-        rayCount = 3,
-        color = {GOLD[1],GOLD[2],GOLD[3],0.5},
-        -- color = {0.7,1,0.3},
-        startWidth = 20,
-        divisions = DIVISIONS,
-        growRate = 0.3,
-        length = r.w * 0.7 * progress,
-        fadeTo=0.3
-    })
-    godrays.drawRays(cx,cy, time*spd, {
-        rayCount = 3,
-        color = GOLD,
-        -- color = {0.7,1,0.3},
-        startWidth = 12,
-        divisions = DIVISIONS,
-        growRate = 0.3,
-        length = r.w * 0.7 * progress,
-        fadeTo=0.3
-    })
-    end
-
-    godrays.drawRays(cx,cy, 2 + time*1.3, {
-        rayCount = 4,
-        color = GOLD,
-        -- color = {0.7,1,0.3},
-        startWidth = 9,
-        divisions = DIVISIONS,
-        growRate = 0.3,
-        length = r.w * 0.7 * progress,
-        fadeTo=0.3
-    })
-
-    godrays.drawRays(cx,cy, time*0.7, {
-        rayCount = 2,
-        color = GOLD,
-        -- color = {0.1,0.1,0.9},
-        startWidth = 8,
-        divisions = DIVISIONS,
-        growRate = 0.2,
-        length = r.w * 0.9 * progress,
-        fadeTo=0.4
-    })
+    prof_pop() -- prof_push("drawFancyBackgroundShit")
 end
 
 
