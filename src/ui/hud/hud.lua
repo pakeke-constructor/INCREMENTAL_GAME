@@ -274,8 +274,7 @@ function HUD:drawStatsAndTokenPool()
             :set(nil, nil, nil, (statFont:getHeight() + 2) * #STATS_TO_SHOW)
         local statGrid = statBaseGridR:grid(1, #STATS_TO_SHOW)
 
-        
-        richtext.printRichContainedNoWrap(STATS_TITLE_TEXT, titleFont, titleR:get())
+        helper.printTextOutline(STATS_TITLE_TEXT, titleFont, 2, titleR.x, titleR.y, titleR.w, "center")
 
         love.graphics.setColor(0, 0, 0, 0.3)
         helper.quickRoundedRectangle("fill", 4, statBaseGridR:padUnit(-4))
@@ -323,7 +322,7 @@ function HUD:drawStatsAndTokenPool()
         helper.quickRoundedRectangle("fill", 4, tokenPoolGridR:padUnit(-4))
         love.graphics.setColor(1, 1, 1)
 
-        richtext.printRichContainedNoWrap(CROPS_TITLE_TEXT, titleFont, titleR:get())
+        helper.printTextOutline(CROPS_TITLE_TEXT, titleFont, 2, titleR.x, titleR.y, titleR.w, "center")
         for i, tpi in ipairs(tokenPoolInfo) do
             local gridR = tokenPoolGrid[i]
             local x, y = gridR:getCenter()
