@@ -280,12 +280,15 @@ function HUD:drawStatsAndTokenPool()
         helper.quickRoundedRectangle("fill", 4, statBaseGridR:padUnit(-4))
         love.graphics.setColor(1, 1, 1)
 
+        local fh = statFont:getHeight() / 2
         for i, cellR in ipairs(statGrid) do
             local statName = g.VALID_STATS[STATS_TO_SHOW[i]].name
             local statValue = math.floor(g.stats[STATS_TO_SHOW[i]] * 100 + 0.5) / 100 -- rounding to 2 nearest decimal
-            local nameR, valueR = cellR:splitHorizontal(5, 2)
-            richtext.printRichContainedNoWrap(statName, statFont, nameR:get())
-            richtext.printRichContainedNoWrap(tostring(statValue), statFont, valueR:get())
+
+            local x, y, w, h = cellR:get()
+            y = y + h / 2
+            love.graphics.print(statName, statFont, x, y, 0, 1, 1, 0, fh)
+            love.graphics.printf(tostring(statValue), statFont, x, y, w, "right", 0, 1, 1, 0, fh)
         end
     end
 
@@ -328,7 +331,8 @@ function HUD:drawStatsAndTokenPool()
             love.graphics.setColor(1, 1, 1)
             g.drawTokenIcon(tpi[1], x, y, 0, TOKEN_IMAGE_SCALE, TOKEN_IMAGE_SCALE)
 
-            richtext.printRich("{o}"..tpi[2].."{/o}", amountFont, gridR.x, gridR.y + gridR.h - 12, gridR.w, "right")
+            local amount = tostring(tpi[2])
+            helper.printTextOutlineSimple(amount, amountFont, gridR.x + gridR.w - amountFont:getWidth(amount), gridR.y + gridR.h - 12)
         end
     end
 
