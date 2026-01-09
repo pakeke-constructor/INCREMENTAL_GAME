@@ -368,11 +368,15 @@ end
 ---@param cloudRadius number Size of each individual cloud
 ---@param cloudSpacing number? Spacing of each individual cloud (default to `cloudRadius`)
 local function drawCloudTransition(t, clearRadius, cloudRadius, cloudSpacing)
+    prof_push("drawCloudTransition")
+
     cloudSpacing = cloudSpacing or cloudRadius
     love.graphics.setColor(1, 0.55, 0.78, 1)
     drawIndividualClouds(t, 9, clearRadius, cloudRadius, cloudSpacing)
     love.graphics.setColor(1, 1, 1)
     drawIndividualClouds(t, 0, clearRadius, cloudRadius, cloudSpacing)
+
+    prof_pop()
 end
 
 
