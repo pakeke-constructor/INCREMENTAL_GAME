@@ -173,7 +173,7 @@ end
 
 
 
----@param text string
+---@param text string|((objects.Color|string)[])
 ---@param font love.Font
 ---@param x number
 ---@param y number
