@@ -1,4 +1,6 @@
-
+-- This has to be done very very early, before any LOVE modules loaded.
+-- Some LOVE modules has JIT-optimized function depending on `jit.status()`.
+if love._os == "Android" and jit then jit.off() jit.flush() end
 
 function _G.love.conf(t)
     t.identity = nil                    -- The name of the save directory (string)
