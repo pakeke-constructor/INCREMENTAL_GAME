@@ -27,6 +27,28 @@ return function(text)
         love.graphics.setColor(r, g, b, a)
     end)
 
+    -- dy=-2 because we want a thicker outline at bottom
+    local outline = consts.IS_MOBILE and {
+        {-1, -2},
+        {-1, 1},
+        {1, -2},
+        {1, 1},
+    } or {
+        {-1, -2},
+        {-1, -1},
+        {-1, 0},
+        {-1, 1},
+        {0, -2},
+        {0, -1},
+        {0, 1},
+        {1, -2},
+        {1, -1},
+        {1, 0},
+        {1, 1},
+    }
+
+    ---@param args table<string,number?>
+    ---@param char text.Character
     local function outlineEffect(args,char)
         local thickness = args.thickness or 1
         local r, g, b, a = love.graphics.getColor()
@@ -37,14 +59,9 @@ return function(text)
 
         local ox, oy = char:getOffset()
 
-        -- dy=-2 because we want a thicker outline at bottom
-        for dy = -2, 1 do
-            for dx = -1, 1 do
-                if not (dx == 0 and dy == 0) then
-                    char:setOffset(ox + dx * thickness, oy + dy * thickness)
-                    char:draw(cr, cg, cb, ca, true)
-                end
-            end
+        for _, dxdy in ipairs(outline) do
+            char:setOffset(ox + dxdy[1] * thickness, oy + dxdy[2] * thickness)
+            char:draw(cr, cg, cb, ca, true)
         end
         char:setOffset(ox, oy)
 
