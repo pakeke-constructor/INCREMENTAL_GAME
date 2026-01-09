@@ -175,6 +175,34 @@ end
 
 ---@param text string|((objects.Color|string)[])
 ---@param font love.Font
+---@param thickness number
+---@param x number
+---@param y number
+---@param limit number
+---@param align love.AlignMode
+---@param rot number?
+---@param sx number?
+---@param sy number?
+---@param ox number?
+---@param oy number?
+function helper.printTextOutline(text, font, thickness, x, y, limit, align, rot, sx, sy, ox, oy)
+    local r,g,b,a = love.graphics.getColor()
+    -- Draw outline
+    love.graphics.setColor(0, 0, 0, a)
+    for dy = -1, 2 do
+        for dx = -1, 1 do
+            if dx ~= 0 or dy ~= 0 then
+                love.graphics.printf(text, font, x + dx * thickness, y + dy * thickness, limit, align, rot, sx, sy, ox, oy)
+            end
+        end
+    end
+    love.graphics.setColor(r,g,b,a)
+    love.graphics.printf(text, font, x, y, limit, align, rot, sx, sy, ox, oy)
+end
+
+---@param text string|((objects.Color|string)[])
+---@param font love.Font
+---@param thickness number
 ---@param x number
 ---@param y number
 ---@param rot number?
@@ -182,17 +210,8 @@ end
 ---@param sy number?
 ---@param ox number?
 ---@param oy number?
-function helper.printTextOutlineSimple(text, font, x, y, rot, sx, sy, ox, oy)
-    local r,g,b,a = love.graphics.getColor()
-    -- Draw outline
-    love.graphics.setColor(0, 0, 0, a)
-    for dy = -1, 1, 2 do
-        for dx = -1, 1, 2 do
-            love.graphics.print(text, font, x + dx, y + dy, rot, sx, sy, ox, oy)
-        end
-    end
-    love.graphics.setColor(r,g,b,a)
-    love.graphics.print(text, font, x, y, rot, sx, sy, ox, oy)
+function helper.printTextOutlineSimple(text, font, thickness, x, y, rot, sx, sy, ox, oy)
+    return helper.printTextOutline(text, font, thickness, x, y, 2147483647, "left", rot, sx, sy, ox, oy)
 end
 
 

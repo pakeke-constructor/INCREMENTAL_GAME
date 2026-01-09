@@ -228,7 +228,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         do
             local text = {isFull and objects.Color.RED or objects.Color.WHITE, g.formatNumber(math.max(0,self.displayValue[kind]))}
             local s = scale * (1 + easeInCubic(1 - t) * 0.25)
-            helper.printTextOutlineSimple(text, font, r.x, r.y, 0, s, s)
+            helper.printTextOutlineSimple(text, font, 1, r.x, r.y, 0, s, s)
         end
 
         -- Draw resource icon

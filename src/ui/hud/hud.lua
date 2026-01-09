@@ -235,8 +235,8 @@ end
 
 
 local STATS_TO_SHOW = {"HitSpeed", "HitDamage", "HarvestArea"}
-local STATS_TITLE_TEXT = "{o thickness=2}"..loc("Stats").."{/o}"
-local CROPS_TITLE_TEXT = "{o thickness=2}"..loc("Crop List").."{/o}"
+local STATS_TITLE_TEXT = loc "Stats"
+local CROPS_TITLE_TEXT = loc "Crop List"
 local TOKEN_IMAGE_SCALE = 1
 
 local STATS_BACKGROUND = helper.newGradientMesh(
@@ -274,6 +274,7 @@ function HUD:drawStatsAndTokenPool()
             :set(nil, nil, nil, (statFont:getHeight() + 2) * #STATS_TO_SHOW)
         local statGrid = statBaseGridR:grid(1, #STATS_TO_SHOW)
 
+        
         richtext.printRichContainedNoWrap(STATS_TITLE_TEXT, titleFont, titleR:get())
 
         love.graphics.setColor(0, 0, 0, 0.3)
@@ -332,7 +333,7 @@ function HUD:drawStatsAndTokenPool()
             g.drawTokenIcon(tpi[1], x, y, 0, TOKEN_IMAGE_SCALE, TOKEN_IMAGE_SCALE)
 
             local amount = tostring(tpi[2])
-            helper.printTextOutlineSimple(amount, amountFont, gridR.x + gridR.w - amountFont:getWidth(amount), gridR.y + gridR.h - 12)
+            helper.printTextOutlineSimple(amount, amountFont, 1, gridR.x + gridR.w - amountFont:getWidth(amount), gridR.y + gridR.h - 12)
         end
     end
 
