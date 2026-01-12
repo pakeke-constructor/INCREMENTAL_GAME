@@ -1,5 +1,4 @@
 
-
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
 
@@ -9,8 +8,14 @@ local vignette = require("src.modules.vignette.vignette")
 local boss = FreeCameraScene()
 
 
+local STATUE_X, STATUE_Y = 100, 200
+local DOOR_X, DOOR_Y = 400, 300
+
+
 function boss:init()
-    self.background = lg.newImage("src/scenes/boss_scene/boss_cave.png")
+    self.background = lg.newImage("src/scenes/boss_scene/challengeroom.png")
+    self.statue = lg.newImage("src/scenes/boss_scene/challengeroom_statue")
+    self.door = lg.newImage("src/scenes/boss_scene/challengeroom_hallway")
 end
 
 
@@ -25,21 +30,24 @@ function boss:draw()
     local w, h = love.graphics.getDimensions()
     local r = ui.getScreenRegion()
 
-    -- Draw vignette
     vignette.draw()
 
-    -- Draw UI
+    local iw, ih = self.background:getDimensions()
+    local scaleX = w / iw
+    local scaleY = h / ih
+    local scale = math.max(scaleX, scaleY)
+    local scaledW = iw * scale
+    local scaledH = ih * scale
+    local x = (w - scaledW) / 2
+    local y = (h - scaledH) / 2
+
+    love.graphics.draw(self.background, x, y, 0, scale, scale)
+
+
     ui.startUI()
-
-    -- Draw cave background
-    local iw,ih = self.background:getDimensions()
-    local sc = math.min(r.w/iw, r.h/ih)
-    love.graphics.draw(self.background, 40, 0, 0, sc,sc)
-
-    local mapButtonR = self:renderMapButton()
-
-    g.getHUD():draw({profile = false, xpbar = false})
+    --g.getHUD():draw({profile = false, xpbar = false})
     self:renderPause()
+    self:renderMapButton()
     ui.endUI()
 end
 
@@ -55,4 +63,3 @@ end
 
 
 return boss
-
