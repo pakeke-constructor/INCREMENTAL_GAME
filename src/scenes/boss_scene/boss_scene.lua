@@ -59,8 +59,12 @@ function boss:draw()
 
     love.graphics.draw(self.background, x, y, 0, scale, scale)
 
-    error[[todo; make statue bob/animate a bit!]]
-    love.graphics.draw(self.statue, x + STATUE_X * scale, y + STATUE_Y * scale, 0, scale, scale)
+    do
+    local s = math.sin(love.timer.getTime()*3)/40
+    local sc = 1 + s
+    local dy = self.statue:getHeight() * (s) * scale
+    love.graphics.draw(self.statue, x + STATUE_X * scale, y + STATUE_Y * scale - dy, 0, scale, scale*sc)
+    end
     love.graphics.draw(self.door, x + DOOR_X * scale, y + DOOR_Y * scale, 0, scale, scale)
 
     self.lightWorld:render(AMBIENT_LIGHT)
