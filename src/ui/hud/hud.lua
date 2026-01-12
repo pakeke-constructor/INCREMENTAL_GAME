@@ -51,8 +51,8 @@ end
 
 ---@param dt number
 function HUD:update(dt)
-    local _, h = ui.getScaledUIDimensions()
-    self.sidebarR = self.sidebarR:set(0, 0, SIDEBAR_WIDTH, h)
+    local fullR = ui.getFullScreenRegion()
+    self.sidebarR = ui.getScreenRegion():set(nil, nil, SIDEBAR_WIDTH, fullR.h)
     self.resourceHUD:update(dt)
     self.profileHUD:update(dt)
 end
@@ -113,10 +113,8 @@ function HUD:draw(show)
     local r = ui.getScreenRegion()
 
     -- Draw sidebar
-    -- love.graphics.setColor(SIDEBAR_COLOR)
     lg.setColor(1,1,1)
-    helper.gradientRect("vertical", SIDEBAR_COLOR, SIDEBAR_COLOR2, self.sidebarR:get())
-    --love.graphics.rectangle("fill", self.sidebar:get())
+    helper.gradientRect("vertical", SIDEBAR_COLOR, SIDEBAR_COLOR2, self.sidebarR:padUnit(-r.x, -r.y, 0, 0):get())
     love.graphics.setColor(SIDEBAR_STRIP)
     love.graphics.rectangle("fill", self.sidebarR.x + self.sidebarR.w, 0, 2, self.sidebarR.h)
     love.graphics.setColor(0, 0, 0)
@@ -142,7 +140,7 @@ function HUD:draw(show)
     local rewards = g.getUpgTree():getUnboundUpgrades()
     if #rewards > 0 then
         love.graphics.setColor(1, 1, 1)
-        richtext.printRich(REWARDS_TEXT, g.getSmallFont(16), 0, resHudY - 2, self.sidebarR.w, "center")
+        richtext.printRich(REWARDS_TEXT, g.getSmallFont(16), self.sidebarR.x, self.sidebarR.y + resHudY - 2, self.sidebarR.w, "center")
 
         local rows = math.ceil(#rewards / 3)
         local gridBaseR = Kirigami(0, resHudY + 16, REWARD_CELL_SIZE * 3, REWARD_CELL_SIZE * rows)
@@ -183,8 +181,10 @@ function HUD:draw(show)
     self.profileHUD:draw(SIDEBAR_WIDTH, show.profile == false)
 
     if show.xpbar then
-        local sidebarWidth = self.sidebarR.x + self.sidebarR.w + 4
-        self.xpBarR = Kirigami(sidebarWidth, 0, r.w - sidebarWidth, 16)
+        --local sidebarWidth = self.sidebarR.x + self.sidebarR.w + 4
+        --self.xpBarR = Kirigami(sidebarWidth, 0, r.w - sidebarWidth, 16)
+        local sidebarWidth = r.w - self.sidebarR.w
+        self.xpBarR = Kirigami(self.sidebarR.x + self.sidebarR.w + 4, 0, sidebarWidth - 4, 16)
         drawExperienceBar(self.xpBarR)
     end
 
@@ -215,10 +215,9 @@ function HUD:draw(show)
 end
 
 function HUD:getSafeArea()
-    local w, h = ui.getScaledUIDimensions()
-    local x2 = self.sidebarR.x + self.sidebarR.w
-    return Kirigami(x2, self.xpBarR.h, w - x2, h - self.xpBarR.h)
-        :intersection(self.profileHUD:getSafeArea())
+    local result = ui.getScreenRegion()
+    return result:padUnit(self.sidebarR.w + 4, self.xpBarR.y + self.xpBarR.h, 0, 0)
+        :intersection(result)
 end
 
 function HUD:getXPBarStartPos()
@@ -236,8 +235,8 @@ end
 
 
 local STATS_TO_SHOW = {"HitSpeed", "HitDamage", "HarvestArea"}
-local STATS_TITLE_TEXT = "{o thickness=2}"..loc("Stats").."{/o}"
-local CROPS_TITLE_TEXT = "{o thickness=2}"..loc("Crop List").."{/o}"
+local STATS_TITLE_TEXT = loc "Stats"
+local CROPS_TITLE_TEXT = loc "Crop List"
 local TOKEN_IMAGE_SCALE = 1
 
 local STATS_BACKGROUND = helper.newGradientMesh(
@@ -248,6 +247,8 @@ local STATS_BACKGROUND = helper.newGradientMesh(
 
 function HUD:drawStatsAndTokenPool()
     assert(g.hasSession())
+
+    prof_push("HUD:drawStatsAndTokenPool()")
 
     local r = ui.getScreenRegion()
     local mainR = Kirigami(0, 0, self.statsWidth, r.h)
@@ -273,18 +274,21 @@ function HUD:drawStatsAndTokenPool()
             :set(nil, nil, nil, (statFont:getHeight() + 2) * #STATS_TO_SHOW)
         local statGrid = statBaseGridR:grid(1, #STATS_TO_SHOW)
 
-        richtext.printRichContainedNoWrap(STATS_TITLE_TEXT, titleFont, titleR:get())
+        helper.printTextOutline(STATS_TITLE_TEXT, titleFont, 2, titleR.x, titleR.y, titleR.w, "center")
 
         love.graphics.setColor(0, 0, 0, 0.3)
         helper.quickRoundedRectangle("fill", 4, statBaseGridR:padUnit(-4))
         love.graphics.setColor(1, 1, 1)
 
+        local fh = statFont:getHeight() / 2
         for i, cellR in ipairs(statGrid) do
             local statName = g.VALID_STATS[STATS_TO_SHOW[i]].name
             local statValue = math.floor(g.stats[STATS_TO_SHOW[i]] * 100 + 0.5) / 100 -- rounding to 2 nearest decimal
-            local nameR, valueR = cellR:splitHorizontal(5, 2)
-            richtext.printRichContainedNoWrap(statName, statFont, nameR:get())
-            richtext.printRichContainedNoWrap(tostring(statValue), statFont, valueR:get())
+
+            local x, y, w, h = cellR:get()
+            y = y + h / 2
+            love.graphics.print(statName, statFont, x, y, 0, 1, 1, 0, fh)
+            love.graphics.printf(tostring(statValue), statFont, x, y, w, "right", 0, 1, 1, 0, fh)
         end
     end
 
@@ -318,7 +322,7 @@ function HUD:drawStatsAndTokenPool()
         helper.quickRoundedRectangle("fill", 4, tokenPoolGridR:padUnit(-4))
         love.graphics.setColor(1, 1, 1)
 
-        richtext.printRichContainedNoWrap(CROPS_TITLE_TEXT, titleFont, titleR:get())
+        helper.printTextOutline(CROPS_TITLE_TEXT, titleFont, 2, titleR.x, titleR.y, titleR.w, "center")
         for i, tpi in ipairs(tokenPoolInfo) do
             local gridR = tokenPoolGrid[i]
             local x, y = gridR:getCenter()
@@ -327,9 +331,12 @@ function HUD:drawStatsAndTokenPool()
             love.graphics.setColor(1, 1, 1)
             g.drawTokenIcon(tpi[1], x, y, 0, TOKEN_IMAGE_SCALE, TOKEN_IMAGE_SCALE)
 
-            richtext.printRich("{o}"..tpi[2].."{/o}", amountFont, gridR.x, gridR.y + gridR.h - 12, gridR.w, "right")
+            local amount = tostring(tpi[2])
+            helper.printTextOutlineSimple(amount, amountFont, 1, gridR.x + gridR.w - amountFont:getWidth(amount), gridR.y + gridR.h - 12)
         end
     end
+
+    prof_pop()
 end
 
 return HUD

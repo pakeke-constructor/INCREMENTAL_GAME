@@ -1,4 +1,8 @@
 local stopErr = require(".error_handling")
+local lru = require("lib.lru")
+
+-- Make sure both values are same. 500 is default cache size.
+local parsedCache = lru.new(500, 500)
 
 ---@param char integer
 local function isCharDrawable(char)
@@ -254,11 +258,19 @@ local function ensureParsedText(txt)
     if type(txt) == "table" then
         return txt
     else
-        local result, msg = parse(txt)
+        local result, msg
+        result = parsedCache:get(txt)
+        ---@cast result text.ParsedText|nil
+        if result then
+            return result
+        end
+
+        result, msg = parse(txt)
         if not result then
             return stopErr(txt, "%s", msg)
         end
 
+        parsedCache:set(txt, result, 1)
         return result
     end
 end

@@ -189,7 +189,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         :centerY(reg)
         :moveRatio(1, 0)
         :moveUnit(5, 0)
-    local textR = reg:padUnit(iconR.x + iconR.w, 0, 0, 0)
+    local textR = reg:padUnit(iconR.x - reg.x + iconR.w, 0, 0, 0)
     local t = self:_getInterpolationTime(kind)
 
     if not noDraw then
@@ -224,14 +224,12 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         if isFull then
             richtxt = helper.wrapRichtextColor({1,0.2,0.2}, richtxt)
         end
-        printTextAt(
-            richtxt,
-            font,
-            r,
-            "left",
-            scale,
-            1 + easeInCubic(1 - t) * 0.25
-        )
+
+        do
+            local text = {isFull and objects.Color.RED or objects.Color.WHITE, g.formatNumber(math.max(0,self.displayValue[kind]))}
+            local s = scale * (1 + easeInCubic(1 - t) * 0.25)
+            helper.printTextOutlineSimple(text, font, 1, r.x, r.y, 0, s, s)
+        end
 
         -- Draw resource icon
         local icx, icy = iconR:getCenter()
@@ -271,8 +269,8 @@ function Resources:drawHUD(noDraw)
     local r = ui.getScreenRegion()
 
     -- Draw resources
-    local BASE_X = 2
-    local BASE_Y = 34 -- HACKY: hardcoded gap here = level offset
+    local BASE_X = r.x + 2
+    local BASE_Y = r.y + 34 -- HACKY: hardcoded gap here = level offset
     local freeX = 0
 
     love.graphics.setColor(1, 1, 1)

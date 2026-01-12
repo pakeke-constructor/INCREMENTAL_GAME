@@ -375,8 +375,14 @@ do
 local GLOBAL_SCALE_INCREMENT = 0.25
 local globalScaleTransform = love.math.newTransform()
 local globalScale = 1
-local gw, gh = 800, 600
-local rootKirigami = Kirigami(0, 0, 800, 600)
+local gx, gy, gw, gh = 0, 0, 1, 1
+local rootKirigami = Kirigami(gx, gy, gw, gh)
+local rootKirigamiUnsafe = Kirigami(gx, gy, gw, gh)
+
+local function getUIScaledSafeArea()
+	gx, gy, gw, gh = love.window.getSafeArea()
+	return gx / globalScale, gy / globalScale, gw / globalScale, gh / globalScale
+end
 
 local function recalculateEverything()
 	local w,h = lg.getDimensions()
@@ -386,25 +392,37 @@ local function recalculateEverything()
 	local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
 	globalScale = math.max(gscale, 1)
 	globalScaleTransform:reset():scale(globalScale)
-	gw = w
-	gh = h
-	rootKirigami = Kirigami(0, 0, w / globalScale, h / globalScale)
+
+	-- Recalculate region
+	gx, gy, gw, gh = love.window.getSafeArea()
+	rootKirigamiUnsafe = Kirigami(0, 0, w / globalScale, h / globalScale)
+	rootKirigami = Kirigami(getUIScaledSafeArea())
 end
 
 
-local function ensureRootKirigamiCorrect()
-	local w,h = ui.getScaledUIDimensions()
-	local rk = rootKirigami
-	if rk.x~=0 or rk.y~=0 or rk.w~=w or rk.h~=h then
-		-- oops, its invalid somehow! recalculate
+local function updateGlobalScaleAutomatic()
+	local x, y, w, h = love.window.getSafeArea()
+	if x ~= gx or y ~= gy or w ~= gw or h ~= gh then
 		recalculateEverything()
 	end
 end
 
 
-local function updateGlobalScaleAutomatic()
-	local w, h = lg.getDimensions()
-	if w ~= gw or h ~= gh then
+local function ensureRootKirigamiCorrect()
+	updateGlobalScaleAutomatic()
+	local x, y, w, h = getUIScaledSafeArea()
+	local fw, fh = ui.getScaledUIDimensions()
+	if
+		rootKirigami.x ~= x or
+		rootKirigami.y ~= y or
+		rootKirigami.w ~= w or
+		rootKirigami.h ~= h or
+		rootKirigamiUnsafe.x ~= 0 or
+		rootKirigamiUnsafe.y ~= 0 or
+		rootKirigamiUnsafe.w ~= fw or
+		rootKirigamiUnsafe.h ~= fh
+	then
+		-- oops, its invalid somehow! recalculate
 		recalculateEverything()
 	end
 end
@@ -414,6 +432,7 @@ function ui.getUIScaling()
 	return globalScale
 end
 
+---Note: If you want to use this for UI placement, you may want `ui.getScreenRegion` instead.
 function ui.getScaledUIDimensions()
 	local w, h = lg.getDimensions()
 	local s = ui.getUIScaling()
@@ -429,6 +448,12 @@ end
 function ui.getScreenRegion()
 	ensureRootKirigamiCorrect()
 	return rootKirigami
+end
+
+---Return whole screen dimensions, scaled by UI. Meant to be used in UI drawing code where
+---using safe area is insufficient.
+function ui.getFullScreenRegion()
+	return rootKirigamiUnsafe
 end
 
 ---@return number
@@ -452,9 +477,16 @@ function ui.startUI()
 	iml.pushTransform(t)
 end
 
+local simulatedSafeArea = pcall(string.dump, love.window.getSafeArea)
+
 function ui.endUI()
 	assert(uiPushed, "attempt to call endUI before startUI")
 	uiPushed = false
+
+    if simulatedSafeArea then
+        ui.debugRegion(ui.getScreenRegion())
+    end
+
 	iml.popTransform()
 	lg.pop()
 	prof_pop() -- prof_push("ui")

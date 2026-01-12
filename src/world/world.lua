@@ -1175,7 +1175,7 @@ function World:_drawDamageNumbers()
             local scale = math.max(helper.EASINGS.easeOutBack(tspawn) ^ 3, 0)
             local text = g.formatNumber(dn.number)
             local width = smallFont:getWidth(text)
-            helper.printTextOutlineSimple(text, smallFont, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
+            helper.printTextOutlineSimple(text, smallFont, 1, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
         end
     end
     prof_pop() -- prof_push("draw numbers")
