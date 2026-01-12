@@ -72,6 +72,25 @@ _G.consts = require("src.consts")
 
 if consts.DEV_MODE then
     love.keyboard.setTextInput(true)
+
+    -- simulated safe area for development
+    do
+        local insets = os.getenv("INCREMENTAL_GAME_SAFE_AREA")
+        if insets then
+            local status, data = pcall(json.decode, insets)
+            if status then
+                local left = assert(tonumber(data[1]))
+                local top = assert(tonumber(data[2] or left))
+                local right = assert(tonumber(data[3] or left))
+                local bot = assert(tonumber(data[4] or top))
+
+                function love.window.getSafeArea()
+                    local x, y, w, h = Kirigami(0, 0, love.graphics.getDimensions()):padRatio(left, top, right, bot):get()
+                    return math.floor(x + 0.5), math.floor(y + 0.5), math.floor(w + 0.5), math.floor(h + 0.5)
+                end
+            end
+        end
+    end
 end
 
 
@@ -321,8 +340,23 @@ function love.draw()
     assert(profilerStackCount == 0, "more pushes than pops")
 end
 
+do
+
+local emuX, emuY = 0, 0
+if consts.EMULATE_TOUCH then
+    -- Monkeypatch HACK
+    function love.mouse.getPosition()
+        return emuX, emuY
+    end
+end
 
 function love.mousepressed(mx, my, button, istouch, presses)
+    if consts.EMULATE_TOUCH then
+        if button ~= 1 then return end
+        istouch = true
+        emuX, emuY = mx, my
+    end
+
     idleTime = 0
     iml.mousepressed(mx, my, button, istouch, presses)
     local sc = sceneManager.getCurrentScene()
@@ -332,6 +366,12 @@ function love.mousepressed(mx, my, button, istouch, presses)
 end
 
 function love.mousereleased(mx, my, button, istouch)
+    if consts.EMULATE_TOUCH then
+        if button ~= 1 then return end
+        istouch = true
+        emuX, emuY = mx, my
+    end
+
     idleTime = 0
     iml.mousereleased(mx, my, button, istouch)
     local sc = sceneManager.getCurrentScene()
@@ -341,11 +381,19 @@ function love.mousereleased(mx, my, button, istouch)
 end
 
 function love.mousemoved(mx, my, dx, dy, istouch)
+    if consts.EMULATE_TOUCH then
+        if not love.mouse.isDown(1) then return end
+        istouch = true
+        emuX, emuY = mx, my
+    end
+
     idleTime = 0
     local sc = sceneManager.getCurrentScene()
     if sc and sc.mousemoved then
         sc:mousemoved(mx, my, dx, dy, istouch)
     end
+end
+
 end
 
 function love.keypressed(key, scancode, isrep)

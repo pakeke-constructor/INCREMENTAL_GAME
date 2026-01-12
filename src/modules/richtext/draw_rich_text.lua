@@ -52,8 +52,9 @@ function drawRichText(txt, font, transform, limit, align) end
 ---@param oy number?
 ---@param kx number?
 ---@param ky number?
----@return boolean,(string|nil)
 function drawRichText(txt, font, x, y, limit, align, rot, sx, sy, ox, oy, kx, ky)
+    prof_push("drawRichText")
+
     if typecheck.isType(x, "love:Transform") then
         align = limit
         limit = y
@@ -71,7 +72,7 @@ function drawRichText(txt, font, x, y, limit, align, rot, sx, sy, ox, oy, kx, ky
     insertToTextPass(pass, assert(parser.ensure(txt)))
 
     love.graphics.pop()
-    return true
+    prof_pop()
 end
 
 ---@param txt text.ParsedText

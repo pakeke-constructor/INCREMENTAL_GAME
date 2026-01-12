@@ -277,6 +277,8 @@ local GOLD = objects.Color("#".."FFFAE06B")
 ---@param cx number
 ---@param cy number
 local function drawFancyBackgroundShit(progress, cx, cy)
+    prof_push("drawFancyBackgroundShit")
+
     local r = ui.getScreenRegion()
 
     do
@@ -288,104 +290,108 @@ local function drawFancyBackgroundShit(progress, cx, cy)
     lg.draw(GRADIENT_IMG, x, y, 0, sx, sy, 0, 0)
     end
 
-    love.graphics.setColor(1,1,1)
-    popupParticles:draw()
-    if popupParticles:getParticleCount() < 340 then
-        local a = love.timer.getTime()*3-- math.random()*2*math.pi
-        if love.math.random()<0.5 then
-            a = a+math.pi
+    if not consts.IS_MOBILE then
+        love.graphics.setColor(1,1,1)
+        popupParticles:draw()
+        if popupParticles:getParticleCount() < 340 then
+            local a = love.timer.getTime()*3-- math.random()*2*math.pi
+            if love.math.random()<0.5 then
+                a = a+math.pi
+            end
+            local mag = 180 + math.random()*30
+            local vx = math.cos(a) * mag
+            local vy = math.sin(a) * mag
+            popupParticles:spawnParticle(cx,cy, vx,vy)
         end
-        local mag = 180 + math.random()*30
-        local vx = math.cos(a) * mag
-        local vy = math.sin(a) * mag
-        popupParticles:spawnParticle(cx,cy, vx,vy)
+
+        do
+        local t = (love.timer.getTime()*1) % 1
+        local R = (r.w/5) * progress
+        local r1 = R*t
+        local r2 = R + R*t
+        local r3 = R*2 + R*t
+        lg.setLineWidth(10)
+        local lw=lg.getLineWidth()
+        lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.7)
+        lg.circle("line", cx,cy, r1)
+        lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.6)
+        lg.circle("line", cx,cy, r2)
+        lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.5)
+        lg.circle("line", cx,cy, r3)
+        lg.setLineWidth(lw)
+        end
+
+        local time = love.timer.getTime()/2
+        local DIVISIONS = 120
+        godrays.drawRays(cx,cy, time*1.3, {
+            rayCount = 5,
+            color = GOLD,
+            --color = {0.3,1,0.7},
+            startWidth = 15,
+            divisions = DIVISIONS,
+            growRate = 0.1,
+            length = r.w * 0.7 * progress,
+            fadeTo=0.3
+        })
+
+        godrays.drawRays(cx,cy, time*-1.2, {
+            rayCount = 3,
+            color = GOLD,
+            startWidth = 7,
+            divisions = DIVISIONS,
+            growRate = 0.15,
+            length = r.w * 0.5 * progress,
+            fadeTo=0.0
+        })
+
+        do
+        local spd=-0.7
+        godrays.drawRays(cx,cy, time*spd, {
+            rayCount = 3,
+            color = {GOLD[1],GOLD[2],GOLD[3],0.5},
+            -- color = {0.7,1,0.3},
+            startWidth = 20,
+            divisions = DIVISIONS,
+            growRate = 0.3,
+            length = r.w * 0.7 * progress,
+            fadeTo=0.3
+        })
+        godrays.drawRays(cx,cy, time*spd, {
+            rayCount = 3,
+            color = GOLD,
+            -- color = {0.7,1,0.3},
+            startWidth = 12,
+            divisions = DIVISIONS,
+            growRate = 0.3,
+            length = r.w * 0.7 * progress,
+            fadeTo=0.3
+        })
+        end
+
+        godrays.drawRays(cx,cy, 2 + time*1.3, {
+            rayCount = 4,
+            color = GOLD,
+            -- color = {0.7,1,0.3},
+            startWidth = 9,
+            divisions = DIVISIONS,
+            growRate = 0.3,
+            length = r.w * 0.7 * progress,
+            fadeTo=0.3
+        })
+
+        godrays.drawRays(cx,cy, time*0.7, {
+            rayCount = 2,
+            color = GOLD,
+            -- color = {0.1,0.1,0.9},
+            startWidth = 8,
+            divisions = DIVISIONS,
+            growRate = 0.2,
+            length = r.w * 0.9 * progress,
+            fadeTo=0.4
+        })
     end
 
-    do
-    local t = (love.timer.getTime()*1) % 1
-    local R = (r.w/5) * progress
-    local r1 = R*t
-    local r2 = R + R*t
-    local r3 = R*2 + R*t
-    lg.setLineWidth(10)
-    local lw=lg.getLineWidth()
-    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.7)
-    lg.circle("line", cx,cy, r1)
-    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.6)
-    lg.circle("line", cx,cy, r2)
-    lg.setColor(GOLD[1],GOLD[2],GOLD[3],0.5)
-    lg.circle("line", cx,cy, r3)
-    lg.setLineWidth(lw)
-    end
-
-    local time = love.timer.getTime()/2
-    local DIVISIONS = 120
-    godrays.drawRays(cx,cy, time*1.3, {
-        rayCount = 5,
-        color = GOLD,
-        --color = {0.3,1,0.7},
-        startWidth = 15,
-        divisions = DIVISIONS,
-        growRate = 0.1,
-        length = r.w * 0.7 * progress,
-        fadeTo=0.3
-    })
-
-    godrays.drawRays(cx,cy, time*-1.2, {
-        rayCount = 3,
-        color = GOLD,
-        startWidth = 7,
-        divisions = DIVISIONS,
-        growRate = 0.15,
-        length = r.w * 0.5 * progress,
-        fadeTo=0.0
-    })
-
-    do
-    local spd=-0.7
-    godrays.drawRays(cx,cy, time*spd, {
-        rayCount = 3,
-        color = {GOLD[1],GOLD[2],GOLD[3],0.5},
-        -- color = {0.7,1,0.3},
-        startWidth = 20,
-        divisions = DIVISIONS,
-        growRate = 0.3,
-        length = r.w * 0.7 * progress,
-        fadeTo=0.3
-    })
-    godrays.drawRays(cx,cy, time*spd, {
-        rayCount = 3,
-        color = GOLD,
-        -- color = {0.7,1,0.3},
-        startWidth = 12,
-        divisions = DIVISIONS,
-        growRate = 0.3,
-        length = r.w * 0.7 * progress,
-        fadeTo=0.3
-    })
-    end
-
-    godrays.drawRays(cx,cy, 2 + time*1.3, {
-        rayCount = 4,
-        color = GOLD,
-        -- color = {0.7,1,0.3},
-        startWidth = 9,
-        divisions = DIVISIONS,
-        growRate = 0.3,
-        length = r.w * 0.7 * progress,
-        fadeTo=0.3
-    })
-
-    godrays.drawRays(cx,cy, time*0.7, {
-        rayCount = 2,
-        color = GOLD,
-        -- color = {0.1,0.1,0.9},
-        startWidth = 8,
-        divisions = DIVISIONS,
-        growRate = 0.2,
-        length = r.w * 0.9 * progress,
-        fadeTo=0.4
-    })
+    prof_pop() -- prof_push("drawFancyBackgroundShit")
 end
 
 
@@ -411,6 +417,8 @@ end
 
 
 local function drawUpgradePopup(self)
+    prof_push("drawUpgradePopup")
+
     local r = ui.getScreenRegion()
     local cx,cy = r:getCenter()
 
@@ -472,6 +480,8 @@ local function drawUpgradePopup(self)
     if button(stayHarvest:padRatio(0.6,0.5,0.6,0.5), CLOSE, red1,red2) then
         closeUpgradePopup(self)
     end
+
+    prof_pop()
 end
 
 
@@ -598,6 +608,8 @@ local BOSS_POPUP_FADE_IN_TIME = 0.7
 
 ---@param self HarvestScene
 function drawBossPopup(self)
+    prof_push("drawBossPopup")
+
     local r = ui.getScreenRegion()
     iml.panel(r:get()) -- dont let mouse go below this point
 
@@ -651,6 +663,8 @@ function drawBossPopup(self)
         g.playUISound("ui_click_basic", 1.4, 0.8)
         g.prestigeSession()
     end
+
+    prof_pop()
 end
 
 end
@@ -708,9 +722,14 @@ end
 
 
 
+local REWARD_ITEM_COL1 = objects.Color("#" .. "FF9F14F6")
+local REWARD_ITEM_COL2 = objects.Color("#" .. "FF3B12A4")
+local REWARD_ITEM_GRADIENT = helper.newGradientMesh("horizontal", REWARD_ITEM_COL1, REWARD_ITEM_COL2)
 
 ---@param self HarvestScene
 function drawXpPopup(self)
+    prof_push("drawXpPopup")
+
     local r = ui.getScreenRegion()
     local hud = g.getHUD()
     iml.panel(r:get()) -- dont let mouse go below this point
@@ -736,30 +755,34 @@ function drawXpPopup(self)
     local p = 0.2
     local rewardClaimed = false
 
-    local function drawReward(i)
-        local rrr = regions[i]
-        local rew = self.xpRewards[i]
-        rrr = rrr:padRatio(p)
-        local col1 = objects.Color("#" .. "FF9F14F6")
-        local col2 = objects.Color("#" .. "FF3B12A4")
+    for i, rew in ipairs(self.xpRewards) do
+        prof_push("drawReward "..i)
+
+        local rrr = regions[i]:padRatio(p)
         if iml.isHovered(rrr:get()) then
-            col2 = col1
+            lg.setColor(REWARD_ITEM_COL1)
+            lg.rectangle("fill", rrr:padUnit(4):get())
+            lg.setColor(1, 1, 1)
+        else
+            local x, y, w, h = rrr:padUnit(4):get()
+            lg.draw(REWARD_ITEM_GRADIENT, x, y, 0, w, h)
         end
         if iml.wasJustHovered(rrr:get()) then
     		g.playUISound("ui_tick", 1.6,0.65, 0,0)
         end
-        helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
         ui.drawPanel(rrr:get())
+
+        prof_push("rewards.drawRewardDescription "..rew.type)
         rewards.drawRewardDescription(rew, rrr)
+        prof_pop()
+
         if iml.wasJustClicked(rrr:get()) and (not rewardClaimed) then
 		    g.playUISound("ui_click_basic", 1.4,0.8)
             rewardClaimed = true
             rewards.selectReward(rew)
         end
-    end
 
-    for i=1, #self.xpRewards do
-        drawReward(i)
+        prof_pop()
     end
 
     hud:drawStatsAndTokenPool()
@@ -770,6 +793,8 @@ function drawXpPopup(self)
     end
 
     end
+
+    prof_pop()
 end
 
 
@@ -954,7 +979,11 @@ function harvest:draw()
         self:renderMapButton()
     end
     lg.setColor(1,1,1)
+
+    prof_push("xpParticles:draw")
     xpParticles:draw()
+    prof_pop()
+
     local hud = g.getHUD()
     hud:draw({
         xpbar=true
@@ -1004,8 +1033,6 @@ function harvest:draw()
         prof_pop() -- prof_push("debug stats")
     end
 
-    self:renderPause()
-
     --- Storage is Full text:
     do
     local fullResource = nil
@@ -1041,6 +1068,8 @@ function harvest:draw()
         end
     end
     end
+
+    self:renderPause()
 
     ui.endUI()
 end
