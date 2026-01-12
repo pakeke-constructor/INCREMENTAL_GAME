@@ -556,7 +556,8 @@ function World:_draw()
             self.mouseY,
             g.stats.HarvestArea,
             HARVEST_CIRCLE_INSIDE,
-            HARVEST_CIRCLE_BORDER
+            HARVEST_CIRCLE_BORDER,
+            (self.combo >= 3)
         )
     end
 

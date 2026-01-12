@@ -600,4 +600,36 @@ end
 
 
 
+---@param x number Center x position
+---@param y number Center y position
+---@param rad number Radius
+---@param progress number Progress from 0 to 1 (1 = full circle, 0 = empty)
+---@param lineWidth number? Optional line width (defaults to rad/10)
+---@param segments number? Optional number of segments for smoothness (defaults to 60)
+---@param startAngle number?
+---@param reverse boolean?
+function helper.drawPartialCircle(x, y, rad, progress, lineWidth, segments, startAngle, reverse)
+    segments = segments or 60
+    lineWidth = lineWidth or math.floor(rad / 10)
+    local lw = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(lineWidth)
+    local totalAngle = progress * math.pi * 2
+    startAngle = (startAngle or 0) - math.pi/2
+    local dir = reverse
+    for i = 0, segments - 1 do
+        local angle1 = startAngle + (i / segments) * totalAngle
+        local angle2 = startAngle + ((i + 2) / segments) * totalAngle
+        if (i + 1) / segments <= progress then
+            local x1 = x + math.cos(angle1) * rad
+            local y1 = y + math.sin(angle1) * rad
+            local x2 = x + math.cos(angle2) * rad
+            local y2 = y + math.sin(angle2) * rad
+            love.graphics.line(x1, y1, x2, y2)
+        end
+    end
+    love.graphics.setLineWidth(lw)
+end
+
+
+
 return helper
