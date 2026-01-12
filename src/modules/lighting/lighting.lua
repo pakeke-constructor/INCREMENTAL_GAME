@@ -1,23 +1,25 @@
 local LightWorld = {}
 LightWorld.__index = LightWorld
 
-local DEFAULT_AMBIENT = {0.55, 0.55, 0.7}
+local DEFAULT_AMBIENT = {0.2, 0.2, 0.4}
 local DEFAULT_SIZE = 50
 local DEFAULT_COLOR = {1, 1, 1}
 
 local function newLightWorld(lightImagePath)
     local self = setmetatable({}, LightWorld)
-    
-    lightImagePath = lightImagePath or "lights/default_light.png"
+
+    -- todo; use atlas for this.
+    lightImagePath = lightImagePath or "src/modules/lighting/default_light.png"
+
     self.light_image = love.graphics.newImage(lightImagePath)
     self.imageWidth, self.imageHeight = self.light_image:getDimensions()
-    
+
     local w, h = love.graphics.getDimensions()
     self.canvas = love.graphics.newCanvas(w + 20, h + 20)
-    
+
     self.lights = {}
     self.nextId = 1
-    
+
     return self
 end
 
