@@ -59,6 +59,10 @@ local consts = {
 
     -- Resource multipler on combo increase
     COMBO_MULTIPLIER = 0.01,
+
+    -- how much % the combo timer increases when you harvest a crop.
+    -- (e.g. 0.2 means you gotta harvest 5 crops to fill the timer)
+    COMBO_HARVEST_INCREMENT_RATIO = 0.07,
 }
 
 local os = love.system.getOS()

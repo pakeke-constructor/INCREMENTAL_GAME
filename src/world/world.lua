@@ -661,9 +661,11 @@ end
 
 
 function World:_incrementCombo()
+    -- (called when a crop is destroyed)
     if isInHarvestScene() and self:_isPlayerCurrentlyHarvesting() then
         self.combo = self.combo + 1
-        self.comboTimeout = self:_getComboDuration()
+        local dur = self:_getComboDuration()
+        self.comboTimeout = math.min(dur, self.comboTimeout + dur*consts.COMBO_HARVEST_INCREMENT_RATIO)
     end
 end
 
@@ -695,15 +697,18 @@ end
 
 
 function World:_getComboDuration()
+    local t
     if self.combo < 10 then
-        return 6
+        t = 4
     elseif self.combo < 50 then
-        return helper.remap(self.combo, 10, 50, 6, 3)
+        t = helper.remap(self.combo, 10, 50, 4, 1)
     elseif self.combo < 200 then
-        return helper.remap(self.combo, 50, 200, 3, 0.7)
+        t = helper.remap(self.combo, 50, 200, 1, 0.3)
+    else
+        local dur = helper.remap(self.combo, 200, 1000, 0.3, 0.05)
+        t = helper.clamp(dur, 0.01, 1)
     end
-    local dur = helper.remap(self.combo, 200, 1000, 0.7, 0.1)
-    return helper.clamp(dur, 0.1, 1)
+    return t / consts.COMBO_HARVEST_INCREMENT_RATIO
 end
 
 
