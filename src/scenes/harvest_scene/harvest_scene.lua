@@ -853,8 +853,9 @@ function harvest:tokenDestroyed(tok)
         local x = world.mouseX or 0
         local y = world.mouseY or 0
         local mul = math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100
-        local r, g, b = objects.Color.HSVtoRGB((world.combo / 49 * 360) % 360, 1, 1)
-        local text = string.format("{c r=%.14g g=%.14g b=%.14g}{o}%s{/o}{/c}", r, g, b, COMBO_POPUP_TEXT({mul = mul}))
+        -- local r, g, b = objects.Color.HSVtoRGB((world.combo / 49 * 360) % 360, 1, 1)
+        --local text = string.format("{c r=%.14g g=%.14g b=%.14g}{o}%s{/o}{/c}", r, g, b, COMBO_POPUP_TEXT({mul = mul}))
+        local text = string.format("{c r=0.5 g=0.2 b=0.9}{o}%s{/o}{/c}", COMBO_POPUP_TEXT({mul = mul}))
         worldutil.spawnText(text, x, y, 1.4, 10)
     end
 end

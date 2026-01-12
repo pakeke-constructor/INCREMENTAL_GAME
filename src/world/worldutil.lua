@@ -22,7 +22,7 @@ function worldutil.drawHarvestCircle(x, y, rad, circleColor, circleBorderColor, 
         local joltScale = math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.4, 1), 1)
         local timer = helper.remap(ratio, 0., 1.0, 0, 1)
 
-        local lineWidth = math.floor(rad/8)
+        local lineWidth = math.floor(rad/15) + 2
         local SEG=60
 
         -- Draw progress bar fill

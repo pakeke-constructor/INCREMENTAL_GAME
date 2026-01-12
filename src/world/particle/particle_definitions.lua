@@ -155,12 +155,13 @@ function initParticles()
 
     local grass = defineParticle("grass", {
         frames = makeFrames("grass_particle_", 3, 0),
-        lifetime = 0.3,
+        lifetime = 0.4,
         emissionArea = {
             distribution = "ellipse",
             distance = {4, 4}
         }
     })
+    grass:setSpeed(30,50)
 
 
     local wood = defineParticle("wood", {

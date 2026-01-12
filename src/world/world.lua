@@ -1064,8 +1064,10 @@ function World:_update(dt)
 
     -- Update combo
     do
-        local dtmul = self:_isPlayerCurrentlyHarvesting() and 1 or 0
-        self.comboTimeout = isInHarvestScene() and math.max(self.comboTimeout - dt * dtmul, 0) or 0
+        -- Only count down timer if player is actively harvesting
+        if isInHarvestScene() and self:_isPlayerCurrentlyHarvesting() then
+            self.comboTimeout = math.max(self.comboTimeout - dt, 0)
+        end
         if self.comboTimeout <= 0 then
             self.combo = 0
         end
