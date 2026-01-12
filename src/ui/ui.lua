@@ -375,13 +375,14 @@ do
 local GLOBAL_SCALE_INCREMENT = 0.25
 local globalScaleTransform = love.math.newTransform()
 local globalScale = 1
-local gw, gh = 800, 600
-local rootKirigami = Kirigami(0, 0, 800, 600)
-local rootKirigamiUnsafe = Kirigami(0, 0, 800, 600)
+local gx, gy, gw, gh = 0, 0, 1, 1
+local rootKirigami = Kirigami(gx, gy, gw, gh)
+local rootKirigamiUnsafe = Kirigami(gx, gy, gw, gh)
 
--- Second copy to ensure no tampering
-local rootKirigamiCopy = Kirigami(0, 0, 800, 600)
-local rootKirigamiUnsafeCopy = Kirigami(0, 0, 800, 600)
+local function getUIScaledSafeArea()
+	gx, gy, gw, gh = love.window.getSafeArea()
+	return gx / globalScale, gy / globalScale, gw / globalScale, gh / globalScale
+end
 
 local function recalculateEverything()
 	local w,h = lg.getDimensions()
@@ -391,21 +392,17 @@ local function recalculateEverything()
 	local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
 	globalScale = math.max(gscale, 1)
 	globalScaleTransform:reset():scale(globalScale)
-	gw = w
-	gh = h
 
 	-- Recalculate region
-	local sx, sy, sw, sh = love.window.getSafeArea()
+	gx, gy, gw, gh = love.window.getSafeArea()
 	rootKirigamiUnsafe = Kirigami(0, 0, w / globalScale, h / globalScale)
-	rootKirigamiUnsafeCopy = rootKirigamiUnsafe:set()
-	rootKirigami = Kirigami(sx / globalScale, sy / globalScale, sw / globalScale, sh / globalScale)
-	rootKirigamiCopy = rootKirigami:set()
+	rootKirigami = Kirigami(getUIScaledSafeArea())
 end
 
 
 local function updateGlobalScaleAutomatic()
-	local w, h = lg.getDimensions()
-	if w ~= gw or h ~= gh then
+	local x, y, w, h = love.window.getSafeArea()
+	if x ~= gx or y ~= gy or w ~= gw or h ~= gh then
 		recalculateEverything()
 	end
 end
@@ -413,15 +410,17 @@ end
 
 local function ensureRootKirigamiCorrect()
 	updateGlobalScaleAutomatic()
+	local x, y, w, h = getUIScaledSafeArea()
+	local fw, fh = ui.getScaledUIDimensions()
 	if
-		rootKirigami.x ~= rootKirigamiCopy.x or
-		rootKirigami.y ~= rootKirigamiCopy.y or
-		rootKirigami.w ~= rootKirigamiCopy.w or
-		rootKirigami.h ~= rootKirigamiCopy.h or
-		rootKirigamiUnsafe.x ~= rootKirigamiUnsafeCopy.x or
-		rootKirigamiUnsafe.y ~= rootKirigamiUnsafeCopy.y or
-		rootKirigamiUnsafe.w ~= rootKirigamiUnsafeCopy.w or
-		rootKirigamiUnsafe.h ~= rootKirigamiUnsafeCopy.h
+		rootKirigami.x ~= x or
+		rootKirigami.y ~= y or
+		rootKirigami.w ~= w or
+		rootKirigami.h ~= h or
+		rootKirigamiUnsafe.x ~= 0 or
+		rootKirigamiUnsafe.y ~= 0 or
+		rootKirigamiUnsafe.w ~= fw or
+		rootKirigamiUnsafe.h ~= fh
 	then
 		-- oops, its invalid somehow! recalculate
 		recalculateEverything()
@@ -446,10 +445,15 @@ function ui.getUIScalingTransform()
 end
 
 ---Return whole safe area, scaled by UI. Meant to be used in UI drawing code.
----@param fullarea boolean? Return the full area instead of the safe area?
-function ui.getScreenRegion(fullarea)
+function ui.getScreenRegion()
 	ensureRootKirigamiCorrect()
-	return fullarea and rootKirigamiUnsafe or rootKirigami
+	return rootKirigami
+end
+
+---Return whole screen dimensions, scaled by UI. Meant to be used in UI drawing code where
+---using safe area is insufficient.
+function ui.getFullScreenRegion()
+	return rootKirigamiUnsafe
 end
 
 ---@return number

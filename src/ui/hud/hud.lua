@@ -51,7 +51,7 @@ end
 
 ---@param dt number
 function HUD:update(dt)
-    local fullR = ui.getScreenRegion(true)
+    local fullR = ui.getFullScreenRegion()
     self.sidebarR = ui.getScreenRegion():set(nil, nil, SIDEBAR_WIDTH, fullR.h)
     self.resourceHUD:update(dt)
     self.profileHUD:update(dt)
