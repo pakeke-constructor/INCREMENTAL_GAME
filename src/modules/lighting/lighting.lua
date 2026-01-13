@@ -27,8 +27,13 @@ end
 
 function LightWorld:resize()
     local w, h = love.graphics.getDimensions()
-    self.canvas = love.graphics.newCanvas(w + 20, h + 20)
+    local cw, ch = self.canvas:getDimensions()
+    if cw<w or ch<h then
+        -- only construct new canvas if it needs to grow
+        self.canvas = love.graphics.newCanvas(w + 20, h + 20)
+    end
 end
+
 
 function LightWorld:addLight(x, y, size, color)
     local light = {

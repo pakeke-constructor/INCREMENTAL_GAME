@@ -4,7 +4,10 @@ local lg=love.graphics
 local particles = require("src.modules.particles.particles")
 local cloudService = require(".cloud_service")
 
+local newLightWorld = require("src.modules.lighting.lighting")
+
 local rewards = require("src.rewards.rewards")
+
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
@@ -73,6 +76,8 @@ function harvest:init()
     self.background = love.graphics.newImage("src/scenes/harvest_scene/background_harvest.png")
 
     self.worldScale = 1
+
+    self.lightWorld = newLightWorld()
 end
 
 
@@ -920,6 +925,24 @@ local function drawComboVisual(self)
 end
 
 
+
+
+---@param self HarvestScene
+local function doBossLighting(self)
+    print("yes")
+    self.lightWorld:resize()
+    self.lightWorld:clear()
+    local tok = assert(g.getBossToken())
+    self.lightWorld:addLight(tok.x, tok.y, 700)
+    local world = g.getMainWorld()
+    local mx, my = world.mouseX, world.mouseY
+    if mx and my then
+        self.lightWorld:addLight(mx,my, 400)
+    end
+    self.lightWorld:render({0.1,0.1,0.2})
+end
+
+
 function harvest:draw()
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
@@ -951,6 +974,11 @@ function harvest:draw()
     end
 
     world:_draw()
+
+    local bossTok = g.getBossToken()
+    if bossTok then
+        doBossLighting(self)
+    end
 
     local sess = g.getSn()
 

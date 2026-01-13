@@ -178,7 +178,7 @@ setmetatable(_G, {
 
 local crt = require("src.modules.crt")
 local vignette = require("src.modules.vignette.vignette")
-vignette.setStrength(0.35)
+vignette.setStrength(consts.VIGNETTE_STRENGTH)
 local subpixel = require("src.modules.subpixel")
 
 require("src.ev_q_definitions")

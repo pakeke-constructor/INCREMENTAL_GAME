@@ -685,6 +685,7 @@ end
 ---@private
 function World:_updateTokenCount()
     table_clear(self.tokenCounts)
+    self.bossToken = nil
     for _, t in ipairs(self.tokens) do
         ---@cast t g.Token
         self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1

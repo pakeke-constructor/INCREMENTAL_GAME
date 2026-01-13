@@ -1884,7 +1884,6 @@ end
 
 
 
-
 -- difference between delete/destroy:
 --[[
 Destroy = delete + earn resources, particles, etc.
@@ -2212,9 +2211,10 @@ function g.summonBoss(bossId)
 end
 
 ---@param prestige integer
----@return g.TokenInfo?
-function g.getBossForPrestige(prestige)
-    return (PRESTIGE_TO_BOSS[prestige])
+---@return string?
+function g.getBossIdForPrestige(prestige)
+    local tInfo = PRESTIGE_TO_BOSS[prestige]
+    return tInfo and tInfo.type
 end
 
 --- returns the boss token, if there's a bossfight happening

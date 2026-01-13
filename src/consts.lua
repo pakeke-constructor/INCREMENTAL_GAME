@@ -33,6 +33,7 @@ local consts = {
 
     HARVEST_AREA_LEEWAY = 4, -- Mouse-harvest extends by this amount so it "feels good"
 
+    VIGNETTE_STRENGTH = 0.6,
 
     DEFAULT_UPGRADE_PRICE_SCALING = 1,
     -- upgrade-price is multiplied by this amount every level (unless specified)
