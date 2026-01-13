@@ -929,7 +929,6 @@ end
 
 ---@param self HarvestScene
 local function doBossLighting(self)
-    print("yes")
     self.lightWorld:resize()
     self.lightWorld:clear()
     local tok = assert(g.getBossToken())

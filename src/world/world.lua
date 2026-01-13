@@ -244,6 +244,10 @@ local TOKEN_HIT_SQUASH_AMOUNT = 0.6
 local function getTokScale(tok)
     local sx,sy = 1,1
 
+    if tok.bossfight then
+        return 1,1 -- boss-tokens dont rotate.
+    end
+
     local ta = tok.timeAlive
     if ta < TOKEN_SPAWN_ANIMATION_DURATION then
         -- On spawn: Make it pop up
@@ -279,6 +283,10 @@ local TOKEN_DAMAGE_JERK_AMPLITUDE = 1.3
 ---@return number rot
 local function getTokRotation(tok)
     local rot = 0
+
+    if tok.bossfight then
+        return 0 -- boss-tokens dont rotate.
+    end
 
     local tsd = tok.timeSinceDamaged
     if tsd < TOKEN_DAMAGE_JERK_DURATION then

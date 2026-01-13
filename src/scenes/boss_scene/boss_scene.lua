@@ -46,25 +46,31 @@ function boss:update(dt)
 end
 
 
-local SUMMON_BOSS = loc("{o}{c r=1, g=0.5 b=0.3}Summon Boss?{/c}{/o}", {}, {
+local SUMMON_BOSS = loc("{o}{c r=1 g=0.5 b=0.3}Summon Boss?{/c}{/o}", {}, {
     context = "As in, voluntarily starting a boss-fight in a videogame"
 })
 
-local BOSS_INFO = loc("{o}{c r=1, g=0.5 b=0.3}(All upgrades will be reset!){/c}{/o}", {}, {
+local BOSS_INFO = loc("{o}{c r=0.8 g=0.9 b=0.8}(All upgrades will be reset!){/c}{/o}", {}, {
     context = "Information about what happens when you summon/beat the boss, saying that upgrades will be reset as part of a 'prestige' system."
 })
 
 
 
-local function drawBossButtonStuff(self)
+local function drawBossButtonStuff(self, bob)
     local uiw,uih = ui.getScaledUIDimensions()
 
     -- boss-button
     local bw,bh = self.button:getDimensions()
-    local bob = math.floor(math.sin(love.timer.getTime() * 2) * 2)
     local r = Kirigami(uiw/2-bw/2, bob + uih*0.8-bh/2, bw,bh)
+
+    lg.setColor(0,0,0)
+    lg.draw(self.button, r.x-2, r.y-2)
+    lg.draw(self.button, r.x+2, r.y+2)
+    lg.draw(self.button, r.x-2, r.y+2)
+    lg.draw(self.button, r.x+2, r.y-2)
+
     if iml.isHovered(r:get()) then
-        lg.setColor(0.8,0.8,0.9)
+        lg.setColor(0.6,0.6,0.7)
     else
         lg.setColor(1,1,1)
     end
@@ -107,14 +113,23 @@ function boss:draw()
 
     ui.startUI()
     --g.getHUD():draw({profile = false, xpbar = false})
-    drawBossButtonStuff(self)
+    local bob = math.floor(math.sin(love.timer.getTime() * 2) * 2)
+    drawBossButtonStuff(self, bob)
     self:renderPause()
     self:renderMapButton()
     ui.endUI()
 
     self.lightWorld:render(AMBIENT_LIGHT)
 
-
+    do
+    local f = g.getSmallFont(16)
+    local r2 = Kirigami(0,0, love.graphics.getDimensions())
+        :padRatio(0.6,0,0.6,0)
+        :moveUnit(0,bob)
+    local _,a,b,_ = r2:splitVertical(3,1,1,2)
+    richtext.printRichContained(SUMMON_BOSS, f, a:get())
+    richtext.printRichContained(BOSS_INFO, f, b:get())
+    end
 end
 
 function boss:wheelmoved(dx, dy)
