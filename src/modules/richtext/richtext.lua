@@ -221,14 +221,28 @@ local function splitWords(text)
 	---@type string[]
 	local words = {}
 	local last = 1
-	for s, e in text:gmatch("()%s+()") do
+	for s, e in text:gmatch("()[%s]+()") do
 		---@diagnostic disable-next-line: cast-type-mismatch
 		---@cast s number
 		---@cast e number
 		if s > last then
 			words[#words + 1] = text:sub(last, s - 1)
 		end
-		words[#words + 1] = text:sub(s, e - 1)
+		local sep = text:sub(s, e - 1)
+		local p = 1
+		while p <= #sep do
+			local ns, ne = sep:find("\n", p, true)
+			if ns then
+				if ns > p then
+					words[#words + 1] = sep:sub(p, ns - 1)
+				end
+				words[#words + 1] = "\n"
+				p = ne + 1
+			else
+				words[#words + 1] = sep:sub(p)
+				break
+			end
+		end
 		last = e
 	end
 	if last <= #text then
@@ -261,8 +275,9 @@ function ParsedText:layout(font, maxWidth, align)
 	local totalWidth = 0
 	local totalHeight = 0
 
-	local function flushLine()
-		if #currentLine.chunks > 0 then
+	---@param force boolean?
+	local function flushLine(force)
+		if #currentLine.chunks > 0 or force then
 			table.insert(lines, currentLine)
 			totalWidth = math.max(totalWidth, currentLine.width)
 			totalHeight = totalHeight + currentLine.height
@@ -308,27 +323,31 @@ function ParsedText:layout(font, maxWidth, align)
 			local words = splitWords(content)
 			local wordOffset = 0
 			for _, word in ipairs(words) do
-				local w = font:getWidth(word)
-				local h = font:getHeight()
-				---@type richtext._EffectInfo[]
-				local effects = {}
-				for i, eff in ipairs(activeEffects) do
-					effects[i] = {
-						func = effectsRegistry[eff.name].render,
-						args = eff.args,
-						perCharacter =
-							effectsRegistry[eff.name].perCharacter
-					}
+				if word == "\n" then
+					flushLine(true)
+				else
+					local w = font:getWidth(word)
+					local h = font:getHeight()
+					---@type richtext._EffectInfo[]
+					local effects = {}
+					for i, eff in ipairs(activeEffects) do
+						effects[i] = {
+							func = effectsRegistry[eff.name].render,
+							args = eff.args,
+							perCharacter =
+								effectsRegistry[eff.name].perCharacter
+						}
+					end
+					addChunk({
+						text = word,
+						width = w,
+						height = h,
+						effects = effects,
+						index = token.index + wordOffset,
+						x = 0,
+						y = 0
+					})
 				end
-				addChunk({
-					text = word,
-					width = w,
-					height = h,
-					effects = effects,
-					index = token.index + wordOffset,
-					x = 0,
-					y = 0
-				})
 				wordOffset = wordOffset + utf8.len(word)
 			end
 		elseif token.type == "image" then
