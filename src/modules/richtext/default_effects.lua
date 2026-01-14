@@ -1,82 +1,72 @@
-
-
+---@param text text
 return function(text)
-    --[[
-    Define default effects:
-    ]]
-    local function wavyEffect(args, char)
-        local f = args.freq or 1
-        local amp = args.amp or 1
-        local k = args.k or 1 -- `k` determines how "different" the letter are.
-        -- k = 0 indicates all letters bob up and down, in sync.
-        local offset = (char:getIndex()-1) * k
-        local dy = math.sin(2 * math.pi * f * love.timer.getTime() + offset) * amp
-        char:setOffset(0, dy)
-    end
-
-    text.defineEffect("wavy", wavyEffect)
-    text.defineEffect("w", wavyEffect)
-
-    text.defineEffect("u", function(_, char)
-        local r, g, b, a = love.graphics.getColor()
-        local c1, c2, c3, c4 = char:getColor():getRGBA()
-        local x, y = char:getPosition()
-        local w, h = char:getDimensions()
-        love.graphics.setColor(r * c1, g * c2, b * c3, a * c4)
-        love.graphics.line(x, y + h - 0.5, x + w, y + h - 0.5)
-        love.graphics.setColor(r, g, b, a)
-    end)
-
-    -- dy=-2 because we want a thicker outline at bottom
-    local outline = consts.IS_MOBILE and {
-        {-1, -2},
-        {-1, 1},
-        {1, -2},
-        {1, 1},
-    } or {
-        {-1, -2},
-        {-1, -1},
-        {-1, 0},
-        {-1, 1},
-        {0, -2},
-        {0, -1},
-        {0, 1},
-        {1, -2},
-        {1, -1},
-        {1, 0},
-        {1, 1},
-    }
-
-    ---@param args table<string,number?>
-    ---@param char text.Character
-    local function outlineEffect(args,char)
-        local thickness = args.thickness or 1
+    ---@param args richtext.EffectArgs
+    ---@param x number
+    ---@param y number
+    ---@param context richtext.RichTextContext
+    ---@param next richtext.NextFunc
+    local function outline(args, x, y, context, next)
         local r, g, b, a = love.graphics.getColor()
         local cr = args.r or 0
         local cg = args.g or 0
         local cb = args.b or 0
         local ca = (args.a or 1) * a
+        local thickness = args.thickness or 1
+        local obj = context.textOrDrawable
 
-        local ox, oy = char:getOffset()
-
-        for _, dxdy in ipairs(outline) do
-            char:setOffset(ox + dxdy[1] * thickness, oy + dxdy[2] * thickness)
-            char:draw(cr, cg, cb, ca, true)
+        love.graphics.setColor(cr, cg, cb, ca)
+        for oy = -1, 2 do
+            for ox = -1, 1 do
+                if oy ~= 0 or ox ~= 0 then
+                    if type(obj) == "string" then
+                        love.graphics.print(obj, context.font, x + ox * thickness, y + oy * thickness)
+                    else
+                        if context.quad then
+                            love.graphics.draw(obj, context.quad, x + ox * thickness, y + oy * thickness)
+                        else
+                            love.graphics.draw(obj, x + ox * thickness, y + oy * thickness)
+                        end
+                    end
+                end
+            end
         end
-        char:setOffset(ox, oy)
 
         love.graphics.setColor(r, g, b, a)
+        return next(context.textOrDrawable, x, y)
     end
+    text.defineEffect("outline", outline)
+    text.defineEffect("o", outline)
 
-    text.defineEffect("o", outlineEffect)
-    text.defineEffect("outline", outlineEffect)
-
-    local function colorEffect(args, char)
-        local color = objects.Color(args.r or 1, args.g or 1, args.b or 1, args.a or 1)
-        char:setColor(color)
+    ---@param args richtext.EffectArgs
+    ---@param x number
+    ---@param y number
+    ---@param context richtext.RichTextContext
+    ---@param next richtext.NextFunc
+    local function color(args, x, y, context, next)
+        local r, g, b, a = love.graphics.getColor()
+        love.graphics.setColor(args.r or 1, args.g or 1, args.b or 1, (args.a or 1) * a)
+        next(context.textOrDrawable, x, y)
+        love.graphics.setColor(r, g, b, a)
     end
-    text.defineEffect("color", colorEffect)
-    text.defineEffect("c", colorEffect)
+    text.defineEffect("color", color)
+    text.defineEffect("c", color)
+
+    ---@param args richtext.EffectArgs
+    ---@param x number
+    ---@param y number
+    ---@param context richtext.RichTextContext
+    ---@param next richtext.NextFunc
+    local function wavy(args, x, y, context, next)
+        local f = args.freq or 1
+        local amp = args.amp or 1
+        local k = args.k or 1 -- `k` determines how "different" the letter are.
+        -- k = 0 indicates all letters bob up and down, in sync.
+        local offset = context.index * k
+        local dy = math.sin(2 * math.pi * f * love.timer.getTime() + offset) * amp
+        return next(context.textOrDrawable, x, y + dy)
+    end
+    text.defineEffect("wavy", wavy, {perCharacter = true})
+    text.defineEffect("w", wavy, {perCharacter = true})
 
     local rainbow = {
         {0.85, 0.15, 0.15, 1.0},  -- Red
@@ -87,18 +77,19 @@ return function(text)
         {0.25, 0.25, 0.80, 1.0},  -- Blue
         {0.60, 0.20, 0.80, 1.0},  -- Violet
     }
-    local function rainbowEffect(args, char)
-        local i = math.floor(char.start/3 - love.timer.getTime()/2)
+    ---@param args richtext.EffectArgs
+    ---@param x number
+    ---@param y number
+    ---@param context richtext.RichTextContext
+    ---@param next richtext.NextFunc
+    local function rainbowEffect(args, x, y, context, next)
+        local i = math.floor(context.index/3 - love.timer.getTime()/2)
         local index = (i % (#rainbow))+1
-        char:setColor(rainbow[index])
+        local rb = rainbow[index]
+        local r, g, b, a = love.graphics.getColor()
+        love.graphics.setColor(rb[1], rb[2], rb[3], rb[4] * a)
+        next(context.textOrDrawable, x, y)
+        love.graphics.setColor(r, g, b, a)
     end
-    text.defineEffect("rainbow", rainbowEffect)
-
-    text.defineEffect("i", function(args, char)
-        local skewness = args.skew or 1
-        char:setShear(-skewness / 4, 0)
-    end)
+    text.defineEffect("rainbow", rainbowEffect, {perCharacter = true})
 end
-
-
-
