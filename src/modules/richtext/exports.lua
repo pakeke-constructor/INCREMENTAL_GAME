@@ -115,7 +115,7 @@ function text.printRich(txt, font, x, y, limit, align, rot, sx, sy, ox, oy, kx, 
     local parsed = ensureParsed(txt)
     local layout = textGetLayout(parsed, font, limit, align)
 
-    love.graphics.push("all")
+    love.graphics.push()
     love.graphics.applyTransform(x, y, rot, sx, sy, ox, oy, kx, ky)
     layout:draw(0, 0)
     love.graphics.pop()

@@ -354,6 +354,7 @@ local function drawToken(tok)
         -- draw wings
         local flapSpeed = ((tok.id%6 + 8) / 8)
         local t = love.timer.getTime()*flapSpeed + tok.id*71.23324
+        love.graphics.setColor(1,1,1)
         helper.drawWings(tok.x, tok.y, t)
     end
 
