@@ -117,7 +117,7 @@ function FreeCameraScene:renderPause()
         local buttonGridR = Kirigami(0, 0, PAUSE_BUTTON_SIZE[1], PAUSE_BUTTON_SIZE[2] * #PAUSE_BUTTONS)
             :center(r)
         local pauseFont = g.getBigFont(64)
-        local pauseTextWidth = pauseFont:getWidth(richtext.stripEffects(PAUSE_TEXT))
+        local pauseTextWidth = richtext.getWidth(PAUSE_TEXT, pauseFont)
         local pauseTextR = Kirigami(0, 0, pauseTextWidth, pauseFont:getHeight())
             :center(r:set(nil, nil, nil, buttonGridR.y))
 

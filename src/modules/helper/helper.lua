@@ -503,7 +503,7 @@ function helper.tooltip(text, x, y, ox, oy)
     ox = ox or 0
     oy = oy or 0
     local font = g.getSmallFont(16)
-    local width, lines = font:getWrap(richtext.stripEffects(text), TOOLTIP_TEXT_MAX_WIDTH)
+    local width, lines = richtext.getWrap(text, font, TOOLTIP_TEXT_MAX_WIDTH)
 
     local boxR = Kirigami(0, 0, width, #lines * font:getHeight())
     local boxBaseR = boxR:padUnit(-12):set(x - boxR.w * ox, y - boxR.h * oy)
