@@ -1,9 +1,27 @@
 ---@param text text
 return function(text)
+    local outlineMap = consts.IS_MOBILE and {
+        {-1, -1},
+        {1, -1},
+        {-1, 2},
+        {1, 2},
+    } or {
+        {-1, -1},
+        {0, -1},
+        {1, -1},
+        {-1, 0},
+        {1, 0},
+        {-1, 1},
+        {0, 1},
+        {1, 1},
+        {-1, 2},
+        {0, 2},
+        {1, 2},
+    }
     ---@param args richtext.EffectArgs
     ---@param x number
     ---@param y number
-    ---@param context richtext.RichTextContext
+    ---@param context richtext.Context
     ---@param next richtext.NextFunc
     local function outline(args, x, y, context, next)
         local r, g, b, a = love.graphics.getColor()
@@ -15,18 +33,15 @@ return function(text)
         local obj = context.textOrDrawable
 
         love.graphics.setColor(cr, cg, cb, ca)
-        for oy = -1, 2 do
-            for ox = -1, 1 do
-                if oy ~= 0 or ox ~= 0 then
-                    if type(obj) == "string" then
-                        love.graphics.print(obj, context.font, x + ox * thickness, y + oy * thickness)
-                    else
-                        if context.quad then
-                            love.graphics.draw(obj, context.quad, x + ox * thickness, y + oy * thickness)
-                        else
-                            love.graphics.draw(obj, x + ox * thickness, y + oy * thickness)
-                        end
-                    end
+        for _, oxoy in ipairs(outlineMap) do
+            local ox, oy = oxoy[1], oxoy[2]
+            if type(obj) == "string" then
+                love.graphics.print(obj, context.font, x + ox * thickness, y + oy * thickness)
+            else
+                if context.quad then
+                    love.graphics.draw(obj, context.quad, x + ox * thickness, y + oy * thickness)
+                else
+                    love.graphics.draw(obj, x + ox * thickness, y + oy * thickness)
                 end
             end
         end
@@ -40,7 +55,7 @@ return function(text)
     ---@param args richtext.EffectArgs
     ---@param x number
     ---@param y number
-    ---@param context richtext.RichTextContext
+    ---@param context richtext.Context
     ---@param next richtext.NextFunc
     local function color(args, x, y, context, next)
         local r, g, b, a = love.graphics.getColor()
@@ -54,7 +69,7 @@ return function(text)
     ---@param args richtext.EffectArgs
     ---@param x number
     ---@param y number
-    ---@param context richtext.RichTextContext
+    ---@param context richtext.Context
     ---@param next richtext.NextFunc
     local function wavy(args, x, y, context, next)
         local f = args.freq or 1
@@ -80,7 +95,7 @@ return function(text)
     ---@param args richtext.EffectArgs
     ---@param x number
     ---@param y number
-    ---@param context richtext.RichTextContext
+    ---@param context richtext.Context
     ---@param next richtext.NextFunc
     local function rainbowEffect(args, x, y, context, next)
         local i = math.floor(context.index/3 - love.timer.getTime()/2)

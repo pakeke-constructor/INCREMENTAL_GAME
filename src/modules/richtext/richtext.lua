@@ -6,31 +6,19 @@ RichText.__index = RichText
 
 ---@alias richtext.EffectArgs table<string, number?>
 
----@class richtext.RichTextContext
+---@class richtext.Context
 ---@field public font love.Font
 ---@field public textOrDrawable string|love.Texture
 ---@field public index number 1-based index in the whole parsed text
 ---@field public quad love.Quad?
 
 ---@alias richtext.NextFunc fun(textOrDrawable: string|love.Texture, x: number, y: number, quad: love.Quad?)
----@alias richtext.EffectFunc fun(args: richtext.EffectArgs, x: number, y: number, context: richtext.RichTextContext, next: richtext.NextFunc)
+---@alias richtext.EffectFunc fun(args: richtext.EffectArgs, x: number, y: number, context: richtext.Context, next: richtext.NextFunc)
 
 ---@class richtext._EffectInfo
 ---@field package func richtext.EffectFunc
 ---@field package args richtext.EffectArgs
 ---@field package perCharacter boolean
-
----@class richtext.RichTextChunk
----@field package text string?
----@field package image love.Texture?
----@field package quad love.Quad?
----@field package width number
----@field package height number
----@field package scale number?
----@field package x number
----@field package y number
----@field package index number 1-based index of the first character or the image
----@field package effects richtext._EffectInfo[] list of {func: function, args: table}
 
 ---@type table<string, {render:richtext.EffectFunc,perCharacter:boolean}>
 local effectsRegistry = {}
