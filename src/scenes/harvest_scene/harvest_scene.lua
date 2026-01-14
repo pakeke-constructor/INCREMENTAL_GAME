@@ -38,6 +38,7 @@ local NEW_UPGRADES_AVAILABLE = loc("{outline}New Upgrades Available!{/outline}",
 })
 
 local TUTORIAL_HARVEST = "{w}{o thickness=2}"..loc("Hover your mouse over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
+local TUTORIAL_HARVEST_MOBILE = "{w}{o thickness=2}"..loc("Put your finger over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
 
 
 local STORAGE_FULL_TEXT = loc("Your storage is full!", {}, {
@@ -1020,7 +1021,8 @@ function harvest:draw()
     if not g.isBeingSimulated() and sess.showTutorials.harvest then
         local safeArea = g.getHUD():getSafeArea()
         local tutTextR = safeArea:padRatio(0.1)
-        richtext.printRich(TUTORIAL_HARVEST, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+        local txt = consts.IS_MOBILE and TUTORIAL_HARVEST_MOBILE or TUTORIAL_HARVEST
+        richtext.printRich(txt, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
     end
 
     self:_drawActiveEffects()
