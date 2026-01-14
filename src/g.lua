@@ -801,7 +801,7 @@ function g.defineResource(resId, tabl)
     RESOURCES[resId] = tabl
     g.defineStat(tabl.limitStat, tabl.startingLimit or 100, tabl.limitStatName)
     table.insert(g.RESOURCE_LIST, resId)
-    richtext.defineImage(tabl.image, g.getAtlas(), g.getImageQuad(tabl.image))
+    pcall(richtext.defineImage, tabl.image, g.getAtlas(), g.getImageQuad(tabl.image))
 end
 
 
