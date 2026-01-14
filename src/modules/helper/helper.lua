@@ -503,7 +503,7 @@ function helper.tooltip(text, x, y, ox, oy)
     ox = ox or 0
     oy = oy or 0
     local font = g.getSmallFont(16)
-    local width, lines = font:getWrap(richtext.stripEffects(text), TOOLTIP_TEXT_MAX_WIDTH)
+    local width, lines = richtext.getWrap(text, font, TOOLTIP_TEXT_MAX_WIDTH)
 
     local boxR = Kirigami(0, 0, width, #lines * font:getHeight())
     local boxBaseR = boxR:padUnit(-12):set(x - boxR.w * ox, y - boxR.h * oy)
@@ -541,7 +541,7 @@ local WING_DEFAULT_DISTANCE = 10
 function helper.drawWings(x,y, time, wingImage, scale, wingDistance)
     wingImage = wingImage or "wing_visual"
     scale=scale or 1
-    love.graphics.push("all")
+
     local t = time * WING_FLAP_SPEED
     local dy = 5 * math.sin(t + 0.5)
     local r = WING_ROTATION * ((math.sin(t) + 1)/2) + WING_ROT_OFFSET
@@ -552,11 +552,8 @@ function helper.drawWings(x,y, time, wingImage, scale, wingDistance)
     --     g.drawImage(wingImage, x - offset - o, y + dy + o, -r, sx*-1,sy, kx,ky)
     -- end
 
-    love.graphics.setColor(1,1,1)
     g.drawImage(wingImage, x + offset, y + dy, r, scale,scale)
     g.drawImage(wingImage, x - offset, y + dy, -r, -scale,scale)
-
-    love.graphics.pop()
 end
 
 end

@@ -139,7 +139,7 @@ end
 ---@param text string
 ---@param image string?
 function UpgradeDescription:addTitle(text, image)
-    local tw = self.titleFont:getWidth(richtext.stripEffects(text))
+    local tw = richtext.getWidth(text, self.titleFont)
     local th = self.titleFont:getHeight()
 
     if image then
@@ -175,9 +175,8 @@ end
 ---@param txt string
 ---@param align love.AlignMode?
 function UpgradeDescription:addText(txt, align)
-    local stripped = richtext.stripEffects(txt)
-    local fw, lines = self.font:getWrap(stripped, DESCIPTION_TEXT_MAX_WIDTH)
-    local fh = self.font:getHeight() * #lines
+    local fw, lines = richtext.getWrap(txt, self.font, DESCIPTION_TEXT_MAX_WIDTH)
+    local fh = self.font:getHeight() * lines
     align = align or "center"
 
     -- Update the box width
@@ -195,8 +194,7 @@ end
 ---@param align love.AlignMode?
 ---@param extraw number?
 function UpgradeDescription:addInlineText(txt, align, extraw)
-    local stripped = richtext.stripEffects(txt)
-    local fw = self.font:getWidth(stripped)
+    local fw = richtext.getWidth(txt, self.font)
     local fh = self.font:getHeight()
     align = align or "center"
     fw = fw + (extraw or 0)
@@ -242,7 +240,7 @@ local LEVEL_TEXT = interp("Level %{level}/%{maxLevel}", {
 function UpgradeDescription:addLevel(level, maxLevel)
     local col = helper.multiplyAlpha(objects.Color.WHITE, 0.4)
     local text = LEVEL_TEXT{level = level, maxLevel = maxLevel}
-    local fw = self.font:getWidth(richtext.stripEffects(text))
+    local fw = richtext.getWidth(text, self.font)
     local fh = self.font:getHeight()
 
     self.boxWidth = math.max(self.boxWidth, fw)

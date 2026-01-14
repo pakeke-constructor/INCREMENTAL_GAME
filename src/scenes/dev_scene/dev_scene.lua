@@ -13,7 +13,7 @@ end
 ---@param width number
 ---@param text string
 local function regionFromText(font, width, text)
-    local maxwidth, lines = font:getWrap(richtext.stripEffects(text), width)
+    local maxwidth, lines = richtext.getWrap(text, font, width)
     return Kirigami(0, 0, maxwidth, #lines * font:getHeight())
 end
 
