@@ -443,6 +443,10 @@ function love.focus(focus)
     if focus then
         idleTime = 0
     else
+        if consts.IS_MOBILE and g.hasSession() then
+            g.saveSession()
+        end
+
         idleTime = CONSIDERED_IDLE_TIME
     end
 end

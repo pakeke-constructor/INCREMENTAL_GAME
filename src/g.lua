@@ -125,10 +125,7 @@ function g.delSession()
     currentSession = nil
 end
 
-function g.saveAndInvalidateSession()
-    if not g.hasSession() or g.isBeingSimulated() then return end
-    analytics.send("end")
-
+function g.saveSession()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
     if shouldSave then
         log.trace(debug.traceback("Saving session."))
@@ -136,7 +133,13 @@ function g.saveAndInvalidateSession()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
     end
+end
 
+function g.saveAndInvalidateSession()
+    if not g.hasSession() or g.isBeingSimulated() then return end
+    analytics.send("end")
+
+    g.saveSession()
     return g.delSession()
 end
 
