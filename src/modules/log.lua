@@ -176,12 +176,44 @@ if consts.CONSOLE_LOG_LEVEL ~= "none" then
     local logger = createConsoleLogger()
     logger.level = consts.CONSOLE_LOG_LEVEL
     log.registerLogger(logger)
+
+    if los == "Android" then
+        -- Use native Android logging library
+        local ffi = require("ffi")
+        local androidLog = ffi.load("log")
+
+        ffi.cdef[[
+        enum AndroidLogPriority {
+            unknown,
+            default,
+            trace,
+            debug,
+            info,
+            warn,
+            error,
+            fatal,
+            none
+        };
+
+        int __android_log_write(enum AndroidLogPriority, const char *tag, const char *text);
+        ]]
+
+        log.registerLogger({
+            level = "trace",
+            output = function(level, lineinfo, text)
+                -- Note: Don't shortcut this to `output = androidLog.__android_log_write`
+                -- for performance reasons.
+                androidLog.__android_log_write(level, lineinfo, text)
+            end
+        })
+    end
 end
 
 
 if consts.FILE_LOG_LEVEL ~= "none" then
     assert(love.filesystem.createDirectory("logs"), "unable to create logs directory")
     local filename = os.date("logs/LOG_%Y_%m_%d_%H_%M_%S.txt")
+    ---@cast filename -osdate
     local file = assert(love.filesystem.openFile(filename, "a"))
     local logger = createWriteableFlushableLogger(file)
     logger.level = consts.FILE_LOG_LEVEL
