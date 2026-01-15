@@ -192,7 +192,15 @@ function helper.printTextOutline(text, font, thickness, x, y, limit, align, rot,
     for dy = -1, 2 do
         for dx = -1, 1 do
             if dx ~= 0 or dy ~= 0 then
-                love.graphics.printf(text, font, x + dx * thickness, y + dy * thickness, limit, align, rot, sx, sy, ox, oy)
+                love.graphics.printf(
+                    text, font,
+                    x + dx * thickness * (sx or 1),
+                    y + dy * thickness * (sy or 1),
+                    limit, align,
+                    rot,
+                    sx, sy,
+                    ox, oy
+                )
             end
         end
     end
@@ -212,6 +220,20 @@ end
 ---@param oy number?
 function helper.printTextOutlineSimple(text, font, thickness, x, y, rot, sx, sy, ox, oy)
     return helper.printTextOutline(text, font, thickness, x, y, 2147483647, "left", rot, sx, sy, ox, oy)
+end
+
+---@param txt string (plain text, without any richtext tagging)
+---@param font love.Font
+---@param thickness number
+---@param reg kirigami.Region
+function helper.printTextOutlineContained(txt, font, thickness, reg)
+    local x, y, w, h = reg:get()
+    local tw, lines = font:getWrap(txt, w)
+    local th = #lines * font:getHeight()
+
+    local scale = math.min(w/tw, h/th)
+    local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
+    return helper.printTextOutline(txt, font, thickness, drawX, drawY, tw, "left", 0, scale, scale, tw / 2, th / 2)
 end
 
 
@@ -505,7 +527,7 @@ function helper.tooltip(text, x, y, ox, oy)
     local font = g.getSmallFont(16)
     local width, lines = richtext.getWrap(text, font, TOOLTIP_TEXT_MAX_WIDTH)
 
-    local boxR = Kirigami(0, 0, width, #lines * font:getHeight())
+    local boxR = Kirigami(0, 0, width, lines * font:getHeight())
     local boxBaseR = boxR:padUnit(-12):set(x - boxR.w * ox, y - boxR.h * oy)
     boxR = boxR:center(boxBaseR)
 
