@@ -960,7 +960,7 @@ function harvest:draw()
     end
 
     -- Draw clouds
-    if not g.isBeingSimulated() then
+    if not (g.isBeingSimulated() or consts.IS_MOBILE) then
         --cloudService.drawShadow()
         love.graphics.setColor(1, 1, 1, 1)
         cloudService.draw()
@@ -1168,7 +1168,7 @@ function harvest:update(dt)
     end
 
     -- Update cloud
-    if not g.isBeingSimulated() then
+    if not (g.isBeingSimulated() or consts.IS_MOBILE) then
         cloudService.update(dt, self.camera)
     end
 end
