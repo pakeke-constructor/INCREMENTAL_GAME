@@ -886,8 +886,7 @@ local function drawComboVisual(self)
     local ha = g.stats.HarvestArea * self.camera:getZoom() / uis
 
 
-    local mulTxt = "{o}"..mul.."{/o}"
-    local w = richtext.getWidth("x1.11", font)
+    local w = font:getWidth("x1.11")
     local h = font:getHeight()/2
 
     -- Calculate bar dimensions
@@ -916,13 +915,7 @@ local function drawComboVisual(self)
 
     -- Draw text
     lg.setColor(1, 1, 1)
-    richtext.printRich(
-        mulTxt, font,
-        mx, my-ha,
-        width, "center", 0,
-        scale, scale,
-        width / 2, font:getHeight()
-    )
+    helper.printTextOutline(mul, font, 1, mx, my-ha, width, "center", 0, scale, scale, width / 2, h * 2)
 end
 
 

@@ -192,7 +192,15 @@ function helper.printTextOutline(text, font, thickness, x, y, limit, align, rot,
     for dy = -1, 2 do
         for dx = -1, 1 do
             if dx ~= 0 or dy ~= 0 then
-                love.graphics.printf(text, font, x + dx * thickness, y + dy * thickness, limit, align, rot, sx, sy, ox, oy)
+                love.graphics.printf(
+                    text, font,
+                    x + dx * thickness * (sx or 1),
+                    y + dy * thickness * (sy or 1),
+                    limit, align,
+                    rot,
+                    sx, sy,
+                    ox, oy
+                )
             end
         end
     end
