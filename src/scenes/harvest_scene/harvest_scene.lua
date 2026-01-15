@@ -38,6 +38,7 @@ local NEW_UPGRADES_AVAILABLE = loc("{outline}New Upgrades Available!{/outline}",
 })
 
 local TUTORIAL_HARVEST = "{w}{o thickness=2}"..loc("Hover your mouse over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
+local TUTORIAL_HARVEST_MOBILE = "{w}{o thickness=2}"..loc("Put your finger over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
 
 
 local STORAGE_FULL_TEXT = loc("Your storage is full!", {}, {
@@ -885,8 +886,7 @@ local function drawComboVisual(self)
     local ha = g.stats.HarvestArea * self.camera:getZoom() / uis
 
 
-    local mulTxt = "{o}"..mul.."{/o}"
-    local w = richtext.getWidth("x1.11", font)
+    local w = font:getWidth("x1.11")
     local h = font:getHeight()/2
 
     -- Calculate bar dimensions
@@ -915,13 +915,7 @@ local function drawComboVisual(self)
 
     -- Draw text
     lg.setColor(1, 1, 1)
-    richtext.printRich(
-        mulTxt, font,
-        mx, my-ha,
-        width, "center", 0,
-        scale, scale,
-        width / 2, font:getHeight()
-    )
+    helper.printTextOutline(mul, font, 1, mx, my-ha, width, "center", 0, scale, scale, width / 2, h * 2)
 end
 
 
@@ -966,7 +960,7 @@ function harvest:draw()
     end
 
     -- Draw clouds
-    if not g.isBeingSimulated() then
+    if not (g.isBeingSimulated() or consts.IS_MOBILE) then
         --cloudService.drawShadow()
         love.graphics.setColor(1, 1, 1, 1)
         cloudService.draw()
@@ -1020,7 +1014,8 @@ function harvest:draw()
     if not g.isBeingSimulated() and sess.showTutorials.harvest then
         local safeArea = g.getHUD():getSafeArea()
         local tutTextR = safeArea:padRatio(0.1)
-        richtext.printRich(TUTORIAL_HARVEST, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+        local txt = consts.IS_MOBILE and TUTORIAL_HARVEST_MOBILE or TUTORIAL_HARVEST
+        richtext.printRich(txt, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
     end
 
     self:_drawActiveEffects()
@@ -1173,7 +1168,7 @@ function harvest:update(dt)
     end
 
     -- Update cloud
-    if not g.isBeingSimulated() then
+    if not (g.isBeingSimulated() or consts.IS_MOBILE) then
         cloudService.update(dt, self.camera)
     end
 end

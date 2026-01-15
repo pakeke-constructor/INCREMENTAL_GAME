@@ -464,10 +464,7 @@ local SCYTHE_UPGRADE = interp("{wavy amp=0.3 f=2}{o}+%{harvestRadius} harvest ra
 
 
 local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff:{/o}{/wavy}")
-local STACKED_TOKEN_TOTAL = loc("{o}+%s {%s} total{/o}", {}, {
-    context = "Example usage: (+400 {gold} total), where %d=400 and %s=gold. Please keep the string formatting."
-})
-local STACKED_TOKEN_TOTAL2 = interp("%{tokens} total", {
+local STACKED_TOKEN_TOTAL = interp("%{tokens} total", {
     context = "Example result: \"+200 Money +200 Juice total\". The %{tokens} is \"+200 Money +200 Juice\" in that example."
 })
 
@@ -519,7 +516,7 @@ function rewards.drawRewardDescription(rew, r)
         icon, txt = icon:splitHorizontal(1,1)
         local x,y,w,h = icon:get()
         g.drawImageContained(rew.icon, x,y,w,h, math.sin(time)/14)
-        richtext.printRichContained("{o}x"..tostring(rew.count), font, txt:moveUnit(0,math.sin(time)*4):get())
+        helper.printTextOutlineContained("x"..tostring(rew.count), font, 1, txt:moveUnit(0,math.sin(time)*4))
     else
         local x,y,w,h = icon:padRatio(0.4):get()
         g.drawImageContained(rew.icon, x,y,w,h, math.sin(time)/14)
@@ -548,13 +545,13 @@ function rewards.drawRewardDescription(rew, r)
         -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
         local txt
         if rew.resource then
-            txt = STACKED_TOKEN_TOTAL2 {
+            txt = STACKED_TOKEN_TOTAL {
                 tokens = generateTotalResourcesText({[rew.resource.id] = rew.resource.amount}, rew.count)
             }
         else
             txt = assert(rew.description)
             if not txt then
-                txt = STACKED_TOKEN_TOTAL2 {
+                txt = STACKED_TOKEN_TOTAL {
                     tokens = generateTotalResourcesText(rew.token.resources, rew.count)
                 }
             end

@@ -21,6 +21,7 @@ local CONTROL_TEXT = table.concat({
 }, "\n")
 
 local TUTORIAL_UPGRADES = "{w}{o thickness=2}"..loc("These are permanent {c r=0 g=1 b=0}upgrades{/c}.\nClick to buy!").."{/o}{/w}"
+local TUTORIAL_UPGRADES_MOBILE = "{w}{o thickness=2}"..loc("These are permanent {c r=0 g=1 b=0}upgrades{/c}.\nTap once to view about the upgrade.\nTap again to buy!").."{/o}{/w}"
 
 
 
@@ -42,6 +43,9 @@ function upgscene:init()
 
     ---@type iml.Drag|nil
     self.lmbPan = nil
+
+    ---@type g.Tree.Upgrade|nil
+    self.lastHoveredUpgrade = nil
 end
 
 
@@ -246,11 +250,13 @@ local function drawUpgradeBoxes(self)
             if (not self.dev_editMode) and wasJustClicked then
                 g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
                 local maxLevel = tree:getUpgradeMaxLevel(upg)
-                if tree:tryBuyUpgrade(upg) and upg.level == maxLevel then
+                local shouldTryBuy = consts.IS_MOBILE and self.lastHoveredUpgrade == upg or (not consts.IS_MOBILE)
+                if shouldTryBuy and tree:tryBuyUpgrade(upg) and upg.level == maxLevel then
                     self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
                     sn.showTutorials.upgrades = false
                     g.playUISound("ui_upgrade_level_maxxed", 0.65,0.3,0.2,0.1)
                 end
+                self.lastHoveredUpgrade = hoveredUpgrade
                 hoveredUpgrade=nil
             end
 
@@ -594,7 +600,8 @@ function upgscene:draw()
     if g.getSn().showTutorials.upgrades and (not consts.DEV_MODE) then
         local safeArea = g.getHUD():getSafeArea()
         local tutTextR = safeArea:padRatio(0.1)
-        richtext.printRich(TUTORIAL_UPGRADES, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+        local txt = consts.IS_MOBILE and TUTORIAL_UPGRADES_MOBILE or TUTORIAL_UPGRADES
+        richtext.printRich(txt, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
     end
 
     if hoveredUpgrade then
