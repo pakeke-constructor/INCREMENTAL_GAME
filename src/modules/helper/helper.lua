@@ -527,7 +527,7 @@ function helper.tooltip(text, x, y, ox, oy)
     local font = g.getSmallFont(16)
     local width, lines = richtext.getWrap(text, font, TOOLTIP_TEXT_MAX_WIDTH)
 
-    local boxR = Kirigami(0, 0, width, #lines * font:getHeight())
+    local boxR = Kirigami(0, 0, width, lines * font:getHeight())
     local boxBaseR = boxR:padUnit(-12):set(x - boxR.w * ox, y - boxR.h * oy)
     boxR = boxR:center(boxBaseR)
 
