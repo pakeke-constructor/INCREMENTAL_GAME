@@ -172,6 +172,24 @@ function helper.wrapRichtextColor(col, text)
 end
 
 
+local outlineMap = consts.IS_MOBILE and {
+    {-1, -1},
+    {1, -1},
+    {-1, 2},
+    {1, 2},
+} or {
+    {-1, -1},
+    {0, -1},
+    {1, -1},
+    {-1, 0},
+    {1, 0},
+    {-1, 1},
+    {0, 1},
+    {1, 1},
+    {-1, 2},
+    {0, 2},
+    {1, 2},
+}
 
 ---@param text string|((objects.Color|string)[])
 ---@param font love.Font
@@ -189,20 +207,16 @@ function helper.printTextOutline(text, font, thickness, x, y, limit, align, rot,
     local r,g,b,a = love.graphics.getColor()
     -- Draw outline
     love.graphics.setColor(0, 0, 0, a)
-    for dy = -1, 2 do
-        for dx = -1, 1 do
-            if dx ~= 0 or dy ~= 0 then
-                love.graphics.printf(
-                    text, font,
-                    x + dx * thickness * (sx or 1),
-                    y + dy * thickness * (sy or 1),
-                    limit, align,
-                    rot,
-                    sx, sy,
-                    ox, oy
-                )
-            end
-        end
+    for _, dxdy in ipairs(outlineMap) do
+        love.graphics.printf(
+            text, font,
+            x + dxdy[1] * thickness * (sx or 1),
+            y + dxdy[2] * thickness * (sy or 1),
+            limit, align,
+            rot,
+            sx, sy,
+            ox, oy
+        )
     end
     love.graphics.setColor(r,g,b,a)
     love.graphics.printf(text, font, x, y, limit, align, rot, sx, sy, ox, oy)
