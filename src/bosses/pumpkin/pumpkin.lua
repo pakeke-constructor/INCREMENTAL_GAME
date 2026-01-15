@@ -50,6 +50,11 @@ g.defineBoss("pumpkin_boss", 0, {
     resources = {},
     drawOrder = 90,
 
+    flightCustomWings = {
+        image = "big_wing_visual",
+        distance = 46
+    },
+
     update = function (tok, dt)
         pworld:update(dt)
         if love.math.random()/60 < dt then

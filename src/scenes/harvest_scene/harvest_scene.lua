@@ -1191,8 +1191,8 @@ function harvest:keyreleased(k)
         s.paused = not s.paused
     elseif consts.DEV_MODE then
         if k=="1" then
-            openBossPopup(self)
-            -- g.summonBoss("pumpkin_boss")
+            -- openBossPopup(self)
+            g.summonBoss("pumpkin_boss")
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do

@@ -729,6 +729,7 @@ local g_UpgradeDefinition = {}
 ---@field maxLevel integer?
 ---@field growths {stalk:string,growth:string}?
 ---@field flight {vx:number,vy:number}?
+---@field flightCustomWings {image: string, distance: number}?
 ---@field description string?
 ---@field drawOrder number?
 ---@field particles string?

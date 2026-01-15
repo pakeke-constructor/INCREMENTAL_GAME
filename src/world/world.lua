@@ -328,6 +328,8 @@ local function drawShadow(shadow, x,y)
 end
 
 
+local EMPTY = {}
+
 ---@param tok g.Token
 local function drawToken(tok)
     love.graphics.setColor(1,1,1,1)
@@ -354,7 +356,8 @@ local function drawToken(tok)
         -- draw wings
         local flapSpeed = ((tok.id%6 + 8) / 8)
         local t = love.timer.getTime()*flapSpeed + tok.id*71.23324
-        helper.drawWings(tok.x, tok.y, t)
+        local cwings = tok.flightCustomWings or EMPTY
+        helper.drawWings(tok.x, tok.y, t, cwings.image, 1, cwings.distance)
     end
 
     love.graphics.setColor(1,1,1)

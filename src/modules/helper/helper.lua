@@ -543,9 +543,9 @@ function helper.drawWings(x,y, time, wingImage, scale, wingDistance)
     scale=scale or 1
     love.graphics.push("all")
     local t = time * WING_FLAP_SPEED
-    local dy = 5 * math.sin(t + 0.5)
-    local r = WING_ROTATION * ((math.sin(t) + 1)/2) + WING_ROT_OFFSET
     local offset = wingDistance or WING_DEFAULT_DISTANCE
+    local dy = math.floor(offset/2) * math.sin(t + 0.5)
+    local r = WING_ROTATION * ((math.sin(t) + 1)/2) + WING_ROT_OFFSET
     -- if imageShadow then
     --     love.graphics.setColor(0,0,0, 0.4)
     --     g.drawImage(wingImage, x + offset + o, y + dy + o, r, sx,sy, kx,ky)
