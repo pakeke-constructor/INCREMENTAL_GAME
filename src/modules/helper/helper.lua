@@ -222,6 +222,20 @@ function helper.printTextOutlineSimple(text, font, thickness, x, y, rot, sx, sy,
     return helper.printTextOutline(text, font, thickness, x, y, 2147483647, "left", rot, sx, sy, ox, oy)
 end
 
+---@param txt string (plain text, without any richtext tagging)
+---@param font love.Font
+---@param thickness number
+---@param reg kirigami.Region
+function helper.printTextOutlineContained(txt, font, thickness, reg)
+    local x, y, w, h = reg:get()
+    local tw, lines = font:getWrap(txt, w)
+    local th = #lines * font:getHeight()
+
+    local scale = math.min(w/tw, h/th)
+    local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
+    return helper.printTextOutline(txt, font, thickness, drawX, drawY, tw, "left", 0, scale, scale, tw / 2, th / 2)
+end
+
 
 
 ---@param maxRadius number
