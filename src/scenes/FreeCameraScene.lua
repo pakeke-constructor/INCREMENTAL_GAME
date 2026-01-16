@@ -206,11 +206,6 @@ end
 
 
 function FreeCameraScene:defaultKeyreleased(k)
-    if consts.DEV_MODE then
-        if k == "f1" then
-            g.gotoScene("dev_scene")
-        end
-    end
 end
 
 
