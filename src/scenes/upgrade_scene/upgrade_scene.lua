@@ -497,12 +497,12 @@ local function drawDevEditModeUI(self)
 
         -- LEFT SIDEBAR:
         if upg then
-            local _,leftbar1 = leftbar:splitVertical(2,5)
+            local font=g.getSmallFont(16)
+            local topleft,leftbar1 = leftbar:splitVertical(2,5)
             local leftregs = leftbar1:grid(1,10)
             lg.setColor(0,0,0,0.4)
             lg.rectangle("fill", leftbar:get())
             lg.setColor(1,1,1)
-            local font=g.getSmallFont(16)
             richtext.printRichContainedNoWrap("maxLevel", font, leftregs[1]:get())
             self.dev_maxLevelInput:draw(leftregs[2])
 
@@ -546,6 +546,9 @@ local function drawDevUI(self)
             editname:padRatio(-0.5):moveRatio(0,-0.5):get()
         )
     end
+
+    local numUpgs = #tree:getUpgradesOnTree()
+    richtext.printRichContained("{o}Num Upgrades:" .. tostring(numUpgs) .. "/140", font, header:moveRatio(0.5,0.0):padRatio(0.6):get())
 
     if self.dev_editMode then
         drawDevEditModeUI(self)
