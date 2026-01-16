@@ -104,9 +104,20 @@ g.defineToken("mushroom_basic", "Basic Mushroom", {
     resources = {money=10},
     description = "Earns bonus xp when harvested!",
     tokenDestroyed = function(tok)
-        g.addXP(20) -- yolo IDK what a good number is
+        g.addXP(14) -- yolo IDK what a good number is
     end
 })
+
+
+
+g.defineToken("mushroom_brown", "Brown Mushroom", {
+    category = "mushroom",
+    shadow = "shadow_medium",
+    maxHealth = 9,
+    resources = {money=6},
+})
+
+
 
 
 
