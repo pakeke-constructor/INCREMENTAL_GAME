@@ -333,16 +333,13 @@ end
 ---@param cloudRadius number
 ---@param cloudSpacing number
 local function drawIndividualClouds(t, oy, clearRadius, cloudRadius, cloudSpacing)
-    local w, h = ui.getScaledUIDimensions()
-    local cx, cy = w / 2, h / 2
+    local cx, cy = ui.getFullScreenRegion():getCenter()
     local ncircles = math.ceil(math.pi * (clearRadius + cloudSpacing) / cloudSpacing)
     local centerRadius = helper.magnitude(cx + 4, cy + 4) + cloudRadius
-    local rdist = centerRadius + cloudRadius * 2
-    local nrings = rdist / cloudSpacing
     local targetRadius = helper.lerp(centerRadius, clearRadius, t)
 
     local cloudCount = 0
-    for i = 0, nrings - 1 do
+    for i = 0, 1 do
         local cdist = targetRadius + i * cloudSpacing
         local ioff = i % 2 / 2
         for j = 0, ncircles do
@@ -373,6 +370,20 @@ local function drawCloudTransition(t, clearRadius, cloudRadius, cloudSpacing)
     cloudSpacing = cloudSpacing or cloudRadius
     love.graphics.setColor(1, 0.55, 0.78, 1)
     drawIndividualClouds(t, 9, clearRadius, cloudRadius, cloudSpacing)
+
+    -- We want to fill the screen with white but keep a circle hole
+    -- in the middle with specific radius.
+    local cx, cy = ui.getFullScreenRegion():getCenter()
+    local centerRadius = helper.magnitude(cx + 4, cy + 4) + cloudRadius
+    local targetRadius = helper.lerp(centerRadius, clearRadius, t)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.clear(false, true, true)
+    love.graphics.setStencilMode("draw", 1)
+    love.graphics.circle("fill", cx, cy, targetRadius)
+    love.graphics.setStencilMode("test", 0)
+    love.graphics.rectangle("fill", ui.getFullScreenRegion():get())
+    love.graphics.setStencilMode()
+
     love.graphics.setColor(1, 1, 1)
     drawIndividualClouds(t, 0, clearRadius, cloudRadius, cloudSpacing)
 
