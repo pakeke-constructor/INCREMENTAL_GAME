@@ -708,6 +708,12 @@ function World:_updateTokenCount()
 end
 
 
+---@param tok_id string
+---@return integer
+function World:getTokenCount(tok_id)
+    return self.tokenCounts[tok_id] or 0
+end
+
 
 function World:_getComboDuration()
     local t

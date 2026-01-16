@@ -1,3 +1,4 @@
+
 g.defineEffect("knife_swarm", "Knife Swarm", {
     description = "Spawn knives on mouse position.",
     image = "knife",

@@ -59,7 +59,7 @@ g.defineEntity("orbital_scythe", {
     hitToken = {
         radius = 24,
         collision = function(self, tok)
-            g.damageToken(tok, g.stats.HitDamage)
+            g.damageToken(tok, g.stats.HitDamage / 3)
             g.bulgeEntity(self, ORBIT_BULGE_DUR, ORBIT_BULGE_MAG)
         end
     }
