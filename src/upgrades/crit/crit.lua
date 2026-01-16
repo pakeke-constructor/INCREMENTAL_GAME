@@ -106,7 +106,7 @@ defUpgrade("crit_lightning", "Critical Lightning", {
     tokenCrit = function (uinfo, level, tok)
         local val = uinfo:getValues(level)
         for i=1,val do
-            worldutil.spawnLightning(tok.x, tok.y, 4, 4)
+            worldutil.spawnLightning(tok.x, tok.y)
         end
     end,
     drawUI=drawUI

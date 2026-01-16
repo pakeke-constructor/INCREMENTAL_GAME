@@ -7,7 +7,7 @@
 ---@class _.every_x_ACTION
 local ACTIONS = {
     {id = "lightning", name="Lightning", description="spawn lightning!", func = function(tok)
-        worldutil.spawnLightning(tok.x, tok.y, 2, 6)
+        worldutil.spawnLightning(tok.x, tok.y)
     end, image="lightning_icon"},
     {id = "bombs", name="Bombs", description="spawn a bomb!", func = function(tok)
         g.spawnToken("bomb",tok.x,tok.y)

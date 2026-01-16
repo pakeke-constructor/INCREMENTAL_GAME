@@ -643,6 +643,7 @@ g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3, "Crop Respawn Tim
 g.stats.CritChance = g.defineStat("CritChance", 0, "Critical Hit Chance") -- should start at 0
 g.stats.CritDamageMultiplier = g.defineStat("CritDamageMultiplier", 10, "Crirical Damage Multiplier")
 g.stats.KnifeDamage = g.defineStat("KnifeDamage", 1, "Knife Damage")
+g.stats.LightningDamage = g.defineStat("LightningDamage", 1, "Lightning Damage")
 
 -- World stat
 g.stats.WorldTileSize = g.defineStat("WorldTileSize", 20, "World Size")

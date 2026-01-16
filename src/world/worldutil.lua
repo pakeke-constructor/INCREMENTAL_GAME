@@ -178,9 +178,8 @@ end
 
 ---@param x number
 ---@param y number
----@param damage number
 ---@param tokenChainSize number?
-function worldutil.spawnLightning(x, y, damage, tokenChainSize)
+function worldutil.spawnLightning(x, y, tokenChainSize)
     g.playWorldSound("lightning_zap", 0.9, 0.25, 0.3, 0)
     tokenChainSize = math.max(2, tokenChainSize or 5)
 
@@ -201,7 +200,7 @@ function worldutil.spawnLightning(x, y, damage, tokenChainSize)
         tok = tok1
     end
     for _,t in ipairs(tokenList)do
-        g.damageToken(t, damage)
+        g.damageToken(t, g.stats.LightningDamage)
     end
 
     if #tokenList >= 2 then

@@ -90,7 +90,7 @@ g.defineUpgrade("lightning_upgrade", "Lightning Bolt", {
             local worldW, worldH = g.getWorldDimensions()
             local x = love.math.random(worldW) - 1
             local y = love.math.random(worldH) - 1
-            worldutil.spawnLightning(x, y, 2)
+            worldutil.spawnLightning(x, y)
         end
     end
 })
