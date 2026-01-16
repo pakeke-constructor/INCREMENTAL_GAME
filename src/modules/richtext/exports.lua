@@ -31,9 +31,6 @@ end
 ---@param tex love.Texture
 ---@param quad love.Quad?
 function text.defineImage(name, tex, quad)
-    if name == "money" then
-        print(debug.traceback(name))
-    end
     assertNameValid(name)
     return richtext.registerImage(name, tex, quad)
 end

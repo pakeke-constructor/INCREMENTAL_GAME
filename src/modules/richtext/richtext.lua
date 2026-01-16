@@ -463,52 +463,51 @@ local function baseRenderer(textOrDrawable, font, x, y, scale, quad)
 	end
 end
 
+---@param context richtext.Context
+---@param effIdx integer
+---@param tx number
+---@param ty number
+---@param ttextOrDrawable string|love.Texture
+---@param index integer
+---@param tquad love.Quad?
+---@param font love.Font
+---@param effects richtext._EffectInfo[]
+---@param numEffects integer
+---@param scale number
+local function runEffectChain(context, effIdx, tx, ty, ttextOrDrawable, index, tquad, font, effects, numEffects, scale)
+	if effIdx > numEffects then
+		baseRenderer(ttextOrDrawable, font, tx, ty, scale, tquad)
+	else
+		local eff = effects[effIdx]
+		context.font = font
+		context.textOrDrawable = ttextOrDrawable
+		context.index = index
+		context.quad = tquad
+
+		eff.func(eff.args, tx, ty, context, function(nt, nx, ny, nq)
+			runEffectChain(context, effIdx + 1, nx, ny, nt, index, nq or tquad, font, effects, numEffects, scale)
+		end)
+	end
+end
+
 ---Draw the layout.
 ---@param x number
 ---@param y number
 function TextLayout:draw(x, y)
+	---@type richtext.Context
+	local sharedContext = {
+		font = nil,
+		textOrDrawable = "",
+		index = 0,
+		quad = nil
+	}
+
 	for _, line in ipairs(self.lines) do
 		for _, chunk in ipairs(line.chunks) do
 			local cx, cy = x + chunk.x, y + chunk.y
 
 			local effects = chunk.effects
 			local numEffects = #effects
-
-			---@param idx integer
-			---@param tx number
-			---@param ty number
-			---@param ttextOrDrawable string|love.Texture
-			---@param index number
-			---@param tquad love.Quad?
-			local function runChain(idx, tx, ty, ttextOrDrawable, index, tquad)
-				if idx > numEffects then
-					baseRenderer(
-						ttextOrDrawable,
-						self.font,
-						tx,
-						ty,
-						chunk.scale,
-						tquad
-					)
-				else
-					local eff = effects[idx]
-					eff.func(eff.args, tx, ty, {
-						font = self.font,
-						textOrDrawable = ttextOrDrawable,
-						index = index,
-						quad = tquad
-					}, function(nt, nx, ny, nq)
-						runChain(
-							idx + 1,
-							nx,
-							ny,
-							nt,
-							index,
-							nq or tquad
-						)
-					end)
-				end
-			end
 
 			local hasPerChar = false
 			for i = 1, numEffects do
@@ -527,13 +526,13 @@ function TextLayout:draw(x, y)
 					if lastChar then
 						charX = charX + self.font:getKerning(lastChar, char)
 					end
-					runChain(1, charX, cy, char, chunk.index + charCount)
+					runEffectChain(sharedContext, 1, charX, cy, char, chunk.index + charCount, nil, self.font, effects, numEffects, chunk.scale)
 					charX = charX + self.font:getWidth(char)
 					lastChar = char
 					charCount = charCount + 1
 				end
 			else
-				runChain(1, cx, cy, assert(chunk.text or chunk.image), chunk.index, chunk.quad)
+				runEffectChain(sharedContext, 1, cx, cy, assert(chunk.text or chunk.image), chunk.index, chunk.quad, self.font, effects, numEffects, chunk.scale or 1)
 			end
 		end
 	end

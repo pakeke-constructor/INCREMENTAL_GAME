@@ -204,7 +204,7 @@ end
 ---@param tok g.Token
 ---@param bundle g.Bundle
 function harvest:tokenEarnedResources(tok, bundle)
-    if g.isBeingSimulated() then
+    if g.isBeingSimulated() or consts.IS_MOBILE then
         return
     end
 
@@ -845,11 +845,13 @@ function harvest:tokenDestroyed(tok)
     end
 
     if not g.isBeingSimulated() then
-        local x,y = self.camera:getTransform():transformPoint(tok.x,tok.y)
-        local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(x,y)
-        local SPD = 600
-        local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
-        xpParticles:spawnParticle(uiX,uiY, vx,vy)
+        if not consts.IS_MOBILE or xpParticles:getParticleCount() < 50 then
+            local x,y = self.camera:getTransform():transformPoint(tok.x,tok.y)
+            local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(x,y)
+            local SPD = 600
+            local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
+            xpParticles:spawnParticle(uiX,uiY, vx,vy)
+        end
 
         g.getSn().showTutorials.harvest = false
     end
