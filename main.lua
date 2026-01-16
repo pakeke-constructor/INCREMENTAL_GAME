@@ -216,6 +216,7 @@ local sceneManager = require("src.scenes.sceneManager")
 local sfx = require("src.sound.sfx")
 
 function love.load(arg)
+    log.debug(love.graphics.getRendererInfo())
     assert(love.filesystem.createDirectory("saves"))
     love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades")
