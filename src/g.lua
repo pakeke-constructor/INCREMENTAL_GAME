@@ -1014,6 +1014,13 @@ function g.getResourceLimit(resId)
 end
 
 
+---@param amount number
+function g.addXP(amount)
+    local sn = currentSession
+    sn.xp = sn.xp + amount
+end
+
+
 ---@param resId g.ResourceType
 function g.addResource(resId, amount)
     assertValidResource(resId)

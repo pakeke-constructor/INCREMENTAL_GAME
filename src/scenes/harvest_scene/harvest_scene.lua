@@ -840,8 +840,7 @@ function harvest:tokenDestroyed(tok)
     if not isAnyPopupOpen(self) then
         local xp = tok.maxHealth
         local mult = getXpMultiplier(self)
-        local sn = g.getSn()
-        sn.xp = sn.xp + xp*mult
+        g.addXP(mult*xp)
     end
 
     if not g.isBeingSimulated() then

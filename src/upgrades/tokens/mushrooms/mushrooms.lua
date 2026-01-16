@@ -66,7 +66,7 @@ g.defineToken("mushroom_green", "Green Mushroom", {
     category = "mushroom",
     maxHealth = 7,
     resources = {},
-    description = "When destroyed, spawns 6 grass crops",
+    description = "When harvested, spawns 3 grass crops",
     tokenDestroyed = function(tok)
         local function getPos()
             local x,y = tok.x + math.random(-40,40), tok.y + math.random(-40,40)
@@ -76,7 +76,7 @@ g.defineToken("mushroom_green", "Green Mushroom", {
             end
         end
         worldutil.spawnShockwave(tok.x, tok.y, 0.2, 50, objects.Color.LIME)
-        for _=1, 6 do
+        for _=1, 3 do
             local x,y = getPos()
             if x and y then
                 local t = nil
@@ -93,5 +93,20 @@ g.defineToken("mushroom_green", "Green Mushroom", {
         end
     end
 })
+
+
+
+
+g.defineToken("mushroom_basic", "Basic Mushroom", {
+    category = "mushroom",
+    shadow = "shadow_big",
+    maxHealth = 9,
+    resources = {money=10},
+    description = "Earns bonus xp when harvested!",
+    tokenDestroyed = function(tok)
+        g.addXP(20) -- yolo IDK what a good number is
+    end
+})
+
 
 
