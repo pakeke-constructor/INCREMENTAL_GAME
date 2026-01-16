@@ -32,11 +32,11 @@ local RAY_COLOR = objects.Color("#".."FFF2E46C")
 ---@param level integer
 ---@param cx number
 ---@param cy number
----@param dontDraw boolean
+---@param isBlackedOut boolean
 ---@return boolean isHovered
 ---@return boolean wasJustClicked
 ---@return boolean wasJustHovered
-local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
+local function upgradeBoxUI(tree, upg, level, cx, cy, isBlackedOut)
     local time = love.timer.getTime()
     local uinfo = g.getUpgradeInfo(upg.id)
 
@@ -79,13 +79,14 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, dontDraw)
     ---------------------------------------
     -- return early if we are drawing black
     ---------------------------------------
-    if dontDraw then
-        lg.setColor(0,0,0)
+    if isBlackedOut then
+        lg.setColor(0,0,0, 0.8)
         if background then
             g.drawImage(background, cx, cy)
         end
         g.drawImage(frame, cx, cy)
-        return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h), iml.wasJustHovered(x,y,w,h)
+        return false, false, false
+        -- return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h), iml.wasJustHovered(x,y,w,h)
     end
 
     ---------------

@@ -208,69 +208,63 @@ local function drawUpgradeBoxes(self)
 
     local toAnimate = objects.Set() -- contains the upgrade tree
     for _, upg in ipairs(upgrades) do
-        if isVisible(upg) then
-            -- Draw connector first
-            for _, upg2 in ipairs(tree:getNeighbors(upg.x,upg.y)) do
-                if isVisible(upg2) then
-                    drawConnector(upg, upg2)
+        -- if isVisible(upg) then
+        -- Draw connector first
+        for _, upg2 in ipairs(tree:getNeighbors(upg.x,upg.y)) do
+            -- if true or isVisible(upg2) then
+            drawConnector(upg, upg2)
 
-                    if self.lastUpgradeMaxxed[2] > 0 and self.lastUpgradeMaxxed[1] == upg and upg2.level == 0 then
-                        toAnimate:add(upg2)
-                    end
-                end
+            if self.lastUpgradeMaxxed[2] > 0 and self.lastUpgradeMaxxed[1] == upg and upg2.level == 0 then
+                toAnimate:add(upg2)
             end
         end
     end
 
     local sn = g.getSn()
     for _, upg in ipairs(upgrades) do
-        if isVisible(upg) then
-            local level = upg.level
-
-            -- Then draw upgrade box
-            local price = tree:getUpgradePrice(upg)
-            local x, y = getUpgradeGridCoords(upg.x, upg.y)
-
-            local dontDraw = false -- and g.getBundleCostRatio(price) < 0.2
-            -- Removed this ^^^^ system, coz its bad.
-
-            local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y, dontDraw)
-            if (not dontDraw) then
-                if isHovered then
-                    hoveredUpgrade = upg
-                end
-
-                if toAnimate:has(upg) then
-                    drawUnlockedUpgradeAnimation(upg, self.lastUpgradeMaxxed[2])
-                end
-            end
-            if wasJustHovered then
-                g.playUISound("ui_tick", 1,1)
-            end
-            if (not self.dev_editMode) and wasJustClicked then
-                g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
-                local maxLevel = tree:getUpgradeMaxLevel(upg)
-                local shouldTryBuy = consts.IS_MOBILE and self.lastHoveredUpgrade == upg or (not consts.IS_MOBILE)
-                if shouldTryBuy and tree:tryBuyUpgrade(upg) and upg.level == maxLevel then
-                    self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
-                    sn.showTutorials.upgrades = false
-                    g.playUISound("ui_upgrade_level_maxxed", 0.65,0.3,0.2,0.1)
-                end
-                self.lastHoveredUpgrade = hoveredUpgrade
-                hoveredUpgrade=nil
+        local level = upg.level
+        -- Then draw upgrade box
+        local price = tree:getUpgradePrice(upg)
+        local blackedOut = not isVisible(upg)
+        local x, y = getUpgradeGridCoords(upg.x, upg.y)
+        local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y, blackedOut)
+        local dontDraw = false -- and g.getBundleCostRatio(price) < 0.2
+        -- Removed this ^^^^ system, coz its bad.
+        if (not dontDraw) then
+            if isHovered then
+                hoveredUpgrade = upg
             end
 
-            if self.dev_showDistances then
-                local dist = tree:distanceFromRoot(upg)
-                lg.setColor(1,1,1)
-                richtext.printRichContained("{o}" .. tostring(dist), g.getSmallFont(16), x-15,y-15, 30,30)
+            if toAnimate:has(upg) then
+                drawUnlockedUpgradeAnimation(upg, self.lastUpgradeMaxxed[2])
             end
-            if self.dev_showPrices then
-                local num = tree:getUpgradePrice(upg, 0).money
-                local basePrice = num and g.formatNumber(num) or 0
-                lg.setColor(1,1,1)
-                richtext.printRichContained("{o}{c r=0.9 g=0.6 b=0.3}$" .. tostring(basePrice), g.getSmallFont(16), x-10,y, 20,20)
+        end
+        if wasJustHovered then
+            g.playUISound("ui_tick", 1,1)
+        end
+        if (not self.dev_editMode) and wasJustClicked then
+            g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
+            local maxLevel = tree:getUpgradeMaxLevel(upg)
+            local shouldTryBuy = consts.IS_MOBILE and self.lastHoveredUpgrade == upg or (not consts.IS_MOBILE)
+            if shouldTryBuy and tree:tryBuyUpgrade(upg) and upg.level == maxLevel then
+                self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
+                sn.showTutorials.upgrades = false
+                g.playUISound("ui_upgrade_level_maxxed", 0.65,0.3,0.2,0.1)
             end
+            self.lastHoveredUpgrade = hoveredUpgrade
+            hoveredUpgrade=nil
+        end
+
+        if self.dev_showDistances then
+            local dist = tree:distanceFromRoot(upg)
+            lg.setColor(1,1,1)
+            richtext.printRichContained("{o}" .. tostring(dist), g.getSmallFont(16), x-15,y-15, 30,30)
+        end
+        if self.dev_showPrices then
+            local num = tree:getUpgradePrice(upg, 0).money
+            local basePrice = num and g.formatNumber(num) or 0
+            lg.setColor(1,1,1)
+            richtext.printRichContained("{o}{c r=0.9 g=0.6 b=0.3}$" .. tostring(basePrice), g.getSmallFont(16), x-10,y, 20,20)
         end
     end
 
