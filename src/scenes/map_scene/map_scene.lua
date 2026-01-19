@@ -333,7 +333,7 @@ do
 -- Constants for tweaking
 local CLOUD_VERTICAL_MOVE_AMOUNT = 20  -- How far clouds move up/down
 local CLOUD_MOVE_SPEED = 0.2  -- Speed of vertical oscillation
-local CLOUD_OFFSET_FROM_CORNER = 0  -- Distance from actual corner point
+local CLOUD_OFFSET_FROM_CORNER = -20  -- Distance from actual corner point
 local CLOUD_OVERLAP_SPACING = 60  -- Spacing between clouds to cover corner
 
 ---@param cloudName string
