@@ -46,6 +46,15 @@ function upgscene:init()
 
     ---@type g.Tree.Upgrade|nil
     self.lastHoveredUpgrade = nil
+
+    --
+    self.touchZoomData = {
+        ---@type lightuserdata?
+        m1 = nil,
+        ---@type lightuserdata?
+        m2 = nil,
+        m1x = 0, m1y = 0, m2x = 0, m2y = 0
+    }
 end
 
 
@@ -73,20 +82,6 @@ local function drawConnector(upg1, upg2)
     love.graphics.setLineWidth(lw)
 end
 
-
-
-
----@param bundle g.Bundle
----@return number
-local function sumPriceBundle(bundle)
-    local result = 0
-
-    for _, v in pairs(bundle) do
-        result = result + v
-    end
-
-    return result
-end
 
 
 
@@ -137,27 +132,6 @@ local function getBestUpgradeAffordThreshold()
         result[k] = math.floor(v * 0.05 + 0.5)
     end
     return result
-end
-
----Performs b1 >= b2 across all bundle elements
----@param b1 g.Bundle
----@param b2 g.Bundle
-local function bundleGreaterOrEqual(b1, b2)
-    local keys = {}
-    for k in pairs(b1) do
-        keys[k] = true
-    end
-    for k in pairs(b2) do
-        keys[k] = true
-    end
-
-    for k in pairs(keys) do
-        if (b1[k] or 0) < (b2[k] or 0) then
-            return false
-        end
-    end
-
-    return true
 end
 
 
@@ -571,6 +545,10 @@ function upgscene:draw()
         local w, h = x2 - x, y2 - y
         local drag = iml.consumeDrag("upgscene:viewport", x, y, w, h, 1)
 
+        if #love.touch.getTouches() ~= 1 then
+            drag = nil
+        end
+
         if drag then
             local dx, dy = 0, 0
             if self.lmbPan then
@@ -647,6 +625,53 @@ end
 
 
 function upgscene:update(dt)
+    -- Have to do tracking manually because scene manager limitation with touches
+    -- If we need this behavior on different scene, we should move this out to FreeCameraScene.
+    local touches = love.touch.getTouches()
+    if #touches >= 2 then
+        self.allowMousePan = false
+
+        if not self.touchZoomData.m1 then
+            self.touchZoomData.m1 = touches[1]
+            self.touchZoomData.m1x, self.touchZoomData.m1y = love.touch.getPosition(touches[1])
+        end
+
+        if not self.touchZoomData.m2 then
+            self.touchZoomData.m2 = touches[2]
+            self.touchZoomData.m2x, self.touchZoomData.m2y = love.touch.getPosition(touches[2])
+        end
+
+        local m1x, m1y, m2x, m2y = nil, nil, nil, nil
+        for _, t in ipairs(touches) do
+            if self.touchZoomData.m1 == t then
+                m1x, m1y = love.touch.getPosition(touches[1])
+            elseif self.touchZoomData.m2 == t then
+                m2x, m2y = love.touch.getPosition(touches[2])
+            end
+
+            if m1x and m1y and m2x and m2y then
+                break
+            end
+        end
+
+        if m1x and m1y and m2x and m2y then
+            local olddist = helper.magnitude(
+                self.touchZoomData.m2x - self.touchZoomData.m1x,
+                self.touchZoomData.m2y - self.touchZoomData.m1y
+            )
+            local newdist = helper.magnitude(m2x - m1x, m2y - m1y)
+            local zoom = self._zoomIndex + (newdist - olddist) / 500
+            print(zoom, newdist - olddist, self:scaleFromZoom(zoom))
+            self:setZoom(zoom)
+
+            self.touchZoomData.m1x, self.touchZoomData.m1y = m1x, m1y
+            self.touchZoomData.m2x, self.touchZoomData.m2y = m2x, m2y
+        end
+    else
+        self.allowMousePan = true
+        self.touchZoomData.m1, self.touchZoomData.m2 = nil, nil
+    end
+
     self:updateCamera(dt)
     g.getHUD():update(dt)
     self.lastUpgradeMaxxed[2] = math.max(self.lastUpgradeMaxxed[2] - dt, 0)
