@@ -75,7 +75,7 @@ function World:init()
     self.damageNumbers = {}
 
     -- Create tile atlas
-    self.tilemap = helper.splitTileImage("harvestarea_tilemap", consts.WORLD_TILE_SIZE)
+    self.tilemap = helper.splitTileImage("harvestarea_tilemap_0", consts.WORLD_TILE_SIZE)
 
     -- Player avatar. Cannot initialize it in here due to cyclic dependency with g.spawnEntity and this world.
     ---@type g.Entity|nil
@@ -90,7 +90,7 @@ function World:init()
     self.analyticsSendTime = 0
 
     -- decorations:
-    self.lastSeenDimensions = {x=0,y=0}
+    self.lastSeenDimensions = {x=0,y=0,prestige=0}
     self.decorations = {}
 
     self.combo = 0
@@ -732,23 +732,51 @@ end
 
 
 
+local WORLD_TILESETS = {
+    {
+        tileset = "harvestarea_tilemap_0",
+        dark = objects.Color("#" .. "FF20A362"),
+        light =objects.Color("#" .. "FF35BA64") 
+    },
+
+    {
+        tileset = "harvestarea_tilemap_1",
+        dark =objects.Color("#" .. "FF1755A1"),
+        light = objects.Color("#" .. "FF208BA3"),
+    },
+
+    {
+        tileset = "harvestarea_tilemap_2",
+        dark =objects.Color("#" .. "FF923716"),
+        light = objects.Color("#" .. "FFB15527"),
+    },
+}
+
+
 ---@param self g.World
 local function tryUpdateDecorations(self)
     local tw,th = g.getWorldTileDimensions()
+    local pres = g.getPrestige()
     local ls = self.lastSeenDimensions
-    if tw == ls.x and th == ls.y then
+    if tw == ls.x and th == ls.y and ls.prestige == pres then
         return -- Nothing to generate; return early.
     end
 
-    self.lastSeenDimensions = {x=tw, y=th}
+    self.lastSeenDimensions = {x=tw, y=th, prestige=pres}
     self.decorations = {}
 
     local w,h = g.getWorldDimensions()
 
+    local i = helper.clamp(pres+1, 1,3)
+    local ts = WORLD_TILESETS[i]
+    local darkcol = ts.dark
+    local lightcol = ts.light
+
+    -- Create new tile atlas
+    self.tilemap = helper.splitTileImage(ts.tileset, consts.WORLD_TILE_SIZE)
+
     --====== add big-splotch decorations:  ======
     local BIGPAD=30
-    local darkcol = objects.Color("#" .. "FF20A362")
-    local lightcol = objects.Color("#" .. "FF35BA64")
     for i=1,40 do
         table.insert(self.decorations, {
             x = math.floor(helper.lerp(BIGPAD, w, love.math.random())),
@@ -772,7 +800,6 @@ local function tryUpdateDecorations(self)
     end
 
     local TPAD=30
-    local col3 = objects.Color("#" .. "FF32B569")
     for i=1,30 do
         table.insert(self.decorations, {
             x = math.floor(helper.lerp(TPAD, w, love.math.random())),
