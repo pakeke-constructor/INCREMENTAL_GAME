@@ -31,6 +31,8 @@ function upgscene:init()
     ---@type {x:number,y:number,isAddingConnector:boolean}?
     self.dev_editModeSelection = nil
     self.dev_showDistances = false
+    self.dev_showUnusedUpgradesInSelect = true
+    self.dev_showTokensInSelect = true
     self.dev_showPrices = false
     self.dev_maxLevelInput = ui.newTextBox()
     self.dev_priceInput = ui.newTextBox()
@@ -353,7 +355,8 @@ end
 
 
 ---@param self UpgradesScene
-local function drawDevEditModeUI(self)
+---@param treeUpgrades g.Tree.Upgrade[]
+local function drawDevEditModeUI(self, treeUpgrades)
     local region = ui.getScreenRegion()
     local leftbar, _, sidebar = region:splitHorizontal(1,4,1)
     local _, bigSidebar = region:splitHorizontal(3,2)
@@ -417,6 +420,24 @@ local function drawDevEditModeUI(self)
         return cols, rows
     end
 
+    local exists = {}
+    for _,upg in ipairs(treeUpgrades)do
+        exists[upg.id] = true
+    end
+
+    local function shouldShow(upgId)
+        if not self.dev_showTokensInSelect then
+            local uinfo = g.getUpgradeInfo(upgId)
+            if uinfo.tokenType then
+                return false
+            end
+        end
+        if self.dev_showUnusedUpgradesInSelect then
+            return true
+        end
+        return not exists[upgId]
+    end
+
     local sel = self.dev_editModeSelection
     if sel then
         local selectArea,bot = bigSidebar:splitVertical(8,2)
@@ -427,38 +448,49 @@ local function drawDevEditModeUI(self)
 
         local ww, hh = calculateGrid(#g.UPGRADE_LIST, selectArea.w, selectArea.h)
         for i, utype in ipairs(g.UPGRADE_LIST) do
-            local col = (i - 1) % ww
-            local row = math.floor((i - 1) / ww)
-            local x = col * (selectArea.w / ww) + selectArea.x
-            local y = row * (selectArea.h / hh) + selectArea.y
-            local w = selectArea.w/ww
-            local h = selectArea.h/hh
+            if shouldShow(utype) then
+                local col = (i - 1) % ww
+                local row = math.floor((i - 1) / ww)
+                local x = col * (selectArea.w / ww) + selectArea.x
+                local y = row * (selectArea.h / hh) + selectArea.y
+                local w = selectArea.w/ww
+                local h = selectArea.h/hh
 
-            -- draw upgr icon:
-            local uinfo = g.getUpgradeInfo(utype)
-            g.drawImageContained(uinfo.image, x,y,w,h)
-            if uinfo.tokenType then
-                local tinfo = g.getTokenInfo(uinfo.tokenType)
-                if tinfo.growths then
-                    g.drawImageContained(tinfo.growths.growth, Kirigami(x,y,w,h):padRatio(0.7):get())
+                -- draw upgr icon:
+                local uinfo = g.getUpgradeInfo(utype)
+                g.drawImageContained(uinfo.image, x,y,w,h)
+                if uinfo.tokenType then
+                    local tinfo = g.getTokenInfo(uinfo.tokenType)
+                    if tinfo.growths then
+                        g.drawImageContained(tinfo.growths.growth, Kirigami(x,y,w,h):padRatio(0.7):get())
+                    end
                 end
-            end
-            if uinfo.drawUI then
-                uinfo:drawUI(1, x,y,w,h)
-            end
+                if uinfo.drawUI then
+                    uinfo:drawUI(1, x,y,w,h)
+                end
 
-            if iml.wasJustClicked(x,y,w,h) then
-                -- put upgrade:
-                if not tree:get(sel.x,sel.y) then
-                    tree:put(sel.x, sel.y, uinfo)
+                if iml.wasJustClicked(x,y,w,h) then
+                    -- put upgrade:
+                    if not tree:get(sel.x,sel.y) then
+                        tree:put(sel.x, sel.y, uinfo)
+                    end
                 end
             end
         end
 
-        local cancelButton, bot2 = bot:splitVertical(1,1)
+        local bot1, bot2 = bot:splitVertical(1,1)
         local makeRootButton, connectButton, deleteButton = bot2:splitHorizontal(1,1,1)
+        local toggleUnused, toggleTokens, cancelButton = bot1:splitHorizontal(1,1,3)
+    
         if ui.DefaultButton("Cancel", cancelButton) then
             self.dev_editModeSelection = nil
+        end
+
+        if ui.DefaultButton("Show unused?", toggleUnused) then
+            self.dev_showUnusedUpgradesInSelect = not self.dev_showUnusedUpgradesInSelect
+        end
+        if ui.DefaultButton("Show tokens?", toggleTokens) then
+            self.dev_showTokensInSelect = not self.dev_showTokensInSelect
         end
 
         if ui.Button("DELETE", {0.9,0,0}, {0.6,0,0}, deleteButton) then
@@ -532,11 +564,12 @@ local function drawDevUI(self)
         )
     end
 
-    local numUpgs = #tree:getUpgradesOnTree()
+    local treeUpgrades = tree:getUpgradesOnTree()
+    local numUpgs = #treeUpgrades
     richtext.printRichContained("{o}Num Upgrades:" .. tostring(numUpgs) .. "/140", font, header:moveRatio(0.5,0.0):padRatio(0.6):get())
 
     if self.dev_editMode then
-        drawDevEditModeUI(self)
+        drawDevEditModeUI(self, treeUpgrades)
     end
 end
 

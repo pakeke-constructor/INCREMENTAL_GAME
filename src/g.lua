@@ -2440,8 +2440,11 @@ g.COLORS = {
 do
 for k,v in pairs(g.COLORS) do
     if getmetatable(v) == objects.Color then
-        richtext.defineEffect(k, function (context, char)
-            char:setColor(v)
+        richtext.defineEffect(k, function (args, x,y, context, next)
+            local r,gg,b,a = lg.getColor()
+            lg.setColor(v)
+            next(context.textOrDrawable, x,y)
+            lg.setColor(r,gg,b,a)
         end)
     end
 end
