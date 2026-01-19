@@ -14,7 +14,8 @@ local TEXT = {
     MUSIC_VOLUME = loc "Music Volume",
     LANGUAGE = loc "Language",
     REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"}),
-    CRT_EFFECT = "{o}"..loc("CRT Effect").."{/o}"
+    FULLSCREEN = "{o}"..loc("Fullscreen", nil, {context = "Switching game from windowed to fullscreen,"}).."{/o}",
+    CRT_EFFECT = "{o}"..loc("CRT Effect", nil, {context = "Option to emulate old-school CRT TV effects"}).."{/o}"
 }
 
 
@@ -166,10 +167,19 @@ function settingscene:draw()
     local crtLabelR, crtBoxR = crtPlacementR:splitHorizontal(crtTextWidth, fontHeight)
     crtBoxR = crtBoxR:padUnit(6)
 
+    -- Fullscreen toggle
+    local fsTextWidth = richtext.getWidth(TEXT.FULLSCREEN, font)
+    local fsPlacementR = Kirigami(0, 0, fsTextWidth + fontHeight, fontHeight)
+        :centerX(titleTextR)
+        :attachToBottomOf(crtPlacementR)
+        :moveUnit(0, 8)
+    local fsLabelR, fsBoxR = fsPlacementR:splitHorizontal(fsTextWidth, fontHeight)
+    fsBoxR = fsBoxR:padUnit(6)
+
     -- Language. Let's just make it a button that shows fullscreen panel later.
     local languageLabelR = Kirigami(0, 0, 240, font:getHeight() * 1.5)
         :centerX(titleTextR)
-        :attachToBottomOf(crtPlacementR)
+        :attachToBottomOf(fsPlacementR)
         :moveUnit(0, 8)
     local languageIconR = Kirigami(0, 0, 32, 32)
         :attachToTopOf(languageLabelR)
@@ -188,6 +198,8 @@ function settingscene:draw()
         musicVolumeSliderBaseR,
         crtLabelR,
         crtBoxR,
+        fsLabelR,
+        fsBoxR,
         languageLabelR,
         languageIconR,
         languageButtonR
@@ -212,6 +224,14 @@ function settingscene:draw()
     love.graphics.rectangle("fill", crtBoxR:padUnit(-2):get())
     local crtState = ui.Checkbox(objects.Color.WHITE, crtBoxR, settings.isCRTActive())
     settings.setCRTActive(crtState)
+
+    -- Draw Fullscreen
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRich(TEXT.FULLSCREEN, font, fsLabelR.x, fsLabelR.y, fsLabelR.w, "left")
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("fill", fsBoxR:padUnit(-2):get())
+    local fsState = ui.Checkbox(objects.Color.WHITE, fsBoxR, settings.isFullscreen())
+    settings.setFullscreen(fsState)
 
     -- Draw language button
     love.graphics.setColor(1, 1, 1)

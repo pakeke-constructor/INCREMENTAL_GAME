@@ -72,25 +72,6 @@ _G.consts = require("src.consts")
 
 if consts.DEV_MODE then
     love.keyboard.setTextInput(true)
-
-    -- simulated safe area for development
-    do
-        local insets = os.getenv("INCREMENTAL_GAME_SAFE_AREA")
-        if insets then
-            local status, data = pcall(json.decode, insets)
-            if status then
-                local left = assert(tonumber(data[1]))
-                local top = assert(tonumber(data[2] or left))
-                local right = assert(tonumber(data[3] or left))
-                local bot = assert(tonumber(data[4] or top))
-
-                function love.window.getSafeArea()
-                    local x, y, w, h = Kirigami(0, 0, love.graphics.getDimensions()):padRatio(left, top, right, bot):get()
-                    return math.floor(x + 0.5), math.floor(y + 0.5), math.floor(w + 0.5), math.floor(h + 0.5)
-                end
-            end
-        end
-    end
 end
 
 
@@ -251,6 +232,9 @@ function love.load(arg)
     end
 
     _isloadtime = false
+
+    love.window.setFullscreen(settings.isFullscreen())
+
     if heartbeat then
         heartbeat:StartCapture()
     end
@@ -389,6 +373,8 @@ function love.keypressed(key, scancode, isrep)
     if scancode == "[" then
         -- toggle show-dev-stuff
         consts.SHOW_DEV_STUFF = consts.DEV_MODE and (not consts.SHOW_DEV_STUFF)
+    elseif scancode == "return" and love.keyboard.isDown("lalt", "ralt") then
+        settings.setFullscreen(not settings.isFullscreen())
     end
 
     idleTime = 0
