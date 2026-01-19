@@ -709,11 +709,13 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 
 ---@class g.UpgradeDefinition
 ---@field kind g.UpgradeKind
+---@field nameContext string?
 ---@field tokenType string? (only for kind == "TOKEN")
 ---@field maxLevel integer?
 ---@field image string?
 ---@field priceScaling number?
 ---@field description string?
+---@field descriptionContext string?
 ---@field getPriceOverride (fun(uinfo:g.UpgradeInfo, level:integer): g.Bundle)?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number,number?,number?,number?)?
@@ -728,6 +730,7 @@ local g_UpgradeDefinition = {}
 ---@class g.TokenDefinition
 ---@field maxHealth number
 ---@field resources g.Bundle
+---@field nameContext string?
 ---@field image string?
 ---@field bossfight {prestige:integer}? boss for prestige-0 will upgrade -> prestige-1
 ---@field maxLevel integer?
@@ -735,6 +738,9 @@ local g_UpgradeDefinition = {}
 ---@field flight {vx:number,vy:number}?
 ---@field flightCustomWings {image: string, distance: number}?
 ---@field description string?
+---@field descriptionContext string?
+---@field upgradeNameContext string?
+---@field upgradeDescriptionContext string?
 ---@field drawOrder number?
 ---@field particles string?
 ---@field category g.Category?
@@ -763,7 +769,9 @@ local g_TokenDefinition = {}
 
 
 ---@class g.EffectDefinition
+---@field public nameContext string?
 ---@field public description string?
+---@field public descriptionContext string?
 ---@field public image string?
 ---@field public isDebuff boolean?
 
@@ -1194,7 +1202,8 @@ function g.defineEffect(id, name, def)
     end
 
     ---@cast def g.EffectInfo
-    def.name = name
+    def.name = loc(name, nil, {context = def.nameContext})
+    def.description = loc(def.description, nil, {context = def.descriptionContext})
     def.type = id
     def.image = img
     def.isDebuff = not not def.isDebuff
@@ -1333,6 +1342,7 @@ local SPECIAL_FUNCTIONS = {
 
 
 ---@param id string
+---@param name string
 ---@param def g.UpgradeDefinition
 function g.defineUpgrade(id, name, def)
     if not (def.kind and UPGRADE_KINDS[def.kind]) then
@@ -1340,9 +1350,10 @@ function g.defineUpgrade(id, name, def)
     end
 
     ---@cast def g.UpgradeInfo
-    def.name = loc(name)
+    def.name = loc(name, nil, {context = def.nameContext})
     if def.description then
-        def.description = localization.newInterpolator(def.description) ---@diagnostic disable-line
+        local d = def.description --[[@as string]]
+        def.description = localization.newInterpolator(d, {context = def.descriptionContext})
     end
 
     def.image = def.image or id
@@ -1500,6 +1511,7 @@ local reverseTokMt = {}
 g.TOKEN_LIST = {}
 
 
+---@param name string
 ---@param tokType string
 ---@param tabl g.TokenDefinition
 function g.defineToken(tokType, name, tabl)
@@ -1537,13 +1549,14 @@ function g.defineToken(tokType, name, tabl)
 
     local oldDescription = tabl.description
     if tabl.description then
-        tabl.description = loc(tabl.description)
+        tabl.description = loc(tabl.description, nil, {context = tabl.descriptionContext})
     end
 
     tokenDefinitions[tokType] = tabl
     ---@cast tabl g.Token
     tabl.type = tokType
-    tabl.name = loc(name) ---@diagnostic disable-line
+    ---@diagnostic disable-next-line: inject-field
+    tabl.name = loc(name, nil, {context = tabl.nameContext})
     local mt = {__index = tabl}
     tokenMts[tokType] = mt
     reverseTokMt[mt] = true
@@ -1552,12 +1565,14 @@ function g.defineToken(tokType, name, tabl)
     ---@type g.UpgradeDefinition
     local upgradeDef
     upgradeDef = {
+        nameContext = tabl.upgradeNameContext or tabl.nameContext,
         image = tabl.image,
         populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
             tokens:add(tokType, level)
         end,
         maxLevel = tabl.maxLevel or nil,
         description = oldDescription,
+        descriptionContext = tabl.upgradeDescriptionContext or tabl.descriptionContext,
         kind = "TOKEN",
         tokenType = tokType
     }
