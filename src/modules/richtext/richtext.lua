@@ -12,15 +12,15 @@ RichText.__index = RichText
 ---@field public index number 1-based index in the whole parsed text
 ---@field public quad love.Quad?
 
----@alias richtext.NextFunc fun(textOrDrawable: string|love.Texture, x: number, y: number, quad: love.Quad?)
----@alias richtext.EffectFunc fun(args: richtext.EffectArgs, x: number, y: number, context: richtext.Context, next: richtext.NextFunc)
+---@alias richtext._NextFunc fun(textOrDrawable: string|love.Texture, x: number, y: number, quad: love.Quad?)
+---@alias richtext._EffectFunc fun(args: richtext.EffectArgs, x: number, y: number, context: richtext.Context, next: richtext._NextFunc)
 
 ---@class richtext._EffectInfo
----@field package func richtext.EffectFunc
+---@field package func richtext._EffectFunc
 ---@field package args richtext.EffectArgs
 ---@field package perCharacter boolean
 
----@type table<string, {render:richtext.EffectFunc,perCharacter:boolean}>
+---@type table<string, {render:richtext._EffectFunc,perCharacter:boolean}>
 local effectsRegistry = {}
 ---@type table<string, {texture: love.Texture, quad: love.Quad?}>
 local imagesRegistry = {}
@@ -35,7 +35,7 @@ end
 
 ---Register a new effect.
 ---@param name string
----@param renderFunc richtext.EffectFunc
+---@param renderFunc richtext._EffectFunc
 ---@param options {perCharacter: boolean}?
 function RichText.registerEffect(name, renderFunc, options)
 	ensureUnique(name)

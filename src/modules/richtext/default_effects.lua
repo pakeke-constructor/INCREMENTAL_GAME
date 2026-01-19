@@ -22,8 +22,7 @@ return function(text)
     ---@param x number
     ---@param y number
     ---@param context richtext.Context
-    ---@param next richtext.NextFunc
-    local function outline(args, x, y, context, next)
+    local function outline(args, context, x, y)
         local r, g, b, a = love.graphics.getColor()
         local cr = args.r or 0
         local cg = args.g or 0
@@ -47,41 +46,54 @@ return function(text)
         end
 
         love.graphics.setColor(r, g, b, a)
-        return next(context.textOrDrawable, x, y)
+        -- return next(context.textOrDrawable, x, y)
     end
-    text.defineEffect("outline", outline)
-    text.defineEffect("o", outline)
+
+    text.defineEffect("outline", {
+        before = outline
+    })
+    text.defineEffect("o", {
+        before = outline
+    })
 
     ---@param args richtext.EffectArgs
     ---@param x number
     ---@param y number
     ---@param context richtext.Context
-    ---@param next richtext.NextFunc
-    local function color(args, x, y, context, next)
-        local r, g, b, a = love.graphics.getColor()
-        love.graphics.setColor(args.r or 1, args.g or 1, args.b or 1, (args.a or 1) * a)
-        next(context.textOrDrawable, x, y)
-        love.graphics.setColor(r, g, b, a)
+    local function color(args, context, x, y)
+        love.graphics.setColor(args.r or 1, args.g or 1, args.b or 1, (args.a or 1))
     end
-    text.defineEffect("color", color)
-    text.defineEffect("c", color)
+    text.defineEffect("color", {
+        before = color
+    })
+    text.defineEffect("c", {
+        before = color
+    })
 
     ---@param args richtext.EffectArgs
+    ---@param context richtext.Context
     ---@param x number
     ---@param y number
-    ---@param context richtext.Context
-    ---@param next richtext.NextFunc
-    local function wavy(args, x, y, context, next)
+    local function wavy(args, context, x, y)
         local f = args.freq or 1
         local amp = args.amp or 1
         local k = args.k or 1 -- `k` determines how "different" the letter are.
         -- k = 0 indicates all letters bob up and down, in sync.
         local offset = context.index * k
         local dy = math.sin(2 * math.pi * f * love.timer.getTime() + offset) * amp
-        return next(context.textOrDrawable, x, y + dy)
+        return x, dy+y
+        -- return next(context.textOrDrawable, x, y + dy)
+
+        -- TODO: not exactly sure how to do wavy here.
     end
-    text.defineEffect("wavy", wavy, {perCharacter = true})
-    text.defineEffect("w", wavy, {perCharacter = true})
+    text.defineEffect("wavy", {
+        perCharacter = true,
+        before = wavy
+    })
+    text.defineEffect("w", {
+        perCharacter = true,
+        before = wavy
+    })
 
     local rainbow = {
         {0.85, 0.15, 0.15, 1.0},  -- Red
@@ -96,15 +108,18 @@ return function(text)
     ---@param x number
     ---@param y number
     ---@param context richtext.Context
-    ---@param next richtext.NextFunc
-    local function rainbowEffect(args, x, y, context, next)
+    ---@param next richtext._NextFunc
+    local function rainbowEffect(args, context, x, y)
         local i = math.floor(context.index/3 - love.timer.getTime()/2)
         local index = (i % (#rainbow))+1
         local rb = rainbow[index]
         local r, g, b, a = love.graphics.getColor()
         love.graphics.setColor(rb[1], rb[2], rb[3], rb[4] * a)
-        next(context.textOrDrawable, x, y)
-        love.graphics.setColor(r, g, b, a)
+        -- next(context.textOrDrawable, x, y)
+        -- love.graphics.setColor(r, g, b, a)
     end
-    text.defineEffect("rainbow", rainbowEffect, {perCharacter = true})
+    text.defineEffect("rainbow", {
+        perCharacter = true,
+        before = rainbowEffect
+    })
 end

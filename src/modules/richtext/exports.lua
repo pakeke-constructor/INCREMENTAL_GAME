@@ -14,14 +14,32 @@ local function assertNameValid(name)
     end
 end
 
+
+
+---@class richtext.DefineEffectArgs
+---@field perCharacter boolean?
+---@field before fun(args: richtext.EffectArgs, context: richtext.Context, x: number, y: number)?
+---@field after fun(args: richtext.EffectArgs, context: richtext.Context, x: number, y: number)?
+
+
 --- Define a new effect for rich text formatting 
 ---@generic T
 ---@param name string Effect name.
----@param effectupdate richtext.EffectFunc
----@param opts {perCharacter: boolean}?
-function text.defineEffect(name, effectupdate, opts)
+---@param opts richtext.DefineEffectArgs
+function text.defineEffect(name, opts)
     assertNameValid(name)
-    return richtext.registerEffect(name, effectupdate, opts)
+    assert(opts.before or opts.after, "Effect had no function passed!")
+    return richtext.registerEffect(name, function (args, x, y, context, next)
+        if opts.before then
+            local newX,newY = opts.before(args, context, x,y)
+            x = newX or x
+            y = newY or y
+        end
+        next(context.textOrDrawable, x,y)
+        if opts.after then
+            opts.after(args, context, x,y)
+        end
+    end, opts)
 end
 
 
