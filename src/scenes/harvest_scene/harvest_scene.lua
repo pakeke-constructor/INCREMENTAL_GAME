@@ -1033,7 +1033,7 @@ function harvest:draw()
     end
 
     -- show stats in dev-mode
-    if consts.DEV_MODE then
+    if consts.SHOW_DEV_STUFF then
         prof_push("debug stats")
 
         love.graphics.setColor(1, 1, 1)
