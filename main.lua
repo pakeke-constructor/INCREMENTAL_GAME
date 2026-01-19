@@ -232,6 +232,9 @@ function love.load(arg)
     end
 
     _isloadtime = false
+
+    love.window.setFullscreen(settings.isFullscreen())
+
     if heartbeat then
         heartbeat:StartCapture()
     end
@@ -370,6 +373,8 @@ function love.keypressed(key, scancode, isrep)
     if scancode == "[" then
         -- toggle show-dev-stuff
         consts.SHOW_DEV_STUFF = consts.DEV_MODE and (not consts.SHOW_DEV_STUFF)
+    elseif scancode == "return" and love.keyboard.isDown("lalt", "ralt") then
+        settings.setFullscreen(not settings.isFullscreen())
     end
 
     idleTime = 0

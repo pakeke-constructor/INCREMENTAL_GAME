@@ -7,6 +7,7 @@ local settingData = {
     bgmVolume = 50,
     lang = love.system.getPreferredLocales()[1] or "en",
     crt = false,
+    fullscreen = true,
 }
 
 -- Load setting
@@ -72,6 +73,16 @@ end
 ---@param active boolean
 function setting.setCRTActive(active)
     settingData.crt = not not active
+end
+
+function setting.isFullscreen()
+    return settingData.fullscreen
+end
+
+---@param fs boolean
+function setting.setFullscreen(fs)
+    settingData.fullscreen = fs
+    love.window.setFullscreen(fs)
 end
 
 return setting
