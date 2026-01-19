@@ -96,7 +96,7 @@ function emulation.update(dt)
 end
 
 function emulation.draw()
-    if love.mouse.isDown(1) then
+    if consts.EMULATE_TOUCH and love.mouse.isDown(1) then
         love.graphics.setColor(1, 1, 1)
 
         local m1x, m1y = love.touch.getPosition(1)
