@@ -71,7 +71,7 @@ end
 end
 
 
-function g.prestigeSession()
+function g.incrementPrestige()
     -- WARNING: this function has FAR REACHING CONSEQUENCES.
     -- will reset upgrades, and do a tonne of other resets.
     local curr = currentSession

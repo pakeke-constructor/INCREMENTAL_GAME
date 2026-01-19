@@ -667,7 +667,7 @@ function drawBossPopup(self)
 
     if iml.wasJustClicked(buttonArea:get()) then
         g.playUISound("ui_click_basic", 1.4, 0.8)
-        g.prestigeSession()
+        g.incrementPrestige()
     end
 
     prof_pop()
