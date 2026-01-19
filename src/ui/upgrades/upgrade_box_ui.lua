@@ -37,6 +37,8 @@ local RAY_COLOR = objects.Color("#".."FFF2E46C")
 ---@return boolean wasJustClicked
 ---@return boolean wasJustHovered
 local function upgradeBoxUI(tree, upg, level, cx, cy, isBlackedOut)
+    prof_push("upgradeBoxUI "..upg.id)
+
     local time = love.timer.getTime()
     local uinfo = g.getUpgradeInfo(upg.id)
 
@@ -85,6 +87,7 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, isBlackedOut)
             g.drawImage(background, cx, cy)
         end
         g.drawImage(frame, cx, cy)
+        prof_pop() -- prof_push("upgradeBoxUI "..upg.id)
         return false, false, false
         -- return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h), iml.wasJustHovered(x,y,w,h)
     end
@@ -146,6 +149,7 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, isBlackedOut)
         helper.printTextOutlineSimple(tostring(level), font, 1, math.floor(cx+w/4), math.floor(cy)+txtDy)
     end
 
+    prof_pop() -- prof_push("upgradeBoxUI "..upg.id)
     return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h), iml.wasJustHovered(x,y,w,h)
 end
 

@@ -156,6 +156,8 @@ end
 ---@param self UpgradesScene
 ---@return g.Tree.Upgrade? hoveredUpgrade
 local function drawUpgradeBoxes(self)
+    prof_push("drawUpgradeBoxes")
+
     --[[
     NOTE: there is a hard-assumption that all
     upgrades are within the same "map".
@@ -179,6 +181,7 @@ local function drawUpgradeBoxes(self)
     end
 
     local toAnimate = objects.Set() -- contains the upgrade tree
+    prof_push("drawConnectors")
     for _, upg in ipairs(upgrades) do
         -- if isVisible(upg) then
         -- Draw connector first
@@ -191,8 +194,10 @@ local function drawUpgradeBoxes(self)
             end
         end
     end
+    prof_pop() -- prof_push("drawConnectors")
 
     local sn = g.getSn()
+    prof_push("drawUpgrades")
     for _, upg in ipairs(upgrades) do
         local level = upg.level
         -- Then draw upgrade box
@@ -239,6 +244,7 @@ local function drawUpgradeBoxes(self)
             richtext.printRichContained("{o}{c r=0.9 g=0.6 b=0.3}$" .. tostring(basePrice), g.getSmallFont(16), x-10,y, 20,20)
         end
     end
+    prof_pop() -- prof_push("drawUpgrades")
 
     if self.dev_editMode then
         local lw = lg.getLineWidth()
@@ -285,6 +291,7 @@ local function drawUpgradeBoxes(self)
         lg.setLineWidth(lw)
     end
 
+    prof_pop() -- prof_push("drawUpgradeBoxes")
     return hoveredUpgrade
 end
 
@@ -293,6 +300,8 @@ end
 local drawBackground
 do
 function drawBackground()
+    prof_push("drawBackground")
+
     -- draw background:
     love.graphics.clear(0.4,0.6,0.8)
     helper.gradientRect("vertical",
@@ -312,6 +321,8 @@ function drawBackground()
         end
     end
     lg.pop()
+
+    prof_pop() -- prof_push("drawBackground")
 end
 
 end
