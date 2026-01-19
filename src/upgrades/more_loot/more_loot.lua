@@ -9,6 +9,10 @@ local function defUpgrade(id,name,tabl)
 end
 
 
+local drawUI = function (uinfo, level, x, y, w, h)
+    local dy = math.sin(love.timer.getTime())*2
+    g.drawImage("more_loot_upgrade_icon", x+w*0.8, y+h/10+dy, 0,1,1)
+end
 
 
 defUpgrade("more_loot", "More Loot", {
@@ -28,7 +32,9 @@ defUpgrade("more_loot", "More Loot", {
     getTokenResourceMultiplier = function(uinfo, level)
         local resMult = select(2, uinfo:getValues(level)) / 100
         return 1 + resMult
-    end
+    end,
+
+    drawUI = drawUI
 })
 
 
@@ -49,7 +55,8 @@ defUpgrade("land_deed", "Land deed", {
     getWorldTileSizeMultiplier = function(uinfo, level)
         local m = 1+(level)/4
         return m
-    end
+    end,
+    drawUI = drawUI
 })
 
 
