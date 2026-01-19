@@ -135,15 +135,15 @@ local function upgradeBoxUI(tree, upg, level, cx, cy, isBlackedOut)
     if level > 0 then
         --love.graphics.rectangle("line",xx,yy,ww,hh)
         local font = g.getBigFont(16)
-        local append = ""
+        love.graphics.setColor(1, 1, 1)
         if level == tree:getUpgradeMaxLevel(upg) then
-            append = "{c r=0.1 g=0.7 b=0}"
+            love.graphics.setColor(0.1, 0.7, 0)
         end
         local txtDy = 0
         if not isMaxLevel then
             txtDy = math.sin(love.timer.getTime()*4) - 1
         end
-        richtext.printRich("{o thickness=1}"..append..tostring(level), font, math.floor(cx+w/4), math.floor(cy)+txtDy, 0xfffff, "left")
+        helper.printTextOutlineSimple(tostring(level), font, 1, math.floor(cx+w/4), math.floor(cy)+txtDy)
     end
 
     return iml.isHovered(x,y,w,h), iml.wasJustClicked(x,y,w,h), iml.wasJustHovered(x,y,w,h)

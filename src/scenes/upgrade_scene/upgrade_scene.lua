@@ -161,8 +161,6 @@ local function drawUpgradeBoxes(self)
     upgrades are within the same "map".
     ]]
     local hoveredUpgrade = nil
-    local bestUpgradeThreshold = getBestUpgradeAffordThreshold()
-    local prestige = g.getPrestige()
 
     local tree = g.getUpgTree()
     local upgrades = tree:getUpgradesOnTree()
@@ -609,7 +607,7 @@ function upgscene:draw()
             :moveRatio(0, -1)
             :moveUnit(2, 10)
         love.graphics.setColor(1, 1, 1, 0.5)
-        richtext.printRich(CONTROL_TEXT, font, controlTextR.x, controlTextR.y, controlTextR.w, "left")
+        love.graphics.printf(CONTROL_TEXT, font, controlTextR.x, controlTextR.y, controlTextR.w, "left")
     end
 
     if consts.SHOW_DEV_STUFF then
