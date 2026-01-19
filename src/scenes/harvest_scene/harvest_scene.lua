@@ -1189,6 +1189,7 @@ function harvest:keyreleased(k)
         if k=="1" then
             -- openBossPopup(self)
             --g.summonBoss("pumpkin_boss")
+            g.incrementPrestige()
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do
