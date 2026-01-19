@@ -324,9 +324,8 @@ function drawBackground()
     -- draw background:
     love.graphics.clear(0.4,0.6,0.8)
     helper.gradientRect("vertical",
-        --objects.Color("#".."FF5070E3"),
-        objects.Color("#".."FFFF0000"),
-        objects.Color("#".."FF5339E9"),
+        objects.Color("#".."FF5B77DA"),
+        objects.Color("#".."FF4228D5"),
         0,0,love.graphics.getDimensions()
     )
     local GAP = 150
@@ -560,6 +559,7 @@ end
 
 
 function upgscene:draw()
+    lg.setColor(1,1,1)
     drawBackground()
 
     love.graphics.setColor(1,1,1)
