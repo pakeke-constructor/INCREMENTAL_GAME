@@ -27,6 +27,39 @@ function emulation.init()
         local emuX, emuY = 0, 0
         local wasPressed = false -- used to send mousemoved event
 
+        local getPosition = love.touch.getPosition
+
+        local function getMirroredPosition()
+            local w, h = love.graphics.getDimensions()
+            return w - emuX, h - emuY
+        end
+
+        function love.touch.getTouches()
+            if not wasPressed then
+                return {}
+            end
+
+            if not love.keyboard.isDown("rctrl") then
+                return {1}
+            end
+
+            return {1, 2}
+        end
+
+        function love.touch.getPosition(id)
+            if type(id) == "number" then
+                if id == 1 then
+                    return emuX, emuY
+                elseif id == 2 then
+                    return getMirroredPosition()
+                else
+                    error("\27]8;;https://youtu.be/dQw4w9WgXcQ\27\\what do you expect with touch emulation?\27]8;;\27\\")
+                end
+            end
+
+            return getPosition(id)
+        end
+
         -- Monkeypatch HACK
         ---@diagnostic disable-next-line: duplicate-set-field
         function love.mouse.getPosition()
@@ -63,6 +96,18 @@ function emulation.update(dt)
 end
 
 function emulation.draw()
+    if love.mouse.isDown(1) then
+        love.graphics.setColor(1, 1, 1)
+
+        local m1x, m1y = love.touch.getPosition(1)
+        love.graphics.circle("fill", m1x, m1y, 8)
+
+        if love.keyboard.isDown("rctrl") then
+            local m2x, m2y = love.touch.getPosition(2)
+            love.graphics.circle("fill", m2x, m2y, 8)
+            love.graphics.line(m1x, m1y, m2x, m2y)
+        end
+    end
 end
 
 return emulation
