@@ -326,46 +326,25 @@ local function makePOIAction(poi)
 end
 
 
+
 local drawEdgeClouds
 do
 
-local CLOUD_HORIZONTAL_MOVE_AMOUNT = 40
-local CLOUD_VERTICAL_VARIANCE = 20
-local CLOUD_HORIZONTAL_VARIANCE = 20
-local CLOUD_PUFF_SPACING = 22  -- Spacing between the 3 puffs in a cloud
-local CLOUD_MOVE_SPEED = 0.3  -- Speed of horizontal oscillation
-local CLOUD_ROTATION_SPEED = 0.3  -- Speed of rotation
-local CLOUDS_PER_BUNCH = 8  -- Number of clouds in each corner bunch
+-- Constants for tweaking
+local CLOUD_VERTICAL_MOVE_AMOUNT = 20  -- How far clouds move up/down
+local CLOUD_MOVE_SPEED = 0.2  -- Speed of vertical oscillation
+local CLOUD_OFFSET_FROM_CORNER = 0  -- Distance from actual corner point
+local CLOUD_OVERLAP_SPACING = 60  -- Spacing between clouds to cover corner
 
-
-local CLOUDS = {}
-
-for i=1,3 do
-    table.insert(CLOUDS, "fog_of_war_cloud" .. tostring(i))
-end
-
-local function drawIndividualCloud(x, y, hashI)
+---@param cloudName string
+---@param x number
+---@param y number
+---@param seed number
+local function drawCornerCloud(cloudName, x, y, seed)
     local t = love.timer.getTime()
-
-    local seed = hashI % 1000
-    local offset = math.sin(t * CLOUD_MOVE_SPEED + seed) * CLOUD_HORIZONTAL_MOVE_AMOUNT
-
-    for i=1, 3 do
-        local puffX = x + (i - 2) * CLOUD_PUFF_SPACING + offset
-        local rot = (t * CLOUD_ROTATION_SPEED + seed + i)
-        g.drawImage(CLOUDS[i], puffX, y, rot)
-    end
-end
-
-
-local function drawCloudBunch(x, y)
-    -- Draw clouds with varied positions based on hash
-    for i=1, CLOUDS_PER_BUNCH do
-        local hash = (x + y * 454 + i * 123) % 10000
-        local offsetX = (hash % (CLOUD_HORIZONTAL_VARIANCE * 2)) - CLOUD_HORIZONTAL_VARIANCE
-        local offsetY = ((hash * 7) % (CLOUD_VERTICAL_VARIANCE * 2)) - CLOUD_VERTICAL_VARIANCE
-        drawIndividualCloud(x + offsetX, y + offsetY, hash)
-    end
+    -- Vertical movement based on time and seed
+    local offsetY = math.sin(t * CLOUD_MOVE_SPEED + seed) * CLOUD_VERTICAL_MOVE_AMOUNT
+    g.drawImage(cloudName, x, y + offsetY)
 end
 
 ---@param x number
@@ -373,19 +352,33 @@ end
 ---@param w number
 ---@param h number
 function drawEdgeClouds(x, y, w, h)
-    local t = love.timer.getTime()
+    -- Draw 3 clouds in each corner to fully conceal it
+    local o = CLOUD_OFFSET_FROM_CORNER
+    local s = CLOUD_OVERLAP_SPACING
 
-    -- draw in all 4 corners:
-    local dw,dh = w/30,h/30
-    drawCloudBunch(x+dw,y+dh)
-    drawCloudBunch(x+w-dw,y+h-dh)
-    drawCloudBunch(x+dw,y+h-dh)
-    drawCloudBunch(x+w-dw,y+dh)
+    -- Top-left corner (3 different clouds)
+    drawCornerCloud("bigcloud_fishingzone", x + o, y + o, 1)
+    drawCornerCloud("bigcloud_minigamezone", x + o + s, y + o, 2)
+    drawCornerCloud("bigcloud_questzone", x + o, y + o + s, 3)
+
+    -- Top-right corner (3 different clouds)
+    drawCornerCloud("bigcloud_bosszone", x + w - o, y + o, 4)
+    drawCornerCloud("bigcloud_emptyzone", x + w - o - s, y + o, 5)
+    drawCornerCloud("bigcloud_fishingzone", x + w - o, y + o + s, 6)
+
+    -- Bottom-left corner (3 different clouds)
+    drawCornerCloud("bigcloud_minigamezone", x + o, y + h - o, 7)
+    drawCornerCloud("bigcloud_bosszone", x + o + s, y + h - o, 8)
+    drawCornerCloud("bigcloud_emptyzone", x + o, y + h - o - s, 9)
+
+    -- Bottom-right corner (3 different clouds)
+    drawCornerCloud("bigcloud_questzone", x + w - o, y + h - o, 10)
+    drawCornerCloud("bigcloud_fishingzone", x + w - o - s, y + h - o, 11)
+    drawCornerCloud("bigcloud_minigamezone", x + w - o, y + h - o - s, 12)
+
 end
 
 end
-
-
 
 
 
