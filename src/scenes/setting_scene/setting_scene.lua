@@ -15,7 +15,6 @@ local TEXT = {
     LANGUAGE = loc "Language",
     REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"}),
     FULLSCREEN = "{o}"..loc("Fullscreen", nil, {context = "Switching game from windowed to fullscreen,"}).."{/o}",
-    STATUS_BAR = "{o}"..loc("Status Bar", nil, {context = "In mobile, a toggle to show device status bar while playing."}).."{/o}",
     CRT_EFFECT = "{o}"..loc("CRT Effect", nil, {context = "Option to emulate old-school CRT TV effects"}).."{/o}"
 }
 
@@ -169,8 +168,7 @@ function settingscene:draw()
     crtBoxR = crtBoxR:padUnit(6)
 
     -- Fullscreen toggle
-    local fsText = consts.IS_MOBILE and TEXT.STATUS_BAR or TEXT.FULLSCREEN
-    local fsTextWidth = richtext.getWidth(fsText, font)
+    local fsTextWidth = richtext.getWidth(TEXT.FULLSCREEN, font)
     local fsPlacementR = Kirigami(0, 0, fsTextWidth + fontHeight, fontHeight)
         :centerX(titleTextR)
         :attachToBottomOf(crtPlacementR)
@@ -229,7 +227,7 @@ function settingscene:draw()
 
     -- Draw Fullscreen
     love.graphics.setColor(1, 1, 1)
-    richtext.printRich(fsText, font, fsLabelR.x, fsLabelR.y, fsLabelR.w, "left")
+    richtext.printRich(TEXT.FULLSCREEN, font, fsLabelR.x, fsLabelR.y, fsLabelR.w, "left")
     love.graphics.setColor(0, 0, 0)
     love.graphics.rectangle("fill", fsBoxR:padUnit(-2):get())
     local fsState = ui.Checkbox(objects.Color.WHITE, fsBoxR, settings.isFullscreen())
