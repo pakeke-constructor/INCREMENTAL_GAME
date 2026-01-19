@@ -326,6 +326,69 @@ local function makePOIAction(poi)
 end
 
 
+local drawEdgeClouds
+do
+
+local CLOUD_HORIZONTAL_MOVE_AMOUNT = 40
+local CLOUD_VERTICAL_VARIANCE = 20
+local CLOUD_HORIZONTAL_VARIANCE = 20
+local CLOUD_PUFF_SPACING = 22  -- Spacing between the 3 puffs in a cloud
+local CLOUD_MOVE_SPEED = 0.3  -- Speed of horizontal oscillation
+local CLOUD_ROTATION_SPEED = 0.3  -- Speed of rotation
+local CLOUDS_PER_BUNCH = 8  -- Number of clouds in each corner bunch
+
+
+local CLOUDS = {}
+
+for i=1,3 do
+    table.insert(CLOUDS, "fog_of_war_cloud" .. tostring(i))
+end
+
+local function drawIndividualCloud(x, y, hashI)
+    local t = love.timer.getTime()
+
+    local seed = hashI % 1000
+    local offset = math.sin(t * CLOUD_MOVE_SPEED + seed) * CLOUD_HORIZONTAL_MOVE_AMOUNT
+
+    for i=1, 3 do
+        local puffX = x + (i - 2) * CLOUD_PUFF_SPACING + offset
+        local rot = (t * CLOUD_ROTATION_SPEED + seed + i)
+        g.drawImage(CLOUDS[i], puffX, y, rot)
+    end
+end
+
+
+local function drawCloudBunch(x, y)
+    -- Draw clouds with varied positions based on hash
+    for i=1, CLOUDS_PER_BUNCH do
+        local hash = (x + y * 454 + i * 123) % 10000
+        local offsetX = (hash % (CLOUD_HORIZONTAL_VARIANCE * 2)) - CLOUD_HORIZONTAL_VARIANCE
+        local offsetY = ((hash * 7) % (CLOUD_VERTICAL_VARIANCE * 2)) - CLOUD_VERTICAL_VARIANCE
+        drawIndividualCloud(x + offsetX, y + offsetY, hash)
+    end
+end
+
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function drawEdgeClouds(x, y, w, h)
+    local t = love.timer.getTime()
+
+    -- draw in all 4 corners:
+    local dw,dh = w/30,h/30
+    drawCloudBunch(x+dw,y+dh)
+    drawCloudBunch(x+w-dw,y+h-dh)
+    drawCloudBunch(x+dw,y+h-dh)
+    drawCloudBunch(x+w-dw,y+dh)
+end
+
+end
+
+
+
+
+
 
 ---@param t number
 ---@param oy number
@@ -507,6 +570,11 @@ function map:draw()
 
     -- Well it's unfortunate that we iterate POI twice, but we need to ensure
     -- the draw order is correct.
+
+    do
+    local x,y,w,h = 0,0, mapAnim[1]:getDimensions()
+    drawEdgeClouds(x,y,w,h)
+    end
 
     self:resetCamera()
 
