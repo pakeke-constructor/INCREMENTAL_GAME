@@ -398,6 +398,11 @@ end
 end
 
 function love.keypressed(key, scancode, isrep)
+    if scancode == "[" then
+        -- toggle show-dev-stuff
+        consts.SHOW_DEV_STUFF = consts.DEV_MODE and (not consts.SHOW_DEV_STUFF)
+    end
+
     idleTime = 0
     iml.keyreleased(key, scancode, isrep)
     local sc = sceneManager.getCurrentScene()

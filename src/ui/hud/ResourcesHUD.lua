@@ -236,7 +236,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         local rot = helper.lerp(self.rotationDirection[kind] * 0.2, 0, t)
         g.drawImage(image, icx, icy, rot, scale * helper.lerp(1, 1.25, (1 - t) ^ 2))
 
-        if consts.DEV_MODE then
+        if consts.SHOW_DEV_STUFF then
             local _,b = reg:splitHorizontal(1,1)
             local left,right = b:splitHorizontal(1,1)
             local up10, down10 = left:splitVertical(1,1)

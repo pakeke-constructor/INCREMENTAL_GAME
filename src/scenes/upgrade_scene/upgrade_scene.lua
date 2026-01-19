@@ -631,7 +631,7 @@ function upgscene:draw()
         richtext.printRich(CONTROL_TEXT, font, controlTextR.x, controlTextR.y, controlTextR.w, "left")
     end
 
-    if consts.DEV_MODE then
+    if consts.SHOW_DEV_STUFF then
         drawDevUI(self)
     end
 

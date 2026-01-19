@@ -4,6 +4,8 @@
 local consts = {
 
     DEV_MODE = not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
+    SHOW_DEV_STUFF = true, -- can be toggled on/off (eg for screenshots)
+
     EMULATE_TOUCH = os.getenv("INCREMENTAL_GAME_EMULATE_TOUCH") == "1", -- Set later
     IS_MOBILE = false, -- Set later
 
