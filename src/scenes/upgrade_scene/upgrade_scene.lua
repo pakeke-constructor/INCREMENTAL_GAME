@@ -661,7 +661,6 @@ function upgscene:update(dt)
             )
             local newdist = helper.magnitude(m2x - m1x, m2y - m1y)
             local zoom = self._zoomIndex + (newdist - olddist) / 500
-            print(zoom, newdist - olddist, self:scaleFromZoom(zoom))
             self:setZoom(zoom)
 
             self.touchZoomData.m1x, self.touchZoomData.m1y = m1x, m1y
