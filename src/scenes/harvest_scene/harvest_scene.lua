@@ -824,7 +824,7 @@ local COMBO_POPUP_MAP = setmetatable({
     -- By defualt it's "for every multiple of 100 combo"
 }, {__index = function(_, k) return k > 0 and k % 100 == 0 end})
 local COMBO_POPUP_TEXT = interp(
-    "COMBO: x%{mul} Resources!",
+    "x%{mul} Resources!",
     {context = "Text popup shown when destroying many crops in short amount of time"}
 )
 
