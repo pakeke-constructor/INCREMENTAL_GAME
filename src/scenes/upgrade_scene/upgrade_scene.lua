@@ -324,12 +324,14 @@ function drawBackground()
     -- draw background:
     love.graphics.clear(0.4,0.6,0.8)
     helper.gradientRect("vertical",
-        objects.Color("#".."FF6B8BEB"),
+        --objects.Color("#".."FF5070E3"),
+        objects.Color("#".."FFFF0000"),
         objects.Color("#".."FF5339E9"),
         0,0,love.graphics.getDimensions()
     )
     local GAP = 150
     local rot = math.sin(3*love.timer.getTime() / 3.5) / 12
+    lg.push()
     love.graphics.scale(ui.getUIScaling())
     local delta = 0--(love.timer.getTime() * 8) % GAP
     for x=-300, 3000, GAP do
@@ -338,6 +340,7 @@ function drawBackground()
             g.drawImage("upgrade_cat_background_symbol", x+delta,y+delta/3, rot, 1,1)
         end
     end
+    lg.pop()
 end
 
 end
