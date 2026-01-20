@@ -68,6 +68,15 @@ local function getUpgradeGridCoords(x, y)
     return math.floor((x + 0.5) * spacing), math.floor((y + 0.5) * spacing)
 end
 
+---@param upg g.Tree.Upgrade
+---@param frame string
+local function getUpgradeClickableArea(upg, frame)
+    local x, y = getUpgradeGridCoords(upg.x, upg.y)
+    local w, h = select(3, g.getImageQuad(frame):getViewport()) --[[@as number]]
+    -- subtract by half the dimensions
+    return x - w / 2, y - h / 2, w, h
+end
+
 
 
 ---Draws connector.
@@ -155,25 +164,43 @@ local function drawUnlockedUpgradeAnimation(upg, lifetime)
 end
 
 
+local RAY_COLOR = objects.Color("#".."FFF2E46C")
+
 ---@param self UpgradesScene
----@return g.Tree.Upgrade? hoveredUpgrade
 local function drawUpgradeBoxes(self)
+    --[[
+    INTUITION VISUALS:
+
+    - LOCKED: EVERY COLOR is gray, locked-icon
+
+    - Hasnt been purchased: Icon is black!
+
+
+    - Cant afford: Everything made slightly darker. Red-border.
+    - Can afford:  Regular colors, Regular border. Occasionally shakes
+
+    - SHOULD BUY:  Rapidly shakes, pulses in scale
+
+    - Can afford + Hasnt-been-purchased:  Green Plus hovering in bottom-right
+
+    - Token-Upgrade: transparent-ish background behind token-image
+    - Misc-Upgrade: white-border
+    ]]
+
     prof_push("drawUpgradeBoxes")
 
-    --[[
-    NOTE: there is a hard-assumption that all
-    upgrades are within the same "map".
-    ]]
     local hoveredUpgrade = nil
-
     local tree = g.getUpgTree()
     local upgrades = tree:getUpgradesOnTree()
+    local sn = g.getSn()
 
+    ---@type table<g.Tree.Upgrade, boolean>
     local isHiddenCache = {}
     for _, upg in ipairs(upgrades) do
         -- cache it, because :isUpgradeHidden is kinda an expensive operation
         isHiddenCache[upg] = tree:isUpgradeHidden(upg)
     end
+
     ---@param upg g.Tree.Upgrade
     ---@return boolean
     local function isVisible(upg)
@@ -182,10 +209,10 @@ local function drawUpgradeBoxes(self)
         return forceVisibility or (not hidden)
     end
 
+    -- Draw connectors
     local toAnimate = objects.Set() -- contains the upgrade tree
     prof_push("drawConnectors")
     for _, upg in ipairs(upgrades) do
-        -- if isVisible(upg) then
         -- Draw connector first
         for _, upg2 in ipairs(tree:getNeighbors(upg.x,upg.y)) do
             -- if true or isVisible(upg2) then
@@ -198,55 +225,170 @@ local function drawUpgradeBoxes(self)
     end
     prof_pop() -- prof_push("drawConnectors")
 
-    local sn = g.getSn()
-    prof_push("drawUpgrades")
+    ---@type table<g.Tree.Upgrade, string?>
+    local backgrounds = {}
+    ---@type table<g.Tree.Upgrade, string>
+    local frames = {}
+    ---@type table<g.Tree.Upgrade, boolean>
+    local blackedOut = {}
+    ---@type table<g.Tree.Upgrade, boolean>
+    local canAffords = {}
+    -- Determine bg, frame, blacked out, and input
+    prof_push("processUpgrades")
     for _, upg in ipairs(upgrades) do
-        local level = upg.level
-        -- Then draw upgrade box
-        local price = tree:getUpgradePrice(upg)
-        local blackedOut = not isVisible(upg)
-        local x, y = getUpgradeGridCoords(upg.x, upg.y)
-        local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y, blackedOut)
-        local dontDraw = false -- and g.getBundleCostRatio(price) < 0.2
-        -- Removed this ^^^^ system, coz its bad.
-        if (not dontDraw) then
-            if isHovered then
+        local uinfo = g.getUpgradeInfo(upg.id)
+        local maxLevel = tree:getUpgradeMaxLevel(upg)
+        local isMaxLevel = upg.level >= maxLevel
+        local canAfford = upg.level < maxLevel and tree:canAffordUpgrade(upg, upg.level+1)
+        canAffords[upg] = canAfford
+        blackedOut[upg] = not isVisible(upg)
+
+        if uinfo.kind == "TOKEN" then
+            if canAfford then
+                frames[upg] = "upgradeborder_token_golden"
+            elseif isMaxLevel then
+                frames[upg] = "upgradeborder_token"
+            else
+                frames[upg] = "upgradeborder_token_gray"
+            end
+        else
+            if canAfford then
+                backgrounds[upg] = "upgradebackground_golden"
+                frames[upg] = "upgradeborder_golden"
+            elseif isMaxLevel then
+                backgrounds[upg] = "upgradebackground_upgrade"
+                frames[upg] = "upgradeborder_upgrade"
+            else
+                backgrounds[upg] = "upgradebackground_gray"
+                frames[upg] = "upgradeborder_cantafford"
+            end
+        end
+
+        -- If not blacked out, process inputs
+        if not blackedOut[upg] then
+            local x, y, w, h = getUpgradeClickableArea(upg, frames[upg])
+
+            if iml.isHovered(x, y, w, h) then
                 hoveredUpgrade = upg
             end
 
-            if toAnimate:has(upg) then
-                drawUnlockedUpgradeAnimation(upg, self.lastUpgradeMaxxed[2])
+            if iml.wasJustHovered(x, y, w, h) then
+                g.playUISound("ui_tick", 1,1)
             end
-        end
-        if wasJustHovered then
-            g.playUISound("ui_tick", 1,1)
-        end
-        if (not self.dev_editMode) and wasJustClicked then
-            g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
-            local maxLevel = tree:getUpgradeMaxLevel(upg)
-            local shouldTryBuy = consts.IS_MOBILE and self.lastHoveredUpgrade == upg or (not consts.IS_MOBILE)
-            if shouldTryBuy and tree:tryBuyUpgrade(upg) and upg.level == maxLevel then
-                self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
-                sn.showTutorials.upgrades = false
-                g.playUISound("ui_upgrade_level_maxxed", 0.65,0.3,0.2,0.1)
-            end
-            self.lastHoveredUpgrade = hoveredUpgrade
-            hoveredUpgrade=nil
-        end
 
-        if self.dev_showDistances then
-            local dist = tree:distanceFromRoot(upg)
-            lg.setColor(1,1,1)
-            richtext.printRichContained("{o}" .. tostring(dist), g.getSmallFont(16), x-15,y-15, 30,30)
-        end
-        if self.dev_showPrices then
-            local num = tree:getUpgradePrice(upg, 0).money
-            local basePrice = num and g.formatNumber(num) or 0
-            lg.setColor(1,1,1)
-            richtext.printRichContained("{o}{c r=0.9 g=0.6 b=0.3}$" .. tostring(basePrice), g.getSmallFont(16), x-10,y, 20,20)
+            if (not self.dev_editMode) and iml.wasJustClicked(x, y, w, h) then
+                g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
+
+                local shouldTryBuy = consts.IS_MOBILE and self.lastHoveredUpgrade == upg or (not consts.IS_MOBILE)
+                if shouldTryBuy and tree:tryBuyUpgrade(upg) and upg.level == maxLevel then
+                    self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
+                    sn.showTutorials.upgrades = false
+                    g.playUISound("ui_upgrade_level_maxxed", 0.65,0.3,0.2,0.1)
+                end
+
+                self.lastHoveredUpgrade = hoveredUpgrade
+                hoveredUpgrade = nil
+            end
         end
     end
-    prof_pop() -- prof_push("drawUpgrades")
+    prof_pop() -- prof_push("processUpgrades")
+
+
+    -- Draw godrays
+    lg.setColor(1, 1, 1)
+    local time = love.timer.getTime()
+    prof_push("drawGodrays")
+    for _, upg in ipairs(upgrades) do
+        if not blackedOut[upg] and canAffords[upg] and upg.level == 0 then
+            local x, y = getUpgradeGridCoords(upg.x, upg.y)
+            local t = time % (2 * math.pi)
+            local t2 = (time * 0.8 + 1) % (2 * math.pi)
+            godrays.drawRays(x, y, t, {color = RAY_COLOR, rayCount = 6, startWidth = 2, length = 32, fadeTo=0.15})
+            godrays.drawRays(x, y, -t2, {color = RAY_COLOR, rayCount = 4, startWidth = 2, length = 32, fadeTo=0.15})
+            lg.setColor(1, 1, 1)
+        end
+    end
+    prof_pop() -- prof_push("drawGodrays")
+
+
+    -- Draw upgrade background and frame
+    prof_push("drawUpgradeFrameBackground")
+    for _, upg in ipairs(upgrades) do
+        local x, y = getUpgradeGridCoords(upg.x, upg.y)
+
+        lg.setColor(1, 1, 1)
+        if blackedOut[upg] then
+            lg.setColor(0, 0, 0, 0.8)
+        end
+
+        if backgrounds[upg] then
+            g.drawImage(backgrounds[upg], x, y)
+        end
+
+        g.drawImage(frames[upg], x, y)
+    end
+    prof_pop() -- prof_push("drawUpgradeFrameBackground")
+
+
+    -- Draw image/icon/custom shit
+    prof_push("drawImageIconCustomShit")
+    for _, upg in ipairs(upgrades) do
+        if not blackedOut[upg] then
+            local uinfo = g.getUpgradeInfo(upg.id)
+            local cx, cy = getUpgradeGridCoords(upg.x, upg.y)
+            lg.setColor(upg.level > 0 and objects.Color.WHITE or objects.Color.BLACK)
+
+            if uinfo.kind == "TOKEN" then
+                local tinfo = g.getTokenInfo(uinfo.tokenType)
+                g.drawTokenImage(tinfo, cx, cy)
+            elseif uinfo.image then
+                g.drawImage(uinfo.image, cx, cy)
+            end
+
+            -- custom rendering:
+            if uinfo.drawUI then
+                uinfo:drawUI(upg.level, getUpgradeClickableArea(upg, frames[upg]))
+            end
+        end
+    end
+    prof_pop() -- prof_push("drawImageIconCustomShit")
+
+
+    -- Draw level
+    local levelFont = g.getBigFont(16)
+    prof_push("drawUpgradeLevel")
+    for _, upg in ipairs(upgrades) do
+        if not blackedOut[upg] and upg.level > 0 then
+            local maxLevel = tree:getUpgradeMaxLevel(upg)
+            love.graphics.setColor(1, 1, 1)
+            if upg.level >= maxLevel then
+                love.graphics.setColor(0.1, 0.7, 0)
+            end
+
+            local x, y, w, h = getUpgradeClickableArea(upg, frames[upg])
+            local txtDy = 0
+            if upg.level < maxLevel then
+                txtDy = math.sin(love.timer.getTime()*4) - 1
+            end
+            helper.printTextOutlineSimple(
+                tostring(upg.level), levelFont, 1,
+                math.floor(x + w * 3 / 4), math.floor(y + h / 2) + txtDy
+            )
+        end
+    end
+    prof_pop() -- prof_push("drawUpgradeLevel")
+
+
+    -- Draw unlocked upgrade animation
+    prof_push("drawTopAnimation")
+    for _, upg in ipairs(upgrades) do
+        if toAnimate:has(upg) then
+            drawUnlockedUpgradeAnimation(upg, self.lastUpgradeMaxxed[2])
+        end
+    end
+    prof_pop() -- prof_push("drawTopAnimation")
+
+    prof_pop() -- prof_push("drawUpgradeBoxes")
 
     if self.dev_editMode then
         local lw = lg.getLineWidth()
@@ -293,7 +435,6 @@ local function drawUpgradeBoxes(self)
         lg.setLineWidth(lw)
     end
 
-    prof_pop() -- prof_push("drawUpgradeBoxes")
     return hoveredUpgrade
 end
 
@@ -587,7 +728,7 @@ function upgscene:draw()
         local w, h = x2 - x, y2 - y
         local drag = iml.consumeDrag("upgscene:viewport", x, y, w, h, 1)
 
-        if #love.touch.getTouches() ~= 1 then
+        if #love.touch.getTouches() ~= 1 and consts.IS_MOBILE then
             drag = nil
         end
 
