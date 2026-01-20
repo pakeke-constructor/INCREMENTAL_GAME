@@ -19,33 +19,79 @@ local upgrades = {
         title = "More Damage",
         desc = "%{1} scythe damage",
         stat = "HitDamage",
-        increase = 0.3
+        increase_1 = 0.3,
+        increase_2 = 0.5,
+        increase_3 = 1,
     },
     {
         id = "more_speed",
         title = "More Speed",
         desc = "%{1} scythe speed",
         stat = "HitSpeed",
-        increase = 1
+        increase_1 = 0.5,
+        increase_2 = 1,
+        increase_3 = 2
     },
     {
         id = "more_area",
         title = "More Area",
         desc = "%{1} area",
         stat = "HarvestArea",
-        increase = 2
+        increase_1 = 1,
+        increase_2 = 2,
+        increase_3 = 4
+    },
+    {
+        id = "better_lightning",
+        title = "Better Lightning",
+        desc = "%{1} Lightning damage",
+        stat = "LightningDamage",
+        increase_2 = 2,
+        increase_3 = 4
+    },
+    {
+        id = "sharper_knives",
+        title = "Sharper Knives",
+        desc = "%{1} Knife damage",
+        stat = "KnifeDamage",
+        increase_2 = 2,
+        increase_3 = 4
+    },
+    {
+        id = "more_xp",
+        title = "More XP",
+        desc = "%{1} xp gain",
+        stat = "XpMultiplier",
     }
 }
+
+
+local function makeDrawUI(txt)
+    local font = g.getSmallFont(16)
+    local fh = font:getHeight()
+    return function(uinfo, level, x, y, w, h)
+        local r,g,b,a = lg.getColor()
+        lg.setColor(1,0,0,1)
+        local dy = 3*math.sin(love.timer.getTime())
+        --helper.printTextOutline(txt, font, 1, x, y-fh/2, 100, "left")
+        --lg.printf(txt, font, x,y-fh/2, 100, "left")
+        helper.printTextOutline(txt, font, 1, x,y-fh/2+dy, 100, "left")
+        lg.setColor(r,g,b,a)
+    end
+end
+
 
 for _, u in ipairs(upgrades) do
     defUpgrade("percentage_"..u.id, u.title, {
         image = u.id,
 
         getValues = function(self, level)
-            return level
+            return level*2
         end,
         valueFormatter = {"+%d%%"},
         description = u.desc,
+
+        drawUI = makeDrawUI("2%"),
 
         ["get" .. u.stat .. "Multiplier"] = function(self, level)
             local a = self:getValues(level)
@@ -62,26 +108,35 @@ for _, u in ipairs(upgrades) do
         valueFormatter = {"+%d%%"},
         description = u.desc,
 
+        drawUI = makeDrawUI("5%"),
+
         ["get" .. u.stat .. "Multiplier"] = function(self, level)
             local a = self:getValues(level)
             return 1 + (a / 100)
         end
     })
 
-    defUpgrade("flat_"..u.id, u.title, {
-        image = u.id,
+    for i=1, 3 do
+        local increase = (u["increase_"..tostring(i)])
+        if increase then
+            defUpgrade("flat_" .. tostring(i) .. "_"..u.id, u.title, {
+                image = u.id,
 
-        getValues = function(self, level)
-            return level*u.increase
-        end,
+                getValues = function(self, level)
+                    return level*increase
+                end,
 
-        valueFormatter = {"+%.1f"},
-        description = u.desc,
+                drawUI = makeDrawUI("+"..tostring(increase)),
 
-        ["get" .. u.stat .. "Modifier"] = function(self, level)
-            return self:getValues(level)
+                valueFormatter = {"+%.1f"},
+                description = u.desc,
+
+                ["get" .. u.stat .. "Modifier"] = function(self, level)
+                    return self:getValues(level)
+                end
+            })
         end
-    })
+    end
 end
 
 

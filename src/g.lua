@@ -638,7 +638,6 @@ g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 2, "Entity Orbit Speed") -- rad/
 g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1, "XP Gain Multiplier")
 g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 20, "Cats Move Speed")
 g.stats.AutoCatRadiusMultiplier = g.defineStat("AutoCatRadiusMultiplier", 1, "Farmer Cats Harvest Area")
-g.stats.LightningDamageMultiplier = g.defineStat("LightningDamageMultiplier", 1, "Lightninig Damage Multiplier")
 g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3, "Crop Respawn Time")
 g.stats.CritChance = g.defineStat("CritChance", 0, "Critical Hit Chance") -- should start at 0
 g.stats.CritDamageMultiplier = g.defineStat("CritDamageMultiplier", 10, "Crirical Damage Multiplier")
