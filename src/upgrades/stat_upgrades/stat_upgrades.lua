@@ -81,6 +81,7 @@ for _, u in ipairs(upgrades) do
     local percentage = u.percentage or {}
     for _, pct in ipairs(percentage) do
         local id = "percentage_" .. tostring(pct) .. "_" .. tostring(u.id)
+        print("\n\nIDDDD: ", id,"\n\n")
 
         defUpgrade(id, u.title, {
             image = u.id,
@@ -100,7 +101,7 @@ for _, u in ipairs(upgrades) do
 
     local flat = u.flat or {}
     for i, amount in ipairs(flat) do
-        defUpgrade("flat_" .. i .. "_" .. u.id, u.title, {
+        defUpgrade("flat_" .. tostring(amount) .. "_" .. u.id, u.title, {
             image = u.id,
             description = u.desc,
             drawUI = makeDrawUI("+" .. amount),

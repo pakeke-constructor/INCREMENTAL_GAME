@@ -379,6 +379,7 @@ local function generateScytheReward()
 end
 
 
+
 local PERM_UPGRADES = {
     "mushroom_blue",
     "mushroom_green",
@@ -397,23 +398,23 @@ local PERM_UPGRADES = {
     "planter_cat_grass_2",
 }
 
-
-
 ---@return g.Reward[]
 function rewards.generateRandomRewards()
-    -- generates 3 random rewards to choose from
-    local sn=g.getSn()
+    local sn = g.getSn()
+
+    -- Handle prestige 0 early levels (leave for later)
     if g.getPrestige() == 0 then
         if sn.level == 0 then
             return {assert(generateScytheReward())}
         elseif sn.level == 1 then
-           -- uhh idk lol. TODO
+            -- uhh idk lol. TODO
         end
         if sn.level < 4 then
             -- HARD-CODE
         end
     end
 
+    -- Special scythe reward every 10 levels
     if sn.level % 10 == 9 then
         local scy = g.getNextScythe()
         if scy then
@@ -421,54 +422,41 @@ function rewards.generateRandomRewards()
         end
     end
 
-
-    assert(
-        g.isImage("more_damage") and
-        g.isImage("more_speed") and
-        g.isImage("more_area")
-    )
-    assert(
-        g.getUpgradeInfo("percentage_more_damage") and
-        g.getUpgradeInfo("percentage_more_speed") and
-        g.getUpgradeInfo("percentage_more_area")
-    )
-
-    local rewardList
-
-    if sn.level % 5 == 0 then
-        -- generate permanent rewards!
-        rewardList = {
-            {
-                type = "permanent",
-                upgradeId = "percentage_more_damage",
-                icon = "more_damage"
-            },
-            {
-                type = "permanent",
-                upgradeId = "percentage_more_speed",
-                icon = "more_speed"
-            },
-            {
-                type = "permanent",
-                upgradeId = "percentage_more_area",
-                icon = "more_area"
-            }
-        }
-    else
-        rewardList = {
-            helper.randomChoice({generateResourceReward, generateInstantReward})(),
-            generateStackedTokenReward(),
-            generatePotionReward(),
-        }
+    -- Validate all permanent upgrades exist
+    for _, upgradeId in ipairs(PERM_UPGRADES) do
+        local uinfo = g.getUpgradeInfo(upgradeId)
+        assert(uinfo, "Missing upgrade info for: " .. upgradeId)
+        assert(g.isImage(uinfo.image), "Missing image for: " .. upgradeId)
     end
 
-    for _,rew in ipairs(rewardList) do
+    -- Generate normal reward list
+    local rewardList = {
+        helper.randomChoice({generateResourceReward, generateInstantReward})(),
+        generateStackedTokenReward(),
+        generatePotionReward(),
+    }
+
+    -- 40% chance to replace one reward with a random permanent upgrade
+    if love.math.random() < 0.4 then
+        local randomUpgradeId = helper.randomChoice(PERM_UPGRADES)
+        local icon = assert(g.getUpgradeInfo(randomUpgradeId)).image
+        local permanentReward = {
+            type = "permanent",
+            upgradeId = randomUpgradeId,
+            icon = icon
+        }
+        local replaceIndex = math.random(1, #rewardList)
+        rewardList[replaceIndex] = permanentReward
+    end
+
+    -- Validate and shuffle rewards
+    for _, rew in ipairs(rewardList) do
         assertRewardIsValid(rew)
     end
     helper.shuffle(rewardList)
+
     return rewardList
 end
-
 
 
 
