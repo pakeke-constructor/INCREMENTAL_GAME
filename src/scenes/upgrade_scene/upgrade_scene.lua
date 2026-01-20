@@ -166,7 +166,27 @@ end
 
 local RAY_COLOR = objects.Color("#".."FFF2E46C")
 
-function upgscene:_drawUpgradeBoxes()
+---@param self UpgradesScene
+local function drawUpgradeBoxes(self)
+    --[[
+    INTUITION VISUALS:
+
+    - LOCKED: EVERY COLOR is gray, locked-icon
+
+    - Hasnt been purchased: Icon is black!
+
+
+    - Cant afford: Everything made slightly darker. Red-border.
+    - Can afford:  Regular colors, Regular border. Occasionally shakes
+
+    - SHOULD BUY:  Rapidly shakes, pulses in scale
+
+    - Can afford + Hasnt-been-purchased:  Green Plus hovering in bottom-right
+
+    - Token-Upgrade: transparent-ish background behind token-image
+    - Misc-Upgrade: white-border
+    ]]
+
     prof_push("drawUpgradeBoxes")
 
     local hoveredUpgrade = nil
@@ -415,149 +435,6 @@ function upgscene:_drawUpgradeBoxes()
         lg.setLineWidth(lw)
     end
 
-    return hoveredUpgrade
-end
-
-
----@param self UpgradesScene
----@return g.Tree.Upgrade? hoveredUpgrade
-local function drawUpgradeBoxes(self)
-    prof_push("drawUpgradeBoxes")
-
-    --[[
-    NOTE: there is a hard-assumption that all
-    upgrades are within the same "map".
-    ]]
-    local hoveredUpgrade = nil
-
-    local tree = g.getUpgTree()
-    local upgrades = tree:getUpgradesOnTree()
-
-    local isHiddenCache = {}
-    for _, upg in ipairs(upgrades) do
-        -- cache it, because :isUpgradeHidden is kinda an expensive operation
-        isHiddenCache[upg] = tree:isUpgradeHidden(upg)
-    end
-    ---@param upg g.Tree.Upgrade
-    ---@return boolean
-    local function isVisible(upg)
-        local forceVisibility = (consts.DEV_MODE and self.dev_editMode)
-        local hidden = isHiddenCache[upg]
-        return forceVisibility or (not hidden)
-    end
-
-    local toAnimate = objects.Set() -- contains the upgrade tree
-    prof_push("drawConnectors")
-    for _, upg in ipairs(upgrades) do
-        -- if isVisible(upg) then
-        -- Draw connector first
-        for _, upg2 in ipairs(tree:getNeighbors(upg.x,upg.y)) do
-            -- if true or isVisible(upg2) then
-            drawConnector(upg, upg2)
-
-            if self.lastUpgradeMaxxed[2] > 0 and self.lastUpgradeMaxxed[1] == upg and upg2.level == 0 then
-                toAnimate:add(upg2)
-            end
-        end
-    end
-    prof_pop() -- prof_push("drawConnectors")
-
-    local sn = g.getSn()
-    prof_push("drawUpgrades")
-    for _, upg in ipairs(upgrades) do
-        local level = upg.level
-        -- Then draw upgrade box
-        local price = tree:getUpgradePrice(upg)
-        local blackedOut = not isVisible(upg)
-        local x, y = getUpgradeGridCoords(upg.x, upg.y)
-        local isHovered, wasJustClicked, wasJustHovered = ui.upgradeBoxUI(tree, upg, level, x,y, blackedOut)
-        local dontDraw = false -- and g.getBundleCostRatio(price) < 0.2
-        -- Removed this ^^^^ system, coz its bad.
-        if (not dontDraw) then
-            if isHovered then
-                hoveredUpgrade = upg
-            end
-
-            if toAnimate:has(upg) then
-                drawUnlockedUpgradeAnimation(upg, self.lastUpgradeMaxxed[2])
-            end
-        end
-        if wasJustHovered then
-            g.playUISound("ui_tick", 1,1)
-        end
-        if (not self.dev_editMode) and wasJustClicked then
-            g.playUISound("ui_click_satisfying", 0.8,0.7,0,0)
-            local maxLevel = tree:getUpgradeMaxLevel(upg)
-            local shouldTryBuy = consts.IS_MOBILE and self.lastHoveredUpgrade == upg or (not consts.IS_MOBILE)
-            if shouldTryBuy and tree:tryBuyUpgrade(upg) and upg.level == maxLevel then
-                self.lastUpgradeMaxxed = {upg, UNLOCKED_UPGRADE_ANIMATION_DURATION}
-                sn.showTutorials.upgrades = false
-                g.playUISound("ui_upgrade_level_maxxed", 0.65,0.3,0.2,0.1)
-            end
-            self.lastHoveredUpgrade = hoveredUpgrade
-            hoveredUpgrade=nil
-        end
-
-        if self.dev_showDistances then
-            local dist = tree:distanceFromRoot(upg)
-            lg.setColor(1,1,1)
-            richtext.printRichContained("{o}" .. tostring(dist), g.getSmallFont(16), x-15,y-15, 30,30)
-        end
-        if self.dev_showPrices then
-            local num = tree:getUpgradePrice(upg, 0).money
-            local basePrice = num and g.formatNumber(num) or 0
-            lg.setColor(1,1,1)
-            richtext.printRichContained("{o}{c r=0.9 g=0.6 b=0.3}$" .. tostring(basePrice), g.getSmallFont(16), x-10,y, 20,20)
-        end
-    end
-    prof_pop() -- prof_push("drawUpgrades")
-
-    if self.dev_editMode then
-        local lw = lg.getLineWidth()
-        local sel = self.dev_editModeSelection
-        for gridX=-50, 50 do
-            for gridY=-50, 50 do
-                local x,y = getUpgradeGridCoords(gridX,gridY)
-                local size2 = math.floor(consts.UPGRADE_IMAGE_SIZE/2) + consts.UPGRADE_GRID_SPACING/2
-                if sel and sel.x==gridX and sel.y==gridY then
-                    lg.setColor(1,1,0, math.sin(love.timer.getTime()*9)/2 + 1)
-                    lg.setLineWidth(5)
-                else
-                    lg.setColor(1,1,1,0.4)
-                    lg.setLineWidth(1)
-                end
-                local xx,yy,ww,hh = x-size2,y-size2, size2*2,size2*2
-                lg.rectangle("line",xx,yy,ww,hh)
-                if iml.wasJustClicked(xx,yy,ww,hh) then
-                    if sel and sel.isAddingConnector then
-                        -- create connector
-                        local upg1 = tree:get(gridX,gridY)
-                        local upg2 = tree:get(sel.x,sel.y)
-                        if upg1 and upg2 then
-                            tree:addConnection(upg1, upg2)
-                        end
-                        self.dev_editModeSelection = nil
-                    else
-                        -- select new:
-                        self.dev_editModeSelection = {x=gridX,y=gridY}
-                        self.dev_maxLevelInput:reset()
-                        self.dev_priceInput:reset()
-                    end
-                end
-                if iml.isHovered(xx,yy,ww,hh) then
-                    local upg = tree:get(gridX,gridY)
-                    if upg then
-                        lg.setColor(1,1,1)
-                        local desc = UpgradeDescription(tree, upg)
-                        desc:draw(xx,yy)
-                    end
-                end
-            end
-        end
-        lg.setLineWidth(lw)
-    end
-
-    prof_pop() -- prof_push("drawUpgradeBoxes")
     return hoveredUpgrade
 end
 
@@ -869,12 +746,7 @@ function upgscene:draw()
         self.lmbPan = drag
     end
 
-    local hoveredUpgrade
-    if love.keyboard.isModifierActive("numlock") then
-        hoveredUpgrade = self:_drawUpgradeBoxes()
-    else
-        hoveredUpgrade = drawUpgradeBoxes(self)
-    end
+    local hoveredUpgrade = drawUpgradeBoxes(self)
 
     self:resetCamera()
 
