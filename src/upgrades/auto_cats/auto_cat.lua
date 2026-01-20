@@ -172,7 +172,9 @@ defineCatUpgrade("lumberjack_cat", "Lumberjack Cat", {
 
 
 local PLANTER_CATS = {
-    {"grass_4", "Big Grass", nil, "Grassy Cat"},
+    {"grass_1", "Tiny Grass", nil, "Gardener Cat"},
+    {"grass_2", "Small Grass", nil, "Gardener Cat II"},
+    {"grass_4", "Big Grass", nil, "Gardener Cat III"},
     {"bomb", "Bombs", "demolition_cat", "Demolition Cat" },
     {"mushroom_blue", "Lightning Mushrooms", "lightning_cat", "Lightning Cat"},
     {"chest_golden", "Golden Chests", nil, "Treasure Cat"},

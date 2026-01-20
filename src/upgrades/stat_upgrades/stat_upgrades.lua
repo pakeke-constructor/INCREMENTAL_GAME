@@ -80,9 +80,9 @@ end
 for _, u in ipairs(upgrades) do
     local percentage = u.percentage or {}
     for _, pct in ipairs(percentage) do
-        local suffix = pct >= 5 and "big_percentage_" or "percentage_"
+        local id = "percentage_" .. tostring(pct) .. "_" .. tostring(u.id)
 
-        defUpgrade(suffix .. u.id, u.title, {
+        defUpgrade(id, u.title, {
             image = u.id,
             description = u.desc,
             drawUI = makeDrawUI(pct .. "%"),

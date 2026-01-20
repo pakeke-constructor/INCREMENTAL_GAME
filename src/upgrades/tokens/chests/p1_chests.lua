@@ -29,7 +29,7 @@ defChest("chest_big", "Big Chest", {
 
 defChest("chest_golden", "Golden Chest", {
     maxHealth = 20,
-    resources = {money = 100},
+    resources = {money = 300},
 })
 
 

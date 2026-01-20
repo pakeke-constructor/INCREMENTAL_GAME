@@ -379,6 +379,25 @@ local function generateScytheReward()
 end
 
 
+local PERM_UPGRADES = {
+    "mushroom_blue",
+    "mushroom_green",
+    "percentage_5_more_xp",
+    "percentage_2_more_area",
+    "flat_2_more_area",
+    "flat_0.5_more_damage",
+    "flat_0.3_more_damage",
+    "flat_1_more_speed",
+    "percentage_2_more_speed",
+    "chest_big",
+    "chest_small",
+    "mushroom_brown",
+    "mushroom_basic",
+    "planter_cat_grass_1",
+    "planter_cat_grass_2",
+}
+
+
 
 ---@return g.Reward[]
 function rewards.generateRandomRewards()
@@ -434,7 +453,6 @@ function rewards.generateRandomRewards()
                 upgradeId = "percentage_more_area",
                 icon = "more_area"
             }
-
         }
     else
         rewardList = {
