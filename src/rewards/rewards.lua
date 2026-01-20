@@ -353,7 +353,7 @@ function generateStackedTokenReward()
     do return generateStackedChestToken(getRandomUnlockedResource()) end
 
     -- IDEALLY, it should be stuff that is scaling-agnostic
-    if love.math.random() < 0.4 then
+    if love.math.random() < 10.4 then
         local h = helper.randomChoice(HORDE)
         return generateStackedGenericToken(h[1], 10, h.desc)
     end
@@ -569,6 +569,9 @@ function rewards.drawRewardDescription(rew, r)
         richtext.printRichContained(PERMANENT_UPGRADE, font, a:get())
         local uinfo = g.getUpgradeInfo(rew.upgradeId)
         local txt = g.getUpgradeDescription(uinfo, 1, false)
+        if uinfo.drawUI then
+            uinfo:drawUI(1, icon:get())
+        end
         local effect = "{wavy amp=0.3 f=2}{o}{c r=0.9 g=0.7 b=0.5}"
         richtext.printRichContained(effect.. txt, font, b:get())
     elseif rew.type == "scythe" then
