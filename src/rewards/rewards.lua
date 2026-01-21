@@ -489,6 +489,12 @@ local RESOURCE_BUNDLE = loc("{wavy amp=0.3 f=2}{o}Free resources:{/o}{/wavy}", {
     context = "A bundle of free resources"
 })
 
+local PERM_TOKEN_UPGRADE = interp("When harvested, earn %{a}", {
+    context = "Player is offered a new crop-type that yields resources. eg: PERMANENT CROP: 'When harvested, earn +5 gold'"
+})
+
+
+
 
 
 ---@param bundle g.Bundle
@@ -506,10 +512,6 @@ local function generateTotalResourcesText(bundle, count)
     return table.concat(text, " ")
 end
 
-
-local PERM_TOKEN_UPGRADE = interp("When harvested, earn %{a}", {
-    context = "Player is offered a new crop-type that yields resources. eg: PERMANENT CROP: 'When harvested, earn +5 gold'"
-})
 
 
 ---@param rew g.Reward
