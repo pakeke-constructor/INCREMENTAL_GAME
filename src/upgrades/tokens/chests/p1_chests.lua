@@ -10,25 +10,25 @@ end
 
 
 defChest("clay_pot", "Clay Pot", {
-    maxHealth = 3,
+    maxHealth = 60,
     resources = {money = 20},
 })
 
 
 defChest("chest_small", "Small Chest", {
-    maxHealth = 6,
+    maxHealth = 120,
     resources = {money = 50},
 })
 
 
 defChest("chest_big", "Big Chest", {
-    maxHealth = 11,
+    maxHealth = 220,
     resources = {money = 100},
 })
 
 
 defChest("chest_golden", "Golden Chest", {
-    maxHealth = 20,
+    maxHealth = 400,
     resources = {money = 300},
 })
 
@@ -41,23 +41,23 @@ their `resources` tables are SUPPOSED to be adjusted!
 
 ]]
 defChest("chest_money", "Money Chest", {
-    maxHealth = 7,
+    maxHealth = 140,
     resources = {money = 10},
 })
 defChest("chest_fish", "Fishy Chest", {
-    maxHealth = 7,
+    maxHealth = 140,
     resources = {fish = 10},
 })
 defChest("chest_fabric", "Fabric Chest", {
-    maxHealth = 7,
+    maxHealth = 140,
     resources = {fabric = 10},
 })
 defChest("chest_juice", "Juice Chest", {
-    maxHealth = 7,
+    maxHealth = 140,
     resources = {juice = 10},
 })
 defChest("chest_bread", "Bread Chest", {
-    maxHealth = 7,
+    maxHealth = 140,
     resources = {bread = 10},
 })
 

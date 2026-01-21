@@ -6,7 +6,7 @@ g.defineToken("wheat_big", "Big Wheat", {
     resources = {
         bread = 8,
     },
-    maxHealth = 10
+    maxHealth = 200
 })
 
 
@@ -15,7 +15,7 @@ g.defineToken("wheat_medium", "Wheat", {
     resources = {
         bread = 1,
     },
-    maxHealth = 6
+    maxHealth = 120
 })
 
 end

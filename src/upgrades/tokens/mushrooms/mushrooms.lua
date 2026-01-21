@@ -38,7 +38,7 @@ defUpgrade("moldy_block", "Moldy Block", {
 
 g.defineToken("mushroom_blue", "Blue Mushroom", {
     category = "mushroom",
-    maxHealth = 7,
+    maxHealth = 150,
     resources = {},
     description = "Spawns lightning when destroyed!",
     tokenDestroyed = function(tok)
@@ -52,10 +52,10 @@ g.defineToken("mushroom_blue", "Blue Mushroom", {
 g.defineToken("mushroom_red", "Red Mushroom", {
     category = "mushroom",
     description = "Explodes when destroyed!",
-    maxHealth = 4,
+    maxHealth = 150,
     resources = {},
     tokenDestroyed = function(tok)
-        worldutil.explosion(tok.x, tok.y, 10)
+        worldutil.explosion(tok.x, tok.y)
     end
 })
 
@@ -64,7 +64,7 @@ g.defineToken("mushroom_red", "Red Mushroom", {
 
 g.defineToken("mushroom_green", "Green Mushroom", {
     category = "mushroom",
-    maxHealth = 7,
+    maxHealth = 150,
     resources = {},
     description = "When harvested, spawns 3 grass crops",
     tokenDestroyed = function(tok)
@@ -100,7 +100,7 @@ g.defineToken("mushroom_green", "Green Mushroom", {
 g.defineToken("mushroom_basic", "Basic Mushroom", {
     category = "mushroom",
     shadow = "shadow_big",
-    maxHealth = 9,
+    maxHealth = 200,
     resources = {money=10},
     description = "Earns bonus xp when harvested!",
     tokenDestroyed = function(tok)
@@ -113,7 +113,7 @@ g.defineToken("mushroom_basic", "Basic Mushroom", {
 g.defineToken("mushroom_brown", "Brown Mushroom", {
     category = "mushroom",
     shadow = "shadow_medium",
-    maxHealth = 9,
+    maxHealth = 120,
     resources = {money=6},
 })
 

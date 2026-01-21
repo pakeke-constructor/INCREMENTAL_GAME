@@ -20,7 +20,7 @@ g.defineToken("slime_token", "Slime", {
     category = "slime",
     description = "When destroyed, covers surrounding crops in slime!\n(Slimed crops take extra damage)",
     resources = {money = 0},
-    maxHealth = 4,
+    maxHealth = 100,
     maxLevel=3,
     tokenDestroyed = function(tok)
         local MAX_TOKENS_TO_SLIME = 5
@@ -90,7 +90,7 @@ g.defineUpgrade("acidic_slime", "Acidic Slime", {
     kind="TOKEN_MODIFIER",
 
     maxLevel = 6,
-    getValues = helper.valueGetter(1),
+    getValues = helper.valueGetter(10),
 
     description = "Crops that are slimed take %{1} damage every second",
 
@@ -211,7 +211,7 @@ g.defineUpgrade("slime_grenade", "Slime Grenade", {
     tokenDestroyed = function(self,level, tok)
         ---@cast tok g.Token
         if tok.slimed then
-            worldutil.explosion(tok.x,tok.y, 50)
+            worldutil.explosion(tok.x,tok.y)
         end
     end,
 })

@@ -3,7 +3,7 @@
 -------------
 
 g.defineToken("residue", "Residue", {
-    maxHealth = 5,
+    maxHealth = 50,
     image = "residue",
     shadow = "shadow_small",
     category = "grass",

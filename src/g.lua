@@ -632,7 +632,7 @@ g.stats = {}
 -- SSTATS 
 -- (if you ever want to quickly search the name of stats, search "sstats")
 g.stats.HitSpeed = g.defineStat("HitSpeed", 5, "Hit Speed")
-g.stats.HitDamage = g.defineStat("HitDamage", 1, "Hit Damage")
+g.stats.HitDamage = g.defineStat("HitDamage", 15, "Hit Damage")
 g.stats.HarvestArea = g.defineStat("HarvestArea", 15, "Harvest Area")
 g.stats.ResourceMultiplier = g.defineStat("ResourceMultiplier", 1, "Resource Gain Multiplier")
 g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 2, "Entity Orbit Speed") -- rad/s
@@ -642,8 +642,9 @@ g.stats.AutoCatRadiusMultiplier = g.defineStat("AutoCatRadiusMultiplier", 1, "Fa
 g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3, "Crop Respawn Time")
 g.stats.CritChance = g.defineStat("CritChance", 0, "Critical Hit Chance") -- should start at 0
 g.stats.CritDamageMultiplier = g.defineStat("CritDamageMultiplier", 10, "Crirical Damage Multiplier")
-g.stats.KnifeDamage = g.defineStat("KnifeDamage", 1, "Knife Damage")
-g.stats.LightningDamage = g.defineStat("LightningDamage", 1, "Lightning Damage")
+g.stats.KnifeDamage = g.defineStat("KnifeDamage", 10, "Knife Damage")
+g.stats.LightningDamage = g.defineStat("LightningDamage", 10, "Lightning Damage")
+g.stats.ExplosionDamage = g.defineStat("ExplosionDamage", 5, "Explosion Damage")
 
 -- World stat
 g.stats.WorldTileSize = g.defineStat("WorldTileSize", 20, "World Size")

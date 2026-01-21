@@ -19,24 +19,24 @@ local upgrades = {
         title = "More Damage",
         desc = "%{1} scythe damage",
         stat = "HitDamage",
-        flat = {0.3, 0.5, 1},
-        percentage = {2, 5},
+        flat = {2, 3, 5},
+        percentage = {5, 10},
     },
     {
         id = "more_speed",
         title = "More Speed",
         desc = "%{1} scythe speed",
         stat = "HitSpeed",
-        flat = {0.5, 1, 2},
-        percentage = {2, 5}
+        flat = {1, 2, 3},
+        percentage = {5, 10}
     },
     {
         id = "more_area",
         title = "More Area",
         desc = "%{1} area",
         stat = "HarvestArea",
-        flat = {1, 2, 4},
-        percentage = {2, 5}
+        flat = {2, 4},
+        percentage = {5, 10}
     },
     {
         id = "better_lightning",
@@ -44,7 +44,7 @@ local upgrades = {
         desc = "%{1} Lightning damage",
         stat = "LightningDamage",
         flat = {2, 4},
-        percentage = {5}
+        percentage = {20}
     },
     {
         id = "sharper_knives",
@@ -52,14 +52,14 @@ local upgrades = {
         desc = "%{1} Knife damage",
         stat = "KnifeDamage",
         flat = {2, 4},
-        percentage = {5}
+        percentage = {20}
     },
     {
         id = "more_xp",
         title = "More XP",
         desc = "%{1} xp gain",
         stat = "XpMultiplier",
-        percentage = {2, 5}
+        percentage = {5, 10}
     }
 }
 

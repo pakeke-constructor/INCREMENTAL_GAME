@@ -5,7 +5,7 @@
 
 
 g.defineToken("abstract_potion_token", "ABSTRACT DEV TOKEN", {
-    maxHealth = 5,
+    maxHealth = 100,
     resources = {},
 
     tokenDestroyed = function(tok)

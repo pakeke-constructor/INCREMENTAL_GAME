@@ -15,7 +15,7 @@ Blue mushroom: When destroyed, spawns a lightning-bolt!
 
 -- TODO: Balancing
 g.defineToken("plant_pot", "Plant Pot", {
-    maxHealth = 10,
+    maxHealth = 200,
     resources = {},
     description = "When destroyed, damages surrounding grass crops",
     ---@param tok g.Token
@@ -23,7 +23,7 @@ g.defineToken("plant_pot", "Plant Pot", {
         g.playWorldSound("pot_smash", nil, 0.8, 0.2)
         g.iterateTokensInArea(tok.x, tok.y, 36, function(t)
             if t.category == "grass" then
-                g.damageToken(t, 8)
+                g.damageToken(t, 80)
             end
         end)
     end
@@ -32,21 +32,21 @@ g.defineToken("plant_pot", "Plant Pot", {
 
 
 g.defineToken("bomb", "Bomb", {
-    maxHealth = 10,
+    maxHealth = 200,
     resources = {},
 
     tokenDestroyed = function(tok)
-        worldutil.explosion(tok.x, tok.y, 32)
+        worldutil.explosion(tok.x, tok.y)
     end,
     perSecondUpdate = function(tok)
-        g.damageToken(tok, 1)
+        g.damageToken(tok, 40)
     end
 })
 
 
 
 g.defineToken("knife_bush", "Knife Bush", {
-    maxHealth = 10,
+    maxHealth = 200,
     resources = {money = 10},
     description = "Shoots knives when destroyed!",
     tokenDestroyed = function(tok)

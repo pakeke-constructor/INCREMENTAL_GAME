@@ -212,15 +212,14 @@ end
 
 ---@param x number
 ---@param y number
----@param damage number?
-function worldutil.explosion(x,y,damage)
+---@param dmgMult number?
+function worldutil.explosion(x,y,dmgMult)
     g.spawnEntity("small_explosion_animation", x,y)
     g.playWorldSound("small_explosion", 1.2,0.2,0.35,0.05)
-    if damage then
-        g.iterateTokensInArea(x,y, 80, function(tok)
-            g.damageToken(tok,damage)
-        end)
-    end
+    local dmg = g.stats.ExplosionDamage * (dmgMult or 1)
+    g.iterateTokensInArea(x,y, 80, function(tok)
+        g.damageToken(tok,dmg)
+    end)
 end
 
 
