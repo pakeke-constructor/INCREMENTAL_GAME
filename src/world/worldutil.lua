@@ -11,7 +11,7 @@ function worldutil.drawHarvestCircle(x, y, rad, circleColor, circleBorderColor, 
     love.graphics.setColor(circleColor)
     love.graphics.circle("fill", x,y, rad)
     local lw = love.graphics.getLineWidth()
-    love.graphics.setLineWidth(math.floor(rad / 15))
+    love.graphics.setLineWidth(math.max(1, math.floor(rad / 15)))
     love.graphics.setColor(circleBorderColor)
     love.graphics.circle("line", x,y, rad)
 

@@ -112,11 +112,13 @@ local function calculateXPRequirement()
     xp requirement scales with the number of tokens.
     xp = the amount of token-health destroyed
     ]]
+    local tokCount = 0
     local totalTokenHP = 0
     local world = g.getMainWorld()
     for tokType, count in world:iterateTokenPool() do
         local tinfo = g.getTokenInfo(tokType)
         totalTokenHP = totalTokenHP + (tinfo.maxHealth * count)
+        tokCount = tokCount + count
     end
 
     -- this ensures that with no tokens, there isnt continuous levelUp
@@ -124,7 +126,8 @@ local function calculateXPRequirement()
 
     local level = g.getSn().level
     if level <= 1 then
-        return math.ceil(totalTokenHP * 1.8)
+        -- aim to harvest 3 tokens, then level-up
+        return math.ceil((totalTokenHP / (tokCount+1)) * 3)
     elseif level <= 5 then
         return math.ceil(totalTokenHP * 2.5)
     end

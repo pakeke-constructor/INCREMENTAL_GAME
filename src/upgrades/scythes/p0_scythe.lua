@@ -2,7 +2,7 @@
 
 
 g.defineScythe("starting_scythe", "Starting Scythe", {
-    harvestArea = 0,
+    harvestArea = -5,
 })
 
 
