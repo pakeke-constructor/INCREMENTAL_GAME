@@ -194,6 +194,7 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local bgm = require("src.sound.bgm")
 local sfx = require("src.sound.sfx")
 local emulation = nil
 
@@ -267,6 +268,7 @@ function love.update(dt)
 
     asynchttp.update()
     sfx.update()
+    bgm.update(dt, settings.getBGMVolume() / 100)
     iml.setPointer(love.mouse.getPosition())
 
     if simulation.isSimulating() then

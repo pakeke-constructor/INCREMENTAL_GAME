@@ -11,6 +11,7 @@ local HUD = require("src.ui.hud.hud")
 
 
 
+local bgm = require("src.sound.bgm")
 local sfx = require("src.sound.sfx")
 
 local simulation = require("src.world.simulation")
@@ -2332,6 +2333,23 @@ end
 
 g.walkDirectory("assets/sfx", loadSound)
 
+
+end
+
+
+----------
+-- BGMs --
+----------
+
+do
+
+g.BGMID = {}
+
+---Request playing specific BGM ID
+---@param id integer BGM ID. Use `g.BGMID` for the fixed constants.
+function g.requestBGM(id)
+    return bgm.request(id)
+end
 
 end
 
