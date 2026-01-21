@@ -341,6 +341,13 @@ function love.draw()
     end
 end
 
+local olderr = love.errorhandler or love.errhand
+
+function love.errorhandler(msg)
+    log.fatal(msg)
+    return olderr(msg)
+end
+
 
 
 function love.mousepressed(mx, my, button, istouch, presses)
