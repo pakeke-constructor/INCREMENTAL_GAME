@@ -166,7 +166,7 @@ defineCatUpgrade("grass_farmer_cat", "Grass Farmer Cat", {
 
 
 defineCatUpgrade("lumberjack_cat", "Lumberjack Cat", {
-    description = "Lumberjack Cat moves slow, but harvests all crops!",
+    description = "Lumberjack Cat moves slow, but harvests all crop types!",
     maxLevel = 5,
 })
 

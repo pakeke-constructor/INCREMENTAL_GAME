@@ -72,8 +72,8 @@ g.defineUpgrade("capitalist", "Capitalist", {
 -- Lightning upgrade
 --------------------
 
-g.defineUpgrade("lightning_upgrade", "Lightning Bolt", {
-    image = "happy_cat",
+g.defineUpgrade("lightning_upgrade", "Lightning Storm", {
+    image = "lightning_icon",
     description = "Every second, %{1} chance for Lightning to spawn!",
     kind = "MISC",
 

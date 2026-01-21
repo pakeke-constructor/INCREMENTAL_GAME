@@ -41,7 +41,7 @@ g.defineEntity("orbital_knife", {
 })
 
 defOrbitalUpgrade("orbital_knife", "Orbital Knife", {
-    description = "Spawn %{1} orbiting knives that deal 1 damage!",
+    description = "Spawn %{1} orbiting knives that deal damage!",
     maxLevel = 8,
 })
 
