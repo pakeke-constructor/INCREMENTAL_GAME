@@ -2266,6 +2266,9 @@ end
 -- g.playUISound
 do
 
+----------
+-- SFXs --
+----------
 
 ---@param soundname string
 ---@param pitch number? (defaults to 1)
@@ -2334,22 +2337,56 @@ end
 g.walkDirectory("assets/sfx", loadSound)
 
 
-end
-
-
 ----------
 -- BGMs --
 ----------
 
-do
+g.BGMID = {
+    MAP = 1
+}
 
-g.BGMID = {}
+
+---@param path string
+---@param prio integer
+---@param isAmbient boolean?
+local function registerBGMFromDirectories(path, prio, isAmbient)
+    ---@type string[]
+    local files = {}
+
+    g.walkDirectory(path, function(filename)
+        local pathrev = filename:reverse()
+        local ext = pathrev:sub(1, (pathrev:find(".", 1, true) or 1) - 1):reverse():lower()
+
+        if validExtensions[ext] then
+            local basename = pathrev:sub(1, pathrev:find("/", 1, true)-1):reverse()
+
+            if #basename > 0 then
+                local name = basename:sub(1, -#ext - 2)
+                if name:sub(1,1) ~= "_" then
+                    files[#files+1] = filename
+                end
+            end
+        end
+    end)
+
+    if #files == 0 then
+        error("no bgm files in "..path)
+    end
+
+    return bgm.register(prio, files, isAmbient)
+end
+
+-- We cannot use g.walkDirectory because we need all the files first then register
+-- the BGM in one go using `bgm.register`.
+registerBGMFromDirectories("assets/bgm/map", g.BGMID.MAP, true)
+
 
 ---Request playing specific BGM ID
 ---@param id integer BGM ID. Use `g.BGMID` for the fixed constants.
 function g.requestBGM(id)
     return bgm.request(id)
 end
+
 
 end
 

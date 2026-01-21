@@ -1,0 +1,7 @@
+These BGMs are currently placeholders.
+
+Sources (relative to this folder)
+* map/Juhani Junkala [Retro Game Music Pack] Ending.ogg - https://opengameart.org/content/5-chiptunes-action (CC0)
+
+All audio files are re-encoded with this FFmpeg option:
+ffmpeg -i input -c:a libvorbis -fflags +bitexact -qscale:a 5 output.ogg
