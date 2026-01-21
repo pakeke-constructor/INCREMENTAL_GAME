@@ -393,6 +393,7 @@ local PERM_UPGRADES = {
     "chest_big",
     "chest_small",
     "mushroom_brown",
+    "knife_bush",
     "mushroom_basic",
     "planter_cat_grass_1",
     "planter_cat_grass_2",
@@ -436,24 +437,27 @@ function rewards.generateRandomRewards()
         generatePotionReward(),
     }
 
-    -- 40% chance to replace one reward with a random permanent upgrade
-    if love.math.random() < 0.4 then
-        local randomUpgradeId = helper.randomChoice(PERM_UPGRADES)
-        local icon = assert(g.getUpgradeInfo(randomUpgradeId)).image
-        local permanentReward = {
-            type = "permanent",
-            upgradeId = randomUpgradeId,
-            icon = icon
-        }
-        local replaceIndex = math.random(1, #rewardList)
-        rewardList[replaceIndex] = permanentReward
-    end
-
     -- Validate and shuffle rewards
     for _, rew in ipairs(rewardList) do
         assertRewardIsValid(rew)
     end
     helper.shuffle(rewardList)
+
+    -- CHANCE% chance to replace one reward with a random permanent upgrade
+    local CHANCE = 1.25
+    for _=1, 3 do
+        if love.math.random() < CHANCE then
+            local randomUpgradeId = helper.randomChoice(PERM_UPGRADES)
+            local icon = assert(g.getUpgradeInfo(randomUpgradeId)).image
+            local permanentReward = {
+                type = "permanent",
+                upgradeId = randomUpgradeId,
+                icon = icon
+            }
+            local replaceIndex = math.random(1, #rewardList)
+            rewardList[replaceIndex] = permanentReward
+        end
+    end
 
     return rewardList
 end
@@ -461,6 +465,7 @@ end
 
 
 local PERMANENT_UPGRADE = loc("{wavy amp=0.3 f=2}{o}PERMANENT UPGRADE:{/o}{/wavy}")
+local PERMANENT_TOKEN = loc("{wavy amp=0.3 f=2}{o}{c r=0.5 g=0.7 b=1}PERMANENT CROP:{/c}{/o}{/wavy}")
 
 
 local NEW_SCYTHE = loc("{wavy amp=0.3 f=2}{o}New Scythe Upgrade:{/o}{/wavy}")
@@ -501,6 +506,10 @@ local function generateTotalResourcesText(bundle, count)
     return table.concat(text, " ")
 end
 
+
+local PERM_TOKEN_UPGRADE = interp("When harvested, earn %{a}", {
+    context = "Player is offered a new crop-type that yields resources. eg: PERMANENT CROP: 'When harvested, earn +5 gold'"
+})
 
 
 ---@param rew g.Reward
@@ -566,14 +575,45 @@ function rewards.drawRewardDescription(rew, r)
     elseif rew.type == "permanent" then
         ---@cast rew g.PermanentReward
         local a,b = main:splitVertical(1,2)
-        richtext.printRichContained(PERMANENT_UPGRADE, font, a:get())
         local uinfo = g.getUpgradeInfo(rew.upgradeId)
-        local txt = g.getUpgradeDescription(uinfo, 1, false)
+        if uinfo.tokenType then
+            richtext.printRichContained(PERMANENT_TOKEN, font, a:get())
+        else
+            richtext.printRichContained(PERMANENT_UPGRADE, font, a:get())
+        end
+        local effect = "{wavy amp=0.3 f=2}{o}{c r=0.9 g=0.7 b=0.5}" 
+        local txt = effect .. g.getUpgradeDescription(uinfo, 1, false)
         if uinfo.drawUI then
             uinfo:drawUI(1, icon:get())
         end
-        local effect = "{wavy amp=0.3 f=2}{o}{c r=0.9 g=0.7 b=0.5}"
-        richtext.printRichContained(effect.. txt, font, b:get())
+        if uinfo.tokenType then
+            -- is a token upgrade: print specially.
+            local tinfo = g.getTokenInfo(uinfo.tokenType)
+            local res,val = nil,nil
+            for k,v in pairs(tinfo.resources) do
+                res,val = k, g.formatNumber(v)
+            end
+
+            if res then
+                local rtxt = "{o}" .. PERM_TOKEN_UPGRADE({
+                    a = val .. " {" .. res .. "}"
+                })
+                local up,bot
+                if txt == effect then
+                    -- then there is no upg desc; dont render
+                    richtext.printRichContained(rtxt, font, b:padRatio(0.1):get())
+                else
+                    up,bot = b:splitVertical(1,1)
+                    richtext.printRichContained(rtxt, font, up:padRatio(0.1):get())
+                    richtext.printRichContained(txt, font, bot:get())
+                end
+            else
+                richtext.printRichContained(txt, font, b:get())
+            end
+        else
+            -- is a normal upgrade: print normally.
+            richtext.printRichContained(txt, font, b:get())
+        end
     elseif rew.type == "scythe" then
         local a = main:splitVertical(1,2):attachToTopOf(main)
         local b,c = main:splitVertical(3,2)
