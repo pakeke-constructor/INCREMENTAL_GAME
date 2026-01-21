@@ -1,0 +1,13 @@
+These BGMs are currently placeholders.
+
+Sources (relative to this folder)
+* boss/fight.ogg* - https://opengameart.org/content/fast-fight-battle-music (CC0)
+* customization/Caketown 1.mp3 - https://opengameart.org/content/caketown-cuteplayful (CC-BY-SA 3.0)
+* map/Juhani Junkala [Retro Game Music Pack] Ending.ogg* - https://opengameart.org/content/5-chiptunes-action (CC0)
+* map/song18.mp3 - https://opengameart.org/content/crystal-cave-song18 (CC0)
+* harvest/happy.mp3 - https://opengameart.org/content/happy-arcade-tune (CC-BY 3.0)
+* title/old city theme.ogg* - https://opengameart.org/content/old-city-theme (CC-BY-SA 3.0)
+* upgrades/cave themeb4.ogg - https://opengameart.org/content/cave-theme (CC0)
+
+Entries marked with asterisk means it's re-encoded with this FFmpeg option:
+ffmpeg -i input -c:a libvorbis -fflags +bitexact -qscale:a 5 output.ogg

@@ -11,6 +11,7 @@ local HUD = require("src.ui.hud.hud")
 
 
 
+local bgm = require("src.sound.bgm")
 local sfx = require("src.sound.sfx")
 
 local simulation = require("src.world.simulation")
@@ -2265,6 +2266,9 @@ end
 -- g.playUISound
 do
 
+----------
+-- SFXs --
+----------
 
 ---@param soundname string
 ---@param pitch number? (defaults to 1)
@@ -2331,6 +2335,68 @@ local function loadSound(path)
 end
 
 g.walkDirectory("assets/sfx", loadSound)
+
+
+----------
+-- BGMs --
+----------
+
+-- Higher number means higher priority.
+g.BGMID = {
+    TITLE = 999, -- Title and settings
+    MAP = 1, -- Map scene
+    HARVEST = 2, -- Harvest scene
+    UPGRADE = 3, -- Upgrade scene
+    CUSTOMIZATION = 4, -- Customization scene
+    BOSS = 100, -- Boss theme
+}
+
+
+---@param path string
+---@param prio integer
+---@param isAmbient boolean?
+local function registerBGMFromDirectories(path, prio, isAmbient)
+    ---@type string[]
+    local files = {}
+
+    g.walkDirectory(path, function(filename)
+        local pathrev = filename:reverse()
+        local ext = pathrev:sub(1, (pathrev:find(".", 1, true) or 1) - 1):reverse():lower()
+
+        if validExtensions[ext] then
+            local basename = pathrev:sub(1, pathrev:find("/", 1, true)-1):reverse()
+
+            if #basename > 0 then
+                local name = basename:sub(1, -#ext - 2)
+                if name:sub(1,1) ~= "_" then
+                    files[#files+1] = filename
+                end
+            end
+        end
+    end)
+
+    if #files == 0 then
+        error("no bgm files in "..path)
+    end
+
+    return bgm.register(prio, files, isAmbient)
+end
+
+-- We cannot use g.walkDirectory because we need all the files first then register
+-- the BGM in one go using `bgm.register`.
+registerBGMFromDirectories("assets/bgm/boss", g.BGMID.BOSS, false)
+registerBGMFromDirectories("assets/bgm/customization", g.BGMID.CUSTOMIZATION, true)
+registerBGMFromDirectories("assets/bgm/harvest", g.BGMID.HARVEST, true)
+registerBGMFromDirectories("assets/bgm/map", g.BGMID.MAP, true)
+registerBGMFromDirectories("assets/bgm/title", g.BGMID.TITLE, true)
+registerBGMFromDirectories("assets/bgm/upgrades", g.BGMID.UPGRADE, true)
+
+
+---Request playing specific BGM ID
+---@param id integer BGM ID. Use `g.BGMID` for the fixed constants.
+function g.requestBGM(id)
+    return bgm.request(id)
+end
 
 
 end

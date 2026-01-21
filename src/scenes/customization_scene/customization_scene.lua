@@ -279,6 +279,7 @@ end
 ---@param dt number
 function custom:update(dt)
     g.getHUD():update(dt)
+    g.requestBGM(g.BGMID.CUSTOMIZATION)
 end
 
 function custom:draw()

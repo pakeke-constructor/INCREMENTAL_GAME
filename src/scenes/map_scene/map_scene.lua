@@ -613,6 +613,8 @@ end
 function map:update(dt)
     self:updateCamera(dt)
 
+    g.requestBGM(g.BGMID.MAP)
+
     -- Update transition data
     if self.transitionTarget then
         self.transitionTarget.time = self.transitionTarget.time + dt
