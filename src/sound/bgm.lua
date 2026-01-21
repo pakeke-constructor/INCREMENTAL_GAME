@@ -23,7 +23,7 @@ function BGMGroup:init(bgms, isAmbient)
     -- has finished, which then play the first song instead.
     self.posIndex = #self.sources
     self.fadeDirection = 1 -- 1 for fade in, -1 for fade out
-    self.fadeValue = CROSSFADE -- from 0 to CROSSFADE
+    self.fadeValue = 0 -- from 0 to CROSSFADE
     self.fading = false
     self.playing = false
 end

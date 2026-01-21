@@ -70,6 +70,8 @@ end
 
 ---@param dt number
 function title:update(dt)
+    g.requestBGM(g.BGMID.TITLE)
+
     self.progress = (self.progress + dt * 0.2) % 1
     titleBackground.update(dt)
     self.catLeft:update(dt)

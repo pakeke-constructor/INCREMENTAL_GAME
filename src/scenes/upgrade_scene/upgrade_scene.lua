@@ -856,6 +856,7 @@ function upgscene:update(dt)
 
     self:updateCamera(dt)
     g.getHUD():update(dt)
+    g.requestBGM(g.BGMID.UPGRADE)
     self.lastUpgradeMaxxed[2] = math.max(self.lastUpgradeMaxxed[2] - dt, 0)
 
     local w = g.getMainWorld()

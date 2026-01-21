@@ -2341,8 +2341,9 @@ g.walkDirectory("assets/sfx", loadSound)
 -- BGMs --
 ----------
 
+-- Higher number means higher priority.
 g.BGMID = {
-    TITLE = 0, -- Title and settings
+    TITLE = 999, -- Title and settings
     MAP = 1, -- Map scene
     HARVEST = 2, -- Harvest scene
     UPGRADE = 3, -- Upgrade scene

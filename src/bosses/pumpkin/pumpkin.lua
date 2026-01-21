@@ -57,6 +57,7 @@ g.defineBoss("pumpkin_boss", 0, {
 
     update = function (tok, dt)
         pworld:update(dt)
+        g.requestBGM(g.BGMID.BOSS)
         if love.math.random()/60 < dt then
             local angle = love.math.random() * math.pi * 2
             local dist = love.math.random() * PARTICLE_SPAWN_RADIUS
