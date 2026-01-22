@@ -1235,8 +1235,17 @@ end
 function harvest:populateTokenPool(pool)
     local boss = g.getBossToken()
     if boss and boss.type == "pumpkin_boss" then
-        pool:add("pumpkin_health", 25)
+        pool:add("pumpkin_health", 5)
     end
+end
+
+---@param toktype string
+function harvest:getPerTokenRespawnTimeMultiplier(toktype)
+    if toktype == "pumpkin_health" then
+        return 0 -- Respawn pumpkin_health instantly
+    end
+
+    return 1
 end
 
 
