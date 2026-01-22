@@ -512,6 +512,18 @@ do
 
 local RANDOM_PATH_DURATION = 5
 
+---@param startX number
+---@param startY number
+---@param endX number
+---@param endY number
+---@param duration number
+local function getVelocityByPoints(startX, startY, endX, endY, duration)
+    -- Total distance the token travels
+    local dx, dy = endX - startX, endY - startY
+    local vx, vy = dx / duration, dy / duration
+    return vx, vy
+end
+
 ---@param tok g.Token
 ---@param initduration number
 ---@param hoverduration number
@@ -526,7 +538,7 @@ function worldutil.updateBossTokenFlypath(tok, initduration, hoverduration, endd
             local startY = helper.lerp(0.1 * hh, 0.9*hh, love.math.random())
             local startX = helper.lerp(-leeway, ww+leeway, love.math.random() >= 0.5 and 0 or 1)
             local endX, endY = ww / 2, hh / 2
-            local vx, vy = helper.getVelocityByPoints(startX, startY, endX, endY, initduration)
+            local vx, vy = getVelocityByPoints(startX, startY, endX, endY, initduration)
             tok.x, tok.y = startX, startY
             tok.flight = {vx = vx, vy = vy}
         end
@@ -538,7 +550,7 @@ function worldutil.updateBossTokenFlypath(tok, initduration, hoverduration, endd
             local ww,hh = g.getWorldDimensions()
             local endX = helper.lerp(0, ww, helper.hashInteger(hash) / 4294967296)
             local endY = helper.lerp(0, hh, helper.hashInteger(-hash) / 4294967296)
-            local vx, vy = helper.getVelocityByPoints(tok.x, tok.y, endX, endY, 10)
+            local vx, vy = getVelocityByPoints(tok.x, tok.y, endX, endY, 10)
             tok.flight.vx, tok.flight.vy = vx, vy
             ---@diagnostic disable-next-line: inject-field
             tok.bossPathIndex = index
@@ -549,7 +561,7 @@ function worldutil.updateBossTokenFlypath(tok, initduration, hoverduration, endd
         local ww,hh = g.getWorldDimensions()
         local endX = helper.lerp(-leeway, ww+leeway, helper.hashInteger(-tok.id) / 4294967295 >= 0.5 and 0 or 1)
         local endY = helper.lerp(-leeway, hh+leeway, helper.hashInteger(tok.id) / 4294967295)
-        tok.flight.vx, tok.flight.vy = helper.getVelocityByPoints(ww / 2, hh / 2, endX, endY, endduration)
+        tok.flight.vx, tok.flight.vy = getVelocityByPoints(ww / 2, hh / 2, endX, endY, endduration)
     end
 end
 

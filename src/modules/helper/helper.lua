@@ -684,18 +684,4 @@ end
 
 
 
----@param startX number
----@param startY number
----@param endX number
----@param endY number
----@param duration number
-function helper.getVelocityByPoints(startX, startY, endX, endY, duration)
-    -- Total distance the token travels
-    local dx, dy = endX - startX, endY - startY
-    local vx, vy = dx / duration, dy / duration
-    return vx, vy
-end
-
-
-
 return helper
