@@ -403,6 +403,8 @@ local PERM_UPGRADES = {
     "mushroom_basic",
     "planter_cat_grass_1",
     "planter_cat_grass_2",
+    "orbital_knife",
+    "orbital_scythe",
 }
 
 
