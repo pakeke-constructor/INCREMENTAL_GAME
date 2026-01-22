@@ -238,8 +238,10 @@ local function drawTokenHealthBar(tok)
     love.graphics.setColor(1,1,1,1)
     g.drawImageOffset("1x1", hx, hy, 0, laggedW, HP_BAR_H, 0, 0)
     -- Draw health
-    love.graphics.setColor(0.1,0.9,0.1,1)
-    g.drawImageOffset("1x1", hx, hy, 0, realW, HP_BAR_H, 0, 0)
+    if realW > 0 then
+        love.graphics.setColor(0.1,0.9,0.1,1)
+        g.drawImageOffset("1x1", hx, hy, 0, realW, HP_BAR_H, 0, 0)
+    end
     -- Draw border
     love.graphics.setColor(0,0,0,1)
     emulateLineRectangle(1, hx, hy, HP_BAR_W, HP_BAR_H)
@@ -1228,6 +1230,9 @@ local DAMAGE_NUMBER_SPARKLE_ASSETS = {"damage_number_sparkle_1", "damage_number_
 ---@param y number
 ---@param col objects.Color
 function World:_spawnDamageNumber(num, x, y, col)
+    -- Limit to 100 damage numbers at a time
+    if #self.damageNumbers >= 100 then return end
+
     self.damageNumbers[#self.damageNumbers+1] = {
         color = col,
         number = num,
