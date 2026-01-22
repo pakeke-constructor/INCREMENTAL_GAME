@@ -83,3 +83,14 @@ g.defineBoss("pumpkin_boss", 0, {
     end
 })
 
+g.defineToken("pumpkin_health", "pumpkin_health_internal", {
+    maxHealth = 10,
+    resources = {},
+
+    tokenDestroyed = function()
+        local boss = g.getBossToken()
+        if boss and boss.id == "pumpkin_boss" then
+            g.damageToken(boss, 5e3)
+        end
+    end
+})
