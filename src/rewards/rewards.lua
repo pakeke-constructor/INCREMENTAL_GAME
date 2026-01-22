@@ -145,24 +145,25 @@ local function assertRewardIsValid(rew)
 end
 
 
-
+---@param rng love.RandomGenerator
 ---@return string
-local function getRandomUnlockedResource()
+local function getRandomUnlockedResource(rng)
     local buf = {}
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if g.isResourceUnlocked(resId) then
             table.insert(buf, resId)
         end
     end
-    local resId = helper.randomChoice(buf)
+    local resId = helper.randomChoice(buf, rng and function(max) return rng:random(max) end)
     return resId or "money"
 end
 
 
-local function generateResourceReward()
-    local resId = getRandomUnlockedResource()
+---@param rng love.RandomGenerator
+local function generateResourceReward(rng)
+    local resId = getRandomUnlockedResource(rng)
     local rps = math.max(3, g.getResourcesPerSecond(resId))
-    local seconds = math.floor(love.math.random(15,40) / 5) * 5
+    local seconds = math.floor(rng:random(15, 40) / 5) * 5
 
     local resources = {}
     resources[resId] = rps*seconds
@@ -254,8 +255,9 @@ local INSTANT_REWARDS = {
 
 
 
-local function generateInstantReward()
-    return helper.randomChoice(INSTANT_REWARDS)
+---@param rng love.RandomGenerator
+local function generateInstantReward(rng)
+    return helper.randomChoice(INSTANT_REWARDS, function(max) return rng:random(max) end)
 end
 
 
@@ -274,14 +276,15 @@ for i=1,3 do
     table.insert(statPots, "goldmine_" .. i)
 end
 
-function generatePotionReward()
-    local potionId = helper.randomChoice(statPots)
+---@param rng love.RandomGenerator
+function generatePotionReward(rng)
+    local potionId = helper.randomChoice(statPots, function(max) return rng:random(max) end)
     local einfo = g.getEffectInfo(potionId)
     ---@type g.EffectReward
     local rew = {
         type = "effect",
         effect = einfo,
-        duration = 20 + love.math.random(-5, 5),
+        duration = 20 + rng:random(-5, 5),
         icon = einfo.image
     }
     return assertRewardIsValid(rew)
@@ -296,7 +299,8 @@ do
 
 
 ---@param resId g.ResourceType
-local function generateStackedChestToken(resId)
+---@param rng love.RandomGenerator
+local function generateStackedChestToken(resId, rng)
     local rps = math.max(g.getResourcesPerSecond(resId), 3)
     local resAmount = math.max(1, 5*(math.floor(rps*3 / 5)))
     ---@type g.TokenReward
@@ -307,10 +311,10 @@ local function generateStackedChestToken(resId)
             tok.resources = {
                 [resId] = resAmount
             }
-            worldutil.initializeFlyingTokenWithPos(tok, 8 + love.math.random()*3)
+            worldutil.initializeFlyingTokenWithPos(tok, 8 + rng:random()*3)
         end,
         token = g.getTokenInfo("chest_"..resId),
-        count = math.floor(math.random(8, 20) / 2) * 2,
+        count = math.floor(rng:random(8, 20) / 2) * 2,
         resource = {
             id = resId,
             amount = resAmount
@@ -323,7 +327,8 @@ end
 ---@param toktype string
 ---@param count integer
 ---@param desc string
-local function generateStackedGenericToken(toktype, count, desc)
+---@param rng love.RandomGenerator
+local function generateStackedGenericToken(toktype, count, desc, rng)
     local tokinfo = g.getTokenInfo(toktype)
     ---@type g.TokenReward
     local rew = {
@@ -333,7 +338,7 @@ local function generateStackedGenericToken(toktype, count, desc)
         count = count,
         icon = tokinfo.image,
         spawnFunc = function (tok)
-            worldutil.initializeFlyingTokenWithPos(tok, 8 + love.math.random()*3)
+            worldutil.initializeFlyingTokenWithPos(tok, 8 + rng:random()*3)
         end
     }
     return assertRewardIsValid(rew)
@@ -346,19 +351,20 @@ local HORDE = {
     {"mushroom_blue", desc=loc("Blue mushrooms that spawn lightning!")},
 }
 
-function generateStackedTokenReward()
+---@param rng love.RandomGenerator
+function generateStackedTokenReward(rng)
     local lv = g.getSn().level
     -- IDEA: spawn stackedToken bombs here?
 
-    do return generateStackedChestToken(getRandomUnlockedResource()) end
+    do return generateStackedChestToken(getRandomUnlockedResource(rng), rng) end
 
     -- IDEALLY, it should be stuff that is scaling-agnostic
-    if love.math.random() < 0.4 then
-        local h = helper.randomChoice(HORDE)
-        return generateStackedGenericToken(h[1], 10, h.desc)
+    if rng:random() < 0.4 then
+        local h = helper.randomChoice(HORDE, function(max) return rng:random(max) end)
+        return generateStackedGenericToken(h[1], 10, h.desc, rng)
     end
 
-    return generateStackedChestToken(getRandomUnlockedResource())
+    return generateStackedChestToken(getRandomUnlockedResource(rng), rng)
 end
 
 end
@@ -404,16 +410,18 @@ local PERM_UPGRADES = {
 function rewards.generateRandomRewards()
     local sn = g.getSn()
 
+    local rng = love.math.newRandomGenerator(sn.level * 2654435761 + 12345)
+
     -- Handle prestige 0 early levels (leave for later)
     if g.getPrestige() == 0 then
         if sn.level == 0 then
             return {assert(generateScytheReward())}
         elseif sn.level == 1 then
-            return {
-                assert(generateScytheReward()),
-                assert(generateScytheReward()),
-                assert(generateScytheReward())
-            }
+            -- return {
+            --     assert(generateScytheReward()),
+            --     assert(generateScytheReward()),
+            --     assert(generateScytheReward())
+            -- }
         end
         if sn.level < 4 then
             -- HARD-CODE
@@ -437,9 +445,9 @@ function rewards.generateRandomRewards()
 
     -- Generate normal reward list
     local rewardList = {
-        helper.randomChoice({generateResourceReward, generateInstantReward})(),
-        generateStackedTokenReward(),
-        generatePotionReward(),
+        helper.randomChoice({generateResourceReward, generateInstantReward}, function(max) return rng:random(max) end)(rng),
+        generateStackedTokenReward(rng),
+        generatePotionReward(rng),
     }
 
     -- Validate and shuffle rewards
@@ -448,20 +456,18 @@ function rewards.generateRandomRewards()
     end
     helper.shuffle(rewardList)
 
-    -- CHANCE% chance to replace one reward with a random permanent upgrade
-    local CHANCE = 1.25
-    for _=1, 3 do
-        if love.math.random() < CHANCE then
-            local randomUpgradeId = helper.randomChoice(PERM_UPGRADES)
-            local icon = assert(g.getUpgradeInfo(randomUpgradeId)).image
-            local permanentReward = {
-                type = "permanent",
-                upgradeId = randomUpgradeId,
-                icon = icon
-            }
-            local replaceIndex = math.random(1, #rewardList)
-            rewardList[replaceIndex] = permanentReward
-        end
+    -- CHANCE% chance to replace reward with a random permanent upgrade
+    local CHANCE = 0.4
+    if rng:random() < CHANCE then
+        local randomUpgradeId = helper.randomChoice(PERM_UPGRADES, function(max) return rng:random(max) end)
+        local icon = assert(g.getUpgradeInfo(randomUpgradeId)).image
+        local permanentReward = {
+            type = "permanent",
+            upgradeId = randomUpgradeId,
+            icon = icon
+        }
+        local replaceIndex = rng:random(1, #rewardList)
+        rewardList[replaceIndex] = permanentReward
     end
 
     return rewardList
