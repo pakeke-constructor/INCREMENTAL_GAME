@@ -2241,7 +2241,6 @@ end
 function g.summonBoss(bossId)
     assert(VALID_BOSSES[bossId])
     local tok = g.spawnToken(bossId, 0,0)
-    worldutil.initializeFlyingToken(tok, consts.BOSSFIGHT_DURATION)
 end
 
 ---@param prestige integer

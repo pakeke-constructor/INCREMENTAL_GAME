@@ -471,6 +471,57 @@ end
 
 
 
+do
+
+---@type table<g.Token, integer?>
+local BOSS_TOKEN_INDICES = setmetatable({}, {__mode = "k"})
+local RANDOM_PATH_DURATION = 5
+
+---@param tok g.Token
+---@param initduration number
+---@param hoverduration number
+---@param endduration number
+function worldutil.updateBossTokenFlypath(tok, initduration, hoverduration, endduration)
+    local activeTime = tok.timeAlive - initduration
+    if tok.timeAlive < initduration then
+        if not tok.flight then
+            -- Phase 1: Boss token moves to center
+            local leeway = g.getWorldEdgeLeeway()
+            local ww,hh = g.getWorldDimensions()
+            local startY = helper.lerp(0.1 * hh, 0.9*hh, love.math.random())
+            local startX = helper.lerp(-leeway, ww+leeway, love.math.random() >= 0.5 and 0 or 1)
+            local endX, endY = ww / 2, hh / 2
+            local vx, vy = helper.getVelocityByPoints(startX, startY, endX, endY, initduration)
+            tok.x, tok.y = startX, startY
+            tok.flight = {vx = vx, vy = vy}
+        end
+    elseif activeTime >= 0 and activeTime < hoverduration then
+        -- Phase 2: make boss goes in random path every RANDOM_PATH_DURATION seconds
+        local index = math.floor(tok.timeAlive / RANDOM_PATH_DURATION)
+        local posInfo = BOSS_TOKEN_INDICES[tok]
+        if posInfo ~= index then
+            local hash = tok.id - index * 1000
+            local ww,hh = g.getWorldDimensions()
+            local endX = helper.lerp(0, ww, helper.hashInteger(hash) / 4294967296)
+            local endY = helper.lerp(0, hh, helper.hashInteger(-hash) / 4294967296)
+            local vx, vy = helper.getVelocityByPoints(tok.x, tok.y, endX, endY, 10)
+            tok.flight.vx, tok.flight.vy = vx, vy
+            BOSS_TOKEN_INDICES[tok] = index
+        end
+    elseif tok.timeAlive >= initduration + hoverduration then
+        -- Phase 3: Make token goes offscreen
+        local leeway = g.getWorldEdgeLeeway()
+        local ww,hh = g.getWorldDimensions()
+        local endX = helper.lerp(-leeway, ww+leeway, helper.hashInteger(-tok.id) / 4294967295 >= 0.5 and 0 or 1)
+        local endY = helper.lerp(-leeway, hh+leeway, helper.hashInteger(tok.id) / 4294967295)
+        tok.flight.vx, tok.flight.vy = helper.getVelocityByPoints(ww / 2, hh / 2, endX, endY, endduration)
+    end
+end
+
+end
+
+
+
 -- worldutil.initializeFlyingTokenWithPos(tok, duration)
 do
 local SAMPLES = 3
