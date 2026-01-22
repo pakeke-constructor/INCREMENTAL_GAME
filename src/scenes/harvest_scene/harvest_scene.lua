@@ -603,7 +603,7 @@ local drawBossPopup
 do
 
 local BOSS_SLAIN = loc("{wavy}{o}Boss has been slain!")
-local PRESTIGE_COMPLETE_N = interp("{o}{c r=0.2 g=0.9 b=0.6}Prestige {n} completed.")
+local PRESTIGE_COMPLETE_N = interp("{o}{c r=0.2 g=0.9 b=0.6}Prestige %{n} completed.")
 local PROGRESS_RESET = loc("{o}By progressing, ALL upgrades are reset.")
 local OK_TEXT = loc("{o}Prestige!",nil,{
     context="As in, a button that progresses to the next level/prestige."
@@ -993,7 +993,7 @@ function harvest:draw()
     local sess = g.getSn()
 
     if not g.isBeingSimulated() then
-        if sess.showTutorials.harvest and (not consts.DEV_MODE) then
+        if sess.showTutorials.harvest then
             local lw = love.graphics.getLineWidth()
             love.graphics.setLineWidth(3)
             love.graphics.setColor(objects.Color.RED)
@@ -1179,7 +1179,7 @@ function harvest:keyreleased(k)
         s.paused = not s.paused
     elseif consts.DEV_MODE then
         if k=="1" then
-            -- openBossPopup(self)
+            --openBossPopup(self)
             --g.summonBoss("pumpkin_boss")
             g.incrementPrestige()
         elseif k=="2" then
@@ -1227,6 +1227,25 @@ end
 
 function harvest:bossSlain()
     openBossPopup(self)
+end
+
+
+
+---@param pool g.TokenPool
+function harvest:populateTokenPool(pool)
+    local boss = g.getBossToken()
+    if boss and boss.type == "pumpkin_boss" then
+        pool:add("pumpkin_health", 5)
+    end
+end
+
+---@param toktype string
+function harvest:getPerTokenRespawnTimeMultiplier(toktype)
+    if toktype == "pumpkin_health" then
+        return 0 -- Respawn pumpkin_health instantly
+    end
+
+    return 1
 end
 
 
