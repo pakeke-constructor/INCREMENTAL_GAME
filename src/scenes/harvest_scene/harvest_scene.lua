@@ -728,9 +728,24 @@ end
 
 
 
-local REWARD_ITEM_COL1 = objects.Color("#" .. "FF9F14F6")
-local REWARD_ITEM_COL2 = objects.Color("#" .. "FF3B12A4")
-local REWARD_ITEM_GRADIENT = helper.newGradientMesh("horizontal", REWARD_ITEM_COL1, REWARD_ITEM_COL2)
+local INSTANT_REWARD = {
+    col1 = objects.Color("#" .. "FF9F14F6"),
+    gradient = helper.newGradientMesh(
+        "horizontal",
+        objects.Color("#" .. "FF9F14F6"),
+        objects.Color("#" .. "FF3B12A4")
+    )
+}
+
+local PERM_REWARD = {
+    col1 = objects.Color("#" .. "FFC9400A"),
+    gradient = helper.newGradientMesh(
+        "horizontal",
+        objects.Color("#" .. "FFC9400A"),
+        objects.Color("#" .. "FF890707")
+    )
+}
+
 
 ---@param self HarvestScene
 function drawXpPopup(self)
@@ -764,14 +779,15 @@ function drawXpPopup(self)
     for i, rew in ipairs(self.xpRewards) do
         prof_push("drawReward "..i)
 
+        local hoveredCol = rew.type == "permanent" and PERM_REWARD or INSTANT_REWARD
         local rrr = regions[i]:padRatio(p)
         if iml.isHovered(rrr:get()) then
-            lg.setColor(REWARD_ITEM_COL1)
+            lg.setColor(hoveredCol.col1)
             lg.rectangle("fill", rrr:padUnit(4):get())
             lg.setColor(1, 1, 1)
         else
             local x, y, w, h = rrr:padUnit(4):get()
-            lg.draw(REWARD_ITEM_GRADIENT, x, y, 0, w, h)
+            lg.draw(hoveredCol.gradient, x, y, 0, w, h)
         end
         if iml.wasJustHovered(rrr:get()) then
     		g.playUISound("ui_tick", 1.6,0.65, 0,0)
