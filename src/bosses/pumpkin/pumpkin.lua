@@ -46,7 +46,7 @@ local PARTICLE_VY_MAX = -100
 local PARTICLE_VX_RANGE = 40
 
 g.defineBoss("pumpkin_boss", 0, {
-    maxHealth = 100000,
+    maxHealth = 1000000,
     resources = {},
     drawOrder = 90,
 
@@ -84,13 +84,20 @@ g.defineBoss("pumpkin_boss", 0, {
 })
 
 g.defineToken("pumpkin_health", "pumpkin_health_internal", {
-    maxHealth = 10,
+    maxHealth = 50,
     resources = {},
+
+    update = function(tok)
+        local boss = g.getBossToken()
+        if not boss or boss.type ~= "pumpkin_boss" then
+            g.deleteToken(tok)
+        end
+    end,
 
     tokenDestroyed = function()
         local boss = g.getBossToken()
-        if boss and boss.id == "pumpkin_boss" then
-            g.damageToken(boss, 5e3)
+        if boss and boss.type == "pumpkin_boss" then
+            g.damageToken(boss, 2e4)
         end
     end
 })
