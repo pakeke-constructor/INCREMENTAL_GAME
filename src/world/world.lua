@@ -201,6 +201,19 @@ local function updateToken(tok,dt)
 end
 
 
+
+local function emulateLineRectangle(thickness, x, y, w, h)
+    -- The anchor is on the center
+    -- top
+    g.drawImageOffset("1x1", x - thickness / 2, y - thickness / 2, 0, w + thickness, thickness, 0, 0)
+    -- bottom
+    g.drawImageOffset("1x1", x - thickness / 2, y + h - thickness / 2, 0, w + thickness, thickness, 0, 0)
+    -- left
+    g.drawImageOffset("1x1", x - thickness / 2, y - thickness / 2, 0, thickness, h + thickness, 0, 0)
+    -- right
+    g.drawImageOffset("1x1", x + w - thickness / 2, y - thickness / 2, 0, thickness, h + thickness, 0, 0)
+end
+
 ---@param tok g.Token
 local function drawTokenHealthBar(tok)
     if tok.health >= tok.maxHealth then
@@ -211,22 +224,25 @@ local function drawTokenHealthBar(tok)
     local HP_BAR_W = 14
     local HP_BAR_H = 3
     local realW = HP_BAR_W * (tok.health / tok.maxHealth)
+
+    local hx = x-HP_BAR_W/2
+    local hy = y+8
+
     -- Draw bar background
     love.graphics.setColor(0,0,0,0.5)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    g.drawImageOffset("1x1", hx, hy, 0, HP_BAR_W, HP_BAR_H, 0, 0)
     -- Draw lagged health
     local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
     t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
     local laggedW = HP_BAR_W * helper.lerp(tok.laggedHealth, tok.health, t) / tok.maxHealth
     love.graphics.setColor(1,1,1,1)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, laggedW, HP_BAR_H)
+    g.drawImageOffset("1x1", hx, hy, 0, laggedW, HP_BAR_H, 0, 0)
     -- Draw health
     love.graphics.setColor(0.1,0.9,0.1,1)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, realW, HP_BAR_H)
+    g.drawImageOffset("1x1", hx, hy, 0, realW, HP_BAR_H, 0, 0)
     -- Draw border
-    love.graphics.setLineWidth(1)
     love.graphics.setColor(0,0,0,1)
-    love.graphics.rectangle("line", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    emulateLineRectangle(1, hx, hy, HP_BAR_W, HP_BAR_H)
 end
 
 
@@ -411,10 +427,23 @@ local function drawEntity(e)
     end
 
     if e.image then
+        -- We need this need blendmode boolean check.
+        -- LOVE doesn't check the blending mode internally
+        -- and will always break batching even if the specified
+        -- blend mode in `setBlendMode` is same as `getBlendMode`.
+        local needblendmode = e.blendmode or e.blendalphamode
+
         love.graphics.setColor(1, 1, 1, e.alpha or 1)
-        love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
+
+        if needblendmode then
+            love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
+        end
+
         g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, sx,sy)
-        love.graphics.setBlendMode("alpha", "alphamultiply")
+
+        if needblendmode then
+            love.graphics.setBlendMode("alpha", "alphamultiply")
+        end
     end
 
     if e.draw then
