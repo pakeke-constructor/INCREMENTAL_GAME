@@ -480,6 +480,8 @@ function World:_draw()
 
     local wtz = consts.WORLD_TILE_SIZE
     local wtw, wth = g.getWorldTileDimensions()
+    -- Lua loops are both inclusive. So subtract by 1.
+    wtw, wth = wtw - 1, wth - 1
     local atlas = g.getAtlas()
     for y = 0, wth do
         for x = 0, wtw do
@@ -793,6 +795,7 @@ local WORLD_TILESETS = {
 ---@param self g.World
 local function tryUpdateDecorations(self)
     local tw,th = g.getWorldTileDimensions()
+    tw,th = tw-1, th-1
     local pres = g.getPrestige()
     local ls = self.lastSeenDimensions
     if tw == ls.x and th == ls.y and ls.prestige == pres then
@@ -817,8 +820,8 @@ local function tryUpdateDecorations(self)
     local BIGPAD=30
     for i=1,40*SIZE_MULT do
         table.insert(self.decorations, {
-            x = math.floor(helper.lerp(BIGPAD, w, love.math.random())),
-            y = math.floor(helper.lerp(BIGPAD, h, love.math.random())),
+            x = math.floor(helper.lerp(BIGPAD, w-BIGPAD*2, love.math.random())),
+            y = math.floor(helper.lerp(BIGPAD, h-BIGPAD*2, love.math.random())),
             image = "decor_big_" .. love.math.random(1,4),
             color = darkcol
         })
@@ -830,8 +833,8 @@ local function tryUpdateDecorations(self)
     local PAD=12
     for i=1,60*SIZE_MULT do
         table.insert(self.decorations, {
-            x = math.floor(helper.lerp(PAD, w, love.math.random())),
-            y = math.floor(helper.lerp(PAD, h, love.math.random())),
+            x = math.floor(helper.lerp(PAD, w-PAD*2, love.math.random())),
+            y = math.floor(helper.lerp(PAD, h-PAD*2, love.math.random())),
             image = "decor_splotch_" .. love.math.random(1,5),
             color = darkcol
         })
@@ -840,8 +843,8 @@ local function tryUpdateDecorations(self)
     local TPAD=30
     for i=1,30*SIZE_MULT do
         table.insert(self.decorations, {
-            x = math.floor(helper.lerp(TPAD, w, love.math.random())),
-            y = math.floor(helper.lerp(TPAD, h, love.math.random())),
+            x = math.floor(helper.lerp(TPAD, w-TPAD*2, love.math.random())),
+            y = math.floor(helper.lerp(TPAD, h-TPAD*2, love.math.random())),
             image = "decor_tex_" .. love.math.random(1,5),
             color = lightcol
         })
