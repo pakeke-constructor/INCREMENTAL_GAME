@@ -53,7 +53,7 @@ defUpgrade("land_deed", "Land deed", {
         return level
     end,
     getWorldTileSizeMultiplier = function(uinfo, level)
-        local m = 1+(level)/4
+        local m = 1+(level)/8
         return m
     end,
     drawUI = drawUI
