@@ -596,7 +596,7 @@ end
 
 
 local function getResourceMultiplierFromCombo()
-    return 1 + g.getMainWorld().combo * consts.COMBO_MULTIPLIER
+    return math.min(2, 1 + g.getMainWorld().combo * consts.COMBO_MULTIPLIER)
 end
 
 
