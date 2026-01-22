@@ -1,5 +1,3 @@
-
-
 --[[
 
 ==================
@@ -177,9 +175,9 @@ local function generateResourceReward(rng)
 end
 
 
----@type g.InstantReward[]
+---@type table<string, g.InstantReward>
 local INSTANT_REWARDS = {
-    {
+    slime_apocalypse = {
         type = "instant",
         icon = "slime_token",
         name = loc "Slime Apocalypse",
@@ -191,7 +189,7 @@ local INSTANT_REWARDS = {
             end
         end
     },
-    {
+    grim_reaper = {
         type = "instant",
         icon = "amethyst_scythe",
         name = loc "Grim Reaper",
@@ -203,7 +201,7 @@ local INSTANT_REWARDS = {
             end
         end
     },
-    {
+    eclipse = {
         type = "instant",
         icon = "star_upgrade",
         name = loc "Eclipse",
@@ -220,33 +218,30 @@ local INSTANT_REWARDS = {
             end
         end
     },
-    {
+    grass_1_infestation = {
         type = "instant",
         icon = "grass_1",
         name = loc "Grass (I)",
         description = loc "+30 {grass_1} crops for 15 seconds!",
         func = function()
-            ---@type g.Token[]
             g.grantEffect("grass_1_infestation", 15)
         end
     },
-    {
+    grass_2_infestation = {
         type = "instant",
         icon = "grass_2",
         name = loc "Grass (II)",
         description = loc "+20 {grass_2} crops for 15 seconds!",
         func = function()
-            ---@type g.Token[]
             g.grantEffect("grass_2_infestation", 15)
         end
     },
-    {
+    knife_swarm = {
         type = "instant",
         icon = "knife",
         name = loc "Knife swarm!",
         description = loc "Shoots out knives for 15 seconds!",
         func = function()
-            ---@type g.Token[]
             g.grantEffect("knife_swarm", 15)
         end
     }
@@ -257,7 +252,11 @@ local INSTANT_REWARDS = {
 
 ---@param rng love.RandomGenerator
 local function generateInstantReward(rng)
-    return helper.randomChoice(INSTANT_REWARDS, function(max) return rng:random(max) end)
+    local validRewards = {}
+    for _, reward in pairs(INSTANT_REWARDS) do
+        table.insert(validRewards, reward)
+    end
+    return helper.randomChoice(validRewards, function(max) return rng:random(max) end)
 end
 
 
@@ -406,34 +405,61 @@ local PERM_UPGRADES = {
     "planter_cat_grass_2",
 }
 
+
+---@param upgradeId string
+---@return g.PermanentReward
+local function makePermanentReward(upgradeId)
+    local uinfo = g.getUpgradeInfo(upgradeId)
+    return assertRewardIsValid({
+        type = "permanent",
+        upgradeId = upgradeId,
+        icon = uinfo.image
+    })
+end
+
+
+---@param effectId string
+---@param duration number
+---@return g.EffectReward
+local function makeEffectReward(effectId, duration)
+    local einfo = g.getEffectInfo(effectId)
+    return assertRewardIsValid({
+        type = "effect",
+        effect = einfo,
+        duration = duration,
+        icon = einfo.image
+    })
+end
+
+
 ---@return g.Reward[]
 function rewards.generateRandomRewards()
     local sn = g.getSn()
 
     local rng = love.math.newRandomGenerator(sn.level * 2654435761 + 12345)
 
-    -- Handle prestige 0 early levels (leave for later)
+    -- Handle prestige 0 early levels
     if g.getPrestige() == 0 then
         if sn.level == 0 then
             return {assert(generateScytheReward())}
         elseif sn.level == 1 then
-            -- return {
-            --   slime-all-crops
-            --   grass_1_infestiation
-            --   damage_potion
-            -- }
+            return {
+                INSTANT_REWARDS.slime_apocalypse,
+                INSTANT_REWARDS.grass_1_infestation,
+                makeEffectReward("hit_damage_1", 20)
+            }
         elseif sn.level == 2 then
-            -- return {
-            --   grass_2_infestiation
-            --   chest_stacked_tokens
-            --   area_potion
-            -- }
+            return {
+                INSTANT_REWARDS.grass_2_infestation,
+                generateStackedTokenReward(rng),
+                makeEffectReward("harvest_area_1", 20)
+            }
         elseif sn.level == 3 then
-            -- return {
-            --   permanent_damage_up
-            --   permanent_hitspeed_up
-            --   permanent_area_up
-            -- }
+            return {
+                makePermanentReward("flat_3_more_damage"),
+                makePermanentReward("flat_2_more_speed"),
+                makePermanentReward("flat_2_more_area")
+            }
         end
     end
 
@@ -469,12 +495,7 @@ function rewards.generateRandomRewards()
     local CHANCE = 0.4
     if rng:random() < CHANCE then
         local randomUpgradeId = helper.randomChoice(PERM_UPGRADES, function(max) return rng:random(max) end)
-        local icon = assert(g.getUpgradeInfo(randomUpgradeId)).image
-        local permanentReward = {
-            type = "permanent",
-            upgradeId = randomUpgradeId,
-            icon = icon
-        }
+        local permanentReward = makePermanentReward(randomUpgradeId)
         local replaceIndex = rng:random(1, #rewardList)
         rewardList[replaceIndex] = permanentReward
     end
