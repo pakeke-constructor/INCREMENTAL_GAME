@@ -22,6 +22,7 @@ local PARTICLE_SPEED = 550
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
 local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.3
+local CURRENCY_PARTICLE_LIMIT = consts.IS_MOBILE and 10 or 100
 
 local PARTICLE_SPAWN_CATEGORY = {
     money = {
@@ -136,26 +137,6 @@ function Resources:update(dt)
     end
 end
 
----@param text string
----@param font love.Font
----@param region kirigami.Region
----@param align love.AlignMode
----@param baseScale number?
----@param scale number?
-local function printTextAt(text, font, region, align, baseScale, scale)
-    baseScale = baseScale or 1
-    scale = scale or 1
-    local x, y, w, h = region:get()
-
-    local s = baseScale * scale
-    richtext.printRich(text, font, x, y, w / s, align, 0, s, s)
-end
-
----@param x number
-local function easeInCubic(x)
-    return x * x * x
-end
-
 
 local function currencyDevButton(txt, rr)
     rr = rr:padRatio(0.1)
@@ -227,7 +208,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
 
         do
             local text = {isFull and objects.Color.RED or objects.Color.WHITE, g.formatNumber(math.max(0,self.displayValue[kind]))}
-            local s = scale * (1 + easeInCubic(1 - t) * 0.25)
+            local s = scale * (1 + helper.EASINGS.easeInCubic(1 - t) * 0.25)
             helper.printTextOutlineSimple(text, font, 1, r.x, r.y, 0, s, s)
         end
 
@@ -365,6 +346,8 @@ end
 ---@param y number
 ---@param amount integer
 local function _spawnParticleImpl(self, kind, tier, x, y, amount)
+    if #self.particles >= CURRENCY_PARTICLE_LIMIT then return end
+
     local smallAmount = 0
     -- 20% chance to spawn 1 additional smaller particles
     if tier > 1 and love.math.random() < 0.2 then

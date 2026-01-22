@@ -201,6 +201,19 @@ local function updateToken(tok,dt)
 end
 
 
+
+local function emulateLineRectangle(thickness, x, y, w, h)
+    -- The anchor is on the center
+    -- top
+    g.drawImageOffset("1x1", x - thickness / 2, y - thickness / 2, 0, w + thickness, thickness, 0, 0)
+    -- bottom
+    g.drawImageOffset("1x1", x - thickness / 2, y + h - thickness / 2, 0, w + thickness, thickness, 0, 0)
+    -- left
+    g.drawImageOffset("1x1", x - thickness / 2, y - thickness / 2, 0, thickness, h + thickness, 0, 0)
+    -- right
+    g.drawImageOffset("1x1", x + w - thickness / 2, y - thickness / 2, 0, thickness, h + thickness, 0, 0)
+end
+
 ---@param tok g.Token
 local function drawTokenHealthBar(tok)
     if tok.health >= tok.maxHealth then
@@ -211,22 +224,27 @@ local function drawTokenHealthBar(tok)
     local HP_BAR_W = 14
     local HP_BAR_H = 3
     local realW = HP_BAR_W * (tok.health / tok.maxHealth)
+
+    local hx = x-HP_BAR_W/2
+    local hy = y+8
+
     -- Draw bar background
     love.graphics.setColor(0,0,0,0.5)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    g.drawImageOffset("1x1", hx, hy, 0, HP_BAR_W, HP_BAR_H, 0, 0)
     -- Draw lagged health
     local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
     t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
     local laggedW = HP_BAR_W * helper.lerp(tok.laggedHealth, tok.health, t) / tok.maxHealth
     love.graphics.setColor(1,1,1,1)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, laggedW, HP_BAR_H)
+    g.drawImageOffset("1x1", hx, hy, 0, laggedW, HP_BAR_H, 0, 0)
     -- Draw health
-    love.graphics.setColor(0.1,0.9,0.1,1)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, realW, HP_BAR_H)
+    if realW > 0 then
+        love.graphics.setColor(0.1,0.9,0.1,1)
+        g.drawImageOffset("1x1", hx, hy, 0, realW, HP_BAR_H, 0, 0)
+    end
     -- Draw border
-    love.graphics.setLineWidth(1)
     love.graphics.setColor(0,0,0,1)
-    love.graphics.rectangle("line", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    emulateLineRectangle(1, hx, hy, HP_BAR_W, HP_BAR_H)
 end
 
 
@@ -411,10 +429,23 @@ local function drawEntity(e)
     end
 
     if e.image then
+        -- We need this need blendmode boolean check.
+        -- LOVE doesn't check the blending mode internally
+        -- and will always break batching even if the specified
+        -- blend mode in `setBlendMode` is same as `getBlendMode`.
+        local needblendmode = e.blendmode or e.blendalphamode
+
         love.graphics.setColor(1, 1, 1, e.alpha or 1)
-        love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
+
+        if needblendmode then
+            love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
+        end
+
         g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, sx,sy)
-        love.graphics.setBlendMode("alpha", "alphamultiply")
+
+        if needblendmode then
+            love.graphics.setBlendMode("alpha", "alphamultiply")
+        end
     end
 
     if e.draw then
@@ -451,6 +482,8 @@ function World:_draw()
 
     local wtz = consts.WORLD_TILE_SIZE
     local wtw, wth = g.getWorldTileDimensions()
+    -- Lua loops are both inclusive. So subtract by 1.
+    wtw, wth = wtw - 1, wth - 1
     local atlas = g.getAtlas()
     for y = 0, wth do
         for x = 0, wtw do
@@ -764,6 +797,7 @@ local WORLD_TILESETS = {
 ---@param self g.World
 local function tryUpdateDecorations(self)
     local tw,th = g.getWorldTileDimensions()
+    tw,th = tw-1, th-1
     local pres = g.getPrestige()
     local ls = self.lastSeenDimensions
     if tw == ls.x and th == ls.y and ls.prestige == pres then
@@ -788,8 +822,8 @@ local function tryUpdateDecorations(self)
     local BIGPAD=30
     for i=1,40*SIZE_MULT do
         table.insert(self.decorations, {
-            x = math.floor(helper.lerp(BIGPAD, w, love.math.random())),
-            y = math.floor(helper.lerp(BIGPAD, h, love.math.random())),
+            x = math.floor(helper.lerp(BIGPAD, w-BIGPAD*2, love.math.random())),
+            y = math.floor(helper.lerp(BIGPAD, h-BIGPAD*2, love.math.random())),
             image = "decor_big_" .. love.math.random(1,4),
             color = darkcol
         })
@@ -801,8 +835,8 @@ local function tryUpdateDecorations(self)
     local PAD=12
     for i=1,60*SIZE_MULT do
         table.insert(self.decorations, {
-            x = math.floor(helper.lerp(PAD, w, love.math.random())),
-            y = math.floor(helper.lerp(PAD, h, love.math.random())),
+            x = math.floor(helper.lerp(PAD, w-PAD*2, love.math.random())),
+            y = math.floor(helper.lerp(PAD, h-PAD*2, love.math.random())),
             image = "decor_splotch_" .. love.math.random(1,5),
             color = darkcol
         })
@@ -811,8 +845,8 @@ local function tryUpdateDecorations(self)
     local TPAD=30
     for i=1,30*SIZE_MULT do
         table.insert(self.decorations, {
-            x = math.floor(helper.lerp(TPAD, w, love.math.random())),
-            y = math.floor(helper.lerp(TPAD, h, love.math.random())),
+            x = math.floor(helper.lerp(TPAD, w-TPAD*2, love.math.random())),
+            y = math.floor(helper.lerp(TPAD, h-TPAD*2, love.math.random())),
             image = "decor_tex_" .. love.math.random(1,5),
             color = lightcol
         })
@@ -1196,6 +1230,9 @@ local DAMAGE_NUMBER_SPARKLE_ASSETS = {"damage_number_sparkle_1", "damage_number_
 ---@param y number
 ---@param col objects.Color
 function World:_spawnDamageNumber(num, x, y, col)
+    -- Limit to 100 damage numbers at a time
+    if #self.damageNumbers >= 100 then return end
+
     self.damageNumbers[#self.damageNumbers+1] = {
         color = col,
         number = num,
