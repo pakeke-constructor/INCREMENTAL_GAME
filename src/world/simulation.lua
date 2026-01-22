@@ -192,9 +192,16 @@ function simulation.update()
         st.graphCaptureTime = st.graphCaptureTime + dt
 
         if sn.xp >= sn.xpRequirement then
-            -- Pick random rewards
+            -- Pick reward:
             local r = rewards.generateRandomRewards()
-            rewards.selectReward(helper.randomChoice(r))
+            for i,rew in ipairs(r) do
+                if rew.type == "permanent" then
+                    -- always choose perm rewards.
+                    rewards.selectReward(helper.randomChoice(r))
+                elseif i == #r then
+                    -- final reward; pick it
+                end
+            end
             -- Pick upgrade based on strategy
             tryBuyUpgrade(sn.tree, st.buyStrategy)
             -- HACK: Oh well, this code is MSOT across harvest scene
