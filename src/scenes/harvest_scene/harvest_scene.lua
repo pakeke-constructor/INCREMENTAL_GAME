@@ -1032,31 +1032,6 @@ function harvest:draw()
         drawComboVisual(self)
     end
 
-    -- show stats in dev-mode
-    if consts.SHOW_DEV_STUFF then
-        prof_push("debug stats")
-
-        love.graphics.setColor(1, 1, 1)
-        local r = ui.getScreenRegion()
-        local _,right = r:splitHorizontal(6,1)
-        local N=20
-        local regions = right:grid(1,N)
-
-        local i = N
-        local font = g.getSmallFont(16)
-
-        richtext.printRichContained("{o}{c r=1 g=1 b=0}LEVEL: "..g.formatNumber(g.getSn().level), font, regions[i]:get())
-        i = i - 1
-        for _,k in ipairs({"HitDamage", "HitSpeed", "HarvestArea"}) do
-            local val = g.stats[k]
-            local reg = regions[i]
-            richtext.printRichContained("{o}"..k.. ": "..g.formatNumber(val), font, reg:get())
-            i = i - 1
-        end
-
-        prof_pop() -- prof_push("debug stats")
-    end
-
     --- Storage is Full text:
     do
     local fullResource = nil
