@@ -197,9 +197,12 @@ function simulation.update()
             for i,rew in ipairs(r) do
                 if rew.type == "permanent" then
                     -- always choose perm rewards.
-                    rewards.selectReward(helper.randomChoice(r))
+                    rewards.selectReward(rew)
+                    break
                 elseif i == #r then
                     -- final reward; pick it
+                    rewards.selectReward(rew)
+                    break
                 end
             end
             -- Pick upgrade based on strategy

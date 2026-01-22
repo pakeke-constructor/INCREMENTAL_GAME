@@ -219,7 +219,7 @@ function love.load(arg)
         g.newSession()
 
         -- Begin simulation
-        local strategy = assert(arg[2], "missing strategy"):lower()
+        local strategy = assert(arg[2], "missing strategy: [cheapest, random]"):lower()
         local duration = assert(tonumber(arg[3]), "invalid duration")
         simulation.start({duration = duration, buyStrategy = strategy})
     end
@@ -387,7 +387,7 @@ function love.keypressed(key, scancode, isrep)
     end
 
     idleTime = 0
-    iml.keyreleased(key, scancode, isrep)
+    iml.keypressed(key, scancode, isrep)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.keypressed then
         sc:keypressed(key, scancode, isrep)
