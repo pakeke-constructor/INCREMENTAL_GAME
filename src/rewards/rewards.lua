@@ -444,7 +444,7 @@ function rewards.generateRandomRewards()
             return {assert(generateScytheReward())}
         elseif sn.level == 1 then
             return {
-                INSTANT_REWARDS.slime_apocalypse,
+                makeEffectReward("harvest_area_2", 20),
                 INSTANT_REWARDS.grass_1_infestation,
                 makeEffectReward("hit_damage_1", 20)
             }

@@ -125,11 +125,19 @@ local function calculateXPRequirement()
     totalTokenHP = math.max(totalTokenHP, 1)
 
     local level = g.getSn().level
-    if level <= 1 then
+    if level <= 0 then
         -- aim to harvest 3 tokens, then level-up
         return math.ceil((totalTokenHP / (tokCount+1)) * 3)
-    elseif level <= 5 then
-        return math.ceil(totalTokenHP * 2.5)
+    elseif level <= 2 then
+        -- aim to harvest X tokens, then level-up
+        local X = 13
+        local hpPerTok = (totalTokenHP / (tokCount+1))
+        return math.ceil(hpPerTok * X)
+    elseif level <= 6 then
+        -- aim to harvest X tokens, then level-up
+        local X = 18
+        local hpPerTok = (totalTokenHP / (tokCount+1))
+        return math.ceil(hpPerTok * X)
     end
 
     return math.ceil(totalTokenHP * math.sqrt(level))
