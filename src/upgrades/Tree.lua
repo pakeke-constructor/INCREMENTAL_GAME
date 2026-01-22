@@ -521,7 +521,7 @@ local function hasAnyFullyPurchasedNeighbors(self, upg)
     local neighs = self:getNeighbors(upg.x, upg.y)
     for _, u in ipairs(neighs) do
         local maxLevel = self:getUpgradeMaxLevel(u)
-        if (u.level >= maxLevel) or (u.isRoot) then
+        if ((u.level >= maxLevel) and (maxLevel ~= 0)) or (u.isRoot) then
             return true
         end
     end
@@ -541,11 +541,6 @@ function Tree:isUpgradeHidden(upg)
     local uinfo = g.getUpgradeInfo(upg.id)
     if uinfo.isHidden and uinfo:isHidden() then
         return true
-    end
-
-    if upg.maxLevelOverride <= 0 then
-        -- maxLevel = 0; should be hidden.
-        return false
     end
 
     local isHidden = not hasAnyFullyPurchasedNeighbors(self, upg)
