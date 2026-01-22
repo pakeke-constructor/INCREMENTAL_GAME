@@ -1228,6 +1228,12 @@ function g.grantEffect(id, duration)
     return currentSession.mainWorld:_grantEffect(id, duration)
 end
 
+
+function g.clearEffects()
+    return currentSession.mainWorld:_clearEffects()
+end
+
+
 ---@param id string
 ---@return g.EffectInfo
 function g.getEffectInfo(id)

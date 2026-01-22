@@ -694,6 +694,13 @@ function World:_grantEffect(id, dur)
 end
 
 
+function World:_clearEffects()
+    self.effectDurations = {}
+    self.effects = {}
+end
+
+
+
 ---@private
 function World:_updateTokenCount()
     table_clear(self.tokenCounts)

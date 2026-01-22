@@ -95,7 +95,8 @@ local function tryBuyUpgrade(tree, strategy)
     local affordableUpgrades = {}
 
     for _, upg in ipairs(tree:getUpgradesOnTree()) do
-        if not tree:isUpgradeHidden(upg) and tree:canAffordUpgrade(upg) and upg.level < tree:getUpgradeMaxLevel(upg) then
+        local maxLv = tree:getUpgradeMaxLevel(upg)
+        if (not tree:isUpgradeHidden(upg)) and tree:canAffordUpgrade(upg) and (upg.level < maxLv) then
             affordableUpgrades[#affordableUpgrades+1] = upg
         end
     end
@@ -207,9 +208,7 @@ function simulation.update()
             end
             -- Pick upgrade based on strategy
             tryBuyUpgrade(sn.tree, st.buyStrategy)
-            -- HACK: Oh well, this code is MSOT across harvest scene
-            sn.xp = 0
-            sn.level = sn.level + 1
+            sn:levelUp()
         end
 
         -- Also buy upgrades if any resource is full.

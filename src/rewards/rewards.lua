@@ -688,6 +688,7 @@ end
 ---@param rew g.Reward
 function rewards.selectReward(rew)
     assertRewardIsValid(rew)
+    g.clearEffects()
 
     if rew.type == "resource" then
         ---@cast rew g.ResourceReward
