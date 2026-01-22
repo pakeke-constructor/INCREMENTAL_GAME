@@ -353,7 +353,7 @@ function generateStackedTokenReward()
     do return generateStackedChestToken(getRandomUnlockedResource()) end
 
     -- IDEALLY, it should be stuff that is scaling-agnostic
-    if love.math.random() < 10.4 then
+    if love.math.random() < 0.4 then
         local h = helper.randomChoice(HORDE)
         return generateStackedGenericToken(h[1], 10, h.desc)
     end
@@ -409,7 +409,11 @@ function rewards.generateRandomRewards()
         if sn.level == 0 then
             return {assert(generateScytheReward())}
         elseif sn.level == 1 then
-            -- uhh idk lol. TODO
+            return {
+                assert(generateScytheReward()),
+                assert(generateScytheReward()),
+                assert(generateScytheReward())
+            }
         end
         if sn.level < 4 then
             -- HARD-CODE
