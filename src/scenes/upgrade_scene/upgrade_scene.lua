@@ -209,17 +209,36 @@ local function drawUpgradeBoxes(self)
         return forceVisibility or (not hidden)
     end
 
+    ---@type table<g.Tree.Upgrade, boolean>
+    local isNextToVisibleCache = {}
+    for _, upg in ipairs(upgrades) do
+        -- cache, (another expensive operation)
+        -- MUST BE DONE 2-PASS, THATS WHY THERES 2 LOOPS.
+        local neighs = tree:getNeighbors(upg.x,upg.y)
+        for _, upg2 in ipairs(neighs) do
+            if isVisible(upg2) then
+                isNextToVisibleCache[upg] = true
+                break
+            end
+        end
+    end
+
+    local function isNextToVisible(upg)
+        return isNextToVisibleCache[upg] or isVisible(upg)
+    end
+
     -- Draw connectors
     local toAnimate = objects.Set() -- contains the upgrade tree
     prof_push("drawConnectors")
     for _, upg in ipairs(upgrades) do
         -- Draw connector first
         for _, upg2 in ipairs(tree:getNeighbors(upg.x,upg.y)) do
-            -- if true or isVisible(upg2) then
-            drawConnector(upg, upg2)
+            if isNextToVisible(upg2) and isNextToVisible(upg) then
+                drawConnector(upg, upg2)
 
-            if self.lastUpgradeMaxxed[2] > 0 and self.lastUpgradeMaxxed[1] == upg and upg2.level == 0 then
-                toAnimate:add(upg2)
+                if self.lastUpgradeMaxxed[2] > 0 and self.lastUpgradeMaxxed[1] == upg and upg2.level == 0 then
+                    toAnimate:add(upg2)
+                end
             end
         end
     end
@@ -230,8 +249,6 @@ local function drawUpgradeBoxes(self)
     ---@type table<g.Tree.Upgrade, string>
     local frames = {}
     ---@type table<g.Tree.Upgrade, boolean>
-    local blackedOut = {}
-    ---@type table<g.Tree.Upgrade, boolean>
     local canAffords = {}
     -- Determine bg, frame, blacked out, and input
     prof_push("processUpgrades")
@@ -241,7 +258,6 @@ local function drawUpgradeBoxes(self)
         local isMaxLevel = upg.level >= maxLevel
         local canAfford = upg.level < maxLevel and tree:canAffordUpgrade(upg, upg.level+1)
         canAffords[upg] = canAfford
-        blackedOut[upg] = not isVisible(upg)
 
         if uinfo.kind == "TOKEN" then
             if canAfford then
@@ -265,7 +281,7 @@ local function drawUpgradeBoxes(self)
         end
 
         -- If not blacked out, process inputs
-        if not blackedOut[upg] then
+        if isVisible(upg) then
             local x, y, w, h = getUpgradeClickableArea(upg, frames[upg])
 
             if iml.isHovered(x, y, w, h) then
@@ -299,7 +315,7 @@ local function drawUpgradeBoxes(self)
     local time = love.timer.getTime()
     prof_push("drawGodrays")
     for _, upg in ipairs(upgrades) do
-        if not blackedOut[upg] and canAffords[upg] and upg.level == 0 then
+        if isVisible(upg) and canAffords[upg] and upg.level == 0 then
             local x, y = getUpgradeGridCoords(upg.x, upg.y)
             local t = time % (2 * math.pi)
             local t2 = (time * 0.8 + 1) % (2 * math.pi)
@@ -314,18 +330,20 @@ local function drawUpgradeBoxes(self)
     -- Draw upgrade background and frame
     prof_push("drawUpgradeFrameBackground")
     for _, upg in ipairs(upgrades) do
-        local x, y = getUpgradeGridCoords(upg.x, upg.y)
+        if isNextToVisible(upg) then
+            local x, y = getUpgradeGridCoords(upg.x, upg.y)
 
-        lg.setColor(1, 1, 1)
-        if blackedOut[upg] then
-            lg.setColor(0, 0, 0, 0.8)
+            lg.setColor(1, 1, 1)
+            if not isVisible(upg) then
+                lg.setColor(0, 0, 0, 0.8)
+            end
+
+            if backgrounds[upg] then
+                g.drawImage(backgrounds[upg], x, y)
+            end
+
+            g.drawImage(frames[upg], x, y)
         end
-
-        if backgrounds[upg] then
-            g.drawImage(backgrounds[upg], x, y)
-        end
-
-        g.drawImage(frames[upg], x, y)
     end
     prof_pop() -- prof_push("drawUpgradeFrameBackground")
 
@@ -333,7 +351,7 @@ local function drawUpgradeBoxes(self)
     -- Draw image/icon/custom shit
     prof_push("drawImageIconCustomShit")
     for _, upg in ipairs(upgrades) do
-        if not blackedOut[upg] then
+        if isVisible(upg) then
             local uinfo = g.getUpgradeInfo(upg.id)
             local cx, cy = getUpgradeGridCoords(upg.x, upg.y)
             lg.setColor(upg.level > 0 and objects.Color.WHITE or objects.Color.BLACK)
@@ -358,7 +376,7 @@ local function drawUpgradeBoxes(self)
     local levelFont = g.getBigFont(16)
     prof_push("drawUpgradeLevel")
     for _, upg in ipairs(upgrades) do
-        if not blackedOut[upg] and upg.level > 0 then
+        if isVisible(upg) and upg.level > 0 then
             local maxLevel = tree:getUpgradeMaxLevel(upg)
             love.graphics.setColor(1, 1, 1)
             if upg.level >= maxLevel then
