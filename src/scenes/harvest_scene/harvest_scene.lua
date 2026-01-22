@@ -204,7 +204,7 @@ end
 ---@param tok g.Token
 ---@param bundle g.Bundle
 function harvest:tokenEarnedResources(tok, bundle)
-    if g.isBeingSimulated() or consts.IS_MOBILE then
+    if g.isBeingSimulated() then
         return
     end
 
@@ -845,6 +845,7 @@ local COMBO_POPUP_TEXT = interp(
     "x%{mul} Resources!",
     {context = "Text popup shown when destroying many crops in short amount of time"}
 )
+local XP_PARTICLE_COUNT = consts.IS_MOBILE and 5 or 50
 
 
 ---@param tok g.Token
@@ -862,7 +863,7 @@ function harvest:tokenDestroyed(tok)
     end
 
     if not g.isBeingSimulated() then
-        if not consts.IS_MOBILE or xpParticles:getParticleCount() < 50 then
+        if xpParticles:getParticleCount() < XP_PARTICLE_COUNT then
             local x,y = self.camera:getTransform():transformPoint(tok.x,tok.y)
             local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(x,y)
             local SPD = 600
