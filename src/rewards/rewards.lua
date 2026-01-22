@@ -418,13 +418,22 @@ function rewards.generateRandomRewards()
             return {assert(generateScytheReward())}
         elseif sn.level == 1 then
             -- return {
-            --     assert(generateScytheReward()),
-            --     assert(generateScytheReward()),
-            --     assert(generateScytheReward())
+            --   slime-all-crops
+            --   grass_1_infestiation
+            --   damage_potion
             -- }
-        end
-        if sn.level < 4 then
-            -- HARD-CODE
+        elseif sn.level == 2 then
+            -- return {
+            --   grass_2_infestiation
+            --   chest_stacked_tokens
+            --   area_potion
+            -- }
+        elseif sn.level == 3 then
+            -- return {
+            --   permanent_damage_up
+            --   permanent_hitspeed_up
+            --   permanent_area_up
+            -- }
         end
     end
 

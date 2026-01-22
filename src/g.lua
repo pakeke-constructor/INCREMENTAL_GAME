@@ -632,8 +632,8 @@ g.stats = {}
 -- SSTATS 
 -- (if you ever want to quickly search the name of stats, search "sstats")
 g.stats.HitSpeed = g.defineStat("HitSpeed", 5, "Hit Speed")
-g.stats.HitDamage = g.defineStat("HitDamage", 15, "Hit Damage")
-g.stats.HarvestArea = g.defineStat("HarvestArea", 15, "Harvest Area")
+g.stats.HitDamage = g.defineStat("HitDamage", 20, "Hit Damage")
+g.stats.HarvestArea = g.defineStat("HarvestArea", 10, "Harvest Area")
 g.stats.ResourceMultiplier = g.defineStat("ResourceMultiplier", 1, "Resource Gain Multiplier")
 g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 2, "Entity Orbit Speed") -- rad/s
 g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1, "XP Gain Multiplier")
