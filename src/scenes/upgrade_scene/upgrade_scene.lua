@@ -896,6 +896,17 @@ function upgscene:keypressed(k)
             local _ = u and tree:tryBuyUpgrade(u)
         end
 
+        if k == "z" and self.dev_editMode then
+            local sel = self.dev_editModeSelection
+            if sel then
+                local upg = tree:get(sel.x,sel.y)
+                -- zero everything.
+                tree:setUpgradeBasePrice(upg, {money=0})
+                tree:setUpgradeLevel(upg, 0)
+                upg.maxLevelOverride = 0
+            end
+        end
+
         if k == "u" and love.keyboard.isDown("lshift")then
             for i=1,20 do
                 local u = getCheapestUpgrade(tree)

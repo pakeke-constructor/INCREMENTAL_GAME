@@ -543,6 +543,11 @@ function Tree:isUpgradeHidden(upg)
         return true
     end
 
+    if upg.maxLevelOverride <= 0 then
+        -- maxLevel = 0; should be hidden.
+        return false
+    end
+
     local isHidden = not hasAnyFullyPurchasedNeighbors(self, upg)
     return isHidden
 end
