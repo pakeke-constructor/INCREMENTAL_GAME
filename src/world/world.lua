@@ -776,9 +776,10 @@ local function tryUpdateDecorations(self)
     -- Create new tile atlas
     self.tilemap = helper.splitTileImage(ts.tileset, consts.WORLD_TILE_SIZE)
 
+    local SIZE_MULT = math.sqrt(g.stats.WorldTileSize / g.getStatBaseValue("WorldTileSize"))
     --====== add big-splotch decorations:  ======
     local BIGPAD=30
-    for i=1,40 do
+    for i=1,40*SIZE_MULT do
         table.insert(self.decorations, {
             x = math.floor(helper.lerp(BIGPAD, w, love.math.random())),
             y = math.floor(helper.lerp(BIGPAD, h, love.math.random())),
@@ -791,7 +792,7 @@ local function tryUpdateDecorations(self)
     -- local originalCol = "#" .. "ff2bae62"
     -- local col = objects.Color("#" .. "FF1E954F")
     local PAD=12
-    for i=1,60 do
+    for i=1,60*SIZE_MULT do
         table.insert(self.decorations, {
             x = math.floor(helper.lerp(PAD, w, love.math.random())),
             y = math.floor(helper.lerp(PAD, h, love.math.random())),
@@ -801,7 +802,7 @@ local function tryUpdateDecorations(self)
     end
 
     local TPAD=30
-    for i=1,30 do
+    for i=1,30*SIZE_MULT do
         table.insert(self.decorations, {
             x = math.floor(helper.lerp(TPAD, w, love.math.random())),
             y = math.floor(helper.lerp(TPAD, h, love.math.random())),

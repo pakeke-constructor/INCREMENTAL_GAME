@@ -620,6 +620,12 @@ function g.defineStat(id, startingValue, name)
 end
 
 
+---@param id string
+---@return number
+function g.getStatBaseValue(id)
+    return g.VALID_STATS[id].startingValue
+end
+
 
 
 -- stats are recomputed every frame.
