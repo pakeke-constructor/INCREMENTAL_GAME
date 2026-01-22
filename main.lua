@@ -216,7 +216,8 @@ function love.load(arg)
 
     if arg[1] == "--simulate" then
         analytics.init(nil) -- Explicitly disable analytics
-        g.newSession()
+        local sn = g.newSession()
+        sn.tree = g.loadPrestigeTree(0)
 
         -- Begin simulation
         local strategy = assert(arg[2], "missing strategy: [cheapest, random]"):lower()
