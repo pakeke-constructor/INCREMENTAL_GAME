@@ -426,6 +426,43 @@ function worldutil.spawnKnife(x, y, rot, leeway)
 end
 
 
+
+
+
+g.defineEntity("line", {
+    draw = function(ent)
+        ---@diagnostic disable-next-line: undefined-field
+        local t = ent.lifetime / ent._duration
+        local col = {love.graphics.getColor()}
+        ---@diagnostic disable-next-line: undefined-field
+        love.graphics.setColor(ent._color)
+        g.drawImage("1x1", ent.x, ent.y, ent.rot, ent.sx, ent.sy * t)
+        love.graphics.setColor(col)
+    end
+})
+
+---@param x1 number
+---@param y1 number
+---@param x2 number
+---@param y2 number
+---@param width number
+---@param color objects.Color
+---@param duration number
+function worldutil.spawnFadingLine(x1, y1, x2, y2, width, color, duration)
+    local ent = g.spawnEntity("line", (x1 + x2) / 2, (y1 + y2) / 2)
+    ent.sx = helper.magnitude(x2 - x1, y2 - y1)
+    ent.sy = width
+    ent.rot = math.atan2(y2 - y1, x2 - x1)
+    ent.lifetime = duration
+    ---@diagnostic disable-next-line: inject-field
+    ent._color = color
+    ---@diagnostic disable-next-line: inject-field
+    ent._duration = duration
+    return ent
+end
+
+
+
 ---@param tok g.Token
 ---@param duration number How long it takes to travel across world.
 function worldutil.initializeFlyingToken(tok, duration)
@@ -473,8 +510,6 @@ end
 
 do
 
----@type table<g.Token, integer?>
-local BOSS_TOKEN_INDICES = setmetatable({}, {__mode = "k"})
 local RANDOM_PATH_DURATION = 5
 
 ---@param tok g.Token
@@ -498,15 +533,15 @@ function worldutil.updateBossTokenFlypath(tok, initduration, hoverduration, endd
     elseif activeTime >= 0 and activeTime < hoverduration then
         -- Phase 2: make boss goes in random path every RANDOM_PATH_DURATION seconds
         local index = math.floor(tok.timeAlive / RANDOM_PATH_DURATION)
-        local posInfo = BOSS_TOKEN_INDICES[tok]
-        if posInfo ~= index then
+        if tok.bossPathIndex ~= index then
             local hash = tok.id - index * 1000
             local ww,hh = g.getWorldDimensions()
             local endX = helper.lerp(0, ww, helper.hashInteger(hash) / 4294967296)
             local endY = helper.lerp(0, hh, helper.hashInteger(-hash) / 4294967296)
             local vx, vy = helper.getVelocityByPoints(tok.x, tok.y, endX, endY, 10)
             tok.flight.vx, tok.flight.vy = vx, vy
-            BOSS_TOKEN_INDICES[tok] = index
+            ---@diagnostic disable-next-line: inject-field
+            tok.bossPathIndex = index
         end
     elseif tok.timeAlive >= initduration + hoverduration then
         -- Phase 3: Make token goes offscreen
