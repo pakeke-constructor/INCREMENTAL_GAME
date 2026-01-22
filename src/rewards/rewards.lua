@@ -456,8 +456,8 @@ function rewards.generateRandomRewards()
             }
         elseif sn.level == 3 then
             return {
-                makePermanentReward("flat_3_more_damage"),
-                makePermanentReward("flat_2_more_speed"),
+                makePermanentReward("flat_2_more_damage"),
+                makePermanentReward("flat_1_more_speed"),
                 makePermanentReward("flat_2_more_area")
             }
         end
