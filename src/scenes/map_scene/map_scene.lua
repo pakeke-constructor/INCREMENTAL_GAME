@@ -330,6 +330,7 @@ local function makePOIAction(poi)
 end
 
 
+
 local drawWaveArea, WAVE_AREAS, updateWaves
 do
 
@@ -374,15 +375,15 @@ end
 function drawWaveArea(r)
     for _, wave in ipairs(waves) do
         if wave.area == r then
-            local alpha = 1 - (wave.time / wave.life)
-            lg.setColor(1,1,1,alpha)
-            g.drawImage("wave", wave.x, wave.y, 0, 1)
+            local progress = wave.time / wave.life
+            local scale = math.sin(progress * math.pi)
+            lg.setColor(1,1,1,1)
+            g.drawImage("wave", wave.x, wave.y, 0, scale)
         end
     end
 end
 
 end
-
 
 local drawEdgeClouds
 do
