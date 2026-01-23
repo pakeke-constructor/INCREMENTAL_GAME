@@ -73,7 +73,7 @@ end
 ---@param maxwidth number?
 ---@param align love.AlignMode?
 local function textGetLayout(parsed, font, maxwidth, align)
-    local key = tostring(parsed)..tostring(maxwidth)..tostring(font)..tostring(align or "left")
+    local key = parsed.origin.."\0"..tostring(maxwidth)..tostring(font)..tostring(align or "left")
     local layout = parsedLayout:get(key) --[[@as richtext.TextLayout?]]
     if not layout then
         ---@diagnostic disable-next-line: param-type-mismatch
