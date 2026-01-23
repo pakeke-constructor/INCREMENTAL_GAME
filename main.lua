@@ -329,6 +329,13 @@ function love.draw()
         crt.finish()
     end
 
+    -- Yes, we need this check instead of just calling `love.window.setFullscreen`
+    -- without any conditions. Otherwise, mouse will get jittery on setting scene,
+    -- at least in Windows.
+    if settings.isFullscreen() ~= love.window.getFullscreen() then
+        love.window.setFullscreen(settings.isFullscreen(), "desktop")
+    end
+
     prof_pop() -- prof_push("love.draw")
 
     if heartbeat then

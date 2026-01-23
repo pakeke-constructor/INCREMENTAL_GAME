@@ -82,12 +82,6 @@ end
 ---@param fs boolean
 function setting.setFullscreen(fs)
     settingData.fullscreen = fs
-    -- Yes, we need this check instead of just calling `love.window.setFullscreen`
-    -- without any conditions. Otherwise, mouse will get jittery on setting scene,
-    -- at least in Windows.
-    if settingData.fullscreen ~= love.window.getFullscreen() then
-        love.window.setFullscreen(fs, "desktop")
-    end
 end
 
 return setting
