@@ -30,29 +30,32 @@ local DISCORD_BASE_COL = objects.Color("#" .. "FF9C91FF")
 local DISCORD_MAIN_COL = objects.Color("#" .. "FF2C1CC0")
 local SECONDARY_BUTTONS = {
     {
-        loc"Settings",
+        loc("Settings", nil, {context = "Button to open game settings"}),
         BUTTON_BASE_COL,
         BUTTON_MAIN_COL,
         function() g.gotoScene("setting_scene") end
     },
     {
-        loc"Stats",
+        loc("Stats", nil, {context = "Button to show game statistics"}),
         BUTTON_BASE_COL,
         BUTTON_MAIN_COL,
         function() end
     },
-    {
-        loc"Quit",
+}
+-- iOS App Store does not allow adding "Quit" button to UI.
+if love.system.getOS() ~= "iOS" then
+    SECONDARY_BUTTONS[#SECONDARY_BUTTONS+1] = {
+        loc("Quit", nil, {context = "Button to exit the game"}),
         objects.Color("#".."FFF26957"),
         objects.Color("#".."FF4E0E05"),
         love.event.quit
-    },
-}
+    }
+end
 
 local text = {
-    play = "{w amp=0.5 freq=0.7}{o thickness=0.5}"..loc("Play").."{/o}{/w}",
-    wishlist = "{o thickness=0.75}"..loc("Wishlist!").."{/o}",
-    discord = "{o thickness=0.75}"..loc("Discord").."{/o}",
+    play = "{w amp=0.5 freq=0.7}{o thickness=0.5}"..loc("Play", nil, {context = "Button to start the game"}).."{/o}{/w}",
+    wishlist = "{o thickness=0.75}"..loc("Wishlist!", nil, {context = "Button to add the game to their wishlist"}).."{/o}",
+    discord = "{o thickness=0.75}"..loc("Discord", nil, {context = "Button that opens the Discord server in browser"}).."{/o}",
 }
 
 ---@class TitleScene: FreeCameraScene

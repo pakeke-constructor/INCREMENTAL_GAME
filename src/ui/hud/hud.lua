@@ -235,7 +235,7 @@ end
 
 
 local STATS_TO_SHOW = {"HitSpeed", "HitDamage", "HarvestArea"}
-local STATS_TITLE_TEXT = loc "Stats"
+local STATS_TITLE_TEXT = loc("Stats", nil, {context = "Place to show statistics of current game"})
 local CROPS_TITLE_TEXT = loc "Crop List"
 local TOKEN_IMAGE_SCALE = 1
 

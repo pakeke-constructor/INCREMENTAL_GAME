@@ -21,7 +21,7 @@ local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color(
 
 
 
-local GIVES_RESOURCES = loc "Gives Resources"
+local GIVES_RESOURCES = loc("Gives Resources", nil, {context = "Some form of currency in a videogame"})
 
 ---Create upgrade description automatically.
 ---@param self ui.UpgradeDescription
