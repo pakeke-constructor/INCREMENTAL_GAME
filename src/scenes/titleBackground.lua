@@ -10,10 +10,10 @@ local backgroundMesh = love.graphics.newMesh({
 
 
 -- hmm, what ones the best?
--- local CAT = loc("CaT")
--- local CAT = loc("CaT CaT")
--- local CAT = loc("CAT")
-local CAT = loc("CAT CAT")
+-- local CAT = "CaT"
+-- local CAT = "CaT CaT"
+-- local CAT = "CAT"
+local CAT = "CAT CAT"
 
 local titleBackground = {}
 

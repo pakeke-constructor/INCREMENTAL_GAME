@@ -2129,9 +2129,9 @@ function g.hitImmediately(tok)
 end
 
 
-local CRIT = loc("{c r=1 g=0.3 b=0.2}{o}CRIT!", {}, {
+local CRIT = "{c r=1 g=0.3 b=0.2}{o}"..loc("CRIT!", {}, {
     context = "As in, an abbreviation for a critical hit"
-})
+}).."{/o}{/c}"
 
 function g.critToken(tok, dmg)
     dmg = dmg * g.stats.CritDamageMultiplier

@@ -57,7 +57,7 @@ end
 
 local MAP_BUTTON = "{wavy}{c r=0.9 g=0.8 b=0.85}{o}" .. loc("Back to Map", {}, {
     context = "A button that leads back to the game-map"
-})
+}) .. "{/o}{/c}{/wavy}"
 
 function FreeCameraScene:renderMapButton()
     local r = ui.getScreenRegion()

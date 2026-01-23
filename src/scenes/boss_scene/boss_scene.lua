@@ -46,13 +46,13 @@ function boss:update(dt)
 end
 
 
-local SUMMON_BOSS = loc("{o}{c r=1 g=0.5 b=0.3}Summon Boss?{/c}{/o}", {}, {
+local SUMMON_BOSS = "{o}{c r=1 g=0.5 b=0.3}"..loc("Summon Boss?", {}, {
     context = "As in, voluntarily starting a boss-fight in a videogame"
-})
+}).."{/c}{/o}"
 
-local BOSS_INFO = loc("{o}{c r=0.8 g=0.9 b=0.8}(All upgrades will be reset!){/c}{/o}", {}, {
+local BOSS_INFO = "{o}{c r=0.8 g=0.9 b=0.8}"..loc("(All upgrades will be reset!)", {}, {
     context = "Information about what happens when you summon/beat the boss, saying that upgrades will be reset as part of a 'prestige' system."
-})
+}).."{/c}{/o}"
 
 local BOSS_COST_MONEY = 800000
 

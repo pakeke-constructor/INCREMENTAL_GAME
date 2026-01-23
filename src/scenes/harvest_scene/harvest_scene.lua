@@ -24,18 +24,18 @@ local UPGRADE_POPUP_FADE_IN_TIME = 0.25
 -- How many seconds it takes to fade into the popup
 
 
-local CLOSE = loc("{o}CLOSE{/o}",{}, {
+local CLOSE = "{o}"..loc("CLOSE",{}, {
     context = "As in a back/close button in UI, going back to what the player was doing just before this popup"
-})
+}).."{/o}"
 
-local GOTO_UPGRADES = loc("{o}{rainbow}GO TO UPGRADES!{/rainbow}{/o}",{}, {
+local GOTO_UPGRADES = "{o}{rainbow}"..loc("GO TO UPGRADES!",{}, {
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
-})
+}).."{/rainbow}{/o}"
 
 --local NEW_UPGRADES_AVAILABLE = loc("{wavy freq=0.5}{rainbow}{outline}New Upgrades Available!{/outline}{/rainbow}{/wavy}",{}, {
-local NEW_UPGRADES_AVAILABLE = loc("{outline}New Upgrades Available!{/outline}",{}, {
+local NEW_UPGRADES_AVAILABLE = "{o}"..loc("New Upgrades Available!",{}, {
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
-})
+}).."{/o}"
 
 local TUTORIAL_HARVEST = "{w}{o thickness=2}"..loc("Hover your mouse over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
 local TUTORIAL_HARVEST_MOBILE = "{w}{o thickness=2}"..loc("Put your finger over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
@@ -604,12 +604,12 @@ end
 local drawBossPopup
 do
 
-local BOSS_SLAIN = loc("{wavy}{o}Boss has been slain!")
-local PRESTIGE_COMPLETE_N = interp("{o}{c r=0.2 g=0.9 b=0.6}Prestige %{n} completed.")
-local PROGRESS_RESET = loc("{o}By progressing, ALL upgrades are reset.")
-local OK_TEXT = loc("{o}Prestige!",nil,{
+local BOSS_SLAIN = "{wavy}{o}"..loc("Boss has been slain!").."{/o}{/wavy}"
+local PRESTIGE_COMPLETE_N = interp("Prestige %{n} completed.")
+local PROGRESS_RESET = "{o}"..loc("By progressing, ALL upgrades are reset.").."{/o}"
+local OK_TEXT = "{o}"..loc("Prestige!",nil,{
     context="As in, a button that progresses to the next level/prestige."
-})
+}).."{/o}"
 
 local BOSS_POPUP_FADE_IN_TIME = 0.7
 
@@ -648,7 +648,7 @@ function drawBossPopup(self)
     local prestige = g.getPrestige()
     local f = g.getSmallFont(16)
     richtext.printRichContained(BOSS_SLAIN, f, bossSlainTxt:get())
-    richtext.printRichContained(PRESTIGE_COMPLETE_N({n=prestige}), f, prestigeCompleteTxt:get())
+    richtext.printRichContained("{o}{c r=0.2 g=0.9 b=0.6}"..PRESTIGE_COMPLETE_N({n=prestige}).."{/c}{/o}", f, prestigeCompleteTxt:get())
     richtext.printRichContained(PROGRESS_RESET, f, progressResetTxt:get())
 
     if iml.wasJustHovered(buttonArea:get()) then
