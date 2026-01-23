@@ -46,16 +46,19 @@ function boss:update(dt)
 end
 
 
-local SUMMON_BOSS = loc("{o}{c r=1 g=0.5 b=0.3}Summon Boss?{/c}{/o}", {}, {
+local SUMMON_BOSS = "{o}{c r=1 g=0.5 b=0.3}"..loc("Summon Boss?", {}, {
     context = "As in, voluntarily starting a boss-fight in a videogame"
-})
+}).."{/c}{/o}"
 
-local BOSS_INFO = loc("{o}{c r=0.8 g=0.9 b=0.8}(All upgrades will be reset!){/c}{/o}", {}, {
+local BOSS_INFO = "{o}{c r=0.8 g=0.9 b=0.8}"..loc("(All upgrades will be reset!)", {}, {
     context = "Information about what happens when you summon/beat the boss, saying that upgrades will be reset as part of a 'prestige' system."
-})
+}).."{/c}{/o}"
+
+local BOSS_COST_MONEY = 800000
 
 
-
+---@param self BossScene
+---@param bob integer
 local function drawBossButtonStuff(self, bob)
     local uiw,uih = ui.getScaledUIDimensions()
 
@@ -75,16 +78,27 @@ local function drawBossButtonStuff(self, bob)
         lg.setColor(1,1,1)
     end
     lg.draw(self.button, r.x, r.y)
+
+    local canAfford = g.canAfford({money = BOSS_COST_MONEY})
+    local buttonText
+    if canAfford then
+        local temp = g.formatNumber(BOSS_COST_MONEY)
+        buttonText = "{CAN_AFFORD}"..temp.."/"..temp.."{/CAN_AFFORD}"
+    else
+        buttonText = "{CANT_AFFORD}"..g.formatNumber(g.getResource("money")).."/"..g.formatNumber(BOSS_COST_MONEY).."{/CANT_AFFORD}"
+    end
+    richtext.printRichContainedNoWrap("{money scale=1.5} {o}"..buttonText.."{/o}", g.getSmallFont(32), r:padUnit(10):get())
+
     local prestige = g.getPrestige()
     local bossId = g.getBossIdForPrestige(prestige)
-    if bossId and iml.wasJustClicked(r:get()) then
+    if bossId and iml.wasJustClicked(r:get()) and g.canAfford({money = BOSS_COST_MONEY}) then
+        g.subtractResources({money = BOSS_COST_MONEY})
         g.gotoSceneViaMap("harvest_scene")
         g.summonBoss(bossId)
     end
 end
 
 
----@param self BossScene
 function boss:draw()
     local w, h = love.graphics.getDimensions()
     local r = ui.getScreenRegion()
@@ -111,25 +125,27 @@ function boss:draw()
     end
     love.graphics.draw(self.door, x + DOOR_X * scale, y + DOOR_Y * scale, 0, scale, scale)
 
+    self.lightWorld:render(AMBIENT_LIGHT)
+
     ui.startUI()
-    --g.getHUD():draw({profile = false, xpbar = false})
     local bob = math.floor(math.sin(love.timer.getTime() * 2) * 2)
     drawBossButtonStuff(self, bob)
     self:renderPause()
     self:renderMapButton()
-    ui.endUI()
-
-    self.lightWorld:render(AMBIENT_LIGHT)
 
     do
     local f = g.getSmallFont(16)
-    local r2 = Kirigami(0,0, love.graphics.getDimensions())
+    local r2 = ui.getFullScreenRegion()
         :padRatio(0.6,0,0.6,0)
         :moveUnit(0,bob)
-    local _,a,b,_ = r2:splitVertical(3,1,1,2)
+    local pumpkin,a,b,_ = r2:splitVertical(3,1,1,2)
+    local px, py = pumpkin:getCenter()
+    g.drawImage("pumpkin_boss", px, py, 0, 2, 2)
     richtext.printRichContained(SUMMON_BOSS, f, a:get())
     richtext.printRichContained(BOSS_INFO, f, b:get())
     end
+
+    ui.endUI()
 end
 
 function boss:wheelmoved(dx, dy)

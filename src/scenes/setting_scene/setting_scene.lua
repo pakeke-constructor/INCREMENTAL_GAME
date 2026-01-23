@@ -10,9 +10,9 @@ local SLIDER_COLOR = objects.Color.WHITE
 
 local TEXT = {
     SETTINGS = "{w}{o thickness=2}"..loc("Settings").."{/o}{/w}",
-    EFFECT_VOLUME = loc "Effect Volume",
-    MUSIC_VOLUME = loc "Music Volume",
-    LANGUAGE = loc "Language",
+    EFFECT_VOLUME = loc("Effect Volume", nil, {context = "Slider to adjust the sound effect volume in-game"}),
+    MUSIC_VOLUME = loc("Music Volume", nil, {context = "Slider to adjust the music volume in-game"}),
+    LANGUAGE = loc("Language", nil, {context = "Button to select language for a videogame"}),
     REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"}),
     FULLSCREEN = "{o}"..loc("Fullscreen", nil, {context = "Switching game from windowed to fullscreen,"}).."{/o}",
     CRT_EFFECT = "{o}"..loc("CRT Effect", nil, {context = "Option to emulate old-school CRT TV effects"}).."{/o}"

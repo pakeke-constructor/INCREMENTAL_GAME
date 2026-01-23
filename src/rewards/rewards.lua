@@ -529,30 +529,30 @@ end
 
 
 
-local PERMANENT_UPGRADE = loc("{wavy amp=0.3 f=2}{o}PERMANENT UPGRADE:{/o}{/wavy}")
-local PERMANENT_TOKEN = loc("{wavy amp=0.3 f=2}{o}{c r=0.5 g=0.7 b=1}PERMANENT CROP:{/c}{/o}{/wavy}")
+local PERMANENT_UPGRADE = "{wavy amp=0.3 f=2}{o}"..loc("PERMANENT UPGRADE:").."{/o}{/wavy}"
+local PERMANENT_TOKEN = "{wavy amp=0.3 f=2}{o}{c r=0.5 g=0.7 b=1}"..loc("PERMANENT CROP:").."{/c}{/o}{/wavy}"
 
 
-local NEW_SCYTHE = loc("{wavy amp=0.3 f=2}{o}New Scythe Upgrade:{/o}{/wavy}")
-local SCYTHE_UPGRADE = interp("{wavy amp=0.3 f=2}{o}+%{harvestRadius} harvest radius!{/o}{/wavy}", {
+local NEW_SCYTHE = "{wavy amp=0.3 f=2}{o}"..loc("New Scythe Upgrade:").."{/o}{/wavy}"
+local SCYTHE_UPGRADE = interp("+%{harvestRadius} harvest radius!", {
     context = "As in an upgrade for harvest area: '+4 harvest radius!'"
 })
 
 
-local STACKED_TOKEN = loc("{wavy amp=0.3 f=2}{o}Spawns stuff:{/o}{/wavy}")
+local STACKED_TOKEN = "{wavy amp=0.3 f=2}{o}"..loc("Spawns stuff:").."{/o}{/wavy}"
 local STACKED_TOKEN_TOTAL = interp("%{tokens} total", {
     context = "Example result: \"+200 Money +200 Juice total\". The %{tokens} is \"+200 Money +200 Juice\" in that example."
 })
 
 
-local POTION = loc("{wavy amp=0.3 f=2}{o}POTION!{/o}{/wavy}")
-local GIVE_EFFECT = interp("{o}{c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!{/o}", {
+local POTION = "{wavy amp=0.3 f=2}{o}"..loc("POTION!").."{/o}{/wavy}"
+local GIVE_EFFECT = interp("{c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!", {
     context = "A temporary potion effect / positive status effect. Example: '+2 Damage for 15 seconds!'"
 })
 
-local RESOURCE_BUNDLE = loc("{wavy amp=0.3 f=2}{o}Free resources:{/o}{/wavy}", {}, {
+local RESOURCE_BUNDLE = "{wavy amp=0.3 f=2}{o}"..loc("Free resources:", {}, {
     context = "A bundle of free resources"
-})
+}).."{/o}{/wavy}"
 
 local PERM_TOKEN_UPGRADE = interp("When harvested, earn %{a}", {
     context = "Player is offered a new crop-type that yields resources. eg: PERMANENT CROP: 'When harvested, earn +5 gold'"
@@ -616,10 +616,10 @@ function rewards.drawRewardDescription(rew, r)
         ---@cast rew g.EffectReward
         local a,b = main:splitVertical(1,4)
         richtext.printRichContained(POTION, font, a:get())
-        richtext.printRichContainedNoWrap(GIVE_EFFECT({
+        richtext.printRichContainedNoWrap("{o}"..GIVE_EFFECT({
             str = rew.effect.description,
             seconds = rew.duration
-        }), font, b:get())
+        }).."{/o}", font, b:get())
     elseif rew.type == "token" then
         ---@cast rew g.TokenReward
         local a,b = main:splitVertical(2,3)

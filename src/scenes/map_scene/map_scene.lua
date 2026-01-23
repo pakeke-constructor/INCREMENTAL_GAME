@@ -114,6 +114,7 @@ end)
 
 
 ---@class (exact) _POI.Def
+---@field public nameContext string?
 ---@field public scene string
 ---@field public x integer
 ---@field public y integer
@@ -141,7 +142,7 @@ local sceneNamePOIMap = {}
 local function definePOI(id, name, def)
     ---@cast def _POI
     def.type = id
-    def.name = loc(name)
+    def.name = loc(name, nil, {context = def.nameContext})
     POI[id] = def
 
     if def.price then
@@ -163,6 +164,7 @@ end
 
 
 definePOI("harvest", "Harvest", {
+    nameContext = "Place to harvest crops",
     scene = "harvest_scene",
     x = 197, y = 156, w = 144, h = 98,
     highlight = {"harvestarea_windmill", "harvestarea_house", "harvestarea_platform"},
@@ -170,6 +172,7 @@ definePOI("harvest", "Harvest", {
     zoomOx = -4, zoomOy = 0
 })
 definePOI("upgrade", "Upgrade", {
+    nameContext = "Place to get upgrades to improve gameplay",
     scene = "upgrade_scene",
     x = 106, y = 94, w = 91, h = 104,
     highlight = {"upgradearea_dome", "upgradearea_plasmahut"},
@@ -201,6 +204,7 @@ definePOI("quest", "Town", {
     price = {money = 7000},
 })
 definePOI("boss", "Challenges", {
+    nameContext = "Place to do in-game challenge (such as summoning boss)",
     scene = "boss_scene",
     x = 391, y = 168, w = 98, h = 90,
     highlight = {"bossarea_statue"},
