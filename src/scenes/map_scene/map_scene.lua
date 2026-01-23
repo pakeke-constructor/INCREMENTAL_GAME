@@ -331,6 +331,31 @@ end
 
 
 
+local drawWaveArea, WAVE_AREAS
+do
+
+local w,h = mapAnim[1]:getDimensions()
+local main = Kirigami(0,0, mapAnim[1]:getDimensions())
+
+WAVE_AREAS = {
+    Kirigami(0-w*(0.9),0,w,h),
+    Kirigami(w-w*0.1,0,w,h),
+    --Kirigami(0,0,w,h),
+}
+
+function drawWaveArea(r)
+    lg.setColor(0,0,1)
+
+    -- ok, this is the wave region
+    lg.rectangle("fill",r:get())
+    
+    g.drawImage("wave", r.x,r.y, rot, scale)
+    -- and this is how to draw a wave
+end
+
+end
+
+
 local drawEdgeClouds
 do
 
@@ -563,6 +588,10 @@ function map:draw()
                 end
             end
         end
+    end
+
+    for _, waveArea in ipairs(WAVE_AREAS) do
+        drawWaveArea(waveArea)
     end
 
     -- Well it's unfortunate that we iterate POI twice, but we need to ensure
