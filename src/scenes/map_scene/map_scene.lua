@@ -331,59 +331,6 @@ end
 
 
 
-local drawWaveArea, WAVE_AREAS, updateWaves
-do
-
-local w,h = mapAnim[1]:getDimensions()
-
-WAVE_AREAS = {
-    Kirigami(0-w*(0.1),0,w*0.2,h),
-    Kirigami(w-w*0.1,0,w*0.2,h),
-}
-
-local waves = {}
-
-function updateWaves(dt)
-    -- Spawn new waves randomly
-    if math.random() < 0.02 then
-        for _, area in ipairs(WAVE_AREAS) do
-            if math.random() < 0.5 then
-                table.insert(waves, {
-                    area = area,
-                    x = area.x + math.random() * area.w,
-                    y = area.y + math.random() * area.h,
-                    startY = nil, -- set below
-                    time = 0,
-                    life = 3 + math.random() * 3,
-                })
-                waves[#waves].startY = waves[#waves].y
-            end
-        end
-    end
-
-    -- Update existing waves
-    for i = #waves, 1, -1 do
-        local w = waves[i]
-        w.time = w.time + dt
-        w.y = w.startY + math.sin(w.time / 2) * 2
-        if w.time > w.life then
-            table.remove(waves, i)
-        end
-    end
-end
-
-function drawWaveArea(r)
-    for _, wave in ipairs(waves) do
-        if wave.area == r then
-            local progress = wave.time / wave.life
-            local scale = math.sin(progress * math.pi)
-            lg.setColor(1,1,1,1)
-            g.drawImage("wave", wave.x, wave.y, 0, scale)
-        end
-    end
-end
-
-end
 
 local drawEdgeClouds
 do
@@ -392,6 +339,7 @@ do
 local CLOUD_VERTICAL_MOVE_AMOUNT = 20  -- How far clouds move up/down
 local CLOUD_MOVE_SPEED = 0.2  -- Speed of vertical oscillation
 local CLOUD_OFFSET_FROM_CORNER = -20  -- Distance from actual corner point
+local CLOUD_OFFSET_FROM_EDGE = -100  -- Distance from actual corner point
 local CLOUD_OVERLAP_SPACING = 60  -- Spacing between clouds to cover corner
 
 ---@param cloudName string
@@ -405,14 +353,17 @@ local function drawCornerCloud(cloudName, x, y, seed)
     g.drawImage(cloudName, x, y + offsetY)
 end
 
+
+
 ---@param x number
 ---@param y number
 ---@param w number
 ---@param h number
 function drawEdgeClouds(x, y, w, h)
-    -- Draw 3 clouds in each corner to fully conceal it
+    -- Existing Corner Logic
     local o = CLOUD_OFFSET_FROM_CORNER
     local s = CLOUD_OVERLAP_SPACING
+    local eo = CLOUD_OFFSET_FROM_EDGE
 
     -- Top-left corner (3 different clouds)
     drawCornerCloud("bigcloud_fishingzone", x + o, y + o, 1)
@@ -434,8 +385,13 @@ function drawEdgeClouds(x, y, w, h)
     drawCornerCloud("bigcloud_fishingzone", x + w - o - s, y + h - o, 11)
     drawCornerCloud("bigcloud_minigamezone", x + w - o, y + h - o - s, 12)
 
+    --- Edge Clouds ---
+    -- These use 'eo' to stay tucked against the outer edges
+    drawCornerCloud("bigcloud_emptyzone", x + w / 2, y + eo, 13)         -- Top Edge
+    drawCornerCloud("bigcloud_bosszone", x + w / 2, y + h - eo, 14)     -- Bottom Edge
+    drawCornerCloud("bigcloud_fishingzone", x + eo, y + h / 2, 15)      -- Left Edge
+    drawCornerCloud("bigcloud_questzone", x + w - eo, y + h / 2, 16)    -- Right Edge
 end
-
 end
 
 
@@ -619,10 +575,6 @@ function map:draw()
         end
     end
 
-    for _, waveArea in ipairs(WAVE_AREAS) do
-        drawWaveArea(waveArea)
-    end
-
     -- Well it's unfortunate that we iterate POI twice, but we need to ensure
     -- the draw order is correct.
 
@@ -676,8 +628,6 @@ function map:update(dt)
     self:updateCamera(dt)
 
     g.requestBGM(g.BGMID.MAP)
-
-    updateWaves(dt)
 
     -- Update transition data
     if self.transitionTarget then
