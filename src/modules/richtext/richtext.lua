@@ -57,6 +57,7 @@ end
 -- internal parser and layout objects
 ---@class richtext.ParsedText
 ---@field tokens richtext.ParsedToken[]
+---@field origin string
 local ParsedText = {}
 ParsedText.__index = ParsedText
 
@@ -213,7 +214,7 @@ function RichText.parse(text)
 		tokens[#tokens + 1] = { type = "pop", name = openEffects[i] }
 	end
 
-	return setmetatable({ tokens = tokens }, ParsedText)
+	return setmetatable({ tokens = tokens, origin = text }, ParsedText)
 end
 
 ---@param text string
