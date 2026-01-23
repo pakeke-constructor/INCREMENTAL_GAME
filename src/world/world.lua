@@ -822,8 +822,8 @@ local function tryUpdateDecorations(self)
     local BIGPAD=30
     for i=1,40*SIZE_MULT do
         table.insert(self.decorations, {
-            x = math.floor(helper.lerp(BIGPAD, w-BIGPAD*2, love.math.random())),
-            y = math.floor(helper.lerp(BIGPAD, h-BIGPAD*2, love.math.random())),
+            x = math.floor(helper.lerp(BIGPAD, w-BIGPAD, love.math.random())),
+            y = math.floor(helper.lerp(BIGPAD, h-BIGPAD, love.math.random())),
             image = "decor_big_" .. love.math.random(1,4),
             color = darkcol
         })
