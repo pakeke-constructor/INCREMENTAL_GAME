@@ -10,17 +10,18 @@ local function defineResLimitUpgrade(id, name, resId, expIncrease)
     local resInfo = g.getResourceInfo(resId)
     local stat = g.VALID_STATS[resInfo.limitStat]
     return g.defineUpgrade(id, name, {
-        description = ("Multiplies "..resId.." limit by %{1}."),
+        description = "Increases "..resId.." {"..resId.."} limit!",
+        descriptionContext = "As in, increasing the money cap, the amount of money that player can hold",
         kind = "MISC",
         image = resInfo.image,
-        maxLevel = 10,
+        maxLevel = 5,
         getValues = function(_, level)
             return expIncrease ^ level
         end,
         getPriceOverride = function (uinfo, level)
             local limit = g.getResourceLimit(resId)
             return {
-                [resId] = limit
+                [resId] = limit/2
             }
         end,
         valueFormatter = {g.formatNumber},
