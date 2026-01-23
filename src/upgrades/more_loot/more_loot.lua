@@ -21,11 +21,11 @@ defUpgrade("more_loot", "More Loot", {
 
     getValues = function(uinfo, level)
         ---@diagnostic disable-next-line: redundant-return-value
-        return 6 + level * 4, 10 * level
+        return level*20, level*20
     end,
     valueFormatter = {"%d%%", "%d%%"},
 
-    getTokenMaxHealthMultiplier = function(uinfo, level)
+    getTokenMaxHealthMultiplierGlobal = function(uinfo, level)
         local healthMult = uinfo:getValues(level) / 100
         return 1 + healthMult
     end,
