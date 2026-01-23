@@ -330,27 +330,55 @@ local function makePOIAction(poi)
 end
 
 
-
-local drawWaveArea, WAVE_AREAS
+local drawWaveArea, WAVE_AREAS, updateWaves
 do
 
 local w,h = mapAnim[1]:getDimensions()
-local main = Kirigami(0,0, mapAnim[1]:getDimensions())
 
 WAVE_AREAS = {
-    Kirigami(0-w*(0.9),0,w,h),
-    Kirigami(w-w*0.1,0,w,h),
-    --Kirigami(0,0,w,h),
+    Kirigami(0-w*(0.1),0,w*0.2,h),
+    Kirigami(w-w*0.1,0,w*0.2,h),
 }
 
-function drawWaveArea(r)
-    lg.setColor(0,0,1)
+local waves = {}
 
-    -- ok, this is the wave region
-    lg.rectangle("fill",r:get())
-    
-    g.drawImage("wave", r.x,r.y, rot, scale)
-    -- and this is how to draw a wave
+function updateWaves(dt)
+    -- Spawn new waves randomly
+    if math.random() < 0.02 then
+        for _, area in ipairs(WAVE_AREAS) do
+            if math.random() < 0.5 then
+                table.insert(waves, {
+                    area = area,
+                    x = area.x + math.random() * area.w,
+                    y = area.y + math.random() * area.h,
+                    startY = nil, -- set below
+                    time = 0,
+                    life = 3 + math.random() * 3,
+                })
+                waves[#waves].startY = waves[#waves].y
+            end
+        end
+    end
+
+    -- Update existing waves
+    for i = #waves, 1, -1 do
+        local w = waves[i]
+        w.time = w.time + dt
+        w.y = w.startY + math.sin(w.time / 2) * 2
+        if w.time > w.life then
+            table.remove(waves, i)
+        end
+    end
+end
+
+function drawWaveArea(r)
+    for _, wave in ipairs(waves) do
+        if wave.area == r then
+            local alpha = 1 - (wave.time / wave.life)
+            lg.setColor(1,1,1,alpha)
+            g.drawImage("wave", wave.x, wave.y, 0, 1)
+        end
+    end
 end
 
 end
@@ -647,6 +675,8 @@ function map:update(dt)
     self:updateCamera(dt)
 
     g.requestBGM(g.BGMID.MAP)
+
+    updateWaves(dt)
 
     -- Update transition data
     if self.transitionTarget then
