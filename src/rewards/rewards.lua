@@ -157,14 +157,34 @@ local function getRandomUnlockedResource(rng)
 end
 
 
+---@param resId string
+---@return number
+local function getMostExpensiveUpgPrice(resId)
+    local tree = g.getUpgTree()
+    local upgs = tree:getUpgradesOnTree()
+    local best = 0
+    for _,upg in ipairs(upgs) do
+        if upg.level > 0 then
+            best = math.max(upg.basePrice[resId] or 0, best)
+        end
+    end
+    return best
+end
+
+
+
+
 ---@param rng love.RandomGenerator
 local function generateResourceReward(rng)
     local resId = getRandomUnlockedResource(rng)
-    local rps = math.max(3, g.getResourcesPerSecond(resId))
-    local seconds = math.floor(rng:random(15, 40) / 5) * 5
+    local amount = math.max(3, getMostExpensiveUpgPrice(resId) / 10)
+    local resAmount = math.floor(amount / 5) * 5
+    if love.math.random() < 0.3 then
+        resAmount = resAmount * 2
+    end
 
     local resources = {}
-    resources[resId] = rps*seconds
+    resources[resId] = resAmount
     ---@type g.ResourceReward
     local rew = {
         type = "resource",
@@ -293,15 +313,17 @@ end
 
 
 local generateStackedTokenReward
--- https://youtu.be/dQw4w9WgXcQ
 do
 
 
 ---@param resId g.ResourceType
 ---@param rng love.RandomGenerator
 local function generateStackedChestToken(resId, rng)
-    local rps = math.max(g.getResourcesPerSecond(resId), 3)
-    local resAmount = math.max(1, 5*(math.floor(rps*3 / 5)))
+    local prc = math.max(getMostExpensiveUpgPrice(resId) / 5, 20)
+    local resAmount = math.max(1, 5*(math.floor(prc / 5)) / 10)
+    if love.math.random() < 0.3 then
+        resAmount = resAmount * 2
+    end
     ---@type g.TokenReward
     local rew = {
         type = "token",
