@@ -512,7 +512,7 @@ local PERMANENT_TOKEN = "{wavy amp=0.3 f=2}{o}{c r=0.5 g=0.7 b=1}"..loc("PERMANE
 
 
 local NEW_SCYTHE = "{wavy amp=0.3 f=2}{o}"..loc("New Scythe Upgrade:").."{/o}{/wavy}"
-local SCYTHE_UPGRADE = interp("{wavy amp=0.3 f=2}{o}+%{harvestRadius} harvest radius!{/o}{/wavy}", {
+local SCYTHE_UPGRADE = interp("+%{harvestRadius} harvest radius!", {
     context = "As in an upgrade for harvest area: '+4 harvest radius!'"
 })
 
@@ -524,7 +524,7 @@ local STACKED_TOKEN_TOTAL = interp("%{tokens} total", {
 
 
 local POTION = "{wavy amp=0.3 f=2}{o}"..loc("POTION!").."{/o}{/wavy}"
-local GIVE_EFFECT = interp("{o}{c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!{/o}", {
+local GIVE_EFFECT = interp("{c r=0.6 g=0.7 b=1}%{str}{/c} for %{seconds} seconds!", {
     context = "A temporary potion effect / positive status effect. Example: '+2 Damage for 15 seconds!'"
 })
 
@@ -594,10 +594,10 @@ function rewards.drawRewardDescription(rew, r)
         ---@cast rew g.EffectReward
         local a,b = main:splitVertical(1,4)
         richtext.printRichContained(POTION, font, a:get())
-        richtext.printRichContainedNoWrap(GIVE_EFFECT({
+        richtext.printRichContainedNoWrap("{o}"..GIVE_EFFECT({
             str = rew.effect.description,
             seconds = rew.duration
-        }), font, b:get())
+        }).."{/o}", font, b:get())
     elseif rew.type == "token" then
         ---@cast rew g.TokenReward
         local a,b = main:splitVertical(2,3)
