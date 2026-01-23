@@ -77,15 +77,13 @@ local BERRIES = {
 local RESOURCE_MULTIPLIERS = {
     1, 2, 5, 20,25
 }
-local MAX_LEVELS = {
-    -- whats the maximum level each tier can go up to?
-    15,10, 8, 10,10
-}
+
 local TOKEN_HEALTHS = {
-    4,5, 9, 15,18
+    120,140, 180, 200,220
 }
 
 local MAX_LEVELS = {
+    -- whats the maximum level each tier can go up to?
     15,10, 8, 5,3
 }
 
