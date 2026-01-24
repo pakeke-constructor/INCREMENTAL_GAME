@@ -25,7 +25,7 @@ defUpgrade("more_loot", "More Loot", {
     end,
     valueFormatter = {"%d%%", "%d%%"},
 
-    getTokenMaxHealthMultiplierGlobal = function(uinfo, level)
+    getTokenMaxHealthMultiplier = function(uinfo, level)
         local healthMult = uinfo:getValues(level) / 100
         return 1 + healthMult
     end,
