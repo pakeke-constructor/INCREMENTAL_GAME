@@ -231,6 +231,7 @@ local function drawTokenHealthBar(tok)
     -- Draw bar background
     love.graphics.setColor(0,0,0,0.5)
     g.drawImageOffset("1x1", hx, hy, 0, HP_BAR_W, HP_BAR_H, 0, 0)
+
     -- Draw lagged health
     local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
     t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
@@ -242,9 +243,10 @@ local function drawTokenHealthBar(tok)
         love.graphics.setColor(0.1,0.9,0.1,1)
         g.drawImageOffset("1x1", hx, hy, 0, realW, HP_BAR_H, 0, 0)
     end
+
     -- Draw border
-    love.graphics.setColor(0,0,0,1)
-    emulateLineRectangle(1, hx, hy, HP_BAR_W, HP_BAR_H)
+    -- love.graphics.setColor(0,0,0,1)
+    -- emulateLineRectangle(1, hx, hy, HP_BAR_W, HP_BAR_H)
 end
 
 
