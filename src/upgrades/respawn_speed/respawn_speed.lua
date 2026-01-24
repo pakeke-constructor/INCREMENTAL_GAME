@@ -36,7 +36,7 @@ defRespawnSpeedUpgrade("grass_respawn", "Faster Grass Spawn", "Grass crops", "gr
 defRespawnSpeedUpgrade("berry_respawn", "Faster Berries Spawn", "Berries", "red_berry", "berry")
 
 g.defineUpgrade("fast_respawn", "Faster Crop Spawn", {
-    description = "Crops spawn %{1} faster.",
+    description = "Crops respawn %{1} faster.",
     kind = "HARVESTING",
     image = "horticulture_book", -- TODO: Replace
 
