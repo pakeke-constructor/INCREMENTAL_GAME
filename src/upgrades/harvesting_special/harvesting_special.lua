@@ -39,7 +39,7 @@ defUpgrade("spinning_axes_upgrade", "Spinning Axes", {
 defUpgrade("bomb_rain", "Bomb Rain", {
     description = "Every second, %{1} chance of spawning a Bomb!",
     getValues = function(uinfo, level)
-        return level
+        return level*2 + 4
     end,
     valueFormatter = {"%d%%"},
 
