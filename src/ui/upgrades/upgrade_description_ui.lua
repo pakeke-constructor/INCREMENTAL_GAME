@@ -21,7 +21,7 @@ local BODY_BACKGROUND_GRADIENT = {objects.Color("#".."FF14465A"), objects.Color(
 
 
 
-local GIVES_RESOURCES = loc "Gives Resources"
+local GIVES_RESOURCES = loc("Gives Resources", nil, {context = "Some form of currency in a videogame"})
 
 ---Create upgrade description automatically.
 ---@param self ui.UpgradeDescription
@@ -32,14 +32,25 @@ local function autoBuild(self, tree, upg)
     local isTokenUpgrade = uinfo.kind == "TOKEN"
     if isTokenUpgrade then
         local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
-        self:addTitle(uinfo.name, tinfo.image)
+        local img = tinfo.image
+        if tinfo.growths then
+            -- best we can do is set to berry/growth img
+            img = tinfo.growths.growth
+        end
+        self:addTitle(uinfo.name, img)
     else
         self:addTitle(uinfo.name)
     end
 
     if isTokenUpgrade then
         local tinfo = g.getTokenInfo(uinfo.tokenType or uinfo.type)
-        if next(tinfo.resources) then
+        local show = false
+        for resId,v in pairs(tinfo.resources) do
+            if v > 0 then
+                show=true
+            end
+        end
+        if show then
             local text = GIVES_RESOURCES
             local actualText = "{yield_scythe}"..text
             self:addDivider()
@@ -49,21 +60,21 @@ local function autoBuild(self, tree, upg)
         end
     end
 
+    local maxLevel = tree:getUpgradeMaxLevel(upg)
     if uinfo.description then
         local level = upg.level
-        local realDesc = g.getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < uinfo.maxLevel)
+        local realDesc = g.getUpgradeDescription(uinfo, math.max(level, 1), level > 0 and level < maxLevel)
         self:addSpacer(8)
         self:addText(realDesc)
     end
 
-    self:addLevel(upg.level, uinfo.maxLevel)
+    self:addLevel(upg.level, maxLevel)
 
     -- Build price tag text.
     local price = tree:getUpgradePrice(upg)
     for _, resId in ipairs(g.RESOURCE_LIST) do
         if price[resId] and price[resId]>0 then
-            self.priceText[#self.priceText+1] = {resId, g.formatNumber(price[resId])}
-            self.priceImageCount = self.priceImageCount + 1
+            self.priceInfo[#self.priceInfo+1] = {resId, g.formatNumber(price[resId])}
         end
     end
 end
@@ -102,11 +113,7 @@ function UpgradeDescription:init(tree, upg)
         }
     }
     ---@type [g.ResourceType,string][]
-    self.priceText = {}
-    -- richText.stripEffects also strips image identifier
-    -- so it's gone when passed through Font:getWidth()
-    -- This means we have to track manually how many images it is.
-    self.priceImageCount = 0
+    self.priceInfo = {}
 
     self.titleBackgroundGradient = helper.newGradientMesh("horizontal", unpack(TITLE_BACKGROUND_GRADIENT))
     self.backgroundGradient = helper.newGradientMesh("horizontal", unpack(BODY_BACKGROUND_GRADIENT))
@@ -132,7 +139,7 @@ end
 ---@param text string
 ---@param image string?
 function UpgradeDescription:addTitle(text, image)
-    local tw = self.titleFont:getWidth(richtext.stripEffects(text))
+    local tw = richtext.getWidth(text, self.titleFont)
     local th = self.titleFont:getHeight()
 
     if image then
@@ -168,9 +175,8 @@ end
 ---@param txt string
 ---@param align love.AlignMode?
 function UpgradeDescription:addText(txt, align)
-    local stripped = richtext.stripEffects(txt)
-    local fw, lines = self.font:getWrap(stripped, DESCIPTION_TEXT_MAX_WIDTH)
-    local fh = self.font:getHeight() * #lines
+    local fw, lines = richtext.getWrap(txt, self.font, DESCIPTION_TEXT_MAX_WIDTH)
+    local fh = self.font:getHeight() * lines
     align = align or "center"
 
     -- Update the box width
@@ -188,8 +194,7 @@ end
 ---@param align love.AlignMode?
 ---@param extraw number?
 function UpgradeDescription:addInlineText(txt, align, extraw)
-    local stripped = richtext.stripEffects(txt)
-    local fw = self.font:getWidth(stripped)
+    local fw = richtext.getWidth(txt, self.font)
     local fh = self.font:getHeight()
     align = align or "center"
     fw = fw + (extraw or 0)
@@ -235,7 +240,7 @@ local LEVEL_TEXT = interp("Level %{level}/%{maxLevel}", {
 function UpgradeDescription:addLevel(level, maxLevel)
     local col = helper.multiplyAlpha(objects.Color.WHITE, 0.4)
     local text = LEVEL_TEXT{level = level, maxLevel = maxLevel}
-    local fw = self.font:getWidth(richtext.stripEffects(text))
+    local fw = richtext.getWidth(text, self.font)
     local fh = self.font:getHeight()
 
     self.boxWidth = math.max(self.boxWidth, fw)
@@ -254,7 +259,7 @@ function UpgradeDescription:addTokenInfo(tinfo)
     local minCellWidth = 0
 
     for _, resId in ipairs(g.RESOURCE_LIST) do
-        if tinfo.resources[resId] then
+        if tinfo.resources[resId] and tinfo.resources[resId]>0 then
             -- TODO: Dynamic resource output
             local resInfo = g.getResourceInfo(resId)
             local value = "+"..g.formatNumber(tinfo.resources[resId])
@@ -324,7 +329,8 @@ function UpgradeDescription:draw(x, y)
     end
 
     local level = upg.level
-    if level < uinfo.maxLevel then
+    local maxLevel = self.tree:getUpgradeMaxLevel(self.upg)
+    if level < maxLevel then
         local canAfford = g.canAfford(tree:getUpgradePrice(upg))
         -- Start drawing price tag
         love.graphics.setColor(1,1,1)
@@ -360,9 +366,10 @@ end
 ---@return number
 ---@return number
 function UpgradeDescription:getDimensions()
+    local maxLevel = self.tree:getUpgradeMaxLevel(self.upg)
     local width, height = self:getMainBoxDimensions()
     local ptagW, ptagH = 0, -PRICE_TAG_OFFSET
-    if self.upg.level < self.uinfo.maxLevel then
+    if self.upg.level < maxLevel then
         ptagW, ptagH = self:_getPriceTagDimensions(true)
     end
     return math.max(width, ptagW), height + ptagH + PRICE_TAG_OFFSET
@@ -378,8 +385,7 @@ function UpgradeDescription:_getPriceTagDimensions(canAfford)
     local ptagQH = select(4, g.getImageQuad("pricetag_can_afford"):getViewport()) --[[@as number]]
     local ptagText = self:_createPriceTagString(canAfford)
 
-    local ptagWidth = self.largeFont:getWidth(richtext.stripEffects(ptagText))
-        + self.priceImageCount * 32
+    local ptagWidth = richtext.getWidth(ptagText, self.largeFont)
         + CONTENT_PADDING * 2
         + 8
     return ptagWidth, ptagQH, ptagText
@@ -392,13 +398,13 @@ function UpgradeDescription:_createPriceTagString(canAfford)
     local price = self.tree:getUpgradePrice(self.upg)
     local alpha = canAfford and 1 or 0.75
 
-    for _, pt in ipairs(self.priceText) do
+    for _, pt in ipairs(self.priceInfo) do
         local resInfo = g.getResourceInfo(pt[1])
         local col = objects.Color.BLACK
         if g.isResourceUnlocked(pt[1]) then
             col = objects.Color.WHITE
         end
-        result[#result+1] = helper.wrapRichtextColor(col, " {"..resInfo.image.."}")
+        result[#result+1] = helper.wrapRichtextColor(col, " {"..resInfo.image.."} ")
 
         local textcol
         if g.getResource(pt[1]) >= price[pt[1]] then

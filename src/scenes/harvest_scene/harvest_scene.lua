@@ -4,7 +4,10 @@ local lg=love.graphics
 local particles = require("src.modules.particles.particles")
 local cloudService = require(".cloud_service")
 
+local newLightWorld = require("src.modules.lighting.lighting")
+
 local rewards = require("src.rewards.rewards")
+
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
@@ -21,18 +24,31 @@ local UPGRADE_POPUP_FADE_IN_TIME = 0.25
 -- How many seconds it takes to fade into the popup
 
 
-local CLOSE = loc("{o}CLOSE{/o}",{}, {
+local CLOSE = "{o}"..loc("CLOSE",{}, {
     context = "As in a back/close button in UI, going back to what the player was doing just before this popup"
-})
+}).."{/o}"
 
-local GOTO_UPGRADES = loc("{o}{rainbow}GO TO UPGRADES!{/rainbow}{/o}",{}, {
+local GOTO_UPGRADES = "{o}{rainbow}"..loc("GO TO UPGRADES!",{}, {
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
-})
+}).."{/rainbow}{/o}"
 
 --local NEW_UPGRADES_AVAILABLE = loc("{wavy freq=0.5}{rainbow}{outline}New Upgrades Available!{/outline}{/rainbow}{/wavy}",{}, {
-local NEW_UPGRADES_AVAILABLE = loc("{outline}New Upgrades Available!{/outline}",{}, {
+local NEW_UPGRADES_AVAILABLE = "{o}"..loc("New Upgrades Available!",{}, {
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
+}).."{/o}"
+
+local TUTORIAL_HARVEST = "{w}{o thickness=2}"..loc("Hover your mouse over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
+local TUTORIAL_HARVEST_MOBILE = "{w}{o thickness=2}"..loc("Put your finger over {c r=1 g=0 b=0}crops{/c} to harvest them!").."{/o}{/w}"
+
+
+local STORAGE_FULL_TEXT = loc("Your storage is full!", {}, {
+    context = "For example, the player can only store 1000 gold, or 500 logs maximum, and they have reached that limit"
 })
+
+local STORAGE_GOTO_UPGRADES = loc("Go to upgrades ->", {}, {
+    context = "Button that is prompting the player to go to the upgrade-tree"
+})
+
 
 
 
@@ -43,11 +59,12 @@ function harvest:init()
     self.timeTakenThisLevel = 0
     self.xpRequirement = 1 -- set every frame.
 
-    self.xpBarX, self.xpBarY = 1000,0 -- where should Xp particles move to?
-
     self.timeSinceXpPopupOpened = 0
     self.xpPopup = false
     self.xpRewards = {}
+
+    self.timeSinceBossPopupOpened = 0
+    self.bossPopup = false
 
     self.timeSinceUpgradePopupOpened = 0
     self.upgradePopup = false
@@ -58,6 +75,10 @@ function harvest:init()
 
     -- This background is not part of the texture atlas so it needs to be loaded manually
     self.background = love.graphics.newImage("src/scenes/harvest_scene/background_harvest.png")
+
+    self.worldScale = 1
+
+    self.lightWorld = newLightWorld()
 end
 
 
@@ -112,28 +133,26 @@ local EFFECT_COLORS = {
     [true] = {
         BG = objects.Color("#".."FF592404"),
         FG = objects.Color("#".."FFcF280E"),
-        DESC = objects.Color("#".."FFF4AEAB")
     },
     [false] = {
         BG = objects.Color("#".."FF1C4A1C"),
         FG = objects.Color("#".."FF75D963"),
-        DESC = objects.Color("#".."FF79BBDF")
     },
 }
 
 function harvest:_drawActiveEffects()
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
-    local effectIconR = Kirigami(0, 70, 24, 24)
+    local r = ui.getScreenRegion()
+    local effectIconR = Kirigami(0, 96, 24, 24)
         :attachToRightOf(r)
         :moveRatio(-1, 0)
         :moveUnit(-8, 0)
 
     local font = g.getSmallFont(16)
+    local tooltipDrawn = nil
     for eff, duration in g.getMainWorld():_iterateActiveEffects() do
         local effInfo = g.getEffectInfo(eff)
         local bgcolor = EFFECT_COLORS[effInfo.isDebuff].BG
         local fgcolor = EFFECT_COLORS[effInfo.isDebuff].FG
-        local desccolor = EFFECT_COLORS[effInfo.isDebuff].DESC
 
         -- Draw icon
         local x, y = effectIconR:getCenter()
@@ -150,6 +169,11 @@ function harvest:_drawActiveEffects()
         local time = math.floor(duration)
         local seconds = time % 60
         local minutes = math.floor(time / 60)
+        if time < 5 then
+            love.graphics.setColor(1, 0, 0)
+        else
+            love.graphics.setColor(1, 1, 1)
+        end
         richtext.printRich(
             string.format("{w amp=0.3}{o}%02d:%02d{/o}{/w}", minutes, seconds),
             font,
@@ -160,59 +184,18 @@ function harvest:_drawActiveEffects()
         )
 
         if iml.isHovered(effectIconR:get()) then
-            -- Calculate description info data for drawing
-            local bigFont = g.getBigFont(16)
-            local titleWidth = bigFont:getWidth(richtext.stripEffects(effInfo.name))
             local description = effInfo.description or ""
-            local width, lines = font:getWrap(
-                richtext.stripEffects(effInfo.description or ""),
-                math.max(titleWidth, 200)
-            )
-            local height = bigFont:getHeight() + 8 + #lines * font:getHeight()
-
-            -- Draw description
-            local PADDING = 4
-            local descWidth = 2 * PADDING + width
-            local descHeight = 2 * PADDING + height
-            local descX = effectIconR.x - descWidth - 4
-            local descY = effectIconR.y + effectIconR.h
-            love.graphics.setColor(helper.multiplyAlpha(bgcolor, 0.7))
-            love.graphics.rectangle("fill", descX, descY, descWidth, descHeight)
-            love.graphics.setColor(fgcolor)
-            love.graphics.rectangle("line", descX, descY, descWidth, descHeight)
-
-            local yoff = 0
-            love.graphics.setColor(1, 1, 1)
-            richtext.printRich(
-                "{o}"..effInfo.name.."{/o}",
-                bigFont,
-                descX + PADDING,
-                descY + PADDING,
-                width,
-                "right"
-            )
-            yoff = yoff + bigFont:getHeight()
-            love.graphics.setColor(1, 1, 1, 0.7)
-            love.graphics.line(
-                descX + PADDING + 4,
-                descY + PADDING + yoff + 4,
-                descX + descWidth - PADDING - 4,
-                descY + PADDING + yoff + 4
-            )
-            yoff = yoff + 8
-            love.graphics.setColor(desccolor)
-            richtext.printRich(
-                "{o}"..description.."{/o}",
-                font,
-                descX + PADDING,
-                descY + PADDING + yoff,
-                width,
-                "right"
-            )
+            if #description > 0 then
+                tooltipDrawn = {description = description, x = effectIconR.x, y = effectIconR.y + effectIconR.h}
+            end
         end
 
         -- Next
         effectIconR = effectIconR:moveRatio(0, 1):moveUnit(0, 4)
+    end
+
+    if tooltipDrawn then
+        helper.tooltip(tooltipDrawn.description, tooltipDrawn.x, tooltipDrawn.y, 1, 0)
     end
 end
 
@@ -252,7 +235,7 @@ end
 
 
 ---@param self HarvestScene
-local function getXPMultiplier(self)
+local function getXpMultiplier(self)
     --[[
     every 1% the player is over the "target time" for XP harvesting, 
     gain +3% xp multiplier.
@@ -263,8 +246,9 @@ local function getXPMultiplier(self)
     ]]
     local targTime = consts.TARGET_TIME_PER_LEVEL_UP
     local overtime = math.max(0, self.timeTakenThisLevel - targTime) / targTime
+    local statMult = g.stats.XpMultiplier
     local XP_MULTIPLIER_RATE = 3 -- 1% over ==> 3% XP increase
-    return 1 + XP_MULTIPLIER_RATE*overtime
+    return statMult * (1 + (XP_MULTIPLIER_RATE*overtime))
 end
 
 
@@ -296,9 +280,12 @@ local GRADIENT_IMG = love.graphics.newImage("src/scenes/harvest_scene/gradient_b
 local GOLD = objects.Color("#".."FFFAE06B")
 
 ---@param progress number
-local function drawFancyBackgroundShit(progress)
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
-    local cx,cy = r:getCenter()
+---@param cx number
+---@param cy number
+local function drawFancyBackgroundShit(progress, cx, cy)
+    prof_push("drawFancyBackgroundShit")
+
+    local r = ui.getScreenRegion()
 
     do
     local x,y,w,h = r:get()
@@ -309,19 +296,22 @@ local function drawFancyBackgroundShit(progress)
     lg.draw(GRADIENT_IMG, x, y, 0, sx, sy, 0, 0)
     end
 
-    love.graphics.setColor(1,1,1)
-    popupParticles:draw()
-    if popupParticles:getParticleCount() < 340 then
-        local a = love.timer.getTime()*3-- math.random()*2*math.pi
-        if love.math.random()<0.5 then
-            a = a+math.pi
+    if not consts.IS_MOBILE then
+        love.graphics.setColor(1,1,1)
+        popupParticles:draw()
+        if popupParticles:getParticleCount() < 340 then
+            local a = love.timer.getTime()*3-- math.random()*2*math.pi
+            if love.math.random()<0.5 then
+                a = a+math.pi
+            end
+            local mag = 180 + math.random()*30
+            local vx = math.cos(a) * mag
+            local vy = math.sin(a) * mag
+            popupParticles:spawnParticle(cx,cy, vx,vy)
         end
-        local mag = 180 + math.random()*30
-        local vx = math.cos(a) * mag
-        local vy = math.sin(a) * mag
-        popupParticles:spawnParticle(cx,cy, vx,vy)
     end
 
+    prof_push("drawGodrays")
     do
     local t = (love.timer.getTime()*1) % 1
     local R = (r.w/5) * progress
@@ -407,6 +397,9 @@ local function drawFancyBackgroundShit(progress)
         length = r.w * 0.9 * progress,
         fadeTo=0.4
     })
+    prof_pop() -- prof_push("drawGodrays")
+
+    prof_pop() -- prof_push("drawFancyBackgroundShit")
 end
 
 
@@ -432,7 +425,9 @@ end
 
 
 local function drawUpgradePopup(self)
-    local r = Kirigami(0,0, ui.getScaledUIDimensions())
+    prof_push("drawUpgradePopup")
+
+    local r = ui.getScreenRegion()
     local cx,cy = r:getCenter()
 
     -- number from 0 -> 1
@@ -440,7 +435,7 @@ local function drawUpgradePopup(self)
 
     local popup = r:padRatio(0.1 + (1-progress))
 
-    drawFancyBackgroundShit(progress)
+    drawFancyBackgroundShit(progress, cx, cy)
 
     local _,_
     local r2 = popup:padRatio(0.3)
@@ -493,6 +488,8 @@ local function drawUpgradePopup(self)
     if button(stayHarvest:padRatio(0.6,0.5,0.6,0.5), CLOSE, red1,red2) then
         closeUpgradePopup(self)
     end
+
+    prof_pop()
 end
 
 
@@ -502,9 +499,8 @@ local xpParticles = particles.newParticlesWorld({
     updateParticle = function (p, dt)
         local ACCELLERATION = 300
         local TARG_VEL = 300
-        local w,h = ui.getScaledUIDimensions()
         local hud = g.getHUD()
-        local targX,targY = hud.profileHUD:getXPBarStartPos()
+        local targX,targY = hud:getXPBarStartPos()
         local vx,vy = p.vx,p.vy
         local dx, dy = (targX-p.x), (targY-p.y)
         local mag = ((dx*dx + dy*dy) ^ 0.5)
@@ -564,6 +560,17 @@ end
 
 
 
+local function openBossPopup(self)
+    -- call this when a boss is killed.
+    self.bossPopup = true
+    self.timeSinceBossPopupOpened = 0
+end
+
+
+
+
+
+
 ---@return boolean
 local function canAffordAnyUpgrades()
     local tree = g.getUpgTree()
@@ -581,11 +588,93 @@ local function closeXpPopup(self)
     self.timeSinceXpPopupOpened = 0
     self.timeTakenThisLevel = 0
     local sn = g.getSn()
-    sn.xp = 0
-    sn.level = sn.level + 1
+    sn:levelUp()
     if canAffordAnyUpgrades() then
         openUpgradePopup(self)
     end
+end
+
+
+local function getResourceMultiplierFromCombo()
+    return math.min(2, 1 + g.getMainWorld().combo * consts.COMBO_MULTIPLIER)
+end
+
+
+
+local drawBossPopup
+do
+
+local BOSS_SLAIN = "{wavy}{o}"..loc("Boss has been slain!").."{/o}{/wavy}"
+local PRESTIGE_COMPLETE_N = interp("Prestige %{n} completed.")
+local PROGRESS_RESET = "{o}"..loc("By progressing, ALL upgrades are reset.").."{/o}"
+local OK_TEXT = "{o}"..loc("Prestige!",nil,{
+    context="As in, a button that progresses to the next level/prestige."
+}).."{/o}"
+
+local BOSS_POPUP_FADE_IN_TIME = 0.7
+
+
+---@param self HarvestScene
+function drawBossPopup(self)
+    prof_push("drawBossPopup")
+
+    local r = ui.getScreenRegion()
+    iml.panel(r:get()) -- dont let mouse go below this point
+
+    -- number from 0 -> 1
+    local progress = math.min(1, self.timeSinceBossPopupOpened / BOSS_POPUP_FADE_IN_TIME)
+
+    local _, mid, _ = r:splitVertical(1,8,1)
+    local _,popup = mid:splitHorizontal(1,8,1)
+    popup = popup:padRatio(0.1 + (1-progress))
+
+    drawFancyBackgroundShit(progress, mid:getCenter())
+
+    local panelArea, buttonArea = popup:splitVertical(3, 1)
+    panelArea = panelArea:padRatio(0.2)
+    buttonArea = buttonArea:padRatio(0.5, 0.3, 0.5, 0.3)
+
+    lg.setColor(1,1,1)
+    local col1 = objects.Color("#".."FF1F0252")
+    local col2 = objects.Color("#".."FF08012C")
+    helper.gradientRect("horizontal", col1, col2, panelArea:get())
+    ui.drawPanel(panelArea:get())
+
+    local bossSlainTxt, prestigeCompleteTxt, progressResetTxt = panelArea
+        :padRatio(0.2)
+        :splitVertical(1,1,1)
+
+    love.graphics.setColor(1, 1, 1)
+    local prestige = g.getPrestige()
+    local f = g.getSmallFont(16)
+    richtext.printRichContained(BOSS_SLAIN, f, bossSlainTxt:get())
+    richtext.printRichContained("{o}{c r=0.2 g=0.9 b=0.6}"..PRESTIGE_COMPLETE_N({n=prestige}).."{/c}{/o}", f, prestigeCompleteTxt:get())
+    richtext.printRichContained(PROGRESS_RESET, f, progressResetTxt:get())
+
+    if iml.wasJustHovered(buttonArea:get()) then
+        g.playUISound("ui_tick", 1.6, 0.65, 0, 0)
+    end
+
+    local buttonCol1 = objects.Color("#FF9F14F6")
+    local buttonCol2 = objects.Color("#FF3B12A4")
+    if iml.isHovered(buttonArea:get()) then
+        buttonCol2 = buttonCol1
+    end
+
+    helper.gradientRect("horizontal", buttonCol1, buttonCol2, buttonArea:padUnit(4):get())
+    ui.drawPanel(buttonArea:get())
+
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRichContained(OK_TEXT, f, buttonArea:get())
+
+    if iml.wasJustClicked(buttonArea:get()) then
+        g.playUISound("ui_click_basic", 1.4, 0.8)
+        g.incrementPrestige()
+    end
+
+    prof_pop()
+end
+
 end
 
 
@@ -641,51 +730,86 @@ end
 
 
 
+local INSTANT_REWARD = {
+    col1 = objects.Color("#" .. "FF9F14F6"),
+    gradient = helper.newGradientMesh(
+        "horizontal",
+        objects.Color("#" .. "FF9F14F6"),
+        objects.Color("#" .. "FF3B12A4")
+    )
+}
+
+local PERM_REWARD = {
+    col1 = objects.Color("#" .. "FFC9400A"),
+    gradient = helper.newGradientMesh(
+        "horizontal",
+        objects.Color("#" .. "FFC9400A"),
+        objects.Color("#" .. "FF890707")
+    )
+}
+
 
 ---@param self HarvestScene
 function drawXpPopup(self)
-    local r = Kirigami(0,0, ui.getScaledUIDimensions())
+    prof_push("drawXpPopup")
+
+    local r = ui.getScreenRegion()
+    local hud = g.getHUD()
+    iml.panel(r:get()) -- dont let mouse go below this point
 
     -- number from 0 -> 1
     local progress = math.min(1, self.timeSinceXpPopupOpened / XP_POPUP_FADE_IN_TIME)
 
-    local _, mid, _ = r:splitVertical(1,8,1)
-    local _,popup = mid:splitHorizontal(1,2,1)
+    local _, mid, _ = r:padUnit(0, 0, hud.statsWidth, 0):splitVertical(1,8,1)
+    local _,popup = mid:splitHorizontal(1,8,1)
     popup = popup:padRatio(0.1 + (1-progress))
 
-    drawFancyBackgroundShit(progress)
+    drawFancyBackgroundShit(progress, mid:getCenter())
 
     do
     love.graphics.setColor(1,1,1)
-    local regions = {popup:splitVertical(1,1,1)}
+    local regions
+    if #self.xpRewards == 1 then
+        local _,rr1,_ = popup:splitVertical(1,1,1)
+        regions = {rr1}
+    else
+        regions = popup:grid(1,#self.xpRewards)
+    end
     local p = 0.2
     local rewardClaimed = false
 
-    local function drawReward(i)
-        local rrr = regions[i]
-        local rew = self.xpRewards[i]
-        rrr = rrr:padRatio(p)
-        local col1 = objects.Color("#" .. "FF9F14F6")
-        local col2 = objects.Color("#" .. "FF3B12A4")
+    for i, rew in ipairs(self.xpRewards) do
+        prof_push("drawReward "..i)
+
+        local hoveredCol = rew.type == "permanent" and PERM_REWARD or INSTANT_REWARD
+        local rrr = regions[i]:padRatio(p)
         if iml.isHovered(rrr:get()) then
-            col2 = col1
+            lg.setColor(hoveredCol.col1)
+            lg.rectangle("fill", rrr:padUnit(4):get())
+            lg.setColor(1, 1, 1)
+        else
+            local x, y, w, h = rrr:padUnit(4):get()
+            lg.draw(hoveredCol.gradient, x, y, 0, w, h)
         end
         if iml.wasJustHovered(rrr:get()) then
     		g.playUISound("ui_tick", 1.6,0.65, 0,0)
         end
-        helper.gradientRect("horizontal", col1,col2, rrr:padUnit(4):get())
         ui.drawPanel(rrr:get())
+
+        prof_push("rewards.drawRewardDescription "..rew.type)
         rewards.drawRewardDescription(rew, rrr)
+        prof_pop()
+
         if iml.wasJustClicked(rrr:get()) and (not rewardClaimed) then
 		    g.playUISound("ui_click_basic", 1.4,0.8)
             rewardClaimed = true
             rewards.selectReward(rew)
         end
+
+        prof_pop()
     end
 
-    for i=1, 3 do
-        drawReward(i)
-    end
+    hud:drawStatsAndTokenPool()
 
     if rewardClaimed then
         g.playUISound("xp_level_up2", 1.2, 1)
@@ -693,33 +817,142 @@ function drawXpPopup(self)
     end
 
     end
+
+    prof_pop()
 end
 
 
-end
-
-
-function harvest:tokenDestroyed(tok)
-    if not (self.xpPopup or self.upgradePopup) then
-        local xp = tok.maxHealth
-        local mult = getXPMultiplier(self)
-        local sn = g.getSn()
-        sn.xp = sn.xp + xp*mult
-    end
-
-    if not g.isBeingSimulated() then
-        local x,y = self.camera:getTransform():transformPoint(tok.x,tok.y)
-        local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(x,y)
-        local SPD = 600
-        local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
-        xpParticles:spawnParticle(uiX,uiY, vx,vy)
-    end
 end
 
 
 ---@param self HarvestScene
 local function isAnyPopupOpen(self)
-    return self.xpPopup or self.upgradePopup
+    return self.xpPopup or self.upgradePopup or self.bossPopup
+end
+
+
+---@type table<integer, boolean>
+local COMBO_POPUP_MAP = setmetatable({
+    [5] = true,
+    [10] = true,
+    [20] = true,
+    [50] = true,
+    [100] = true,
+    -- If you need to change the multiplier, change it here.
+    -- By defualt it's "for every multiple of 100 combo"
+}, {__index = function(_, k) return k > 0 and k % 100 == 0 end})
+local COMBO_POPUP_TEXT = interp(
+    "x%{mul} Resources!",
+    {context = "Text popup shown when destroying many crops in short amount of time"}
+)
+local XP_PARTICLE_COUNT = consts.IS_MOBILE and 5 or 50
+
+
+---@param tok g.Token
+function harvest:tokenDestroyed(tok)
+    if not tok.wasSpawnedViaTokenPool then
+        -- We dont want to give XP if it isnt from token-pool;
+        -- (or else its way too OP; trust me)
+        return
+    end
+
+    if not isAnyPopupOpen(self) then
+        local xp = tok.maxHealth
+        local mult = getXpMultiplier(self)
+        g.addXP(mult*xp)
+    end
+
+    if not g.isBeingSimulated() then
+        if xpParticles:getParticleCount() < XP_PARTICLE_COUNT then
+            local x,y = self.camera:getTransform():transformPoint(tok.x,tok.y)
+            local uiX,uiY = ui.getUIScalingTransform():inverseTransformPoint(x,y)
+            local SPD = 600
+            local vx,vy = love.math.random(-SPD,SPD), love.math.random(-SPD,SPD)
+            xpParticles:spawnParticle(uiX,uiY, vx,vy)
+        end
+
+        g.getSn().showTutorials.harvest = false
+    end
+
+    local world = g.getMainWorld()
+    if COMBO_POPUP_MAP[world.combo] then
+        local x = world.mouseX or 0
+        local y = world.mouseY or 0
+        local mul = math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100
+        -- local r, g, b = objects.Color.HSVtoRGB((world.combo / 49 * 360) % 360, 1, 1)
+        --local text = string.format("{c r=%.14g g=%.14g b=%.14g}{o}%s{/o}{/c}", r, g, b, COMBO_POPUP_TEXT({mul = mul}))
+        local text = string.format("{c r=0.5 g=0.2 b=0.9}{o}%s{/o}{/c}", COMBO_POPUP_TEXT({mul = mul}))
+        worldutil.spawnText(text, x, y, 1.4, 10)
+    end
+end
+
+
+---@param self HarvestScene
+local function drawComboVisual(self)
+    local world = g.getMainWorld()
+    local mx, my = ui.getMouse()
+
+    local mul = "x"..tostring(math.floor(getResourceMultiplierFromCombo() * 100 + 0.5) / 100)
+    local font = g.getSmallFont(16)
+    local width = font:getWidth(mul)
+    local combodur = world:_getComboDuration()
+    local ratio = world.comboTimeout / combodur
+    local ratioScale = math.min(1, helper.remap(ratio, 1,0, 2,0.3))
+    local joltScale = math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.4, 1), 1)
+    local scale = ratioScale*joltScale*1.5
+
+    -- ha = harvestArea scaled to UI
+    local uis = ui.getUIScaling()
+    local ha = g.stats.HarvestArea * self.camera:getZoom() / uis
+
+
+    local w = font:getWidth("x1.11")
+    local h = font:getHeight()/2
+
+    -- Calculate bar dimensions
+    local barWidth = w * scale
+    local barHeight = 7
+    local barX = mx - barWidth / 2
+    local barY = my - ha - h * scale - barHeight - 6*scale
+
+    -- Draw progress bar background
+    lg.setColor(0.2, 0.2, 0.2, 0.8)
+    lg.rectangle("fill", barX, barY, barWidth, barHeight)
+    lg.setColor(0,0,0)
+    lg.setLineWidth(2)
+    lg.rectangle("line", barX, barY, barWidth, barHeight)
+
+    -- Draw progress bar fill
+    if ratio < 0.3 then
+        lg.setColor(1, 0.3, 0.1)
+    elseif ratio < 0.6 then
+        lg.setColor(0.6, 0.5, 0.2)
+    else
+        lg.setColor(0.2, 0.8, 0.2)
+    end
+    local rr = Kirigami(barX, barY, barWidth * ratio, barHeight)
+    lg.rectangle("fill", rr:padUnit(1):get())
+
+    -- Draw text
+    lg.setColor(1, 1, 1)
+    helper.printTextOutline(mul, font, 1, mx, my-ha, width, "center", 0, scale, scale, width / 2, h * 2)
+end
+
+
+
+
+---@param self HarvestScene
+local function doBossLighting(self)
+    self.lightWorld:resize()
+    self.lightWorld:clear()
+    local tok = assert(g.getBossToken())
+    self.lightWorld:addLight(tok.x, tok.y, 700)
+    local world = g.getMainWorld()
+    local mx, my = world.mouseX, world.mouseY
+    if mx and my then
+        self.lightWorld:addLight(mx,my, 400)
+    end
+    self.lightWorld:render({0.1,0.1,0.2})
 end
 
 
@@ -740,20 +973,41 @@ function harvest:draw()
     local world = g.getMainWorld()
 
     if isAnyPopupOpen(self) then
-        world:_enableMouseHarvester(-500,-500)
+        world:_disableMouseHarvester()
     elseif not g.isBeingSimulated() then
         local cx,cy = self.camera:toWorld(love.mouse.getPosition())
         world:_enableMouseHarvester(cx,cy)
     end
 
     -- Draw clouds
-    if not g.isBeingSimulated() then
+    if not (g.isBeingSimulated() or consts.IS_MOBILE) then
         --cloudService.drawShadow()
         love.graphics.setColor(1, 1, 1, 1)
         cloudService.draw()
     end
 
     world:_draw()
+
+    local bossTok = g.getBossToken()
+    if bossTok then
+        doBossLighting(self)
+    end
+
+    local sess = g.getSn()
+
+    if not g.isBeingSimulated() then
+        if sess.showTutorials.harvest then
+            local lw = love.graphics.getLineWidth()
+            love.graphics.setLineWidth(3)
+            love.graphics.setColor(objects.Color.RED)
+
+            for _, tok in ipairs(g.getMainWorld().tokens) do
+                helper.circleHighlight(tok.x, tok.y, 10)
+            end
+
+            love.graphics.setLineWidth(lw)
+        end
+    end
 
     love.graphics.setColor(1, 1, 1)
     self:_drawTokenStackAnim()
@@ -763,18 +1017,77 @@ function harvest:draw()
     vignette.draw()
 
     ui.startUI()
-    self:renderMapButton()
+    if not (g.isBeingSimulated() or sess.showTutorials.harvest) then
+        self:renderMapButton()
+    end
     lg.setColor(1,1,1)
+
+    prof_push("xpParticles:draw")
     xpParticles:draw()
-    g.getHUD():draw({
+    prof_pop()
+
+    local hud = g.getHUD()
+    hud:draw({
         xpbar=true
     })
+
+    if not g.isBeingSimulated() and sess.showTutorials.harvest then
+        local safeArea = g.getHUD():getSafeArea()
+        local tutTextR = safeArea:padRatio(0.1)
+        local txt = consts.IS_MOBILE and TUTORIAL_HARVEST_MOBILE or TUTORIAL_HARVEST
+        richtext.printRich(txt, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+    end
+
     self:_drawActiveEffects()
-    if self.xpPopup then
+    if self.bossPopup then
+        drawBossPopup(self)
+    elseif self.xpPopup then
         drawXpPopup(self)
     elseif self.upgradePopup then
         drawUpgradePopup(self)
     end
+
+    if world.combo > 2 and not isAnyPopupOpen(self) then
+        drawComboVisual(self)
+    end
+
+    --- Storage is Full text:
+    do
+    local fullResource = nil
+    for _,resId in ipairs(g.RESOURCE_LIST) do
+        local res = g.getResource(resId)
+        local reslim = g.getResourceLimit(resId)
+        if res >= reslim then
+            fullResource = resId
+            break
+        end
+    end
+    if fullResource and (not isAnyPopupOpen(self)) then
+        local rr = ui.getScreenRegion():splitVertical(1,5)
+            :padRatio(0.4,0.2,0.3,0.2)
+            :moveRatio(0,0.5)
+        local img1, rr2, img2 = rr:splitHorizontal(1,7,1)
+        lg.setColor(1,1,1)
+        richtext.printRichContained(
+            "{wavy}{c r=0.8 g=0.1 b=0.05}{o}" .. STORAGE_FULL_TEXT,
+            g.getSmallFont(16), rr2:get()
+        )
+        -- lg.rectangle("line", rr2:get())
+        -- lg.rectangle("line", img1:get())
+        -- lg.rectangle("line", img2:get())
+        local t = love.timer.getTime()
+        local dy = math.sin(t*3)/4
+        g.drawImageContained(fullResource, img1:moveRatio(0, dy):get())
+        g.drawImageContained(fullResource, img2:moveRatio(0, dy):get())
+
+        local r = rr2:padRatio(0.6, 0.5, 0.6, 0.0):attachToBottomOf(rr2):moveUnit(0,8)
+        if ui.Button(STORAGE_GOTO_UPGRADES, objects.Color.CRIMSON, objects.Color.DARK_RED, r) then
+            g.gotoSceneViaMap("upgrade_scene")
+        end
+    end
+    end
+
+    self:renderPause()
 
     ui.endUI()
 end
@@ -784,8 +1097,11 @@ end
 function harvest:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
+    g.requestBGM(g.BGMID.HARVEST)
 
-    if self.xpPopup then
+    if self.bossPopup then
+        self.timeSinceBossPopupOpened = self.timeSinceBossPopupOpened + dt
+    elseif self.xpPopup then
         popupParticles:update(dt)
         self.timeSinceXpPopupOpened = self.timeSinceXpPopupOpened + dt
     elseif self.upgradePopup then
@@ -812,6 +1128,7 @@ function harvest:update(dt)
     local scale = math.min(sw / worldW, sh / worldH)
     -- Only do integer scaling
     scale = math.floor(math.max(scale, 1))
+    self.worldScale = scale
     local zf = self:zoomFromScale(scale)
     self:setZoom(zf)
 
@@ -838,6 +1155,7 @@ function harvest:update(dt)
             if tok and onSpawn then
                 onSpawn(tok)
             end
+            worldutil.spawnShockwave(tok.x,tok.y, 0.2, 13)
             self:_resetStackTokenAnim()
         end
     else
@@ -846,7 +1164,7 @@ function harvest:update(dt)
     end
 
     -- Update cloud
-    if not g.isBeingSimulated() then
+    if not (g.isBeingSimulated() or consts.IS_MOBILE) then
         cloudService.update(dt, self.camera)
     end
 end
@@ -857,11 +1175,16 @@ harvest.mousemoved = harvest.defaultMousemoved
 
 function harvest:keyreleased(k)
     self:defaultKeyreleased(k)
-    if k == "tab" then
+    if k == "tab" and not (g.isBeingSimulated() or g.getSn().showTutorials.harvest) then
         g.gotoSceneViaMap("upgrade_scene")
+    elseif k == "escape" then
+        local s = g.getSn()
+        s.paused = not s.paused
     elseif consts.DEV_MODE then
         if k=="1" then
-            worldutil.spawnLightning(100,100,10)
+            --openBossPopup(self)
+            --g.summonBoss("pumpkin_boss")
+            g.incrementPrestige()
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do
@@ -873,6 +1196,14 @@ function harvest:keyreleased(k)
         elseif k=="4" then
             local sn=g.getSn()
             sn.xp = sn.xp + sn.xpRequirement
+        elseif k=="5" then
+            local sn=g.getSn()
+            local next = g.getNextScythe()
+            if next then
+                sn.scythe = next
+            end
+        elseif k=="8" then
+            g.grantEffect("knife_swarm", 15)
         end
     end
 end
@@ -881,8 +1212,44 @@ end
 
 function harvest:leave(k)
     closeUpgradePopup(self)
+    local w = g.getMainWorld()
+    w:_disableMouseHarvester()
 end
 
+
+function harvest:getHarvestAreaModifier()
+    local scythe = g.getScytheInfo(g.getCurrentScythe())
+    return scythe.harvestArea
+end
+
+
+function harvest:getTokenResourceMultiplier()
+    return isAnyPopupOpen(self) and 1 or getResourceMultiplierFromCombo()
+end
+
+
+function harvest:bossSlain()
+    openBossPopup(self)
+end
+
+
+
+---@param pool g.TokenPool
+function harvest:populateTokenPool(pool)
+    local boss = g.getBossToken()
+    if boss and boss.type == "pumpkin_boss" then
+        pool:add("pumpkin_health", 5)
+    end
+end
+
+---@param toktype string
+function harvest:getPerTokenRespawnTimeMultiplier(toktype)
+    if toktype == "pumpkin_health" then
+        return 0 -- Respawn pumpkin_health instantly
+    end
+
+    return 1
+end
 
 
 

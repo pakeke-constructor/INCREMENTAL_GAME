@@ -198,9 +198,9 @@ local function rgb_to_hsl(r, g, b)
     return h, s, l
 end
 
----@param h number
----@param s number
----@param v number
+---@param h number Hue value in degrees
+---@param s number Saturation in [0, 1]
+---@param v number Value in [0, 1]
 local function hsv_to_rgb(h, s, v)
     local c = v * s
     local x = c * (1 - m_abs((h / 60) % 2 - 1))

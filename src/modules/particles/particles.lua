@@ -14,6 +14,7 @@ Custom rendering, Custom updating (via overrides)
 
 ]]
 
+---@class g.modules.particles
 local particles = {}
 
 ---@class particles.ParticlesWorld

@@ -8,7 +8,8 @@ g.defineEvent("update")
 g.defineEvent("perSecondUpdate")
 
 
-g.defineEvent("populateTokenPool")
+g.defineEvent("populateTokenPool") -- define the whitelist
+g.defineEvent("depopulateTokenPool") -- clear tokens (blacklist)
 
 
 
@@ -18,9 +19,11 @@ g.defineEvent("tokenSpawned")
 g.defineEvent("tokenHitStart")
 g.defineEvent("tokenHit")
 g.defineEvent("tokenDamaged")
+g.defineEvent("tokenCrit")
 g.defineEvent("tokenDestroyed")
 g.defineEvent("tokenEarnedResources")
 g.defineEvent("tokenSlimed")
+g.defineEvent("tokenStarred")
 
 
 
@@ -39,6 +42,9 @@ g.defineQuestion("getTokenHitMultiplier", reducers.MULTIPLY, 1)
 
 g.defineQuestion("getTokenDamageModifier", reducers.ADD, 0)
 g.defineQuestion("getTokenDamageMultiplier", reducers.MULTIPLY, 1)
+g.defineQuestion("getPerTokenRespawnTimeMultiplier", reducers.MULTIPLY, 1)
+
+
 
 
 

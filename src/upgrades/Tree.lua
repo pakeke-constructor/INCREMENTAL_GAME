@@ -29,6 +29,7 @@ FEATURES WE NEED:
 ---@field x integer
 ---@field y integer
 ---@field isRoot boolean?
+---@field maxLevelOverride number?
 ---@field connections integer[] list of other upgrades this upgrade is connected to
 ---@field isUnbound boolean? "unbound" upgrades exist without a position; (ie relics and stuff)
 local Upgrade = {}
@@ -40,6 +41,7 @@ local Upgrade = {}
 ---@field unboundUpgrades g.Tree.Upgrade[]
 ---@field _connectionMap table<integer, table<integer, true>>
 ---@field _distances table<integer, integer>
+---@field _filename string?
 local Tree = objects.Class("g:Tree")
 
 
@@ -71,6 +73,7 @@ function Tree:init()
     self._eventCache = {--[[
         event -> {upg1, upg2, upg3 ...}
     ]]}
+    self._filename = nil
 end
 
 
@@ -235,6 +238,19 @@ function Tree:getUpgradePrice(upg, level)
 end
 
 
+
+---@param upg g.Tree.Upgrade
+---@return integer
+function Tree:getUpgradeMaxLevel(upg)
+    if upg.maxLevelOverride then
+        return upg.maxLevelOverride
+    end
+    local uinfo = g.getUpgradeInfo(upg.id)
+    return uinfo.maxLevel
+end
+
+
+
 --- This is MUCH more efficient than 
 ---@param upg g.Tree.Upgrade
 ---@param level number? Optional; defaults to the current upg's level.
@@ -263,7 +279,8 @@ end
 ---@return boolean wasPurchased
 function Tree:tryBuyUpgrade(upg)
     local uinfo = g.getUpgradeInfo(upg.id)
-    if upg.level >= uinfo.maxLevel then
+    local maxLevel = self:getUpgradeMaxLevel(upg)
+    if upg.level >= maxLevel then
         return false -- already max level
     end
     if self:canAffordUpgrade(upg) then
@@ -500,10 +517,11 @@ end
 
 ---@param self g.Tree
 ---@param upg g.Tree.Upgrade
-local function hasAnyPurchasedNeighbors(self, upg)
+local function hasAnyFullyPurchasedNeighbors(self, upg)
     local neighs = self:getNeighbors(upg.x, upg.y)
     for _, u in ipairs(neighs) do
-        if (u.level > 0) or (u.isRoot) then
+        local maxLevel = self:getUpgradeMaxLevel(u)
+        if ((u.level >= maxLevel) and (maxLevel ~= 0)) or (u.isRoot) then
             return true
         end
     end
@@ -525,7 +543,7 @@ function Tree:isUpgradeHidden(upg)
         return true
     end
 
-    local isHidden = not hasAnyPurchasedNeighbors(self, upg)
+    local isHidden = not hasAnyFullyPurchasedNeighbors(self, upg)
     return isHidden
 end
 
@@ -666,7 +684,7 @@ end
 function Tree.deserialize(data)
     local self = Tree()
 
-    self.upgrades = keysToNumber(data.upgrades)
+    self.upgrades = keysToNumber(data.upgrades or {})
     for hash,upg in pairs(self.upgrades) do
         if not g.isValidUpgrade(upg.id) then
             log.error("UHOH!!! Unknown upgrade, deleting: ", upg.id)
@@ -674,8 +692,16 @@ function Tree.deserialize(data)
         end
     end
 
+    for i = #data.unboundUpgrades, 1, -1 do
+        local upg = data.unboundUpgrades[i]
+        if not g.isValidUpgrade(upg.id) then
+            log.error("UHOH!!! Unknown UNBOUND upgrade, deleting: ", upg.id)
+            table.remove(data.unboundUpgrades, i)
+        end
+    end
+
     self.unboundUpgrades = data.unboundUpgrades or {}
-    self.connections = data.connections
+    self.connections = data.connections or {}
     self:finalize()
     return self
 end

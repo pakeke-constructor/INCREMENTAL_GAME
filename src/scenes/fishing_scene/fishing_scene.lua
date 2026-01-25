@@ -75,7 +75,7 @@ local SPINNING_FISH = lg.newImage("src/scenes/fishing_scene/spinning_orange_fish
 
 ---@param self FishingScene
 local function drawReelMeter(self)
-    local r,_ = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r,_ = ui.getScreenRegion()
     _,r = r:splitVertical(3,2)
     _,r = r:splitHorizontal(1,2)
     r = r:padRatio(0.3,0.7,0.4,0.7)
@@ -134,13 +134,13 @@ end
 
 
 
-local CAST_ROD = loc("{o}{c r=0.7 g=0.8 b=1}Fish!{/c}{/o}")
-local WAITING_FOR_FISH = loc("{o}{c r=0.7 g=0.8 b=1}Waiting for fish...{/c}{/o}")
+local CAST_ROD = "{o}{c r=0.7 g=0.8 b=1}"..loc("Fish!").."{/c}{/o}"
+local WAITING_FOR_FISH = "{o}{c r=0.7 g=0.8 b=1}"..loc("Waiting for fish...").."{/c}{/o}"
 
-local CATCH_SUCCESS = loc("{o}{c r=0.7 g=0.8 b=1}CAUGHT!{/c}{/o}")
-local CATCH_FAILED = loc("{o}{c r=0.9 g=0.2 b=0.1}FAILED!{/c}{/o}")
+local CATCH_SUCCESS = "{o}{c r=0.7 g=0.8 b=1}"..loc("CAUGHT!").."{/c}{/o}"
+local CATCH_FAILED = "{o}{c r=0.9 g=0.2 b=0.1}"..loc("FAILED!").."{/c}{/o}"
 
-local HIRE_FISHERCAT = loc("{o}{c r=0.7 g=0.8 b=1}Hire fishercat!{/c}{/o}")
+local HIRE_FISHERCAT = "{o}{c r=0.7 g=0.8 b=1}"..loc("Hire fishercat!").."{/c}{/o}"
 
 
 local function getFisherCatPrice()
@@ -156,7 +156,7 @@ function fishing:drawUI()
 
     local buttonR, castR, hireFishercatR
     do
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local r2,_
     _,r2 = r:splitVertical(1,2)
     _,r2 = r2:splitHorizontal(1,1)

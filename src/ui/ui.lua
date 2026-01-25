@@ -7,7 +7,6 @@ local ui = {}
 local lg = love.graphics
 
 
-ui.upgradeBoxUI = require(".upgrades.upgrade_box_ui")
 ui.upgradeDescriptionUI = require(".upgrades.upgrade_description_ui")
 
 
@@ -243,14 +242,20 @@ function ui.Slider(key, direction, slidercol, currentsegment, segments, slidersi
 	assert(slidersize > 0 and slidersize <= 1, "invalid slider size")
 
 	local x, y, w, h = reg:get()
+	local mousepos = nil
 	local drag = iml.consumeDrag(key, x, y, w, h, 1)
+	if drag then
+		mousepos = {drag.endX, drag.endY}
+	elseif iml.isClicked(x, y, w, h, 1, key) then
+		mousepos = {iml.getTransformedPointer()}
+	end
 	local s = helper.clamp(currentsegment, 1, segments)
 
 	-- Select slider color and handle drags
 	local curslidercol = slidercol
-	if drag then
+	if mousepos then
 		curslidercol = multiplyHSVValue(slidercol, 0.5)
-		local mx, my = drag.endX, drag.endY
+		local mx, my = mousepos[1], mousepos[2]
 
 		if direction == "horizontal" then
 			local pos = helper.clamp(mx - x, 0, w)
@@ -281,6 +286,87 @@ function ui.Slider(key, direction, slidercol, currentsegment, segments, slidersi
 end
 
 
+---@param color objects.Color
+---@param region kirigami.Region
+---@param checked boolean
+function ui.Checkbox(color, region, checked)
+	local x, y, w, h = region:get()
+
+	if iml.isClicked(x, y, w, h) then
+		color = multiplyHSVValue(color, 0.5)
+	elseif iml.isHovered(x, y, w, h) then
+		color = multiplyHSVValue(color, 0.75)
+	end
+
+
+	love.graphics.setColor(color)
+	love.graphics.rectangle("fill", x, y, w, h)
+
+	if iml.wasJustClicked(x, y, w, h) then
+		checked = not checked
+	end
+
+	if checked then
+		love.graphics.setColor(0, 0, 0, color[4])
+		-- Draw cross
+		love.graphics.line(x + 1, y + 1, x + w - 2, y + h - 2)
+		love.graphics.line(x + w - 2, y + 1, x + 1, y + h - 2)
+	end
+
+	return checked
+end
+
+
+
+---@class ui.TextBox: objects.Class
+---@field txt string
+---@field isFocused boolean
+local TextBox = objects.Class("ui:TextBox")
+
+function TextBox:init(text, isFocused)
+	self.txt = text or ""
+	self.isFocused = not not isFocused
+end
+
+function TextBox:reset()
+	self.txt = ""
+end
+
+---@param reg kirigami.Region
+function TextBox:draw(reg)
+	if self.isFocused then
+		local txt = (iml.consumeText() or "")
+		self.txt = self.txt .. txt
+	end
+	if iml.wasJustClicked(reg:get()) then
+		self.isFocused = not self.isFocused
+		if self.isFocused then
+			self.txt = ""
+		end
+	end
+	if self.isFocused then
+		if math.floor(love.timer.getTime()*2)%2==0 then
+			lg.setColor(1,0.9,0.8)
+		else
+			lg.setColor(0.8,0.7,0.6)
+		end
+	else
+		lg.setColor(1,0.9,0.8)
+	end
+	lg.rectangle("fill", reg:get())
+	lg.setColor(0,0,0)
+	lg.rectangle("line", reg:get())
+	local font=g.getSmallFont(16)
+	lg.setColor(0,0,0)
+	richtext.printRichContained(self.txt,font,reg:get())
+	lg.setColor(1,1,1)
+end
+
+---@return ui.TextBox
+function ui.newTextBox()
+	return TextBox()
+end
+
 
 -- For UI global scaling
 do
@@ -288,19 +374,55 @@ do
 local GLOBAL_SCALE_INCREMENT = 0.25
 local globalScaleTransform = love.math.newTransform()
 local globalScale = 1
-local gw, gh = 800, 600
+local gx, gy, gw, gh = 0, 0, 1, 1
+local rootKirigami = Kirigami(gx, gy, gw, gh)
+local rootKirigamiUnsafe = Kirigami(gx, gy, gw, gh)
+
+local function getUIScaledSafeArea()
+	gx, gy, gw, gh = love.window.getSafeArea()
+	return gx / globalScale, gy / globalScale, gw / globalScale, gh / globalScale
+end
+
+local function recalculateEverything()
+	local w,h = lg.getDimensions()
+	local wscale = w / 600
+	local hscale = h / 400
+	local scale = math.min(wscale, hscale)
+	local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
+	globalScale = math.max(gscale, 1)
+	globalScaleTransform:reset():scale(globalScale)
+
+	-- Recalculate region
+	gx, gy, gw, gh = love.window.getSafeArea()
+	rootKirigamiUnsafe = Kirigami(0, 0, w / globalScale, h / globalScale)
+	rootKirigami = Kirigami(getUIScaledSafeArea())
+end
+
 
 local function updateGlobalScaleAutomatic()
-	local w, h = lg.getDimensions()
-	if w ~= gw or h ~= gh then
-		local wscale = w / 600
-		local hscale = h / 400
-		local scale = math.min(wscale, hscale)
-		local gscale = math.floor(scale / GLOBAL_SCALE_INCREMENT + 0.5) * GLOBAL_SCALE_INCREMENT
-		globalScale = math.max(gscale, 1)
-		globalScaleTransform:reset():scale(globalScale)
-		gw = w
-		gh = h
+	local x, y, w, h = love.window.getSafeArea()
+	if x ~= gx or y ~= gy or w ~= gw or h ~= gh then
+		recalculateEverything()
+	end
+end
+
+
+local function ensureRootKirigamiCorrect()
+	updateGlobalScaleAutomatic()
+	local x, y, w, h = getUIScaledSafeArea()
+	local fw, fh = ui.getScaledUIDimensions()
+	if
+		rootKirigami.x ~= x or
+		rootKirigami.y ~= y or
+		rootKirigami.w ~= w or
+		rootKirigami.h ~= h or
+		rootKirigamiUnsafe.x ~= 0 or
+		rootKirigamiUnsafe.y ~= 0 or
+		rootKirigamiUnsafe.w ~= fw or
+		rootKirigamiUnsafe.h ~= fh
+	then
+		-- oops, its invalid somehow! recalculate
+		recalculateEverything()
 	end
 end
 
@@ -309,6 +431,7 @@ function ui.getUIScaling()
 	return globalScale
 end
 
+---Note: If you want to use this for UI placement, you may want `ui.getScreenRegion` instead.
 function ui.getScaledUIDimensions()
 	local w, h = lg.getDimensions()
 	local s = ui.getUIScaling()
@@ -318,6 +441,18 @@ end
 function ui.getUIScalingTransform()
 	updateGlobalScaleAutomatic()
     return globalScaleTransform
+end
+
+---Return whole safe area, scaled by UI. Meant to be used in UI drawing code.
+function ui.getScreenRegion()
+	ensureRootKirigamiCorrect()
+	return rootKirigami
+end
+
+---Return whole screen dimensions, scaled by UI. Meant to be used in UI drawing code where
+---using safe area is insufficient.
+function ui.getFullScreenRegion()
+	return rootKirigamiUnsafe
 end
 
 ---@return number
@@ -333,6 +468,7 @@ local uiPushed = false
 
 function ui.startUI()
 	assert(not uiPushed, "attempt to call startUI twice")
+	prof_push("ui")
 	uiPushed = true
 	lg.push()
 	local t = ui.getUIScalingTransform()
@@ -340,11 +476,19 @@ function ui.startUI()
 	iml.pushTransform(t)
 end
 
+local simulatedSafeArea = pcall(string.dump, love.window.getSafeArea)
+
 function ui.endUI()
 	assert(uiPushed, "attempt to call endUI before startUI")
 	uiPushed = false
+
+    if simulatedSafeArea then
+        ui.debugRegion(ui.getScreenRegion())
+    end
+
 	iml.popTransform()
 	lg.pop()
+	prof_pop() -- prof_push("ui")
 end
 
 function ui.assertUIStarted()

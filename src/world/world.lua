@@ -6,13 +6,23 @@ The world is a container for tokens and entities.
 
 ]]
 
+
 local ParticleService = require(".particle.ParticleService")
 local DataCollector = require(".data_collector")
 local table_clear = require("table.clear")
+local sceneManager = require("src.scenes.sceneManager")
+
+---@class g.World.Decor
+---@field x number
+---@field y number
+---@field image string
+local Decor
+
 
 ---@class g.World: objects.Class
 ---@field entities objects.BufferedSet
 ---@field tokens objects.BufferedSet
+---@field bossToken g.Token?
 ---@field tokensToHoverTime {[table]: number}
 ---@field tokenPartition objects.Partition
 ---@field mouseX number?
@@ -41,11 +51,14 @@ function World:init()
         [token] -> hover_time_accumulated
     ]]})
 
+    self.bossToken = nil
+
     ---@type table<g.Entity, number?>
     self.entitiesToHitCooldown = setmetatable({}, {__mode = "k"})
 
     self.particles = ParticleService()
     self.timer = 0 -- For per second update
+    self.seconds = 0 -- how many seconds have elapsed (perSecondUpdate)
 
     ---@type table<g.ResourceType, g.DataCollector>
     self.dataCollectors = nil
@@ -62,18 +75,26 @@ function World:init()
     self.damageNumbers = {}
 
     -- Create tile atlas
-    self.tilemap = helper.splitTileImage("harvestarea_tilemap", consts.WORLD_TILE_SIZE)
-    -- For decor tile, we want it to be flat so pickRandom do the job.
-    do
-        local decorTilemap = helper.splitTileImage("decorationgrass_tilemap", consts.WORLD_TILE_SIZE)
-        ---@type love.Quad[]
-        self.decorTilemap = {}
-        for _, tmaps in ipairs(decorTilemap) do
-            for _, tquad in ipairs(tmaps) do
-                self.decorTilemap[#self.decorTilemap+1] = tquad
-            end
-        end
-    end
+    self.tilemap = helper.splitTileImage("harvestarea_tilemap_0", consts.WORLD_TILE_SIZE)
+
+    -- Player avatar. Cannot initialize it in here due to cyclic dependency with g.spawnEntity and this world.
+    ---@type g.Entity|nil
+    self.playerAvatar = nil
+
+    ---@type table<string, number[]>
+    self.tokenDestroyTime = {--[[
+        tracks WHEN tokens were destroyed, in seconds
+        [tokType] -> {12.3, 434.2, 38.1, 12.28, 111.07, 39.08}
+    ]]}
+
+    self.analyticsSendTime = 0
+
+    -- decorations:
+    self.lastSeenDimensions = {x=0,y=0,prestige=0}
+    self.decorations = {}
+
+    self.combo = 0
+    self.comboTimeout = 0
 end
 
 
@@ -106,21 +127,27 @@ local function updateHarvestCircle(self, dt)
 end
 
 
+
+---@param x number
+---@param y number
 function World:_enableMouseHarvester(x,y)
     self.mouseX = x
     self.mouseY = y
 end
 
+function World:_disableMouseHarvester()
+    -- disables mouse harvester
+    -- (e.g. if we are in upgrade-scene, or rewards open)
+    self.mouseX = nil
+    self.mouseY = nil
+end
+
 
 function World:_isPlayerCurrentlyHarvesting()
-    -- HACK:
     -- when the player's mouse-harvester is off-screen,
-    -- (Eg when the player isnt in the scene, or when a popup is open,)
     -- we say that the player isn't harvesting.
-    if not self.mouseX then
-        return false
-    end
-    return (self.mouseX > -100)
+    -- (Eg when the player isnt in the scene, or when a popup is open,)
+    return not not self.mouseX
 end
 
 
@@ -141,6 +168,12 @@ local function updateToken(tok,dt)
     tok.timeSinceHitStart = tok.timeSinceHitStart + dt
     tok.timeSinceHit = tok.timeSinceHit + dt
 
+    if tok.flight then
+        local vx,vy = tok.flight.vx, tok.flight.vy
+        tok.x = tok.x + vx*dt
+        tok.y = tok.y + vy*dt
+    end
+
     if tok.update then
         tok:update(dt)
     end
@@ -153,8 +186,33 @@ local function updateToken(tok,dt)
     if tok.timeSinceHitStart >= getAxeSwingTime() and tok.timeSinceHitStart < tok.timeSinceHit then
         g.hitImmediately(tok)
     end
+
+    local ww,wh = g.getWorldDimensions()
+    local leeway = 0
+    if tok.flight then
+        leeway = 200
+    end
+    local outOfBounds = not helper.isInsideRect(tok.x,tok.y, 0,0,ww,wh, leeway)
+    if outOfBounds then
+        -- token is out of bounds; destroy.
+        -- (prevents softlocks when world-dimensions decrease)
+        g.deleteToken(tok)
+    end
 end
 
+
+
+local function emulateLineRectangle(thickness, x, y, w, h)
+    -- The anchor is on the center
+    -- top
+    g.drawImageOffset("1x1", x - thickness / 2, y - thickness / 2, 0, w + thickness, thickness, 0, 0)
+    -- bottom
+    g.drawImageOffset("1x1", x - thickness / 2, y + h - thickness / 2, 0, w + thickness, thickness, 0, 0)
+    -- left
+    g.drawImageOffset("1x1", x - thickness / 2, y - thickness / 2, 0, thickness, h + thickness, 0, 0)
+    -- right
+    g.drawImageOffset("1x1", x + w - thickness / 2, y - thickness / 2, 0, thickness, h + thickness, 0, 0)
+end
 
 ---@param tok g.Token
 local function drawTokenHealthBar(tok)
@@ -166,38 +224,49 @@ local function drawTokenHealthBar(tok)
     local HP_BAR_W = 14
     local HP_BAR_H = 3
     local realW = HP_BAR_W * (tok.health / tok.maxHealth)
+
+    local hx = x-HP_BAR_W/2
+    local hy = y+8
+
     -- Draw bar background
     love.graphics.setColor(0,0,0,0.5)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    g.drawImageOffset("1x1", hx, hy, 0, HP_BAR_W, HP_BAR_H, 0, 0)
+
     -- Draw lagged health
     local t = helper.clamp(tok.timeSinceDamaged / consts.LAGGED_HEALTHBAR_DURATION, 0, 1)
     t = helper.clamp(helper.EASINGS.easeInCubic(t), 0, 1)
     local laggedW = HP_BAR_W * helper.lerp(tok.laggedHealth, tok.health, t) / tok.maxHealth
     love.graphics.setColor(1,1,1,1)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, laggedW, HP_BAR_H)
+    g.drawImageOffset("1x1", hx, hy, 0, laggedW, HP_BAR_H, 0, 0)
     -- Draw health
-    love.graphics.setColor(0.1,0.9,0.1,1)
-    love.graphics.rectangle("fill", x-HP_BAR_W/2, y+8, realW, HP_BAR_H)
+    if realW > 0 then
+        love.graphics.setColor(0.1,0.9,0.1,1)
+        g.drawImageOffset("1x1", hx, hy, 0, realW, HP_BAR_H, 0, 0)
+    end
+
     -- Draw border
-    love.graphics.setLineWidth(1)
-    love.graphics.setColor(0,0,0,1)
-    love.graphics.rectangle("line", x-HP_BAR_W/2, y+8, HP_BAR_W, HP_BAR_H)
+    -- love.graphics.setColor(0,0,0,1)
+    -- emulateLineRectangle(1, hx, hy, HP_BAR_W, HP_BAR_H)
 end
 
 
 
 
 local TOKEN_SPAWN_ANIMATION_DURATION = 0.2
-local TOKEN_SPAWN_ANIMATION_AMPLITUDE = 1.3
+local TOKEN_SPAWN_ANIMATION_AMPLITUDE = 1.6
 
 local TOKEN_HIT_ANIMATION_DURATION = 0.15
-local TOKEN_HIT_SQUASH_AMOUNT = 0.5
+local TOKEN_HIT_SQUASH_AMOUNT = 0.6
 
 
 ---@param tok g.Token
 ---@return number sx, number sy
 local function getTokScale(tok)
     local sx,sy = 1,1
+
+    if tok.bossfight then
+        return 1,1 -- boss-tokens dont rotate.
+    end
 
     local ta = tok.timeAlive
     if ta < TOKEN_SPAWN_ANIMATION_DURATION then
@@ -235,6 +304,10 @@ local TOKEN_DAMAGE_JERK_AMPLITUDE = 1.3
 local function getTokRotation(tok)
     local rot = 0
 
+    if tok.bossfight then
+        return 0 -- boss-tokens dont rotate.
+    end
+
     local tsd = tok.timeSinceDamaged
     if tsd < TOKEN_DAMAGE_JERK_DURATION then
         rot = rot + (TOKEN_DAMAGE_JERK_DURATION - tsd) * TOKEN_DAMAGE_JERK_AMPLITUDE
@@ -254,15 +327,15 @@ end
 
 
 ---@param tok g.Token
-local function drawAxe(tok)
+---@param scytheImg string
+local function drawScythe(tok, scytheImg)
     love.graphics.setColor(1,1,1)
     local t = tok.timeSinceHitStart / getAxeSwingTime()
     -- For scythe, we need to "damage" at mid-swing. This means narrowing down the timing for `t`.
     local t2 = helper.EASINGS.sineInOut(helper.clamp(helper.remap(t, 0.6, 1.2, 0, 1), 0, 1))
     local flip = 2 * math.floor(tok.id % 2) - 1
     local rot = helper.lerp(0.7, 0.1, t2)
-    local scythe = g.getScytheInfo(g.getCurrentScythe()).image
-    g.drawImageOffset(scythe, tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
+    g.drawImageOffset(scytheImg, tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
 end
 
 
@@ -275,6 +348,8 @@ local function drawShadow(shadow, x,y)
 end
 
 
+local EMPTY = {}
+
 ---@param tok g.Token
 local function drawToken(tok)
     love.graphics.setColor(1,1,1,1)
@@ -282,6 +357,12 @@ local function drawToken(tok)
     local sx,sy = getTokScale(tok)
     local rot = getTokRotation(tok)
     local kx,ky = getTokShear(tok)
+
+    local stalkInfo = tok.growths and g.getStalkInfo(tok.growths.stalk)
+    if stalkInfo and stalkInfo.dontFlip then
+        -- dont flip non-symmetric stalks (it messes up berry placement)
+        sx = math.abs(sx)
+    end
 
     -- shadow:
     drawShadow(tok.shadow, tok.x, tok.y)
@@ -291,15 +372,18 @@ local function drawToken(tok)
         tok:drawBelow()
     end
 
-    love.graphics.setColor(1,1,1)
-    g.drawImage(tok.image, tok.x, tok.y, rot, sx, sy, kx,ky)
-
-    if tok.growths then
-        local stalkInfo = g.getStalkInfo(tok.growths.stalk)
-        for _, pos in ipairs(stalkInfo.growthpos) do
-            g.drawImage(tok.growths.growth, tok.x + pos.x, tok.y + pos.y, rot, sx, sy, kx, ky)
-        end
+    if tok.flight then
+        -- draw wings
+        local flapSpeed = ((tok.id%6 + 8) / 8)
+        local t = love.timer.getTime()*flapSpeed + tok.id*71.23324
+        local cwings = tok.flightCustomWings or EMPTY
+        lg.setColor(1,1,1)
+        helper.drawWings(tok.x, tok.y, t, cwings.image, 1, cwings.distance)
     end
+
+    love.graphics.setColor(1,1,1)
+    local tinfo = g.getTokenInfo(tok.type)
+    g.drawTokenImage(tinfo, tok.x, tok.y, rot, sx, sy, kx,ky)
 
     love.graphics.setColor(1,1,1)
     if tok.drawToken then
@@ -310,9 +394,15 @@ local function drawToken(tok)
         local s = math.sin(love.timer.getTime()*4 + tok.id*7.343)
         g.drawImage("slimed_visual2", tok.x+6,tok.y-5+s, 0, 1,1)
     end
+    if tok.starred then
+        local s = math.sin(love.timer.getTime()*4 + tok.id*4.143)
+        local sc = math.sin(love.timer.getTime()*8 + tok.id*4.143)
+        g.drawImage("star_visual", tok.x-6,tok.y-5+s, 0, sc,1)
+    end
 
+    local scytheImg = g.getScytheInfo(g.getCurrentScythe()).image
     if tok.timeSinceHitStart < getSwingTime() then
-        drawAxe(tok)
+        drawScythe(tok, scytheImg)
     end
 
     drawTokenHealthBar(tok)
@@ -328,13 +418,36 @@ local function drawEntity(e)
         e:drawBelow()
     end
 
-    drawShadow(e.shadow, e.x, e.y)
+    if e.shadow ~= false then
+        drawShadow(e.shadow, e.x, e.y)
+    end
+
+    local sx,sy = e.sx or 1, e.sy or 1
+    if e.bulgeAnimation then
+        local blg = assert(e.bulgeAnimation)
+        local mag = 1 + (blg.time/blg.duration)*blg.magnitude
+        sx = sx * mag
+        sy = sy * mag
+    end
 
     if e.image then
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
-        g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, e.sx or 1, e.sy or 1)
-        love.graphics.setBlendMode("alpha", "alphamultiply")
+        -- We need this need blendmode boolean check.
+        -- LOVE doesn't check the blending mode internally
+        -- and will always break batching even if the specified
+        -- blend mode in `setBlendMode` is same as `getBlendMode`.
+        local needblendmode = e.blendmode or e.blendalphamode
+
+        love.graphics.setColor(1, 1, 1, e.alpha or 1)
+
+        if needblendmode then
+            love.graphics.setBlendMode(e.blendmode or "alpha", e.blendalphamode or "alphamultiply")
+        end
+
+        g.drawImage(e.image, e.x+(e.ox or 0), e.y+(e.oy or 0), e.rot or 0, sx,sy)
+
+        if needblendmode then
+            love.graphics.setBlendMode("alpha", "alphamultiply")
+        end
     end
 
     if e.draw then
@@ -347,7 +460,9 @@ end
 ---@param a g.Token|g.Entity
 ---@param b g.Token|g.Entity
 local function sortOrder(a, b)
-    return a.y < b.y
+    local indexA = a.y + (a.drawOrder or 0)
+    local indexB = b.y + (b.drawOrder or 0)
+    return indexA < indexB
 end
 
 
@@ -359,13 +474,18 @@ local function hash(x, y)
 end
 
 function World:_draw()
+    prof_push("world:_draw")
+
     -- local w,h = g.getWorldDimensions()
     -- love.graphics.setColor(0,0,0)
     -- love.graphics.rectangle("line", 0,0, w,h)
+    prof_push("draw_tiles")
     love.graphics.setColor(1, 1, 1)
-    local wtw = g.stats.WorldTileWidth - 1
-    local wth = g.stats.WorldTileHeight - 1
+
     local wtz = consts.WORLD_TILE_SIZE
+    local wtw, wth = g.getWorldTileDimensions()
+    -- Lua loops are both inclusive. So subtract by 1.
+    wtw, wth = wtw - 1, wth - 1
     local atlas = g.getAtlas()
     for y = 0, wth do
         for x = 0, wtw do
@@ -424,26 +544,27 @@ function World:_draw()
 
             -- Draw tile
             love.graphics.draw(atlas, targetQuad, x * wtz, y * wtz)
-
-            -- Draw decoration
-            -- Why we do this hash you ask? So we can place random decoration
-            -- in respect to tile X and tile Y.
-            local hashpos = (x+499)*hash(x, y)
-            hashpos = helper.hashInteger(hashpos) % 65536
-            if hashpos / 65535 <= 0.1 then
-                local noise = helper.hashInteger(hashpos) % 65536
-                local index = math.floor(noise / 65535 * #self.decorTilemap + 0.5)
-                index = helper.clamp(index, 1, #self.decorTilemap)
-                love.graphics.draw(atlas, self.decorTilemap[index], x * wtz, y * wtz)
-            end
         end
     end
+    prof_pop() -- prof_push("draw_tiles")
+
+    prof_push("draw_world_decor")
+    -- Draw decoration:
+    -- Hashing to provide pseudorandom+deterministic decoration placement
+    for _,decor in ipairs(self.decorations) do
+        if decor.color then
+            lg.setColor(decor.color)
+        end
+        g.drawImage(decor.image, decor.x, decor.y)
+    end
+    prof_pop()
 
     ---@type (g.Token|g.Entity)[]
     local objlist = {}
 
     -- drawGround()
 
+    prof_push("token/entity sort")
     -- Add token to be drawn
     for _, tok in ipairs(self.tokens) do
         objlist[#objlist+1] = tok
@@ -456,8 +577,10 @@ function World:_draw()
 
     -- Sort by Y bottom first
     table.sort(objlist, sortOrder)
+    prof_pop() -- prof_push("token/entity sort")
 
     -- Draw everything.
+    prof_push("token/entity draw")
     for _, t_or_e in ipairs(objlist) do
         if g.isToken(t_or_e) then
             ---@cast t_or_e g.Token
@@ -467,6 +590,7 @@ function World:_draw()
             drawEntity(t_or_e)
         end
     end
+    prof_pop() -- prof_push("token/entity draw")
 
     self:_drawDamageNumbers()
 
@@ -479,9 +603,12 @@ function World:_draw()
             self.mouseY,
             g.stats.HarvestArea,
             HARVEST_CIRCLE_INSIDE,
-            HARVEST_CIRCLE_BORDER
+            HARVEST_CIRCLE_BORDER,
+            (self.combo >= 3)
         )
     end
+
+    prof_pop()
 end
 
 
@@ -491,9 +618,22 @@ local TokenPool = objects.Class("g:TokenPool")
 function TokenPool:init()
     self.tokens = {}
 end
+
+if false then
+    ---@return g.TokenPool
+    ---@diagnostic disable-next-line: cast-local-type, missing-return
+    function TokenPool() end
+end
+
 function TokenPool:add(tokenId, amount)
     self.tokens[tokenId] = (self.tokens[tokenId] or 0) + (amount or 1)
 end
+
+function TokenPool:subtract(tokenId, amount)
+    amount = amount or (self.tokens[tokenId] or 0)
+    self.tokens[tokenId] = math.max(0, (self.tokens[tokenId] or 0) - amount)
+end
+
 
 
 
@@ -554,10 +694,26 @@ local function selectNearestToken(x, y, maxRadius, toks)
 end
 
 
+
+local function isInHarvestScene()
+    return select(2, sceneManager.getCurrentScene()) == "harvest_scene"
+end
+
+
 ---@return fun(table: table<string, integer>, index?: string):string
 ---@return integer
 function World:iterateTokenPool()
     return pairs(self.tokenPool.tokens)
+end
+
+
+function World:_incrementCombo()
+    -- (called when a crop is destroyed)
+    if isInHarvestScene() and self:_isPlayerCurrentlyHarvesting() then
+        self.combo = self.combo + 1
+        local dur = self:_getComboDuration()
+        self.comboTimeout = math.min(dur, self.comboTimeout + dur*consts.COMBO_HARVEST_INCREMENT_RATIO)
+    end
 end
 
 
@@ -573,8 +729,144 @@ function World:_grantEffect(id, dur)
 end
 
 
+function World:_clearEffects()
+    self.effectDurations = {}
+    self.effects = {}
+end
+
+
+
+---@private
+function World:_updateTokenCount()
+    table_clear(self.tokenCounts)
+    self.bossToken = nil
+    for _, t in ipairs(self.tokens) do
+        ---@cast t g.Token
+        self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
+        if t.bossfight then
+            self.bossToken = t
+        end
+    end
+end
+
+
+---@param tok_id string
+---@return integer
+function World:getTokenCount(tok_id)
+    return self.tokenCounts[tok_id] or 0
+end
+
+
+function World:_getComboDuration()
+    local t
+    if self.combo < 10 then
+        t = 4
+    elseif self.combo < 50 then
+        t = helper.remap(self.combo, 10, 50, 4, 1)
+    elseif self.combo < 200 then
+        t = helper.remap(self.combo, 50, 200, 1, 0.3)
+    else
+        local dur = helper.remap(self.combo, 200, 1000, 0.3, 0.05)
+        t = helper.clamp(dur, 0.01, 1)
+    end
+    return t / consts.COMBO_HARVEST_INCREMENT_RATIO
+end
+
+
+
+local WORLD_TILESETS = {
+    {
+        tileset = "harvestarea_tilemap_0",
+        dark = objects.Color("#" .. "FF20A362"),
+        light =objects.Color("#" .. "FF35BA64") 
+    },
+
+    {
+        tileset = "harvestarea_tilemap_1",
+        light = objects.Color("#" .. "FF31CFBF"),
+        dark = objects.Color("#" .. "FF23B7A9"),
+    },
+
+    {
+        tileset = "harvestarea_tilemap_2",
+--"FFC9A531"
+        dark = objects.Color("#" .. "FFCEB62D"),
+        light =objects.Color("#" .."FFC9A531"),
+    },
+}
+
+
+---@param self g.World
+local function tryUpdateDecorations(self)
+    local tw,th = g.getWorldTileDimensions()
+    tw,th = tw-1, th-1
+    local pres = g.getPrestige()
+    local ls = self.lastSeenDimensions
+    if tw == ls.x and th == ls.y and ls.prestige == pres then
+        return -- Nothing to generate; return early.
+    end
+
+    self.lastSeenDimensions = {x=tw, y=th, prestige=pres}
+    self.decorations = {}
+
+    local w,h = g.getWorldDimensions()
+
+    local i = helper.clamp(pres+1, 1,3)
+    local ts = WORLD_TILESETS[i]
+    local darkcol = ts.dark
+    local lightcol = ts.light
+
+    -- Create new tile atlas
+    self.tilemap = helper.splitTileImage(ts.tileset, consts.WORLD_TILE_SIZE)
+
+    local SIZE_MULT = math.sqrt(g.stats.WorldTileSize / g.getStatBaseValue("WorldTileSize"))
+    --====== add big-splotch decorations:  ======
+    local BIGPAD=30
+    for i=1,40*SIZE_MULT do
+        table.insert(self.decorations, {
+            x = math.floor(helper.lerp(BIGPAD, w-BIGPAD, love.math.random())),
+            y = math.floor(helper.lerp(BIGPAD, h-BIGPAD, love.math.random())),
+            image = "decor_big_" .. love.math.random(1,4),
+            color = darkcol
+        })
+    end
+
+    --====== add splotch decorations:  ======
+    -- local originalCol = "#" .. "ff2bae62"
+    -- local col = objects.Color("#" .. "FF1E954F")
+    local PAD=12
+    for i=1,60*SIZE_MULT do
+        table.insert(self.decorations, {
+            x = math.floor(helper.lerp(PAD, w-PAD*2, love.math.random())),
+            y = math.floor(helper.lerp(PAD, h-PAD*2, love.math.random())),
+            image = "decor_splotch_" .. love.math.random(1,5),
+            color = darkcol
+        })
+    end
+
+    local TPAD=30
+    for i=1,30*SIZE_MULT do
+        table.insert(self.decorations, {
+            x = math.floor(helper.lerp(TPAD, w-TPAD*2, love.math.random())),
+            y = math.floor(helper.lerp(TPAD, h-TPAD*2, love.math.random())),
+            image = "decor_tex_" .. love.math.random(1,5),
+            color = lightcol
+        })
+    end
+end
+
+
+
+---@param tok g.Token
+---@param isPlayerCurrentlyHarvesting boolean
+local function shouldIncludeToken(tok, isPlayerCurrentlyHarvesting)
+    return isPlayerCurrentlyHarvesting or (not tok.flight)
+end
+
 ---@param dt number
 function World:_update(dt)
+    tryUpdateDecorations(self)
+
     self.entities:flush()
     self.tokens:flush()
 
@@ -589,6 +881,12 @@ function World:_update(dt)
         elist:flush()
     end
 
+    -- Player avatar
+    if not self.playerAvatar or not self.entities:has(self.playerAvatar) then
+        local wx, wy = g.getWorldDimensions()
+        self.playerAvatar = g.spawnEntity("avatar", wx / 2, wy / 2)
+    end
+
     self.resourcesPerSecond = {}
     for resId, collector in pairs(self.dataCollectors or {}) do
         self.resourcesPerSecond[resId] = collector:avgdiff()
@@ -597,18 +895,19 @@ function World:_update(dt)
     -- update TokenPool
     local tp = TokenPool()
     g.call("populateTokenPool", tp)
-    if g.getPrestige() == 0 then
-        tp:add("grass_blades", 5)
-    end
+    g.call("depopulateTokenPool", tp)
     self.tokenPool = tp
-    table_clear(self.tokenCounts)
+
+    local isPlayerCurrentlyHarvesting = self:_isPlayerCurrentlyHarvesting()
 
     self.tokenPartition:clear()
     for _, t in ipairs(self.tokens) do
-        ---@cast t g.Token
-        self.tokenPartition:add(t, t.x,t.y)
-        self.tokenCounts[t.type] = (self.tokenCounts[t.type] or 0) + 1
+        -- dont include flying tokens when player isnt there.
+        if shouldIncludeToken(t, isPlayerCurrentlyHarvesting) then
+            self.tokenPartition:add(t, t.x,t.y)
+        end
     end
+    self:_updateTokenCount()
 
     -- Effects should only tick down when player is harvesting.
     -- (Or else it will tick down when player is in another scene!)
@@ -627,14 +926,20 @@ function World:_update(dt)
 
     -- Update token
     for _, tok in ipairs(self.tokens) do
-        updateToken(tok,dt)
+        if shouldIncludeToken(tok, isPlayerCurrentlyHarvesting) then
+            updateToken(tok, dt)
+        end
     end
 
     local tree = g.getUpgTree()
+
+    local spawnEntityCounts = {--[[
+        [upgradeId] -> how many entities should exist
+    ]]}
     for _, upg in ipairs(tree:getAllUpgrades()) do
-        local upgradeId = upg.id
+        local upgId = upg.id
         local ulevel = upg.level
-        local uinfo = g.getUpgradeInfo(upgradeId)
+        local uinfo = g.getUpgradeInfo(upgId)
 
         if uinfo.spawnEntity then
             local ecount = 0
@@ -645,36 +950,40 @@ function World:_update(dt)
                     ecount = 1
                 end
             end
+            spawnEntityCounts[upgId] = (spawnEntityCounts[upgId] or 0) + ecount
+        end
+    end
 
-            local diff = self:_countEntityUpgrades(upgradeId) - ecount
+    for upgradeId, ecount in pairs(spawnEntityCounts) do
+        local uinfo = g.getUpgradeInfo(upgradeId)
+        local diff = self:_countEntityUpgrades(upgradeId) - ecount
 
-            if diff ~= 0 then
-                -- Ensure set exist
-                if not self.upgradeEntities[upgradeId] then
-                    self.upgradeEntities[upgradeId] = objects.BufferedSet()
-                end
-
-                if diff < 0 then
-                    -- Spawn more entities
-                    for _ = 1, -diff do
-                        local ent = uinfo:spawnEntity()
-                        self.upgradeEntities[upgradeId]:addBuffered(ent)
-                    end
-                else
-                    -- Remove excess entities
-                    for _, e in ipairs(self.upgradeEntities[upgradeId]) do
-                        if diff == 0 then
-                            break
-                        end
-
-                        self.upgradeEntities[upgradeId]:removeBuffered(e) -- do not disappoint ipairs
-                        self.entities:removeBuffered(e)
-                        diff = diff - 1 -- if it's 0, then this loop stops
-                    end
-                end
-
-                self.upgradeEntities[upgradeId]:flush()
+        if diff ~= 0 then
+            -- Ensure set exist
+            if not self.upgradeEntities[upgradeId] then
+                self.upgradeEntities[upgradeId] = objects.BufferedSet()
             end
+
+            if diff < 0 then
+                -- Spawn more entities
+                for _ = 1, -diff do
+                    local ent = uinfo:spawnEntity()
+                    self.upgradeEntities[upgradeId]:addBuffered(ent)
+                end
+            else
+                -- Remove excess entities
+                for _, e in ipairs(self.upgradeEntities[upgradeId]) do
+                    if diff == 0 then
+                        break
+                    end
+
+                    self.upgradeEntities[upgradeId]:removeBuffered(e) -- do not disappoint ipairs
+                    self.entities:removeBuffered(e)
+                    diff = diff - 1 -- if it's 0, then this loop stops
+                end
+            end
+
+            self.upgradeEntities[upgradeId]:flush()
         end
     end
 
@@ -700,8 +1009,13 @@ function World:_update(dt)
             e:update(dt)
         end
 
+        if e.bulgeAnimation then
+            local blg = assert(e.bulgeAnimation)
+            blg.time = math.max(0, blg.time - dt)
+        end
+
         if e.hitToken then
-            local entCooldown = e.hitToken.cooldown or 1
+            local entCooldown = e.hitToken.cooldown or 0.4
             local cd0 = math.min(self.entitiesToHitCooldown[e] or 0, entCooldown)
             local cooldown = math.max(cd0 - dt, 0)
             self.entitiesToHitCooldown[e] = cooldown
@@ -787,7 +1101,7 @@ function World:_update(dt)
             local my = assert(self.mouseY)
             local dir = (ringIndex % 2) * 2 - 1
             local rot = self.orbitAngle + i * 2 * math.pi / #entsToBeUpdated
-            local dist = g.stats.HarvestArea + (ringIndex - 0.5) * consts.ORBIT_RING_DISTANCE
+            local dist = g.stats.HarvestArea/2 + (ringIndex - 0.5) * consts.ORBIT_RING_DISTANCE
             e.x = mx + math.sin(rot * dir) * dist
             e.y = my + math.cos(rot * dir) * dist
         end
@@ -797,44 +1111,87 @@ function World:_update(dt)
         updateHarvestCircle(self, dt)
     end
 
+    self.tokens:flush() -- flush once again in case there are some destroyed tokens
+    self:_updateTokenCount()
+
     -- respawn tokens that died
-    local tokenCounts = {}
-    for _,t in ipairs(self.tokens)do
-        tokenCounts[t.type] = (tokenCounts[t.type] or 0) + 1
-    end
+    local curTime = g.getWorldTime()
     for tokType, poolCount in pairs(self.tokenPool.tokens) do
-        local ct = tokenCounts[tokType] or 0
+        local ct = self.tokenCounts[tokType] or 0
         local toSpawn = poolCount - ct
-        for _=1, toSpawn do
-            if love.math.random() < (dt*5) then
-                -- TODO: this randomness sucks! 
-                -- Its random and it sometimes takes ages to respawn
+        self.tokenDestroyTime[tokType] = self.tokenDestroyTime[tokType] or {}
+        local buf = self.tokenDestroyTime[tokType]
+
+        local cooldownTime = g.stats.TokenRespawnTime * math.abs(g.ask("getPerTokenRespawnTimeMultiplier", tokType))
+
+        if #buf < toSpawn then
+            -- #destroyTime + tokenCount is less than tokenPool. Spawn more
+            for i = 1, toSpawn - #buf do
+                buf[#buf+1] = curTime + 0.1 * i - cooldownTime
+            end
+        end
+
+        if #buf > math.max(toSpawn, 0) then
+            -- Too many tokens! truncate table.
+            -- (this can happen if there are tokens queued for respawn, 
+            --  but then another system, eg green-mushroom, spawns new stuff immediately)
+            table.sort(buf)
+            while #buf > math.max(toSpawn, 0) do
+                table.remove(buf)
+            end
+        end
+
+        for i = #buf, 1, -1 do
+            if curTime >= (buf[i] + cooldownTime) then
                 local x,y = g.getRandomPositionForToken()
                 if x and y then
-                    g.spawnToken(tokType, x,y)
+                    local tok = g.spawnToken(tokType, x,y)
+                    tok.wasSpawnedViaTokenPool = true
+                    table.remove(buf, i)
                 end
             end
+        end
+    end
+
+    -- Update combo
+    do
+        -- Only count down timer if player is actively harvesting
+        if isInHarvestScene() and self:_isPlayerCurrentlyHarvesting() then
+            self.comboTimeout = math.max(self.comboTimeout - dt, 0)
+        end
+        if self.comboTimeout <= 0 then
+            self.combo = 0
         end
     end
 
     -- Run per second update event bus on upgrades
     self.timer = self.timer + dt
     while self.timer >= 1 do
+        self.seconds = self.seconds + 1
+
         for _, ent in ipairs(self.entities) do
             if ent.perSecondUpdate then
-                ent:perSecondUpdate()
+                ent:perSecondUpdate(self.seconds)
             end
         end
 
         for _, tok in ipairs(self.tokens) do
             if tok.perSecondUpdate then
-                tok:perSecondUpdate()
+                if shouldIncludeToken(tok, isPlayerCurrentlyHarvesting) then
+                    tok:perSecondUpdate(self.seconds)
+                end
             end
         end
 
-        g.call("perSecondUpdate")
+        g.call("perSecondUpdate", self.seconds)
         updateResourceDataCollection(self)
         self.timer = self.timer - 1
+
+        self.analyticsSendTime = self.analyticsSendTime + 1
+        if self.analyticsSendTime >= consts.ANALYTICS_UPDATE_INTERVAL then
+            analytics.send("update")
+            self.analyticsSendTime = 0
+        end
     end
 
     self.tokens:flush()
@@ -875,6 +1232,9 @@ local DAMAGE_NUMBER_SPARKLE_ASSETS = {"damage_number_sparkle_1", "damage_number_
 ---@param y number
 ---@param col objects.Color
 function World:_spawnDamageNumber(num, x, y, col)
+    -- Limit to 100 damage numbers at a time
+    if #self.damageNumbers >= 100 then return end
+
     self.damageNumbers[#self.damageNumbers+1] = {
         color = col,
         number = num,
@@ -904,22 +1264,34 @@ end
 
 ---@private
 function World:_drawDamageNumbers()
+    prof_push("World:_drawDamageNumbers")
+
     local smallFont = g.getSmallFont(16)
     local fontHeight = smallFont:getHeight()
+    prof_push("draw numbers")
     for _, dn in ipairs(self.damageNumbers) do
-        love.graphics.setColor(dn.color)
-
-        if dn.lifetime < 0 then
-            local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
-            g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
-        else
+        if dn.lifetime >= 0 then
+            love.graphics.setColor(dn.color)
             local tspawn = helper.clamp((DAMAGE_NUMBER_LIFETIME - dn.lifetime) / DAMAGE_NUMBER_POPUP_TIME, 0, 1)
             local scale = math.max(helper.EASINGS.easeOutBack(tspawn) ^ 3, 0)
             local text = g.formatNumber(dn.number)
             local width = smallFont:getWidth(text)
-            helper.printTextOutlineSimple(text, smallFont, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
+            helper.printTextOutlineSimple(text, smallFont, 1, dn.x, dn.y, 0, scale, scale, width / 2, fontHeight / 2)
         end
     end
+    prof_pop() -- prof_push("draw numbers")
+
+    prof_push("draw sparks")
+    for _, dn in ipairs(self.damageNumbers) do
+        if dn.lifetime < 0 then
+            love.graphics.setColor(dn.color)
+            local sparkidx = math.ceil(-dn.lifetime / DAMAGE_NUMBER_SPARKLE_TIME)
+            g.drawImage(DAMAGE_NUMBER_SPARKLE_ASSETS[sparkidx], dn.x, dn.y)
+        end
+    end
+    prof_pop() -- prof_push("draw sparks")
+
+    prof_pop() -- prof_push("World:_drawDamageNumbers")
 end
 
 

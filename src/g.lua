@@ -6,10 +6,12 @@
 local reducers = require("src.modules.reducers")
 
 local Session = require("src.Session")
+local Tree = require("src.upgrades.Tree")
 local HUD = require("src.ui.hud.hud")
 
 
 
+local bgm = require("src.sound.bgm")
 local sfx = require("src.sound.sfx")
 
 local simulation = require("src.world.simulation")
@@ -24,8 +26,10 @@ local g = {}
 ---@type g.Session
 local currentSession
 
+---@return g.Session
 function g.newSession()
     currentSession = Session()
+    return currentSession
 end
 
 ---@param path string
@@ -38,6 +42,58 @@ end
 function g.hasSession()
     return not not currentSession
 end
+
+
+---@param prestige integer
+---@return g.Tree
+function g.loadPrestigeTree(prestige)
+    local fname = "assets/prestiges/prestige_" .. prestige .. ".json"
+    local data,er = love.filesystem.read(fname)
+    assert(data,er)
+    local tabl = assert(json.decode(data))
+    return Tree.deserialize(tabl)
+end
+
+do
+local finalPrestige = 0
+for p=0,500 do
+    local fname = "assets/prestiges/prestige_" .. tostring(p) .. ".json"
+    if not love.filesystem.getInfo(fname) then
+        -- welp, we ran out of prestige files!
+        break
+    end
+    finalPrestige = p
+end
+
+function g.getFinalPrestige()
+    return finalPrestige
+end
+
+end
+
+
+function g.incrementPrestige()
+    -- WARNING: this function has FAR REACHING CONSEQUENCES.
+    -- will reset upgrades, and do a tonne of other resets.
+    local curr = currentSession
+    local new = Session()
+
+    local prestige = math.min(g.getFinalPrestige(), curr.prestige + 1)
+    new.tree = (g.loadPrestigeTree(prestige))
+
+    -- copy over the important stuff:
+    new.prestige = prestige
+    new.totalLevel = curr.totalLevel -- keep total-level tracking.
+    new.avatar = curr.avatar
+    new.totalLevel = curr.totalLevel -- keep total-level tracking.
+    new.showTutorials = {harvest=false, upgrades=false}
+    new.unlockedPOI = objects.Set(curr.unlockedPOI)
+    new.fisherCatCount = curr.fisherCatCount
+
+    currentSession = new
+end
+
+
 
 
 ---@return g.Session
@@ -60,10 +116,33 @@ function g.getMainWorld()
 end
 
 function g.getPrestige()
-    return currentSession.prestige
+    return currentSession.prestige or 0
 end
 
 g.isBeingSimulated = simulation.isSimulating
+
+function g.delSession()
+    ---@diagnostic disable-next-line: cast-local-type
+    currentSession = nil
+end
+
+function g.saveSession()
+    local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
+    if shouldSave then
+        log.trace(debug.traceback("Saving session."))
+        local data = g.getSn():serialize()
+        local contents = json.encode(data)
+        assert(love.filesystem.write("saves/save1.json", contents))
+    end
+end
+
+function g.saveAndInvalidateSession()
+    if not g.hasSession() or g.isBeingSimulated() then return end
+    analytics.send("end")
+
+    g.saveSession()
+    return g.delSession()
+end
 
 
 
@@ -170,8 +249,13 @@ function g.ask(q, arg1, ...)
     end
     local reducer, val = t.reducer, t.defaultValue
 
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc[q] then
+        val = reducer(val, sc[q](sc, arg1, ...))
+    end
+
     if (type(arg1) == "table") and arg1[q] then
-        val = reducer(arg1[q](arg1, ...), val)
+        val = reducer(val, arg1[q](arg1, ...))
     end
 
     local tree = g.getUpgTree()
@@ -179,7 +263,7 @@ function g.ask(q, arg1, ...)
     local mainWorld = currentSession.mainWorld
     if mainWorld:_isPlayerCurrentlyHarvesting() then
         -- effects should only be active when player is harvesting
-        val = reducer(askEffects(q, arg1, ...))
+        val = reducer(val, askEffects(q, arg1, ...))
     end
 
     return reducer(val, tree:askUpgrades(q, arg1, ...))
@@ -236,9 +320,18 @@ local suffixes = {
 function g.formatNumber(num)
     local isNegative = num < 0
     num = math.abs(num)
+    local prefix = (isNegative and "-" or "")
 
     if num < 1000 then
-        return (isNegative and "-" or "") .. tostring(math.floor(num))
+        if num == math.floor(num) then
+            -- is integer!
+            return prefix .. ("%d"):format(num)
+        elseif num < 1 then
+            return prefix .. ("%.2f"):format(num)
+        elseif num < 3 then
+            return prefix .. ("%.1f"):format(num)
+        end
+        return prefix .. tostring(math.floor(num))
     end
 
     for i, suffix in ipairs(suffixes) do
@@ -253,10 +346,10 @@ function g.formatNumber(num)
                 formatted = string.format("%.14g", math.floor(scaled * 100) / 100)
             end
 
-            return (isNegative and "-" or "") .. formatted .. suffix[2]
+            return prefix .. formatted .. suffix[2]
         end
     end
-    return (isNegative and "-" or "") .. tostring(num)
+    return prefix .. tostring(num)
 end
 
 end
@@ -321,7 +414,7 @@ function g.getImageQuad(imageName)
 end
 
 
----@param imageName string
+---@param imageName string|love.Quad
 ---@param x number
 ---@param y number
 ---@param r number?
@@ -333,7 +426,30 @@ function g.drawImage(imageName, x,y, r,sx,sy,kx,ky)
     return g.drawImageOffset(imageName, x, y, r, sx, sy, 0.5, 0.5, kx, ky)
 end
 
----@param imageName string
+
+---@param tinfo g.TokenInfo
+---@param x number
+---@param y number
+---@param r number?
+---@param sx number?
+---@param sy number?
+---@param kx number?
+---@param ky number?
+function g.drawTokenImage(tinfo, x,y, r,sx,sy,kx,ky)
+    local stalkInfo = tinfo.growths and g.getStalkInfo(tinfo.growths.stalk)
+    if tinfo.image then
+        g.drawImage(tinfo.image, x,y, r, sx, sy, kx,ky)
+    end
+
+    if stalkInfo then
+        for _, pos in ipairs(stalkInfo.growthpos) do
+            g.drawImage(tinfo.growths.growth, x + pos.x, y + pos.y, r, sx, sy, kx, ky)
+        end
+    end
+end
+
+
+---@param imageName string|love.Quad
 ---@param x number
 ---@param y number
 ---@param r number?
@@ -344,7 +460,15 @@ end
 ---@param kx number?
 ---@param ky number?
 function g.drawImageOffset(imageName, x,y, r, sx,sy, ox,oy, kx,ky)
-    local quad = g.getImageQuad(imageName)
+    local quad
+    if type(imageName) == "string" then
+        quad = g.getImageQuad(imageName)
+    else
+        if not (imageName.typeOf and imageName:typeOf("Quad")) then
+            error("Expected quad, got: " .. type(imageName) .. " " .. tostring(imageName))
+        end
+        quad = imageName
+    end
     local _,_,w,h = quad:getViewport()
     atlas:draw(quad, x, y, r, sx, sy, (ox or 0.5) * w, (oy or 0.5) * h, kx, ky)
 end
@@ -411,9 +535,10 @@ end
 g.walkDirectory("src/upgrades", loadImage)
 g.walkDirectory("assets/images", loadImage)
 g.walkDirectory("src/entities", loadImage)
+g.walkDirectory("src/bosses", loadImage)
 g.walkDirectory("src/scythes", loadImage)
 g.walkDirectory("src/rewards", loadImage)
-g.walkDirectory("src/potions", loadImage)
+g.walkDirectory("src/effects", loadImage)
 
 -- Set this to true to dump the atlas
 if false then
@@ -461,32 +586,45 @@ function g.getMetric(name)
     return g.getSn().metrics[name] or 0
 end
 
+---@param name string
+---@param by number?
+function g.incrementMetric(name, by)
+    return g.setMetric(name, g.getMetric(name) + (by or 1))
+end
 
 
 
-local strTc = typecheck.assert("string")
+local defineStatTc = typecheck.assert("string", "number", "string")
 
----@type table<string, {addQuestion: string, multQuestion:string, startingValue: number}>
+---@type table<string, {addQuestion: string, multQuestion:string, startingValue: number, name: string}>
 g.VALID_STATS = {}
 
----@param name string
+---@param id string
 ---@param startingValue number
+---@param name string
 ---@return number
-function g.defineStat(name, startingValue)
-    strTc(name)
-    assert(not g.VALID_STATS[name], "Redefined stat")
-    assert(name:sub(1,1):upper() == name:sub(1,1), "Stats must have first letter capitalized")
-    local addQ = "get" .. name .. "Modifier"
+function g.defineStat(id, startingValue, name)
+    defineStatTc(id, startingValue, name)
+    assert(not g.VALID_STATS[id], "Redefined stat")
+    assert(id:sub(1,1):upper() == id:sub(1,1), "Stats must have first letter capitalized")
+    local addQ = "get" .. id .. "Modifier"
     g.defineQuestion(addQ, reducers.ADD, 0)
-    local multQ = "get" .. name .. "Multiplier"
+    local multQ = "get" .. id .. "Multiplier"
     g.defineQuestion(multQ, reducers.MULTIPLY, 1)
-    g.VALID_STATS[name]={
+    g.VALID_STATS[id]={
         addQuestion = addQ, multQuestion = multQ,
-        startingValue = startingValue
+        startingValue = startingValue,
+        name = name and loc(name, nil, {context = "A stats"}) or id,
     }
     return 0
 end
 
+
+---@param id string
+---@return number
+function g.getStatBaseValue(id)
+    return g.VALID_STATS[id].startingValue
+end
 
 
 
@@ -499,19 +637,53 @@ g.stats = {}
 
 -- SSTATS 
 -- (if you ever want to quickly search the name of stats, search "sstats")
-g.stats.HitSpeed = g.defineStat("HitSpeed", 5)
-g.stats.HitDamage = g.defineStat("HitDamage", 3)
-g.stats.HarvestArea = g.defineStat("HarvestArea", 30)
-g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 1) -- rad/s
+g.stats.HitSpeed = g.defineStat("HitSpeed", 5, "Hit Speed")
+g.stats.HitDamage = g.defineStat("HitDamage", 20, "Hit Damage")
+g.stats.HarvestArea = g.defineStat("HarvestArea", 10, "Harvest Area")
+g.stats.ResourceMultiplier = g.defineStat("ResourceMultiplier", 1, "Resource Gain Multiplier")
+g.stats.OrbitSpeed = g.defineStat("OrbitSpeed", 2, "Entity Orbit Speed") -- rad/s
+g.stats.XpMultiplier = g.defineStat("XpMultiplier", 1, "XP Gain Multiplier")
+g.stats.AutoCatMoveSpeed = g.defineStat("AutoCatMoveSpeed", 20, "Cats Move Speed")
+g.stats.AutoCatRadiusMultiplier = g.defineStat("AutoCatRadiusMultiplier", 1, "Farmer Cats Harvest Area")
+g.stats.TokenRespawnTime = g.defineStat("TokenRespawnTime", 3, "Crop Respawn Time")
+g.stats.CritChance = g.defineStat("CritChance", 0, "Critical Hit Chance") -- should start at 0
+g.stats.CritDamageMultiplier = g.defineStat("CritDamageMultiplier", 10, "Crirical Damage Multiplier")
+g.stats.KnifeDamage = g.defineStat("KnifeDamage", 10, "Knife Damage")
+g.stats.LightningDamage = g.defineStat("LightningDamage", 20, "Lightning Damage")
+g.stats.ExplosionDamage = g.defineStat("ExplosionDamage", 5, "Explosion Damage")
 
 -- World stat
-g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 25)
-g.stats.WorldTileHeight = g.defineStat("WorldTileHeight", 16)
+g.stats.WorldTileSize = g.defineStat("WorldTileSize", 20, "World Size")
 
+-- OLD CODE:
+-- g.stats.WorldTileWidth = g.defineStat("WorldTileWidth", 20)
+-- g.stats.WorldTileHeight = g.defineStat("WorldTileHeight", 13)
+
+---@return integer
+---@return integer
+function g.getWorldTileDimensions()
+    -- the size of dimensions in TILES.
+    local sze = g.stats.WorldTileSize
+    local wtw = math.floor((sze * 20/20) + 0.5)
+    local wth = math.floor((sze * 13/20) + 0.5)
+    return wtw, wth
+end
+
+
+---@return number
+---@return number
 function g.getWorldDimensions()
-    local w = math.floor(g.stats.WorldTileWidth * consts.WORLD_TILE_SIZE)
-    local h = math.floor(g.stats.WorldTileHeight * consts.WORLD_TILE_SIZE)
+    local wtw,wth = g.getWorldTileDimensions()
+    local w = math.floor(wtw * consts.WORLD_TILE_SIZE)
+    local h = math.floor(wth * consts.WORLD_TILE_SIZE)
     return w, h
+end
+
+---@return number
+function g.getWorldEdgeLeeway()
+    -- Roughly, the distance from world-island-edge to screen-edges
+    -- (NOT ENTIRELY ACCURATE; ESTIMATE.)
+    return 150
 end
 
 
@@ -544,29 +716,39 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 
 ---@class g.UpgradeDefinition
 ---@field kind g.UpgradeKind
+---@field nameContext string?
 ---@field tokenType string? (only for kind == "TOKEN")
 ---@field maxLevel integer?
 ---@field image string?
 ---@field priceScaling number?
 ---@field description string?
+---@field descriptionContext string?
 ---@field getPriceOverride (fun(uinfo:g.UpgradeInfo, level:integer): g.Bundle)?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
----@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number)?
+---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number,number?,number?,number?)?
 ---@field valueFormatter ((string|(fun(x:number):string))[])?
 ---@field getEntityCount (fun(uinfo: g.UpgradeInfo, level: integer):integer)?
 ---@field spawnEntity (fun(uinfo: g.UpgradeInfo):g.Entity)?
----@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer))?
----@field drawUI (fun(uinfo: g.UpgradeInfo, level:integer, x:number,y:number,w:number,h:number): boolean)?
+---@field perSecondUpdate (fun(uinfo: g.UpgradeInfo, level: integer, seconds:integer))?
+---@field drawUI (fun(uinfo: g.UpgradeInfo, level:integer, x:number,y:number,w:number,h:number))?
 local g_UpgradeDefinition = {}
 
 
 ---@class g.TokenDefinition
 ---@field maxHealth number
 ---@field resources g.Bundle
+---@field nameContext string?
 ---@field image string?
+---@field bossfight {prestige:integer}? boss for prestige-0 will upgrade -> prestige-1
 ---@field maxLevel integer?
 ---@field growths {stalk:string,growth:string}?
+---@field flight {vx:number,vy:number}?
+---@field flightCustomWings {image: string, distance: number}?
 ---@field description string?
+---@field descriptionContext string?
+---@field upgradeNameContext string?
+---@field upgradeDescriptionContext string?
+---@field drawOrder number?
 ---@field particles string?
 ---@field category g.Category?
 ---@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
@@ -578,6 +760,7 @@ local g_UpgradeDefinition = {}
 ---@field tokenHit (fun(tok: g.Token))?
 ---@field tokenDestroyed (fun(tok: g.Token))?
 ---@field tokenDamaged (fun(tok: g.Token, dmg:number))?
+---@field upgradeDefinition table<string, function>? Extra definitions for the corresponding upgrade
 local g_TokenDefinition = {}
 
 
@@ -593,7 +776,9 @@ local g_TokenDefinition = {}
 
 
 ---@class g.EffectDefinition
+---@field public nameContext string?
 ---@field public description string?
+---@field public descriptionContext string?
 ---@field public image string?
 ---@field public isDebuff boolean?
 
@@ -621,6 +806,7 @@ end
 ---@field public image string
 ---@field public color [number, number, number, number?] Used by resource HUD
 ---@field public startingLimit number?
+---@field public limitStatName string
 
 ---@type g.ResourceType[]
 g.RESOURCE_LIST = {}
@@ -633,36 +819,41 @@ local RESOURCES = {}
 ---@param tabl g._ResourceDefinition
 function g.defineResource(resId, tabl)
     RESOURCES[resId] = tabl
-    g.defineStat(tabl.limitStat, tabl.startingLimit or 100)
+    g.defineStat(tabl.limitStat, tabl.startingLimit or 100, tabl.limitStatName)
     table.insert(g.RESOURCE_LIST, resId)
-    richtext.defineImage(tabl.image, g.getAtlas(), g.getImageQuad(tabl.image))
+    pcall(richtext.defineImage, tabl.image, g.getAtlas(), g.getImageQuad(tabl.image))
 end
 
 
 g.defineResource("money", {
     image="money",
     limitStat="MoneyLimit",
-    startingLimit=(consts.DEV_MODE and 10000000000000) or 1000,
+    limitStatName="Money Limit",
+    startingLimit=1000,
     color = {0.71, 0.55, 0.02},
 })
 g.defineResource("juice", {
     image="juice",
     limitStat="JuiceLimit",
+    limitStatName="Juice Limit",
     color=objects.Color("#".."FF8A2E59")
 })
 g.defineResource("fabric", {
     image="fabric",
     limitStat="FabricLimit",
+    limitStatName="Fabric Limit",
     color=objects.Color("#".."FFF353FB")
 })
 g.defineResource("bread", {
     image="bread",
     limitStat="BreadLimit",
+    limitStatName="Bread Limit",
     color=objects.Color("#".."FFB78652")
 })
 g.defineResource("fish", {
     image="fish",
     limitStat="FishLimit",
+    limitStatName="Fish Limit",
     color=objects.Color("#".."FF305FCD")
 })
 
@@ -684,10 +875,8 @@ end
 ---@param resId string
 function g.isResourceUnlocked(resId)
     assertValidResource(resId)
-    -- if g.getPrestige() == 0 and (g.getResource(resId) <= 0) then
-    --     return false
-    -- end
-    return true
+    local sn = currentSession
+    return sn.resourceUnlocks[resId]
 end
 
 ---@param resId string
@@ -741,15 +930,27 @@ function g.multBundles(a,b)
 
     if type(b) == "number" then
         for _, resId in ipairs(g.RESOURCE_LIST) do
-            result[resId] = (a[resId] or 1) * b
+            result[resId] = (a[resId] or 0) * b
         end
     else
         for _, resId in ipairs(g.RESOURCE_LIST) do
-            result[resId] = (a[resId] or 1) * (b[resId] or 1)
+            result[resId] = (a[resId] or 0) * (b[resId] or 1)
         end
     end
     return result
 end
+
+
+---@param bundle g.Bundle
+---@return g.Bundle
+function g.cloneBundle(bundle)
+    local result = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        result[resId] = bundle[resId] or 0
+    end
+    return result
+end
+
 
 ---@param a g.Bundle
 ---@param b g.Bundle
@@ -825,6 +1026,13 @@ function g.getResourceLimit(resId)
     local info = g.getResourceInfo(resId)
     local limit = assert(g.stats[info.limitStat])
     return limit
+end
+
+
+---@param amount number
+function g.addXP(amount)
+    local sn = currentSession
+    sn.xp = sn.xp + amount
 end
 
 
@@ -916,21 +1124,40 @@ end
 
 ---@alias g.Category
 ---| "grass"
----| "wood"
----| "cat"
+---| "berry"
 ---| "mushroom"
----| "rock"
+---| "chest"
 ---| "slime"
+---| "fish"
 
 ---@type table<g.Category, true|nil>
 g.CATEGORIES = {
     grass = true,
-    wood = true,
-    cat = true,
+    berry = true,
     mushroom = true,
-    rock = true,
+    chest = true,
     slime = true,
+    fish = true,
 }
+
+-- g.getTokensDestroyedInCategory
+do
+---@param tokCategory string
+---@return number
+function g.getTokensDestroyedInCategory(tokCategory)
+    assert(g.CATEGORIES[tokCategory], "?")
+    local name = "totalCategoryHarvested_"..tokCategory
+    return g.getMetric(name) or 0
+end
+
+for tokCategory,_ in pairs(g.CATEGORIES)do
+    local name = "totalCategoryHarvested_"..tokCategory
+    g.defineMetric(name)
+end
+end
+
+g.defineMetric("totalTokensHarvested")
+
 
 
 
@@ -982,7 +1209,8 @@ function g.defineEffect(id, name, def)
     end
 
     ---@cast def g.EffectInfo
-    def.name = name
+    def.name = loc(name, nil, {context = def.nameContext})
+    def.description = loc(def.description, nil, {context = def.descriptionContext})
     def.type = id
     def.image = img
     def.isDebuff = not not def.isDebuff
@@ -999,6 +1227,12 @@ function g.grantEffect(id, duration)
     end
     return currentSession.mainWorld:_grantEffect(id, duration)
 end
+
+
+function g.clearEffects()
+    return currentSession.mainWorld:_clearEffects()
+end
+
 
 ---@param id string
 ---@return g.EffectInfo
@@ -1112,6 +1346,7 @@ end
 -- that ARENT q-bus or ev-bus. (eg ignore them)
 local SPECIAL_FUNCTIONS = {
     getValues = true,
+    isHidden = true,
     getEntityCount = true,
     spawnEntity = true,
     getPriceOverride = true,
@@ -1120,6 +1355,7 @@ local SPECIAL_FUNCTIONS = {
 
 
 ---@param id string
+---@param name string
 ---@param def g.UpgradeDefinition
 function g.defineUpgrade(id, name, def)
     if not (def.kind and UPGRADE_KINDS[def.kind]) then
@@ -1127,9 +1363,10 @@ function g.defineUpgrade(id, name, def)
     end
 
     ---@cast def g.UpgradeInfo
-    def.name = loc(name)
+    def.name = loc(name, nil, {context = def.nameContext})
     if def.description then
-        def.description = localization.newInterpolator(def.description) ---@diagnostic disable-line
+        local d = def.description --[[@as string]]
+        def.description = localization.newInterpolator(d, {context = def.descriptionContext})
     end
 
     def.image = def.image or id
@@ -1236,6 +1473,7 @@ local STALKS = {}
 
 ---@class g.StalkDefinition
 ---@field public image string?
+---@field public dontFlip boolean?
 ---@field public growthpos {x: number, y: number}[] Position coordinate is in pixels, relative to stalk center
 
 ---@param id string
@@ -1286,6 +1524,7 @@ local reverseTokMt = {}
 g.TOKEN_LIST = {}
 
 
+---@param name string
 ---@param tokType string
 ---@param tabl g.TokenDefinition
 function g.defineToken(tokType, name, tabl)
@@ -1321,23 +1560,39 @@ function g.defineToken(tokType, name, tabl)
 
     tabl.image = tabl.image or tokType
 
+    local oldDescription = tabl.description
+    if tabl.description then
+        tabl.description = loc(tabl.description, nil, {context = tabl.descriptionContext})
+    end
+
     tokenDefinitions[tokType] = tabl
     ---@cast tabl g.Token
     tabl.type = tokType
-    tabl.name = loc(name) ---@diagnostic disable-line
+    ---@diagnostic disable-next-line: inject-field
+    tabl.name = loc(name, nil, {context = tabl.nameContext})
     local mt = {__index = tabl}
     tokenMts[tokType] = mt
     reverseTokMt[mt] = true
     g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
 
-    g.defineUpgrade(tokType, name, {
+    ---@type g.UpgradeDefinition
+    local upgradeDef
+    upgradeDef = {
+        nameContext = tabl.upgradeNameContext or tabl.nameContext,
         image = tabl.image,
         populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
             tokens:add(tokType, level)
         end,
         maxLevel = tabl.maxLevel or nil,
-        kind = "TOKEN"
-    })
+        description = oldDescription,
+        descriptionContext = tabl.upgradeDescriptionContext or tabl.descriptionContext,
+        kind = "TOKEN",
+        tokenType = tokType
+    }
+    for k,v in pairs(tabl.upgradeDefinition or {}) do
+        upgradeDef[k]=v
+    end
+    g.defineUpgrade(tokType, name, upgradeDef)
 end
 
 
@@ -1358,7 +1613,6 @@ end
 
 
 function g.drawTokenIcon(tokType, x,y, rot,sx,sy, kx,ky)
-    love.graphics.setColor(1,1,1)
     local tinfo = g.getTokenInfo(tokType)
     if tinfo.image then
         g.drawImage(tinfo.image, x, y, rot, sx, sy, kx,ky)
@@ -1375,32 +1629,55 @@ end
 
 local DEFAULT_MIN_SPACING = 12
 
----@param world g.World
+
+function g.canSpawnTokenHere(x,y, minSpacing)
+    -- checks whether we are "too close" to another token,
+    --  and whether we could spawn a new token at this pos
+    minSpacing = minSpacing or DEFAULT_MIN_SPACING
+    local world = g.getSn().mainWorld
+
+    local tooClose = false
+    world.tokenPartition:query(x,y, function(tok)
+        local dx = x - tok.x
+        local dy = y - tok.y
+        local distSq = dx*dx + dy*dy
+        if distSq < minSpacing * minSpacing then
+            tooClose = true
+            return true -- stop iteration early
+        end
+    end)
+    return not tooClose
+end
+
+
+---@param x number
+---@param y number
+---@param leeway number?
+---@return number
+---@return number
+function g.clampInsideWorld(x,y, leeway)
+    leeway = leeway or 8
+    local w,h = g.getWorldDimensions()
+    x = helper.clamp(x, leeway, w - leeway*2)
+    y = helper.clamp(y, leeway, h - leeway*2)
+    return x,y
+end
+
+
 ---@param x number
 ---@param y number
 ---@param w number
 ---@param h number
 ---@param minSpacing number?
 ---@param maxAttempts integer?
-local function getRandomPos(world, x, y, w, h, minSpacing, maxAttempts)
+local function getRandomPos(x, y, w, h, minSpacing, maxAttempts)
     maxAttempts = maxAttempts or 20
     minSpacing = minSpacing or DEFAULT_MIN_SPACING
     for attempt = 1, maxAttempts do
         local px = x + math.random() * w
         local py = y + math.random() * h
-        local tooClose = false
 
-        world.tokenPartition:query(px, py, function(tok)
-            local dx = px - tok.x
-            local dy = py - tok.y
-            local distSq = dx*dx + dy*dy
-            if distSq < minSpacing * minSpacing then
-                tooClose = true
-                return true -- stop iteration early
-            end
-        end)
-
-        if not tooClose then
+        if g.canSpawnTokenHere(px,py, minSpacing) then
             return px, py
         end
     end
@@ -1429,20 +1706,23 @@ do
 ---@field x number
 ---@field y number
 ---@field id integer
----@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
+---@field shadow (false|"shadow_medium"|"shadow_small"|"shadow_big")?
 ---@field sx number?
 ---@field sy number?
 ---@field ox number?
 ---@field oy number?
 ---@field rot number?
+---@field alpha number?
 ---@field orbitRing integer?
+---@field bulgeAnimation {time: number, magnitude: number, duration:number}?
 ---@field image string?
+---@field drawOrder number?
 ---@field lifetime number?
 ---@field blendmode love.BlendMode?
 ---@field blendalphamode love.BlendAlphaMode?
 ---@field init (fun(ent:g.Entity,...:any))?
 ---@field update (fun(ent: g.Entity, dt:number))?
----@field perSecondUpdate (fun(e:g.Entity))?
+---@field perSecondUpdate (fun(e:g.Entity, seconds:integer))?
 ---@field drawBelow (fun(ent: g.Entity))?
 ---@field draw (fun(ent: g.Entity))?
 ---@field hitToken {radius:number,collision:fun(self:g.Entity,tok:g.Token),cooldown:number?}?
@@ -1506,6 +1786,19 @@ function g.spawnEntity(ename, x,y, ...)
     return ent
 end
 
+
+---@param ent g.Entity
+---@param duration number
+---@param magnitude number
+function g.bulgeEntity(ent, duration, magnitude)
+    ent.bulgeAnimation = {
+        duration = duration,
+        time = duration,
+        magnitude = magnitude
+    }
+end
+
+
 function g.isEntity(obj)
     local mt = getmetatable(obj)
     return not not REVERSE_ENTITY_MT[mt]
@@ -1539,17 +1832,29 @@ end
 ---@field timeAlive number
 ---@field drawToken (fun(tok: g.Token, x:number,y:number, rot:number?,sx:number?,sy:number?,kx:number?,ky:number?))?
 ---@field slimed boolean?
+---@field starred boolean?
+---@field wasSpawnedViaTokenPool boolean?
 ---@field ___destroyed boolean?
 local g_Token = {}
 
 
 
 
+---@param guarantee boolean? If true, get any random position even if it's too close to token.
+---@overload fun():(number?,number?)
+---@overload fun(guarantee:true):(number,number)
 ---@return number?,number?
-function g.getRandomPositionForToken()
+function g.getRandomPositionForToken(guarantee)
     local worldW, worldH = g.getWorldDimensions()
     local pad=4
-    return getRandomPos(g.getMainWorld(), pad,pad, worldW-pad*2,worldH-pad*2)
+    local x, y = getRandomPos(pad,pad, worldW-pad*2,worldH-pad*2)
+
+    if not (x and y) and guarantee then
+        x = helper.lerp(pad, worldW - pad, love.math.random())
+        y = helper.lerp(pad, worldH - pad, love.math.random())
+    end
+
+    return x, y
 end
 
 
@@ -1618,6 +1923,36 @@ function g.spawnToken(tokType, x,y)
 end
 
 
+
+-- difference between delete/destroy:
+--[[
+Destroy = delete + earn resources, particles, etc.
+Delete = delete instantly. Nothing else.
+]]
+
+---@param tok g.Token
+---@return boolean
+function g.deleteToken(tok)
+    local w = g.getMainWorld()
+    if tok.___destroyed then
+        return false -- already been destroyed.
+    end
+    tok.___destroyed = true
+
+    if tok.wasSpawnedViaTokenPool then
+        -- if it was spawned via token-pool, then we should record its destroyTime!
+        --  (this way, world.lua will spawn it back in future)
+        if not w.tokenDestroyTime[tok.type] then
+            w.tokenDestroyTime[tok.type] = {}
+        end
+        table.insert(w.tokenDestroyTime[tok.type], g.getWorldTime())
+    end
+
+    w.tokens:removeBuffered(tok)
+    return true
+end
+
+
 ---@param tok g.Token
 ---@return boolean
 function g.destroyToken(tok)
@@ -1625,9 +1960,13 @@ function g.destroyToken(tok)
         -- already been destroyed.
         return false
     end
-    tok.___destroyed = true
 
-    local w = g.getMainWorld()
+    if tok.category then
+        local name = "totalCategoryHarvested_"..tok.category
+        g.incrementMetric(name)
+    end
+    g.incrementMetric("totalTokensHarvested")
+
     g.call("tokenDestroyed", tok)
 
     g.addResourceFrom(tok, tok.resources)
@@ -1645,11 +1984,24 @@ function g.destroyToken(tok)
         end
     end
 
-    w.tokens:removeBuffered(tok)
+    g.deleteToken(tok)
 
-    -- todo: rework/rethink this.
-    -- Each token should have different "sound"
-    g.playWorldSound("pop", 1, 1, 0.15)
+    local cate = tok.category
+    -- g.playWorldSound("plop_on_destroy_1", 1.2,2.7, 0.3, 0.4)
+    -- g.playWorldSound("plop_on_destroy_2", 1.3,0.4, 0.2, 0.3)
+
+    -- g.playWorldSound("pop_on_destroy_1", 1.5,0.2, 0.2, 0.05)
+    g.playWorldSound("pop_on_destroy_2", 1.2,0.2, 0.2, 0.05)
+    do return true end
+    if (cate == "grass") or (cate == "berry") then
+        -- todo: this is hacky and not robust, concating the name
+        -- what if the sound doesnt exist? (fails at runtime)
+        local name = "hit_grass2"
+        g.playWorldSound(name, 1,0.4, 0.1)
+    else
+        local name = "chest_on_destroy_" .. love.math.random(1,3)
+        g.playWorldSound(name, 1,0.3, 0.1)
+    end
     return true
 end
 
@@ -1661,6 +2013,16 @@ function g.slimeToken(tok)
         g.call("tokenSlimed",tok)
     end
     tok.slimed=true
+    worldutil.spawnSTSAnimation("slimed_visual2", tok.x,tok.y, 0.4, 5)
+end
+
+---@param tok g.Token
+function g.starToken(tok)
+    if not tok.starred then
+        g.call("tokenStarred", tok)
+    end
+    tok.starred = true
+    worldutil.spawnSTSAnimation("star_visual", tok.x,tok.y, 0.5, 9)
 end
 
 
@@ -1675,6 +2037,9 @@ function g.damageToken(tok, dmg)
     local dmgMult = g.ask("getTokenDamageMultiplier", tok)
     local dmgMod = g.ask("getTokenDamageModifier", tok)
     dmg = (dmg + dmgMod) * dmgMult
+    if tok.slimed then
+        dmg = dmg * 1.2
+    end
     local displayDmg = math.min(dmg, math.max(tok.health, 0))
 
     -- Ensure lagged health number is updated first before tok.health
@@ -1684,7 +2049,12 @@ function g.damageToken(tok, dmg)
 
     -- Now update tok.health
     tok.health = math.max(tok.health - dmg, 0)
+    tok.timeSinceDamaged = 0
     g.call("tokenDamaged", tok, dmg)
+
+    if tok.health <= 0 then
+        currentSession.mainWorld:_incrementCombo()
+    end
 
     currentSession.mainWorld:_spawnDamageNumber(
         displayDmg,
@@ -1693,7 +2063,6 @@ function g.damageToken(tok, dmg)
         g.COLORS.DAMAGE_NUMBERS_BY_CATEGORY[tok.category] or objects.Color.WHITE
     )
 
-    tok.timeSinceDamaged = 0
 end
 
 
@@ -1724,7 +2093,12 @@ function g.hitImmediately(tok)
     local hitMult = g.ask("getTokenHitMultiplier", tok)
     tok.timeSinceHit = 0
     g.call("tokenHit", tok)
-    g.damageToken(tok, hitMult * g.stats.HitDamage)
+    local dmg = hitMult * g.stats.HitDamage
+    g.damageToken(tok, dmg)
+
+    if love.math.random() < g.stats.CritChance then
+        g.critToken(tok, dmg)
+    end
 
     local r = love.math.random()
     if r < 0.333 then
@@ -1735,23 +2109,37 @@ function g.hitImmediately(tok)
         g.spawnParticle("xp3", tok.x, tok.y, 2)
     end
 
-    local i = love.math.random(1,3)
-    local s = "hit_generic_"..i
-    g.playWorldSound(s, 1,0.1,0.2,0.2)
+    if love.math.random() < 0.5 then
+        -- hit_generic_1 is the softest and best. Ive tried all of em!
+        g.playWorldSound("hit_generic_1", 1,0.15,0.35,0.05)
+    else
+        g.playWorldSound("hit_generic_2", 1.3,0.07,0.25,0.02)
+    end
 
-    -- todo: rework all this.
     if tok.category == "grass" then
-        if love.math.random()<0.3 then
-            g.playWorldSound("hit_grass",1,0.15, 0.1)
+        if love.math.random()<0.5 then
+            g.playWorldSound("hit_grass",1,0.2, 0.1)
         else
-            g.playWorldSound("hit_grass2",1,0.15, 0.1)
+            g.playWorldSound("hit_grass2",1,0.3, 0.1)
         end
-    elseif love.math.random()<0.5 then
-        g.playWorldSound("hit_billiard", 1, 0.18, 0.3)
     else
         g.playWorldSound("hit_soft", 1, 0.18, 0.3)
+        -- g.playWorldSound("hit_billiard", 1, 0.18, 0.3)
     end
 end
+
+
+local CRIT = "{c r=1 g=0.3 b=0.2}{o}"..loc("CRIT!", {}, {
+    context = "As in, an abbreviation for a critical hit"
+}).."{/o}{/c}"
+
+function g.critToken(tok, dmg)
+    dmg = dmg * g.stats.CritDamageMultiplier
+    tok.health = tok.health - dmg
+    g.call("tokenCrit", tok, dmg)
+    worldutil.spawnText(CRIT, tok.x, tok.y-8, 0.45, 10)
+end
+
 
 
 ---@param x number
@@ -1827,6 +2215,57 @@ end
 
 
 
+-- functions for bosses:
+do
+---@type table<string, true>
+local VALID_BOSSES = {}
+
+---@type table<integer, g.TokenInfo>
+local PRESTIGE_TO_BOSS = {}
+
+
+---@param prestige integer
+local function killBoss(prestige)
+    if g.getPrestige()~=prestige then
+        log.error("wat??")
+        return -- wtf? what happened here?
+    end
+    g.call("bossSlain")
+end
+
+---@param id string
+---@param prestige integer
+---@param def g.TokenDefinition
+function g.defineBoss(id, prestige, def)
+    def.bossfight = {prestige=prestige}
+    def.tokenDestroyed = killBoss
+    g.defineToken(id, "boss " .. prestige, def)
+    PRESTIGE_TO_BOSS[prestige] = g.getTokenInfo(id)
+    VALID_BOSSES[id] = true
+end
+
+function g.summonBoss(bossId)
+    assert(VALID_BOSSES[bossId])
+    local tok = g.spawnToken(bossId, 0,0)
+end
+
+---@param prestige integer
+---@return string?
+function g.getBossIdForPrestige(prestige)
+    local tInfo = PRESTIGE_TO_BOSS[prestige]
+    return tInfo and tInfo.type
+end
+
+--- returns the boss token, if there's a bossfight happening
+---@return g.Token?
+function g.getBossToken()
+    local w = g.getMainWorld()
+    return w.bossToken
+end
+
+end
+
+
 local hud = HUD()
 
 function g.getHUD()
@@ -1839,6 +2278,9 @@ end
 -- g.playUISound
 do
 
+----------
+-- SFXs --
+----------
 
 ---@param soundname string
 ---@param pitch number? (defaults to 1)
@@ -1897,12 +2339,76 @@ local function loadSound(path)
 
         if #basename > 0 then
             local name = basename:sub(1, -#ext - 2)
-            sfx.defineSound(name, path)
+            if name:sub(1,1) ~= "_" then
+                sfx.defineSound(name, path)
+            end
         end
     end
 end
 
 g.walkDirectory("assets/sfx", loadSound)
+
+
+----------
+-- BGMs --
+----------
+
+-- Higher number means higher priority.
+g.BGMID = {
+    TITLE = 999, -- Title and settings
+    MAP = 1, -- Map scene
+    HARVEST = 2, -- Harvest scene
+    UPGRADE = 3, -- Upgrade scene
+    CUSTOMIZATION = 4, -- Customization scene
+    BOSS = 100, -- Boss theme
+}
+
+
+---@param path string
+---@param prio integer
+---@param isAmbient boolean?
+local function registerBGMFromDirectories(path, prio, isAmbient)
+    ---@type string[]
+    local files = {}
+
+    g.walkDirectory(path, function(filename)
+        local pathrev = filename:reverse()
+        local ext = pathrev:sub(1, (pathrev:find(".", 1, true) or 1) - 1):reverse():lower()
+
+        if validExtensions[ext] then
+            local basename = pathrev:sub(1, pathrev:find("/", 1, true)-1):reverse()
+
+            if #basename > 0 then
+                local name = basename:sub(1, -#ext - 2)
+                if name:sub(1,1) ~= "_" then
+                    files[#files+1] = filename
+                end
+            end
+        end
+    end)
+
+    if #files == 0 then
+        error("no bgm files in "..path)
+    end
+
+    return bgm.register(prio, files, isAmbient)
+end
+
+-- We cannot use g.walkDirectory because we need all the files first then register
+-- the BGM in one go using `bgm.register`.
+registerBGMFromDirectories("assets/bgm/boss", g.BGMID.BOSS, false)
+registerBGMFromDirectories("assets/bgm/customization", g.BGMID.CUSTOMIZATION, true)
+registerBGMFromDirectories("assets/bgm/harvest", g.BGMID.HARVEST, true)
+registerBGMFromDirectories("assets/bgm/map", g.BGMID.MAP, true)
+registerBGMFromDirectories("assets/bgm/title", g.BGMID.TITLE, true)
+registerBGMFromDirectories("assets/bgm/upgrades", g.BGMID.UPGRADE, true)
+
+
+---Request playing specific BGM ID
+---@param id integer BGM ID. Use `g.BGMID` for the fixed constants.
+function g.requestBGM(id)
+    return bgm.request(id)
+end
 
 
 end
@@ -1916,6 +2422,7 @@ do
 
 ---@class _ScytheDefinition
 ---@field public image string?
+---@field public harvestArea number harvest area modifier
 
 ---@class g.Scythe: _ScytheDefinition
 ---@field public type string
@@ -1927,6 +2434,10 @@ do
 ---@type table<string, g.Scythe>
 local SCYTHES = {}
 
+---@type string[]
+local SCYTHE_ORDER = {}
+
+
 ---Define new scythe
 ---@param id string
 ---@param name string
@@ -1937,8 +2448,11 @@ function g.defineScythe(id, name, def)
 
     ---@cast def g.Scythe
     def.type = id
-    def.name = loc(name)
+    def.name = loc(name, {}, {
+        context = "As in, a scythe used for harvesting. Like 'Ruby Scythe' or 'Emerald Scythe' or 'Basic Scythe'"
+    })
     SCYTHES[id] = def
+    table.insert(SCYTHE_ORDER,id)
 end
 
 ---@param id string
@@ -1946,9 +2460,27 @@ function g.getScytheInfo(id)
     return (helper.assert(SCYTHES[id], "invalid scythe", id))
 end
 
+---@return string
 function g.getCurrentScythe()
-    return consts.DEFAULT_SCYTHE
+    return currentSession.scythe or consts.DEFAULT_SCYTHE
 end
+
+---@return string?
+---@return g.Scythe?
+function g.getNextScythe()
+    local curr = g.getCurrentScythe()
+    for i,sc in ipairs(SCYTHE_ORDER)do
+        if sc == curr then
+            local id = SCYTHE_ORDER[i+1]
+            if id then
+                return id, g.getScytheInfo(id)
+            end
+        end
+    end
+    return nil
+end
+
+
 
 end
 
@@ -1987,6 +2519,8 @@ g.COLORS = {
 
     SHADOW = objects.Color(0,0,0,0.4),
 
+    CRIT = objects.Color("#" .. "FFA43929"),
+
     CANT_AFFORD = objects.Color("#".."FFD72D2D"),
     CAN_AFFORD = objects.Color("#".."FF73FF73"),
 
@@ -1998,8 +2532,11 @@ g.COLORS = {
 do
 for k,v in pairs(g.COLORS) do
     if getmetatable(v) == objects.Color then
-        richtext.defineEffect(k, function (context, char)
-            char:setColor(v)
+        richtext.defineEffect(k, function (args, x,y, context, next)
+            local r,gg,b,a = lg.getColor()
+            lg.setColor(v)
+            next(context.textOrDrawable, x,y)
+            lg.setColor(r,gg,b,a)
         end)
     end
 end

@@ -18,9 +18,9 @@ Slime grenade: Crops that are slimed have a 10% chance to explode when destroyed
 g.defineToken("slime_token", "Slime", {
     particles = "slime",
     category = "slime",
-    description = "When destroyed, covers surrounding crops in slime!",
+    description = "When destroyed, covers surrounding crops in slime!\n(Slimed crops take extra damage)",
     resources = {money = 0},
-    maxHealth = 4,
+    maxHealth = 100,
     maxLevel=3,
     tokenDestroyed = function(tok)
         local MAX_TOKENS_TO_SLIME = 5
@@ -38,7 +38,7 @@ g.defineToken("slime_token", "Slime", {
 
 local function drawSlime(uinfo,level,x,y,w,h)
     local s=math.sin(love.timer.getTime()*4)
-    g.drawImage("slimed_visual2",x,y+s,0)
+    g.drawImage("slimed_visual2",x+8,y+6+s,0)
 end
 
 
@@ -90,7 +90,7 @@ g.defineUpgrade("acidic_slime", "Acidic Slime", {
     kind="TOKEN_MODIFIER",
 
     maxLevel = 6,
-    getValues = helper.valueGetter(1),
+    getValues = helper.valueGetter(10),
 
     description = "Crops that are slimed take %{1} damage every second",
 
@@ -118,24 +118,24 @@ g.defineUpgrade("slime_apocalypse", "Slime Apocalypse", {
     maxLevel = 4,
 
     getValues = function(uinfo,level)
-        return level
+        return 15 - level*2
     end,
 
-    description = "Every second, %{1} random crop(s) becomes slimed!",
+    description = "Every %{1} seconds, ALL crops become slimed!",
 
-    perSecondUpdate = function(self,level)
-        ---@param t g.Token
-        local function notSlimed(t)
-            return not t.slimed
-        end
-        for _=1,level do
-            local tok = g.getRandomToken(notSlimed)
-            if tok then
-                g.slimeToken(tok)
+    perSecondUpdate = function(self,level, seconds)
+        local val = self:getValues(level)
+        if seconds % val == 0 then
+            local world = g.getMainWorld()
+            for _,tok in ipairs(world.tokens) do
+                if not tok.slimed then
+                    g.slimeToken(tok)
+                end
             end
         end
     end,
 })
+
 
 
 
@@ -177,7 +177,7 @@ g.defineUpgrade("slime_fertilizer", "Slime Fertilizer", {
 
     getValues = helper.valueGetter(1),
 
-    description = "Crops that are slimed earn %{1} passively every second",
+    description = "Crops that are slimed earn %{1} {money} passively every second",
 
     perSecondUpdate = function(self,level)
         local world = g.getSn().mainWorld
@@ -211,26 +211,9 @@ g.defineUpgrade("slime_grenade", "Slime Grenade", {
     tokenDestroyed = function(self,level, tok)
         ---@cast tok g.Token
         if tok.slimed then
-            worldutil.explosion(tok.x,tok.y, 50)
+            worldutil.explosion(tok.x,tok.y)
         end
     end,
 })
 
 
-
-g.defineUpgrade("slime_bucket", "Slime Bucket", {
-    description = "Orbits %{1} slime buckets around mouse, 20% chance to slime crops!",
-    maxLevel = 5,
-    kind="HARVESTING",
-
-    getValues = function(uinfo, level)
-        return level
-    end,
-    getEntityCount = function(uinfo, level)
-        return (uinfo:getValues(level))
-    end,
-    spawnEntity = function(uinfo)
-        -- Position will be controlled by the world since it's orbital entity.
-        return g.spawnEntity("slime_bucket", 0, 0)
-    end
-})

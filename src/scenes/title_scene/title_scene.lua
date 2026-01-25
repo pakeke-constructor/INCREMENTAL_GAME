@@ -9,10 +9,17 @@ local function init()
     if shouldLoad and love.filesystem.getInfo("saves/save1.json", "file") and arg[1] ~= "--simulate" then
         g.loadSession("saves/save1.json")
     else
-        g.newSession()
+        local sn = g.newSession()
+        sn.tree = g.loadPrestigeTree(0)
     end
 
-    g.gotoScene("map_scene")
+    analytics.send("start")
+
+    if g.getSn().showTutorials.harvest then
+        g.gotoSceneViaMap("harvest_scene")
+    else
+        g.gotoScene("map_scene")
+    end
 end
 
 local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
@@ -23,29 +30,32 @@ local DISCORD_BASE_COL = objects.Color("#" .. "FF9C91FF")
 local DISCORD_MAIN_COL = objects.Color("#" .. "FF2C1CC0")
 local SECONDARY_BUTTONS = {
     {
-        loc"Settings",
+        loc("Settings", nil, {context = "Button to open game settings"}),
         BUTTON_BASE_COL,
         BUTTON_MAIN_COL,
         function() g.gotoScene("setting_scene") end
     },
     {
-        loc"Stats",
+        loc("Stats", nil, {context = "Button to show game statistics"}),
         BUTTON_BASE_COL,
         BUTTON_MAIN_COL,
         function() end
     },
-    {
-        loc"Quit",
+}
+-- iOS App Store does not allow adding "Quit" button to UI.
+if love.system.getOS() ~= "iOS" then
+    SECONDARY_BUTTONS[#SECONDARY_BUTTONS+1] = {
+        loc("Quit", nil, {context = "Button to exit the game"}),
         objects.Color("#".."FFF26957"),
         objects.Color("#".."FF4E0E05"),
         love.event.quit
-    },
-}
+    }
+end
 
 local text = {
-    play = "{w amp=0.5 freq=0.7}{o thickness=0.5}"..loc("Play").."{/o}{/w}",
-    wishlist = "{o thickness=0.75}"..loc("Wishlist!").."{/o}",
-    discord = "{o thickness=0.75}"..loc("Discord").."{/o}",
+    play = "{w amp=0.5 freq=0.7}{o thickness=0.5}"..loc("Play", nil, {context = "Button to start the game"}).."{/o}{/w}",
+    wishlist = "{o thickness=0.75}"..loc("Wishlist!", nil, {context = "Button to add the game to their wishlist"}).."{/o}",
+    discord = "{o thickness=0.75}"..loc("Discord", nil, {context = "Button that opens the Discord server in browser"}).."{/o}",
 }
 
 ---@class TitleScene: FreeCameraScene
@@ -57,8 +67,14 @@ function title:init()
     self.catRight = InteractiveCat({flip=true})
 end
 
+function title:enter()
+    return g.saveAndInvalidateSession()
+end
+
 ---@param dt number
 function title:update(dt)
+    g.requestBGM(g.BGMID.TITLE)
+
     self.progress = (self.progress + dt * 0.2) % 1
     titleBackground.update(dt)
     self.catLeft:update(dt)
@@ -75,7 +91,7 @@ function title:draw()
     titleBackground.draw()
 
     -- Prepare layout
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local topR, bottomR = r:splitVertical(1, 1)
 
     -- Draw title text

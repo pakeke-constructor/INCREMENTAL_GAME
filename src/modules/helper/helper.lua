@@ -172,29 +172,82 @@ function helper.wrapRichtextColor(col, text)
 end
 
 
+local outlineMap = consts.IS_MOBILE and {
+    {-1, -1},
+    {1, -1},
+    {-1, 2},
+    {1, 2},
+} or {
+    {-1, -1},
+    {0, -1},
+    {1, -1},
+    {-1, 0},
+    {1, 0},
+    {-1, 1},
+    {0, 1},
+    {1, 1},
+    {-1, 2},
+    {0, 2},
+    {1, 2},
+}
 
----@param text string
+---@param text string|((objects.Color|string)[])
 ---@param font love.Font
+---@param thickness number
 ---@param x number
 ---@param y number
----@param r number?
+---@param limit number
+---@param align love.AlignMode
+---@param rot number?
 ---@param sx number?
 ---@param sy number?
 ---@param ox number?
 ---@param oy number?
-function helper.printTextOutlineSimple(text, font, x, y, r, sx, sy, ox, oy)
-    local col = {love.graphics.getColor()}
+function helper.printTextOutline(text, font, thickness, x, y, limit, align, rot, sx, sy, ox, oy)
+    local r,g,b,a = love.graphics.getColor()
     -- Draw outline
-    love.graphics.setColor(0, 0, 0, col[4])
-    for dy = -1, 1 do
-        for dx = -1, 1 do
-            if not (dx == 0 and dy == 0) then
-                love.graphics.print(text, font, x + dx, y + dy, r, sx, sy, ox, oy)
-            end
-        end
+    love.graphics.setColor(0, 0, 0, a)
+    for _, dxdy in ipairs(outlineMap) do
+        love.graphics.printf(
+            text, font,
+            x + dxdy[1] * thickness * (sx or 1),
+            y + dxdy[2] * thickness * (sy or 1),
+            limit, align,
+            rot,
+            sx, sy,
+            ox, oy
+        )
     end
-    love.graphics.setColor(col)
-    love.graphics.print(text, font, x, y, r, sx, sy, ox, oy)
+    love.graphics.setColor(r,g,b,a)
+    love.graphics.printf(text, font, x, y, limit, align, rot, sx, sy, ox, oy)
+end
+
+---@param text string|((objects.Color|string)[])
+---@param font love.Font
+---@param thickness number
+---@param x number
+---@param y number
+---@param rot number?
+---@param sx number?
+---@param sy number?
+---@param ox number?
+---@param oy number?
+function helper.printTextOutlineSimple(text, font, thickness, x, y, rot, sx, sy, ox, oy)
+    return helper.printTextOutline(text, font, thickness, x, y, 2147483647, "left", rot, sx, sy, ox, oy)
+end
+
+---@param txt string (plain text, without any richtext tagging)
+---@param font love.Font
+---@param thickness number
+---@param reg kirigami.Region
+function helper.printTextOutlineContained(txt, font, thickness, reg)
+    local x, y, w, h = reg:get()
+    local tw, lines = font:getWrap(txt, w)
+    local th = #lines * font:getHeight()
+
+    local scale = math.min(w/tw, h/th)
+    local drawX, drawY = math.floor(x+w/2), math.floor(y+h/2)
+    return helper.printTextOutline(txt, font, thickness, drawX, drawY, tw, "left", 0, scale, scale, tw / 2, th / 2)
 end
 
 
@@ -452,6 +505,181 @@ function helper.splitQuadHorizontally(quad, numDivisions)
         table.insert(listOfQuads, newQuad)
     end
     return listOfQuads
+end
+
+
+
+---@param x number
+---@param y number
+---@param radius number
+function helper.circleHighlight(x, y, radius)
+    local t = love.timer.getTime() * 1.25 % 2
+    local t1 = helper.EASINGS.sineInOut(helper.clamp(t - 1, 0, 1))
+    local t2 = helper.EASINGS.sineInOut(helper.clamp(t, 0, 1))
+    local a1 = helper.lerp(-math.pi/2, math.pi * 1.5, t1)
+    local a2 = helper.lerp(-math.pi/2, math.pi * 1.5, t2)
+    love.graphics.arc("line", "open", x, y, radius, a1, a2)
+end
+
+
+
+local TOOLTIP_BACKGROUND_GRADIENT = helper.newGradientMesh(
+    "horizontal",
+    objects.Color("#".."FF14465A"),
+    objects.Color("#".."ff191e3c")
+)
+local TOOLTIP_TEXT_MAX_WIDTH = 200
+local TOOLTIP_COLOR = objects.Color("#".."FF14A0CD")
+---@param text string
+---@param x number
+---@param y number
+---@param ox number?
+---@param oy number?
+function helper.tooltip(text, x, y, ox, oy)
+    ox = ox or 0
+    oy = oy or 0
+    local font = g.getSmallFont(16)
+    local width, lines = richtext.getWrap(text, font, TOOLTIP_TEXT_MAX_WIDTH)
+
+    local boxR = Kirigami(0, 0, width, lines * font:getHeight())
+    local boxBaseR = boxR:padUnit(-12):set(x - boxR.w * ox, y - boxR.h * oy)
+    boxR = boxR:center(boxBaseR)
+
+    -- Draw gradient background
+    do
+        love.graphics.setColor(1, 1, 1)
+        local a, b, c, d = boxBaseR:padUnit(3):get()
+        love.graphics.draw(TOOLTIP_BACKGROUND_GRADIENT, a, b, 0, c, d)
+    end
+    love.graphics.setColor(TOOLTIP_COLOR)
+    ui.drawPanel(boxBaseR:get())
+
+    love.graphics.setColor(1, 1, 1)
+    richtext.printRich(text, font, boxR.x, boxR.y, boxR.w, "center")
+end
+
+
+
+-- helper.drawWings
+do
+
+local WING_FLAP_SPEED = 3
+
+local WING_ROT_OFFSET = -0.4
+local WING_ROTATION = math.pi / 2
+local WING_DEFAULT_DISTANCE = 10
+
+---@param x number
+---@param y number
+---@param time number
+---@param wingImage string?
+---@param scale number?
+function helper.drawWings(x,y, time, wingImage, scale, wingDistance)
+    wingImage = wingImage or "wing_visual"
+    scale=scale or 1
+
+    local t = time * WING_FLAP_SPEED
+    local offset = wingDistance or WING_DEFAULT_DISTANCE
+    local dy = math.floor(offset/2) * math.sin(t + 0.5)
+    local r = WING_ROTATION * ((math.sin(t) + 1)/2) + WING_ROT_OFFSET
+    -- if imageShadow then
+    --     love.graphics.setColor(0,0,0, 0.4)
+    --     g.drawImage(wingImage, x + offset + o, y + dy + o, r, sx,sy, kx,ky)
+    --     g.drawImage(wingImage, x - offset - o, y + dy + o, -r, sx*-1,sy, kx,ky)
+    -- end
+
+    g.drawImage(wingImage, x + offset, y + dy, r, scale,scale)
+    g.drawImage(wingImage, x - offset, y + dy, -r, -scale,scale)
+end
+
+end
+
+
+
+
+
+
+--- Returns random position on edge of rectangle
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+---@param r number?
+---@return number
+---@return number
+function helper.getRandomPositionOnEdge(x, y, w, h, r)
+    r = r or love.math.random()
+    local perimeter = 2 * (w + h)
+    local distance = r * perimeter
+    if distance < w then
+        return x + distance, y
+    elseif distance < (w + h) then
+        return x + w, y + (distance - w)
+    elseif distance < (2 * w + h) then
+        return x + w - (distance - w - h), y + h
+    else
+        return x, y + h - (distance - 2 * w - h)
+    end
+end
+
+
+
+---@param x number
+---@param y number
+---@param x1 number
+---@param y1 number
+---@param w1 number
+---@param h1 number
+---@param leeway number?
+---@return boolean
+function helper.isInsideRect(x, y, x1, y1, w1, h1, leeway)
+    leeway = leeway or 0
+    local xOk = x >= (x1 - leeway) and x <= (x1 + w1 + leeway)
+    local yOk = y >= (y1 - leeway) and y <= (y1 + h1 + leeway)
+    return xOk and yOk
+end
+
+
+
+---Avoids doing `do local x,y,w,h=reg:get() lg.rectangle(mode,x,y,w,h,radius,radius) end`
+---@param mode love.DrawMode
+---@param radius number
+---@param reg kirigami.Region
+function helper.quickRoundedRectangle(mode, radius, reg)
+    local x, y, w, h = reg:get()
+    return love.graphics.rectangle(mode, x, y, w, h, radius, radius)
+end
+
+
+
+---@param x number Center x position
+---@param y number Center y position
+---@param rad number Radius
+---@param progress number Progress from 0 to 1 (1 = full circle, 0 = empty)
+---@param lineWidth number? Optional line width (defaults to rad/10)
+---@param segments number? Optional number of segments for smoothness (defaults to 60)
+---@param startAngle number?
+---@param reverse boolean?
+function helper.drawPartialCircle(x, y, rad, progress, lineWidth, segments, startAngle, reverse)
+    segments = segments or 60
+    lineWidth = lineWidth or math.floor(rad / 10)
+    local lw = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(lineWidth)
+    local totalAngle = progress * math.pi * 2
+    startAngle = (startAngle or 0) - math.pi/2
+    local dir = reverse
+    for i = 0, segments - 1 do
+        local angle1 = startAngle + (i / segments) * totalAngle
+        local angle2 = startAngle + ((i + 2) / segments) * totalAngle
+        if (i + 1) / segments <= progress then
+            local x1 = x + math.cos(angle1) * rad
+            local y1 = y + math.sin(angle1) * rad
+            local x2 = x + math.cos(angle2) * rad
+            local y2 = y + math.sin(angle2) * rad
+            love.graphics.line(x1, y1, x2, y2)
+        end
+    end
+    love.graphics.setLineWidth(lw)
 end
 
 

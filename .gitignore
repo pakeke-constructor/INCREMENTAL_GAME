@@ -1,6 +1,7 @@
 
 
 .vscode
+.clinerules
 
 _notes/private
 _notes/.obsidian
@@ -9,3 +10,6 @@ _notes/.obsidian
 *.aseprite
 
 *.pyc
+jit/
+
+incremental_game.zip

@@ -1,3 +1,5 @@
+local sceneManager = require("src.scenes.sceneManager")
+
 ---@class g.hud.Resources: objects.Class
 local Resources = objects.Class("g.hud:Resources")
 
@@ -20,6 +22,7 @@ local PARTICLE_SPEED = 550
 local BEFOREHUD_TIME = SPAWN_ANIMATION_DURATION + AFTERSPAWN_ANIMATION_DELAY
 local RANDOM_DELAY = 0.25 -- Random delay before the particle is spawned.
 local PARTICLE_HUD_VISUAL_ATTENTION_DURATION = 0.3
+local CURRENCY_PARTICLE_LIMIT = consts.IS_MOBILE and 10 or 100
 
 local PARTICLE_SPAWN_CATEGORY = {
     money = {
@@ -93,7 +96,7 @@ function Resources:init()
         juice = 1
     }
 
-    self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
+    self.freeArea = ui.getScreenRegion()
 end
 
 if false then
@@ -115,6 +118,7 @@ function Resources:update(dt)
         if p.time >= p.tohudTime then
             -- particle hit!
             table.remove(self.particles, i)
+            g.playWorldSound("pop", 1, 0.12, 0.2)
             self.timeSinceChanged[p.kind] = 0
             self.rotationDirection[p.kind] = -self.rotationDirection[p.kind]
         end
@@ -133,24 +137,16 @@ function Resources:update(dt)
     end
 end
 
----@param text string
----@param font love.Font
----@param region kirigami.Region
----@param align love.AlignMode
----@param baseScale number?
----@param scale number?
-local function printTextAt(text, font, region, align, baseScale, scale)
-    baseScale = baseScale or 1
-    scale = scale or 1
-    local x, y, w, h = region:get()
 
-    local s = baseScale * scale
-    richtext.printRich(text, font, x, y, w / s, align, 0, s, s)
-end
-
----@param x number
-local function easeInCubic(x)
-    return x * x * x
+local function currencyDevButton(txt, rr)
+    rr = rr:padRatio(0.1)
+    love.graphics.setColor(0,0,0,0.3)
+    love.graphics.rectangle("fill", rr:get())
+    love.graphics.setColor(1,1,1)
+    richtext.printRichContained("{o}{c r=1 g=1 b=1}"..txt, g.getBigFont(16), rr:get())
+    if iml.wasJustClicked(rr:get()) then
+        return true
+    end
 end
 
 ---@param self g.hud.Resources
@@ -163,6 +159,8 @@ end
 ---@param barimagefill string
 ---@param noDraw boolean?
 local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, barimagefill, noDraw)
+    prof_push("_drawResourcesMeter "..kind)
+
     local bw, bh = select(3, g.getImageQuad(barimage):getViewport())
     local reg = Kirigami(x, y, bw * scale, bh * scale)
     local iconR = reg
@@ -171,9 +169,8 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         :attachToLeftOf(reg)
         :centerY(reg)
         :moveRatio(1, 0)
-    local textR = reg
-        :moveUnit(iconR.w)
-        :intersection(reg)
+        :moveUnit(5, 0)
+    local textR = reg:padUnit(iconR.x - reg.x + iconR.w, 0, 0, 0)
     local t = self:_getInterpolationTime(kind)
 
     if not noDraw then
@@ -198,8 +195,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         -- Draw resource value
         love.graphics.setColor(1, 1, 1)
         local font = g.getBigFont(16)
-        local r = textR
-            :set(nil, nil, nil, font:getHeight())
+        local r = Kirigami(textR.x, textR.y, textR.w, font:getHeight())
             :padUnit(4, 0, 8, 0)
             :centerY(textR)
             :moveUnit(0, math.sin(love.timer.getTime()*3) - 1)
@@ -209,52 +205,41 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         if isFull then
             richtxt = helper.wrapRichtextColor({1,0.2,0.2}, richtxt)
         end
-        printTextAt(
-            richtxt,
-            font,
-            r,
-            "left",
-            scale,
-            1 + easeInCubic(1 - t) * 0.25
-        )
+
+        do
+            local text = {isFull and objects.Color.RED or objects.Color.WHITE, g.formatNumber(math.max(0,self.displayValue[kind]))}
+            local s = scale * (1 + helper.EASINGS.easeInCubic(1 - t) * 0.25)
+            helper.printTextOutlineSimple(text, font, 1, r.x, r.y, 0, s, s)
+        end
 
         -- Draw resource icon
         local icx, icy = iconR:getCenter()
         local rot = helper.lerp(self.rotationDirection[kind] * 0.2, 0, t)
         g.drawImage(image, icx, icy, rot, scale * helper.lerp(1, 1.25, (1 - t) ^ 2))
 
-        if consts.DEV_MODE then
-            local function button(txt, rr)
-                rr = rr:padRatio(0.1)
-                love.graphics.setColor(0,0,0,0.3)
-                love.graphics.rectangle("fill", rr:get())
-                love.graphics.setColor(1,1,1)
-                richtext.printRichContained("{o}{c r=1 g=1 b=1}"..txt, font, rr:get())
-                if iml.wasJustClicked(rr:get()) then
-                    return true
-                end
-            end
+        if consts.SHOW_DEV_STUFF then
             local _,b = reg:splitHorizontal(1,1)
             local left,right = b:splitHorizontal(1,1)
             local up10, down10 = left:splitVertical(1,1)
             local upFull,downFull = right:splitVertical(1,1)
             local resLimit = g.getResourceLimit(kind)
-            if button("^", up10) then
+            if currencyDevButton("^", up10) then
                 g.addResource(kind, resLimit/10)
             end
-            if button("v", down10) then
+            if currencyDevButton("v", down10) then
                 g.addResource(kind, -resLimit/10)
             end
-            if button("^^^", upFull) then
+            if currencyDevButton("^^^", upFull) then
                 g.addResource(kind, resLimit)
             end
-            if button("VVV", downFull) then
+            if currencyDevButton("VVV", downFull) then
                 g.addResource(kind, -resLimit)
             end
         end
     end
 
     local ux, uy = iconR:getCenter()
+    prof_pop() -- prof_push("_drawResourcesMeter "..kind)
     return ux, uy, reg.x + reg.w
 end
 
@@ -262,11 +247,11 @@ end
 function Resources:drawHUD(noDraw)
     if not g.hasSession() then return 0 end
 
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
 
     -- Draw resources
-    local BASE_X = 2
-    local BASE_Y = 2
+    local BASE_X = r.x + 2
+    local BASE_Y = r.y + 34 -- HACKY: hardcoded gap here = level offset
     local freeX = 0
 
     love.graphics.setColor(1, 1, 1)
@@ -305,7 +290,18 @@ local lerp = helper.lerp
 
 
 function Resources:drawParticles()
+    prof_push("Resources:drawParticles")
     love.graphics.setColor(1,1,1)
+
+    -- HACK: Ensure particle scale matches harvest area scale
+    local worldScale = 1
+    local uiScale = ui.getUIScaling()
+    local sc, scname = sceneManager.getCurrentScene()
+    if scname == "harvest_scene" then
+        ---@cast sc HarvestScene
+        worldScale = sc.worldScale
+    end
+
     for _, particle in ipairs(self.particles) do
         local x = particle.x
         local y = particle.y
@@ -316,7 +312,7 @@ function Resources:drawParticles()
             -- Spawning
             local time = -(particle.time + AFTERSPAWN_ANIMATION_DELAY)
             local t = 1 - helper.clamp(time / SPAWN_ANIMATION_DURATION, 0, 1)
-            scale = helper.clamp(particle.spawnEasing(t), 0, 1)
+            scale = lerp(0, worldScale / uiScale, particle.spawnEasing(t))
         else
             -- Moving to HUD
             local t = particle.time / particle.tohudTime
@@ -325,16 +321,21 @@ function Resources:drawParticles()
 
             x = lerp(particle.x, self.poses[particle.kind][1], easeX)
             y = lerp(particle.y, self.poses[particle.kind][2], easeY)
+            scale = lerp(worldScale / uiScale, 1, particle.spawnEasing(t))
         end
 
         g.drawImage(particle.image, x, y, particle.rot, scale)
     end
+    prof_pop() --  prof_push("Resources:drawParticles")
 end
 
 ---@param noDraw boolean?
 function Resources:draw(noDraw)
+    prof_push("Resources:draw")
     self:drawParticles()
-    return self:drawHUD(noDraw)
+    local r = self:drawHUD(noDraw)
+    prof_pop()
+    return r
 end
 
 
@@ -345,6 +346,8 @@ end
 ---@param y number
 ---@param amount integer
 local function _spawnParticleImpl(self, kind, tier, x, y, amount)
+    if #self.particles >= CURRENCY_PARTICLE_LIMIT then return end
+
     local smallAmount = 0
     -- 20% chance to spawn 1 additional smaller particles
     if tier > 1 and love.math.random() < 0.2 then

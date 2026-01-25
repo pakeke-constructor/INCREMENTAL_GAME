@@ -1,6 +1,8 @@
 
 local love = require("love")
 
+local heartbeat = nil
+
 
 ---@type love.graphics
 _G.lg=love.graphics
@@ -68,6 +70,39 @@ end
 _G.json = require("lib.json")
 _G.consts = require("src.consts")
 
+if consts.DEV_MODE then
+    love.keyboard.setTextInput(true)
+end
+
+
+-- Profiler zones
+local profilerStackCount = 0
+if consts.PROFILING then
+    heartbeat = require("lib.heartbeat.heartbeat")
+
+    ---@param name string
+    function _G.prof_push(name)
+        profilerStackCount = profilerStackCount + 1
+        return heartbeat:PushNamedScope(name)
+    end
+
+    function _G.prof_pop()
+        assert(profilerStackCount > 0, "more pops than pushes")
+        profilerStackCount = profilerStackCount - 1
+        return heartbeat:PopScope()
+    end
+else
+    ---@param name string
+    function _G.prof_push(name)
+        profilerStackCount = profilerStackCount + 1
+    end
+
+    function _G.prof_pop()
+        assert(profilerStackCount > 0, "more pops than pushes")
+        profilerStackCount = profilerStackCount - 1
+    end
+end
+
 local AutoAtlas = require("lib.AutoAtlas.AutoAtlas")
 _G.atlas = AutoAtlas(consts.ATLAS_SIZE, consts.ATLAS_SIZE)
 
@@ -85,9 +120,12 @@ _G.godrays = require("src.modules.godrays.godrays")
 
 _G.helper = require("src.modules.helper.helper")
 
+_G.settings = require("src.settings")
+
 _G.richtext = require("src.modules.richtext.exports")
 
 _G.localization = require("src.modules.localization")
+_G.localization.load(_G.settings.getLanguage())
 _G.loc = _G.localization.localize
 _G.interp = _G.localization.newInterpolator
 
@@ -100,6 +138,8 @@ _G.ui = require("src.ui.ui")
 _G.g = require("src.g")
 
 _G.worldutil = require("src.world.worldutil")
+
+_G.analytics = require("src.modules.analytics.analytics")
 --[[
 =========
 GLOBALS END
@@ -119,13 +159,14 @@ setmetatable(_G, {
 
 local crt = require("src.modules.crt")
 local vignette = require("src.modules.vignette.vignette")
-vignette.setStrength(0.35)
+vignette.setStrength(consts.VIGNETTE_STRENGTH)
 local subpixel = require("src.modules.subpixel")
 
 require("src.ev_q_definitions")
 
 
 local simulation = require("src.world.simulation")
+local asynchttp = require("src.modules.asynchttp.asynchttp")
 
 
 
@@ -153,64 +194,87 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local bgm = require("src.sound.bgm")
 local sfx = require("src.sound.sfx")
-local wasaSimulating = false
+local emulation = nil
+
+if consts.DEV_MODE then
+    emulation = require("src.emulation")
+    emulation.init()
+end
 
 function love.load(arg)
+    log.debug(love.graphics.getRendererInfo())
     assert(love.filesystem.createDirectory("saves"))
     love.graphics.setLineStyle("rough")
     g.requireFolder("src/upgrades")
     g.requireFolder("src/entities")
-    g.requireFolder("src/potions")
+    g.requireFolder("src/effects")
+    g.requireFolder("src/bosses")
     g.requireFolder("src/scythes")
     sceneManager.loadScenes()
 
     if arg[1] == "--simulate" then
-        -- TODO: Setup procgen tree instead of simulating current save
-        -- We simulate current save for now to test the API
-        if love.filesystem.getInfo("saves/save1.json", "file") then
-            g.loadSession("saves/save1.json")
-        else
-            g.newSession()
-        end
-        -- This simulates 10 minutes of playtime.
-        -- If your machine is fast enough, this should finish in less than 10 seconds.
-        simulation.start(600)
-        wasaSimulating = true
+        analytics.init(nil) -- Explicitly disable analytics
+        local sn = g.newSession()
+        sn.tree = g.loadPrestigeTree(0)
+
+        -- Begin simulation
+        local strategy = assert(arg[2], "missing strategy: [cheapest, random]"):lower()
+        local duration = assert(tonumber(arg[3]), "invalid duration")
+        simulation.start({duration = duration, buyStrategy = strategy})
     end
 
     if simulation.isSimulating() then
         sceneManager.gotoScene("harvest_scene")
     else
+        -- TODO: Get actual steam ID
+        analytics.init("0")
         sceneManager.gotoScene("title_scene")
     end
 
     _isloadtime = false
+
+    love.window.setFullscreen(settings.isFullscreen())
+
+    if heartbeat then
+        heartbeat:StartCapture()
+    end
 end
 
 function love.quit()
-    local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
-    if shouldSave and g.hasSession() and not wasaSimulating then
-        local data = g.getSn():serialize()
-        local contents = json.encode(data)
-        assert(love.filesystem.write("saves/save1.json", contents))
+    log.info("love.quit begin...")
+    if consts.DEV_MODE then
+        localization.dump()
     end
+
+    settings.save()
+    g.saveAndInvalidateSession()
+    asynchttp.finish()
+    log.info("love.quit done.")
 end
 
 
 function love.update(dt)
+    collectgarbage()
+    if emulation then
+        emulation.update(dt)
+    end
+
+    if heartbeat then
+        heartbeat:HeartbeatStart()
+    end
+
+    prof_push("love.update")
+
+    asynchttp.update()
     sfx.update()
+    bgm.update(dt, settings.getBGMVolume() / 100)
     iml.setPointer(love.mouse.getPosition())
 
     if simulation.isSimulating() then
         if simulation.update() then
-            local result = simulation.getResult()
-            print("Simulation data dump")
-            print(json.encode(result))
-
-            -- TODO: We could be doing multiple simulations one after each other.
-            -- But for now, let's quit after it's done.
-            love.event.quit()
+            g.gotoScene("simulation_result_scene")
         end
     elseif g.hasSession() then
         local session = g.getSn()
@@ -221,30 +285,77 @@ function love.update(dt)
         idleTime = idleTime + dt
     end
 
-    local sc = sceneManager.getCurrentScene()
+    local sc, scname = sceneManager.getCurrentScene()
     if sc and sc.update then
+        prof_push("scene "..scname..":update")
+
         sc:update(dt)
+
+        prof_pop()
     end
+
+    prof_pop() -- prof_push("love.update")
 end
 
 function love.draw()
-    local crtActive = love.keyboard.isModifierActive("capslock")
+    prof_push("love.draw")
+
+    local crtActive = settings.isCRTActive()
 
     if crtActive then
         crt.start()
     end
     love.graphics.setShader(subpixel.shader)
-    local sc = sceneManager.getCurrentScene()
+    local sc, scname = sceneManager.getCurrentScene()
     if sc and sc.draw then
+        prof_push("scene "..scname..":draw")
+
         iml.beginFrame()
         sc:draw()
         iml.endFrame()
+
+        prof_pop()
+    end
+    if simulation.isSimulating() then
+        local t = string.format("Simulating: %.3g", simulation.getProgress() * 100)
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.print(t, 5, 5)
+        love.graphics.setColor(1, 1, 1)
+        love.graphics.print(t, 4, 4)
+        log.info(t)
     end
     love.graphics.setShader()
     if crtActive then
         crt.finish()
     end
+
+    -- Yes, we need this check instead of just calling `love.window.setFullscreen`
+    -- without any conditions. Otherwise, mouse will get jittery on setting scene,
+    -- at least in Windows.
+    if settings.isFullscreen() ~= love.window.getFullscreen() then
+        love.window.setFullscreen(settings.isFullscreen(), "desktop")
+    end
+
+    prof_pop() -- prof_push("love.draw")
+
+    if heartbeat then
+        heartbeat:HeartbeatEnd()
+    end
+
+    assert(profilerStackCount == 0, "more pushes than pops")
+
+    if emulation then
+        emulation.draw()
+    end
 end
+
+local olderr = love.errorhandler or love.errhand
+
+function love.errorhandler(msg)
+    log.fatal(msg)
+    return olderr(msg)
+end
+
 
 
 function love.mousepressed(mx, my, button, istouch, presses)
@@ -273,9 +384,18 @@ function love.mousemoved(mx, my, dx, dy, istouch)
     end
 end
 
+
+
 function love.keypressed(key, scancode, isrep)
+    if scancode == "[" then
+        -- toggle show-dev-stuff
+        consts.SHOW_DEV_STUFF = consts.DEV_MODE and (not consts.SHOW_DEV_STUFF)
+    elseif scancode == "return" and love.keyboard.isDown("lalt", "ralt") then
+        settings.setFullscreen(not settings.isFullscreen())
+    end
+
     idleTime = 0
-    iml.keyreleased(key, scancode, isrep)
+    iml.keypressed(key, scancode, isrep)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.keypressed then
         sc:keypressed(key, scancode, isrep)
@@ -320,6 +440,25 @@ function love.focus(focus)
     if focus then
         idleTime = 0
     else
+        if consts.IS_MOBILE and g.hasSession() then
+            g.saveSession()
+        end
+
         idleTime = CONSIDERED_IDLE_TIME
     end
 end
+
+function love.directorydropped(fullpath)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.directorydropped then
+        sc:directorydropped(fullpath)
+    end
+end
+
+function love.filedropped(file)
+    local sc = sceneManager.getCurrentScene()
+    if sc and sc.filedropped then
+        sc:filedropped(file)
+    end
+end
+

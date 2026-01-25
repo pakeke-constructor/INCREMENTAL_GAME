@@ -2,6 +2,8 @@
 
 local MAX_SOURCE_POOL = 4
 
+local MAX_SOUNDS_PER_FRAME = 10
+
 
 ---@class _sfx
 local sfx = {}
@@ -9,8 +11,10 @@ local sfx = {}
 local sfxVolume = 100
 ---@type table<string, love.Source[]>
 local sourcePool = {} -- first source always the one to clone
+
 ---@type table<string, boolean?>
 local hadPlayedThisFrame = {}
+local numSoundsPlayedThisFrame = 0
 
 ---@param vol integer
 function sfx.setVolume(vol)
@@ -24,7 +28,9 @@ function sfx.defineSound(name, path)
     sourcePool[name] = {mainSource}
 end
 
+
 function sfx.update()
+    numSoundsPlayedThisFrame = 0
     table.clear(hadPlayedThisFrame)
 end
 
@@ -65,6 +71,10 @@ function sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
         return false
     end
 
+    if numSoundsPlayedThisFrame > MAX_SOUNDS_PER_FRAME then
+        return
+    end
+
     if hadPlayedThisFrame[soundname] then
         return false
     end
@@ -87,6 +97,7 @@ function sfx.play(soundname, pitch, volume, pitchVar, volumeVar)
     s:setVolume(volume)
     s:play()
     hadPlayedThisFrame[soundname] = true
+    numSoundsPlayedThisFrame = numSoundsPlayedThisFrame + 1
     return true
 end
 

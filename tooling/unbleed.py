@@ -1,3 +1,5 @@
+# Note: Run apply_palette first then this.
+
 import collections
 import glob
 import pathlib

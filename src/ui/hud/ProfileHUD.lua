@@ -17,12 +17,8 @@ local TOHUD_ANIMATION_DURATION = 0.4
 function Profile:init()
     ---@type g.hud._TokenParticle[]
     self.inflightTokens = {}
-    self.freeArea = Kirigami(0, 0, ui.getScaledUIDimensions())
-
-    self.xpBarPos = {x = 0, y = 0}
+    self.freeArea = ui.getScreenRegion()
     self.tokenQueuePos = {x = 0, y = 0}
-
-    self.xpLerp = 0
 end
 
 if false then
@@ -46,31 +42,6 @@ end
 
 
 
----@param xpBarR kirigami.Region
-local function drawExperienceBar(xpBarR)
-    local sn = g.getSn()
-    lg.setColor(1,1,1)
-    lg.rectangle("fill", xpBarR:get())
-    local x,y,w,h = xpBarR:padRatio(0.3):get()
-
-    lg.setColor(0.2,0.4,0.9)
-    if sn.xp >= sn.xpRequirement then
-        local t = love.timer.getTime()
-        local r,g,b = objects.Color.HSVtoRGB((t * 90) % 360, 1, 1)
-        lg.setColor(r,g,b)
-    end
-    local targXP = math.min(1, sn.xp/sn.xpRequirement)
-    lg.rectangle("fill", x,y,w*targXP,h)
-
-    local lw=lg.getLineWidth()
-    lg.setLineWidth(3)
-
-    lg.setColor(0,0,1)
-    lg.rectangle("line", xpBarR:get())
-
-    lg.setLineWidth(lw)
-end
-
 
 local MAX_NUMBER_OF_TOKEN_TYPES = 6
 -- no more than X tokens stacked at a time; dont wanna overwhelm player
@@ -78,9 +49,8 @@ local MAX_NUMBER_OF_TOKEN_TYPES = 6
 
 ---@param sidebarWidth number
 ---@param noDraw boolean?
----@param drawXPBar boolean?
-function Profile:draw(sidebarWidth, noDraw, drawXPBar)
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
+function Profile:draw(sidebarWidth, noDraw)
+    local r = ui.getScreenRegion()
     local profileBaseR = Kirigami(0, 0, sidebarWidth, sidebarWidth)
         :attachToBottomOf(r)
         :attachToLeftOf(r)
@@ -91,12 +61,6 @@ function Profile:draw(sidebarWidth, noDraw, drawXPBar)
         :attachToTopOf(profileR)
         :moveRatio(0, 1)
         :moveUnit(-8, 0)
-
-    local _,xpBarCenterizeR = r:splitHorizontal(profileBaseR.w, r.w - profileBaseR.w)
-    local _,xpBarR = r:splitVertical(18,1)
-    xpBarR = xpBarR:shrinkTo(xpBarR.w - profileBaseR.w, xpBarR.h)
-        :padUnit(14,0,20,0)
-        :centerX(xpBarCenterizeR)
 
     self.tokenQueuePos.x, self.tokenQueuePos.y = stackTokenR:getCenter()
 
@@ -114,18 +78,13 @@ function Profile:draw(sidebarWidth, noDraw, drawXPBar)
         lg.setStencilMode()
 
         -- Draw red border
-        lg.setColor(1, 0, 0)
+        lg.setColor(0, 0, 0)
         local lw = lg.getLineWidth()
         lg.setLineWidth(3)
         lg.rectangle("line", profileR:get())
         lg.setLineWidth(lw)
 
         lg.setColor(1, 1, 1)
-
-        if drawXPBar then
-            drawExperienceBar(xpBarR)
-            self.xpBarPos = {x=xpBarR.x + 16, y=xpBarR.y + xpBarR.h/2}
-        end
 
         -- Draw inflight token
         love.graphics.setColor(1,1,1)
@@ -180,7 +139,7 @@ function Profile:draw(sidebarWidth, noDraw, drawXPBar)
     end
 
     local maxX = math.max(profileR.x + profileR.w, stackTokenR.x + stackTokenR.w)
-    self.freeArea = r:padUnit(maxX, 0, 0, xpBarR.h)
+    self.freeArea = r:padUnit(maxX, 0, 0, 0)
 end
 
 function Profile:getSafeArea()
@@ -201,10 +160,6 @@ end
 
 function Profile:getStackTokenPos()
     return self.tokenQueuePos.x, self.tokenQueuePos.y
-end
-
-function Profile:getXPBarStartPos()
-    return self.xpBarPos.x, self.xpBarPos.y
 end
 
 return Profile

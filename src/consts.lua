@@ -4,9 +4,24 @@
 local consts = {
 
     DEV_MODE = not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
+    SHOW_DEV_STUFF = false, -- can be toggled on/off (eg for screenshots)
+
+    EMULATE_TOUCH = os.getenv("INCREMENTAL_GAME_EMULATE_TOUCH") == "1", -- Set later
+    IS_MOBILE = false, -- Set later
+
+    PROFILING = false,
+
+    ANALYTICS_URL = "https://incrementalgame.npdep.com", -- URL, without trailing slash.
+    -- How long it should take before sending "update" event to analytics server (in seconds)?
+    ANALYTICS_UPDATE_INTERVAL = 60,
+    GAME_VERSION = 0,
 
     FILE_LOG_LEVEL = "warn",
     CONSOLE_LOG_LEVEL = "trace",
+
+    FILE_SEP = "/",
+
+    DEV_UPGRADE_TREE_PATH = "trees",
 
     TARGET_TIME_PER_LEVEL_UP = 25,
 
@@ -20,13 +35,17 @@ local consts = {
 
     HARVEST_AREA_LEEWAY = 4, -- Mouse-harvest extends by this amount so it "feels good"
 
+    VIGNETTE_STRENGTH = 0.6,
 
-    DEFAULT_UPGRADE_PRICE_SCALING = 2,
+    DEFAULT_UPGRADE_PRICE_SCALING = 1,
     -- upgrade-price is multiplied by this amount every level (unless specified)
+    -- 1 => upgrade price doesnt change per level
 
     DEFAULT_UPGRADE_MAX_LEVEL = 10,
 
     MAX_HIT_DURATION = 0.125,
+
+    BOSSFIGHT_DURATION = 30,
 
     TEST = true,
 
@@ -37,11 +56,22 @@ local consts = {
     AVATAR_SIZE = 24, -- Size of the avatar with background
     DEFAULT_CAT_AVATAR = "cat",
     DEFAULT_BACKGROUND_AVATAR = "white",
-    DEFAULT_SCYTHE = "scythe",
+    DEFAULT_SCYTHE = "starting_scythe",
 
-    ORBIT_RING_DISTANCE = 20 -- Radius of each orbit ring.
+    ORBIT_RING_DISTANCE = 20, -- Radius of each orbit ring.
+
+    -- Resource multipler on combo increase
+    COMBO_MULTIPLIER = 0.01,
+
+    -- how much % the combo timer increases when you harvest a crop.
+    -- (e.g. 0.2 means you gotta harvest 5 crops to fill the timer)
+    COMBO_HARVEST_INCREMENT_RATIO = 0.07,
 }
 
+local os = love.system.getOS()
+consts.EMULATE_TOUCH = consts.DEV_MODE and consts.EMULATE_TOUCH
+consts.IS_MOBILE = os == "Android" or os == "iOS" or consts.EMULATE_TOUCH
+consts.SHOW_DEV_STUFF = consts.DEV_MODE
 
 
 return consts

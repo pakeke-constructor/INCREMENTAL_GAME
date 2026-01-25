@@ -91,7 +91,7 @@ local filters = {
 
 ---@param mapButtonR kirigami.Region
 function custom:_drawUI(mapButtonR)
-    local r = Kirigami(0, 0, ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
 
     -- Compute right center cosmetic category.
     local categoryHeight = (CATEGORY_SIZE + CATEGORY_DIVIDER) * #CATEGORIES - CATEGORY_DIVIDER
@@ -257,7 +257,9 @@ function custom:_drawUI(mapButtonR)
 
     -- Draw avatar with background
     local drawBg = self.activeCategory == 1 or self.activeCategory == 3
-    local avatarX, avatarY = math.floor(baseCosmeticGridR.x / 2), math.floor(select(2, ui.getScaledUIDimensions()) / 2)
+    local safeArea = g.getHUD():getSafeArea()
+    local avatarX = helper.lerp(safeArea.x, baseCosmeticGridR.x, 0.5)
+    local avatarY = math.floor(select(2, ui.getScaledUIDimensions()) / 2)
     local avatarSize = consts.AVATAR_SIZE * AVATAR_SCALE
     if drawBg then
         love.graphics.setStencilMode("draw", 3)
@@ -277,6 +279,7 @@ end
 ---@param dt number
 function custom:update(dt)
     g.getHUD():update(dt)
+    g.requestBGM(g.BGMID.CUSTOMIZATION)
 end
 
 function custom:draw()
@@ -293,12 +296,20 @@ function custom:draw()
     local mapButtonR = self:renderMapButton()
     self:_drawUI(mapButtonR)
     g.getHUD():draw({profile = false, xpbar = false})
+    self:renderPause()
     ui.endUI()
 end
 
 function custom:wheelmoved(dx, dy)
     local dir = helper.sign(dy)
     self.rowOffset = self.rowOffset - dir
+end
+
+function custom:keyreleased(k)
+    if k == "escape" then
+        local s = g.getSn()
+        s.paused = not s.paused
+    end
 end
 
 return custom

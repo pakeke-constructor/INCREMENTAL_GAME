@@ -13,7 +13,7 @@ local map = FreeCameraScene()
 
 -- Total duration of transition, including fade in and fade out.
 -- fade in is half the duration and fade out is half of it too.
-local TRANSITION_DURATION = 1
+local TRANSITION_DURATION = 0.9
 -- Target transition scale.
 local TRANSITION_SCALE = 4
 
@@ -44,6 +44,7 @@ local buildings = {
     harvestarea_platform = {
         image = "harvestarea_platform",
         x = 294, y = 177,
+        bobbing = {amplitude = 3, period = 4},
     },
     upgradearea_dome = {
         image = "upgradearea_dome",
@@ -113,6 +114,7 @@ end)
 
 
 ---@class (exact) _POI.Def
+---@field public nameContext string?
 ---@field public scene string
 ---@field public x integer
 ---@field public y integer
@@ -123,6 +125,8 @@ end)
 ---@field public ty number text position
 ---@field public tcolor objects.Color Outline text color (actual text color always white)
 ---@field public price g.Bundle?
+---@field public zoomOx number? zoom offsets, if we wanna zoom to a particular pos
+---@field public zoomOy number? 
 
 ---@class (exact) _POI: _POI.Def
 ---@field public type string
@@ -138,7 +142,7 @@ local sceneNamePOIMap = {}
 local function definePOI(id, name, def)
     ---@cast def _POI
     def.type = id
-    def.name = loc(name)
+    def.name = loc(name, nil, {context = def.nameContext})
     POI[id] = def
 
     if def.price then
@@ -160,16 +164,20 @@ end
 
 
 definePOI("harvest", "Harvest", {
+    nameContext = "Place to harvest crops",
     scene = "harvest_scene",
     x = 197, y = 156, w = 144, h = 98,
     highlight = {"harvestarea_windmill", "harvestarea_house", "harvestarea_platform"},
     tx = 262, ty = 169, tcolor = objects.Color("#".."FF0FA569"),
+    zoomOx = -4, zoomOy = 0
 })
 definePOI("upgrade", "Upgrade", {
+    nameContext = "Place to get upgrades to improve gameplay",
     scene = "upgrade_scene",
     x = 106, y = 94, w = 91, h = 104,
     highlight = {"upgradearea_dome", "upgradearea_plasmahut"},
     tx = 152, ty = 132, tcolor = objects.Color("#".."FF41D7D7"),
+    zoomOx = -2, zoomOy = 18
 })
 definePOI("fishing", "Fish", {
     scene = "fishing_scene",
@@ -196,8 +204,8 @@ definePOI("quest", "Town", {
     price = {money = 7000},
 })
 definePOI("boss", "Challenges", {
-    -- TODO: scene
-    scene = "",
+    nameContext = "Place to do in-game challenge (such as summoning boss)",
+    scene = "boss_scene",
     x = 391, y = 168, w = 98, h = 90,
     highlight = {"bossarea_statue"},
     tx = 441, ty = 175, tcolor = objects.Color("#".."FF7891A5"),
@@ -277,21 +285,21 @@ local function clampCameraToMap(camera, mapX, mapY, mapW, mapH, ttgt)
     local posX = mapX + mapW / 2
     local posY = mapY + mapH / 2
 
-    local transitionT = 0
     local transitionScale = 1
     if ttgt then
         local t = 1 - math.abs(1 - helper.clamp(ttgt.time / ttgt.duration, 0, 1) * 2)
-        transitionT = t--helper.EASINGS.sineOut(t)
-        posX = helper.lerp(posX, ttgt.x, transitionT)
-        posY = helper.lerp(posY, ttgt.y, transitionT)
-        transitionScale = helper.lerp(1, TRANSITION_SCALE, transitionT)
+        local tt = helper.EASINGS.easeInCubic(t)
+        local tt2 = helper.EASINGS.sineIn(t)
+        posX = helper.lerp(posX, ttgt.x, tt2)
+        posY = helper.lerp(posY, ttgt.y, tt2)
+        transitionScale = helper.lerp(1, TRANSITION_SCALE, tt)
     end
     camera:setPos(posX, posY)
 
     -- Adjust zooming
     local scale = math.min(w / mapW, h / mapH)
-    -- Only allow integer scaling with minimum of 1
-    scale = math.max(math.floor(scale), 1)
+    -- scale = math.max(math.floor(scale), 1)  -- OLD CODE: Only allow integer scaling with minimum of 1
+    scale = math.max(scale, 1)
     camera:setZoom(scale * transitionScale)
 end
 
@@ -323,22 +331,85 @@ end
 
 
 
+
+local drawEdgeClouds
+do
+
+-- Constants for tweaking
+local CLOUD_VERTICAL_MOVE_AMOUNT = 20  -- How far clouds move up/down
+local CLOUD_MOVE_SPEED = 0.2  -- Speed of vertical oscillation
+local CLOUD_OFFSET_FROM_CORNER = -20  -- Distance from actual corner point
+local CLOUD_OFFSET_FROM_EDGE = -100  -- Distance from actual corner point
+local CLOUD_OVERLAP_SPACING = 60  -- Spacing between clouds to cover corner
+
+---@param cloudName string
+---@param x number
+---@param y number
+---@param seed number
+local function drawCornerCloud(cloudName, x, y, seed)
+    local t = love.timer.getTime()
+    -- Vertical movement based on time and seed
+    local offsetY = math.sin(t * CLOUD_MOVE_SPEED + seed) * CLOUD_VERTICAL_MOVE_AMOUNT
+    g.drawImage(cloudName, x, y + offsetY)
+end
+
+
+
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function drawEdgeClouds(x, y, w, h)
+    -- Existing Corner Logic
+    local o = CLOUD_OFFSET_FROM_CORNER
+    local s = CLOUD_OVERLAP_SPACING
+    local eo = CLOUD_OFFSET_FROM_EDGE
+
+    -- Top-left corner (3 different clouds)
+    drawCornerCloud("bigcloud_fishingzone", x + o, y + o, 1)
+    drawCornerCloud("bigcloud_minigamezone", x + o + s, y + o, 2)
+    drawCornerCloud("bigcloud_questzone", x + o, y + o + s, 3)
+
+    -- Top-right corner (3 different clouds)
+    drawCornerCloud("bigcloud_bosszone", x + w - o, y + o, 4)
+    drawCornerCloud("bigcloud_emptyzone", x + w - o - s, y + o, 5)
+    drawCornerCloud("bigcloud_fishingzone", x + w - o, y + o + s, 6)
+
+    -- Bottom-left corner (3 different clouds)
+    drawCornerCloud("bigcloud_minigamezone", x + o, y + h - o, 7)
+    drawCornerCloud("bigcloud_bosszone", x + o + s, y + h - o, 8)
+    drawCornerCloud("bigcloud_emptyzone", x + o, y + h - o - s, 9)
+
+    -- Bottom-right corner (3 different clouds)
+    drawCornerCloud("bigcloud_questzone", x + w - o, y + h - o, 10)
+    drawCornerCloud("bigcloud_fishingzone", x + w - o - s, y + h - o, 11)
+    drawCornerCloud("bigcloud_minigamezone", x + w - o, y + h - o - s, 12)
+
+    --- Edge Clouds ---
+    -- These use 'eo' to stay tucked against the outer edges
+    drawCornerCloud("bigcloud_emptyzone", x + w / 2, y + eo, 13)         -- Top Edge
+    drawCornerCloud("bigcloud_bosszone", x + w / 2, y + h - eo, 14)     -- Bottom Edge
+    drawCornerCloud("bigcloud_fishingzone", x + eo, y + h / 2, 15)      -- Left Edge
+    drawCornerCloud("bigcloud_questzone", x + w - eo, y + h / 2, 16)    -- Right Edge
+end
+end
+
+
+
+
 ---@param t number
 ---@param oy number
 ---@param clearRadius number
 ---@param cloudRadius number
 ---@param cloudSpacing number
 local function drawIndividualClouds(t, oy, clearRadius, cloudRadius, cloudSpacing)
-    local w, h = ui.getScaledUIDimensions()
-    local cx, cy = w / 2, h / 2
+    local cx, cy = ui.getFullScreenRegion():getCenter()
     local ncircles = math.ceil(math.pi * (clearRadius + cloudSpacing) / cloudSpacing)
     local centerRadius = helper.magnitude(cx + 4, cy + 4) + cloudRadius
-    local rdist = centerRadius + cloudRadius * 2
-    local nrings = rdist / cloudSpacing
     local targetRadius = helper.lerp(centerRadius, clearRadius, t)
 
     local cloudCount = 0
-    for i = 0, nrings - 1 do
+    for i = 0, 1 do
         local cdist = targetRadius + i * cloudSpacing
         local ioff = i % 2 / 2
         for j = 0, ncircles do
@@ -364,11 +435,29 @@ end
 ---@param cloudRadius number Size of each individual cloud
 ---@param cloudSpacing number? Spacing of each individual cloud (default to `cloudRadius`)
 local function drawCloudTransition(t, clearRadius, cloudRadius, cloudSpacing)
+    prof_push("drawCloudTransition")
+
     cloudSpacing = cloudSpacing or cloudRadius
     love.graphics.setColor(1, 0.55, 0.78, 1)
     drawIndividualClouds(t, 9, clearRadius, cloudRadius, cloudSpacing)
+
+    -- We want to fill the screen with white but keep a circle hole
+    -- in the middle with specific radius.
+    local cx, cy = ui.getFullScreenRegion():getCenter()
+    local centerRadius = helper.magnitude(cx + 4, cy + 4) + cloudRadius
+    local targetRadius = helper.lerp(centerRadius, clearRadius, t)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.clear(false, true, true)
+    love.graphics.setStencilMode("draw", 1)
+    love.graphics.circle("fill", cx, cy, targetRadius)
+    love.graphics.setStencilMode("test", 0)
+    love.graphics.rectangle("fill", ui.getFullScreenRegion():get())
+    love.graphics.setStencilMode()
+
     love.graphics.setColor(1, 1, 1)
     drawIndividualClouds(t, 0, clearRadius, cloudRadius, cloudSpacing)
+
+    prof_pop()
 end
 
 
@@ -399,7 +488,11 @@ function map:draw()
             for _, buildingId in ipairs(poi.highlight) do
                 local b = buildings[buildingId]
                 -- Buildings are relative to top right
-                g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2, 0, 1, 1, 1, 0)
+                local oy = 0
+                if b.bobbing then
+                    oy = b.bobbing.amplitude * math.sin((love.timer.getTime()*(math.pi*2)) / b.bobbing.period)
+                end
+                g.drawImageOffset(b.image.."_outline", b.x + 2, b.y - 2 + oy, 0, 1, 1, 1, 0)
             end
         end
     end
@@ -407,7 +500,11 @@ function map:draw()
     -- Draw buildings
     lg.setColor(1, 1, 1)
     for _, b in pairs(buildings) do
-        g.drawImageOffset(b.image, b.x, b.y, 0, 1, 1, 1, 0)
+        local oy = 0
+        if b.bobbing then
+            oy = b.bobbing.amplitude * math.sin((love.timer.getTime()*(math.pi*2)) / b.bobbing.period)
+        end
+        g.drawImageOffset(b.image, b.x, b.y + oy, 0, 1, 1, 1, 0)
     end
 
     -- Draw clouds
@@ -427,18 +524,21 @@ function map:draw()
         end
         if isUnlocked(poi.type) then
             if iml.isHovered(poi.x, poi.y, poi.w, poi.h) then
-                drawPOIText(poi)
+                -- dont draw text when zooming; it looks weird
+                if not self.transitionTarget then
+                    drawPOIText(poi)
+                end
             end
 
             if iml.wasJustClicked(poi.x, poi.y, poi.w, poi.h, 1) and not self.transitionTarget then
                 self.transitionTarget = {
                     time = 0,
-                    x = poi.x + poi.w / 2,
-                    y = poi.y + poi.h / 2,
+                    x = (poi.x + poi.w / 2) + (poi.zoomOx or 0),
+                    y = (poi.y + poi.h / 2) + (poi.zoomOy or 0),
                     action = makePOIAction(poi),
                     duration = TRANSITION_DURATION
                 }
-                g.playUISound("map_zoom_woosh",1.2,0.4)
+                g.playUISound("map_zoom_woosh3",1,0.4)
             end
         else
             local buyText = ""
@@ -478,6 +578,11 @@ function map:draw()
     -- Well it's unfortunate that we iterate POI twice, but we need to ensure
     -- the draw order is correct.
 
+    do
+    local x,y,w,h = 0,0, mapAnim[1]:getDimensions()
+    drawEdgeClouds(x,y,w,h)
+    end
+
     self:resetCamera()
 
     vignette.draw()
@@ -500,14 +605,29 @@ function map:draw()
         end
     end
     end
+    self:renderPause()
     ui.endUI()
 end
 
 
 
+---@param scname string
+local function makeTransitionTarget(scname)
+    local poi = helper.assert(POI[sceneNamePOIMap[scname]], "invalid scene", scname)
+    g.playUISound("map_zoom_woosh3",1,0.4)
+    return {
+        time = 0,
+        x = (poi.x + poi.w / 2) + (poi.zoomOx or 0),
+        y = (poi.y + poi.h / 2) + (poi.zoomOy or 0),
+        action = makePOIAction(poi),
+        duration = TRANSITION_DURATION
+    }
+end
 
 function map:update(dt)
     self:updateCamera(dt)
+
+    g.requestBGM(g.BGMID.MAP)
 
     -- Update transition data
     if self.transitionTarget then
@@ -518,27 +638,27 @@ function map:update(dt)
             self.transitionTarget.action = nil
         elseif self.transitionTarget.time >= self.transitionTarget.duration then
             if self.queuedTransitionTargetScene then
-                local poi = helper.assert(POI[sceneNamePOIMap[self.queuedTransitionTargetScene]], "invalid scene", self.queuedTransitionTargetScene)
-                self.transitionTarget = {
-                    time = 0,
-                    x = poi.x + poi.w / 2,
-                    y = poi.y + poi.h / 2,
-                    action = makePOIAction(poi),
-                    duration = TRANSITION_DURATION
-                }
+                self.transitionTarget = makeTransitionTarget(self.queuedTransitionTargetScene)
                 self.queuedTransitionTargetScene = nil
-                g.playUISound("map_zoom_woosh",1.2,0.4)
+                g.playUISound("map_zoom_woosh3",1,0.4)
             else
                 self.transitionTarget = nil
             end
         end
+    elseif self.queuedTransitionTargetScene then
+        self.transitionTarget = makeTransitionTarget(self.queuedTransitionTargetScene)
+        self.queuedTransitionTargetScene = nil
+        g.playUISound("map_zoom_woosh3",1,0.4)
     end
+
+    local w = g.getMainWorld()
+    w:_disableMouseHarvester()
 end
 
 
 
 function map:enter()
-    g.playUISound("map_zoom_woosh",1.3,0.4)
+    g.playUISound("map_zoom_woosh3",1,0.4)
 end
 
 
@@ -552,6 +672,15 @@ map.keyreleased = map.defaultKeyreleased
 ---@param name string
 function map:queueDestinationScene(name)
     self.queuedTransitionTargetScene = name
+end
+
+
+
+function map:keyreleased(k)
+    if k == "escape" then
+        local s = g.getSn()
+        s.paused = not s.paused
+    end
 end
 
 

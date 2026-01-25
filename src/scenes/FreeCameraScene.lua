@@ -55,22 +55,87 @@ end
 
 
 
+local MAP_BUTTON = "{wavy}{c r=0.9 g=0.8 b=0.85}{o}" .. loc("Back to Map", {}, {
+    context = "A button that leads back to the game-map"
+}) .. "{/o}{/c}{/wavy}"
 
 function FreeCameraScene:renderMapButton()
-    local r = Kirigami(0,0,ui.getScaledUIDimensions())
+    local r = ui.getScreenRegion()
     local header,_ = r:splitVertical(1,5)
 
-    local left, right = header:splitHorizontal(7,1)
-    right = right:padRatio(0.2)
+    local left, right = header:moveUnit(0,16):splitHorizontal(7,1)
+    local mapButton = right:padRatio(0.2)
 
-    local MAIN=objects.Color.WHITE
-    local BASE=objects.Color.GRAY
-    -- TEMPORARY CODE
-    if ui.Button("{o}MAP", MAIN,BASE, right) then
+    lg.setColor(1,1,1)
+    if iml.isHovered(mapButton:get()) then
+        g.drawImageContained("map_button_hover", mapButton:get())
+    end
+    g.drawImageContained("map_button", mapButton:get())
+    local _,txtR = right:splitVertical(3,1)
+    richtext.printRichContained(MAP_BUTTON, g.getSmallFont(16), txtR:get())
+    if iml.wasJustClicked(mapButton:get()) then
         g.gotoScene("map_scene")
     end
 
     return right
+end
+
+
+
+local function resume()
+    if g.hasSession() then
+        g.getSn().paused = false
+    end
+end
+
+local function settings()
+    g.gotoScene("setting_scene")
+end
+
+local function exit()
+    g.gotoScene("title_scene")
+end
+
+local PAUSE_BUTTONS = {
+    {loc"Resume", objects.Color("#" .. "FFE0AC35"), objects.Color("#" .. "FFD78F0A"), resume},
+    {loc"Settings", objects.Color("#" .. "FF9F14F6"), objects.Color("#" .. "FF3B12A4"), settings},
+    {loc"Exit", objects.Color("#".."FFF26957"), objects.Color("#".."FF4E0E05"), exit}
+}
+local PAUSE_BUTTON_SIZE = {144, 40}
+local PAUSE_BUTTON_PAD = 4
+local PAUSE_TEXT = "{w}{o thickness=2}"..loc("PAUSED").."{/o}{/w}"
+
+function FreeCameraScene:renderPause()
+    if g.hasSession() and g.getSn().paused then
+        local r = ui.getScreenRegion()
+        iml.panel(r:get()) -- Prevent propagation to bottom panels
+
+        love.graphics.setColor(0, 0, 0, 0.6)
+        love.graphics.rectangle("fill", r:get())
+
+        -- Setup layout
+        local buttonGridR = Kirigami(0, 0, PAUSE_BUTTON_SIZE[1], PAUSE_BUTTON_SIZE[2] * #PAUSE_BUTTONS)
+            :center(r)
+        local pauseFont = g.getBigFont(64)
+        local pauseTextWidth = richtext.getWidth(PAUSE_TEXT, pauseFont)
+        local pauseTextR = Kirigami(0, 0, pauseTextWidth, pauseFont:getHeight())
+            :center(r:set(nil, nil, nil, buttonGridR.y))
+
+        -- Draw pause text
+        love.graphics.setColor(1, 1, 1)
+        richtext.printRich(PAUSE_TEXT, pauseFont, pauseTextR.x, pauseTextR.y, pauseTextR.w, "center")
+
+        -- Draw pause buttons
+        local buttonGrid = buttonGridR:grid(1, #PAUSE_BUTTONS)
+        for i, v in ipairs(PAUSE_BUTTONS) do
+            local buttonR = buttonGrid[i]:padUnit(PAUSE_BUTTON_PAD)
+
+            love.graphics.setColor(1, 1, 1)
+            if ui.Button("{o thickness=0.5}"..v[1].."{/o}", v[2], v[3], buttonR) then
+                v[4]()
+            end
+        end
+    end
 end
 
 
@@ -141,11 +206,6 @@ end
 
 
 function FreeCameraScene:defaultKeyreleased(k)
-    if consts.DEV_MODE then
-        if k == "f1" then
-            g.gotoScene("dev_scene")
-        end
-    end
 end
 
 

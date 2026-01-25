@@ -15,7 +15,7 @@ function SpinningAxe:init()
     self.vy = (S*math.sin(a))
 
     g.iterateTokensInArea(self.x,self.y, RAD * 1.5, function(tok)
-        g.damageToken(tok, 8)
+        g.damageToken(tok, 50)
     end)
 end
 
@@ -36,7 +36,7 @@ end
 
 function SpinningAxe:perSecondUpdate()
     g.iterateTokensInArea(self.x,self.y, RAD, function(tok)
-        g.damageToken(tok, 8)
+        g.damageToken(tok, 50)
     end)
 end
 
