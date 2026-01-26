@@ -192,6 +192,24 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         love.graphics.draw(g.getAtlas(), q, x, y, 0, scale, scale)
         q:release()
 
+        --[[
+        -- draw res bar background:
+        local col = g.getResourceInfo(kind).color
+        do
+        lg.setColor(col)
+        ui.drawSingleColorPanel(reg:get())
+        lg.setColor(0.2,0.2,0.4,0.4)
+        ui.drawSingleColorPanel(reg:get())
+        end
+
+        --draw res bar fill:
+        do
+        lg.setColor(col)
+        local reg2 = reg:shrinkTo(reg.w*fillVal,reg.h)
+        ui.drawSingleColorPanel(reg2:get())
+        end
+        ]]
+
         -- Draw resource value
         love.graphics.setColor(1, 1, 1)
         local font = g.getBigFont(16)

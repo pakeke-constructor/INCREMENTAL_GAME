@@ -834,7 +834,7 @@ g.defineResource("money", {
     limitStat="MoneyLimit",
     limitStatName="Money Limit",
     startingLimit=1000,
-    color = {0.71, 0.55, 0.02},
+    color = objects.Color("#".."FFF7D127"),
 })
 g.defineResource("juice", {
     image="juice",
