@@ -516,6 +516,8 @@ local PERM_UPGRADES = {
     "percentage_5_more_speed",
     "chest_big",
     "chest_small",
+    "red_berry_2",
+    "blue_berry_3",
     "mushroom_brown",
     "knife_bush",
     "mushroom_basic",
