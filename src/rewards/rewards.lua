@@ -289,15 +289,14 @@ local INSTANT_REWARDS = {
         name = loc "Farmer Cats!",
         description = loc "Temporarily hire farmer cats for 15 seconds!",
         func = function()
+            local w,h = g.getWorldDimensions()
             for i=1,6 do
-                local w,h = g.getWorldDimensions()
                 local x = helper.lerp(20,w-20, love.math.random())
                 local y = helper.lerp(20,h-20, love.math.random())
                 local e = g.spawnEntity("grass_farmer_cat", x,y)
                 e.lifetime = 15
             end
             for i=1,4 do
-                local w,h = g.getWorldDimensions()
                 local x = helper.lerp(20,w-20, love.math.random())
                 local y = helper.lerp(20,h-20, love.math.random())
                 local e = g.spawnEntity("lumberjack_cat", x,y)
@@ -307,6 +306,55 @@ local INSTANT_REWARDS = {
     }
 }
 
+
+
+local TOKEN_REWARDS = {
+    bomb = {
+        icon = "bomb",
+        token = "bomb",
+        name = loc"Flying Bombs!",
+        description = loc"A bunch of flying bombs!",
+        count = {min = 15, max=20}
+    },
+    redberry = {
+        icon = "red_berry",
+        token = "red_berry_stalk",
+        name = loc"Flying berries!",
+        count = {min = 15, max=25}
+    },
+    slime = {
+        icon = "slime_token",
+        token = "slime_token",
+        name = loc"Flying slime!",
+        description = loc"Slime weakens crops!",
+        count = {min = 10, max=15}
+    },
+    mushroom_red = {
+        token = "mushroom_red",
+        icon = "mushroom_red",
+        name = "Red Mushroom",
+        description = loc("Red mushrooms will explode!"),
+        count = {min = 10, max=15}
+    },
+    mushroom_green = {
+        token = "mushroom_green",
+        icon = "mushroom_green",
+        name = "Green Mushroom",
+        description = loc("Green mushrooms spawn grass!"),
+        count = {min = 10, max=15}
+    },
+    mushroom_blue = {
+        token = "mushroom_blue",
+        icon = "mushroom_blue",
+        name = "Blue Mushroom",
+        description = loc("Blue mushrooms spawn lightning!"),
+        count = {min = 10, max=15}
+    },
+}
+
+for k,v in pairs(TOKEN_REWARDS)do
+    v.type = "token"
+end
 
 
 
@@ -415,9 +463,6 @@ local HORDE = {
 ---@param rng love.RandomGenerator
 function generateStackedTokenReward(rng)
     local lv = g.getSn().level
-    -- IDEA: spawn stackedToken bombs here?
-
-    do return generateStackedChestToken(getRandomUnlockedResource(rng), rng) end
 
     -- IDEALLY, it should be stuff that is scaling-agnostic
     if rng:random() < 0.4 then
@@ -672,17 +717,13 @@ function rewards.drawRewardDescription(rew, r)
         richtext.printRichContained(STACKED_TOKEN, font, a:get())
         -- local txt = ("{o}{%s} => (%d {%s}){/o}"):format(tokImg, rew.stackedTokenResourceAmount*rew.stackedTokenCount, rew.stackedTokenResource)
         local txt
-        if rew.resource then
+        if rew.description then
+            txt = rew.description
+        else
+            assert(rew.resource)
             txt = STACKED_TOKEN_TOTAL {
                 tokens = generateTotalResourcesText({[rew.resource.id] = rew.resource.amount}, rew.count)
             }
-        else
-            txt = assert(rew.description)
-            if not txt then
-                txt = STACKED_TOKEN_TOTAL {
-                    tokens = generateTotalResourcesText(rew.token.resources, rew.count)
-                }
-            end
         end
         richtext.printRichContainedNoWrap("{o}"..txt.."{/o}", font, b:get())
     elseif rew.type == "permanent" then
