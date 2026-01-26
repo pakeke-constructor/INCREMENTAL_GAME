@@ -131,7 +131,9 @@ local function assertRewardIsValid(rew)
         ---@cast rew g.TokenReward
         assert(rew.token, "stackedToken need token")
         assert(rew.count, "stackedToken rewards need a count")
-        assert(rew.resource or rew.description, "stackedToken rewards need either description, or resource")
+        if not (rew.resource or rew.description) then
+            error("stackedToken rewards need either description, or resource: " .. tostring(rew.token.type))
+        end
     elseif rew.type == "instant" then
         ---@cast rew g.InstantReward
         assert(rew.name, "instant need name")
@@ -307,7 +309,16 @@ local INSTANT_REWARDS = {
 }
 
 
+---@class _TOKEN_REWARDS.reward
+---@field public icon string
+---@field public token string
+---@field public name string
+---@field public count {min:integer, max:integer}
+---@field public resource {id: g.ResourceType, amount:number}
+---@field public description string?
+local _TOKEN_REWARDS_rew={}
 
+---@type _TOKEN_REWARDS.reward[]
 local TOKEN_REWARDS = {
     bomb = {
         icon = "bomb",
@@ -315,12 +326,6 @@ local TOKEN_REWARDS = {
         name = loc"Flying Bombs!",
         description = loc"A bunch of flying bombs!",
         count = {min = 15, max=20}
-    },
-    redberry = {
-        icon = "red_berry",
-        token = "red_berry_stalk",
-        name = loc"Flying berries!",
-        count = {min = 15, max=25}
     },
     slime = {
         icon = "slime_token",
@@ -341,7 +346,7 @@ local TOKEN_REWARDS = {
         icon = "mushroom_green",
         name = "Green Mushroom",
         description = loc("Green mushrooms spawn grass!"),
-        count = {min = 10, max=15}
+        count = {min = 6, max=12}
     },
     mushroom_blue = {
         token = "mushroom_blue",
@@ -352,9 +357,7 @@ local TOKEN_REWARDS = {
     },
 }
 
-for k,v in pairs(TOKEN_REWARDS)do
-    v.type = "token"
-end
+
 
 
 
@@ -433,19 +436,19 @@ local function generateStackedChestToken(resId, rng)
     return assertRewardIsValid(rew)
 end
 
----@param toktype string
----@param count integer
----@param desc string
+
+---@param entry _TOKEN_REWARDS.reward
 ---@param rng love.RandomGenerator
-local function generateStackedGenericToken(toktype, count, desc, rng)
-    local tokinfo = g.getTokenInfo(toktype)
+local function generateStackedGenericToken(entry, rng)
+    local tokinfo = assert(g.getTokenInfo(entry.token))
     ---@type g.TokenReward
     local rew = {
         type = "token",
         token = tokinfo,
-        description = desc,
-        count = count,
-        icon = tokinfo.image,
+        resource = entry.resource or nil,
+        description = entry.description,
+        count = rng:random(entry.count.min,entry.count.max),
+        icon = entry.icon,
         spawnFunc = function (tok)
             worldutil.initializeFlyingTokenWithPos(tok, 8 + rng:random()*3)
         end
@@ -454,20 +457,28 @@ local function generateStackedGenericToken(toktype, count, desc, rng)
 end
 
 
-local HORDE = {
-    {"mushroom_red", desc=loc("Red mushrooms that explode!")},
-    {"mushroom_green", desc=loc("Green mushrooms that spawn grass!")},
-    {"mushroom_blue", desc=loc("Blue mushrooms that spawn lightning!")},
-}
+local assertEntriesValid
+function assertEntriesValid()
+    local r1 = love.math.newRandomGenerator()
+    for _,entry in pairs(TOKEN_REWARDS)do
+        local rew = generateStackedGenericToken(entry,r1)
+        assertRewardIsValid(rew)
+    end
+    assertEntriesValid = nil
+end
 
 ---@param rng love.RandomGenerator
 function generateStackedTokenReward(rng)
-    local lv = g.getSn().level
+    if assertEntriesValid then assertEntriesValid() end
 
     -- IDEALLY, it should be stuff that is scaling-agnostic
-    if rng:random() < 0.4 then
-        local h = helper.randomChoice(HORDE, function(max) return rng:random(max) end)
-        return generateStackedGenericToken(h[1], 10, h.desc, rng)
+    if rng:random() < 0.6 then
+        local validTokenRewards = {}
+        for k, tokenReward in pairs(TOKEN_REWARDS) do
+            table.insert(validTokenRewards, tokenReward)
+        end
+        local entry = helper.randomChoice(validTokenRewards, function(max) return rng:random(max) end)
+        return generateStackedGenericToken(entry, rng)
     end
 
     return generateStackedChestToken(getRandomUnlockedResource(rng), rng)
@@ -586,12 +597,6 @@ function rewards.generateRandomRewards()
         assert(uinfo, "Missing upgrade info for: " .. upgradeId)
         assert(g.isImage(uinfo.image), "Missing image for: " .. upgradeId)
     end
-
-    do return {
-        INSTANT_REWARDS.explosion_swarm,
-        INSTANT_REWARDS.scythe_swarm,
-        INSTANT_REWARDS.farmer_cats,
-    } end
 
     -- Generate normal reward list
     local rewardList = {
