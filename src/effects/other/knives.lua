@@ -53,12 +53,12 @@ g.defineEffect("scythe_swarm", "Scythe Swarm", {
 
 
 
-local EXPLOSIONS_PER_SECOND = 5
+local EXPLOSIONS_PER_SECOND = 6
 
 g.defineEffect("explosion_swarm", "Explosion Swarm", {
     description = "The mouse causes explosions!",
     descriptionContext = "As in, the computer mouse. Where the player puts their mouse-pointer, there are explosions",
-    image = "bomb",
+    image = "explosion_swarm",
     isDebuff = false,
 
     update = function(dur, dt)
@@ -66,7 +66,8 @@ g.defineEffect("explosion_swarm", "Explosion Swarm", {
         if world.mouseX and world.mouseY then
             local x, y = assert(world.mouseX), assert(world.mouseY)
             if (love.math.random() < EXPLOSIONS_PER_SECOND*dt) then
-                worldutil.explosion(x,y, 1)
+                local dx,dy = love.math.random(-30, 30), love.math.random(-30,30)
+                worldutil.explosion(x+dx,y+dy, 1)
             end
         end
     end

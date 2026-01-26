@@ -264,6 +264,46 @@ local INSTANT_REWARDS = {
         func = function()
             g.grantEffect("knife_swarm", 15)
         end
+    },
+    scythe_swarm = {
+        type = "instant",
+        icon = "iron_scythe",
+        name = loc "Scythe swarm!",
+        description = loc "Shoots out scythes for 15 seconds!",
+        func = function()
+            g.grantEffect("scythe_swarm", 15)
+        end
+    },
+    explosion_swarm = {
+        type = "instant",
+        icon = "explosion_swarm",
+        name = loc "Explosion swarm!",
+        description = loc "Cause explosions for 15 seconds!",
+        func = function()
+            g.grantEffect("explosion_swarm", 15)
+        end
+    },
+    farmer_cats = {
+        type = "instant",
+        icon = "grass_farmer_cat",
+        name = loc "Farmer Cats!",
+        description = loc "Temporarily hire farmer cats for 15 seconds!",
+        func = function()
+            for i=1,6 do
+                local w,h = g.getWorldDimensions()
+                local x = helper.lerp(20,w-20, love.math.random())
+                local y = helper.lerp(20,h-20, love.math.random())
+                local e = g.spawnEntity("grass_farmer_cat", x,y)
+                e.lifetime = 15
+            end
+            for i=1,4 do
+                local w,h = g.getWorldDimensions()
+                local x = helper.lerp(20,w-20, love.math.random())
+                local y = helper.lerp(20,h-20, love.math.random())
+                local e = g.spawnEntity("lumberjack_cat", x,y)
+                e.lifetime = 15
+            end
+        end
     }
 }
 
@@ -501,6 +541,12 @@ function rewards.generateRandomRewards()
         assert(uinfo, "Missing upgrade info for: " .. upgradeId)
         assert(g.isImage(uinfo.image), "Missing image for: " .. upgradeId)
     end
+
+    do return {
+        INSTANT_REWARDS.explosion_swarm,
+        INSTANT_REWARDS.scythe_swarm,
+        INSTANT_REWARDS.farmer_cats,
+    } end
 
     -- Generate normal reward list
     local rewardList = {
