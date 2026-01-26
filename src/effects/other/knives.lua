@@ -22,3 +22,53 @@ g.defineEffect("knife_swarm", "Knife Swarm", {
         end
     end
 })
+
+
+
+
+local SCYTHES_PER_SECOND = 20
+
+g.defineEffect("scythe_swarm", "Scythe Swarm", {
+    description = "Spawn a swarm of scythes!",
+    image = "iron_scythe",
+    isDebuff = false,
+
+    update = function(dur, dt)
+        local t = love.timer.getTime()
+        local rot = t*3
+        local world = g.getMainWorld()
+        if world.mouseX and world.mouseY then
+            local x, y = assert(world.mouseX), assert(world.mouseY)
+            if (love.math.random() < SCYTHES_PER_SECOND*dt) then
+                worldutil.spawnScytheProjectile(x,y, rot + math.pi, 16)
+            end
+
+            if (love.math.random() < SCYTHES_PER_SECOND*dt) then
+                worldutil.spawnScytheProjectile(x,y, rot, 16)
+            end
+        end
+    end
+})
+
+
+
+
+local EXPLOSIONS_PER_SECOND = 5
+
+g.defineEffect("explosion_swarm", "Explosion Swarm", {
+    description = "The mouse causes explosions!",
+    descriptionContext = "As in, the computer mouse. Where the player puts their mouse-pointer, there are explosions",
+    image = "bomb",
+    isDebuff = false,
+
+    update = function(dur, dt)
+        local world = g.getMainWorld()
+        if world.mouseX and world.mouseY then
+            local x, y = assert(world.mouseX), assert(world.mouseY)
+            if (love.math.random() < EXPLOSIONS_PER_SECOND*dt) then
+                worldutil.explosion(x,y, 1)
+            end
+        end
+    end
+})
+

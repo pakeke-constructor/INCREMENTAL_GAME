@@ -650,7 +650,7 @@ g.stats.CritChance = g.defineStat("CritChance", 0, "Critical Hit Chance") -- sho
 g.stats.CritDamageMultiplier = g.defineStat("CritDamageMultiplier", 10, "Crirical Damage Multiplier")
 g.stats.KnifeDamage = g.defineStat("KnifeDamage", 10, "Knife Damage")
 g.stats.LightningDamage = g.defineStat("LightningDamage", 20, "Lightning Damage")
-g.stats.ExplosionDamage = g.defineStat("ExplosionDamage", 5, "Explosion Damage")
+g.stats.ExplosionDamage = g.defineStat("ExplosionDamage", 15, "Explosion Damage")
 
 -- World stat
 g.stats.WorldTileSize = g.defineStat("WorldTileSize", 20, "World Size")
@@ -779,6 +779,7 @@ local g_TokenDefinition = {}
 ---@field public nameContext string?
 ---@field public description string?
 ---@field public descriptionContext string?
+---@field public update fun(duration:number, dt:number)?
 ---@field public image string?
 ---@field public isDebuff boolean?
 

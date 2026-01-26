@@ -1181,7 +1181,9 @@ function harvest:keyreleased(k)
         local s = g.getSn()
         s.paused = not s.paused
     elseif consts.DEV_MODE then
-        if k=="1" then
+        if k=="0" then
+            g.grantEffect("explosion_swarm", 20)
+        elseif k=="1" then
             --openBossPopup(self)
             --g.summonBoss("pumpkin_boss")
             g.incrementPrestige()

@@ -427,6 +427,16 @@ end
 
 
 
+---@param x number
+---@param y number
+---@param rot number?
+---@param leeway number?
+function worldutil.spawnScytheProjectile(x, y, rot, leeway)
+    g.spawnEntity("scythe_projectile", x,y,rot, leeway)
+end
+
+
+
 
 
 g.defineEntity("line", {

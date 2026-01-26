@@ -931,6 +931,15 @@ function World:_update(dt)
         end
     end
 
+    -- Update effects
+    for _, effct in ipairs(self.effects) do
+        local einfo = g.getEffectInfo(effct)
+        if einfo and einfo.update then
+            local dur = self.effectDurations[effct]
+            einfo.update(dur, dt)
+        end
+    end
+
     local tree = g.getUpgTree()
 
     local spawnEntityCounts = {--[[

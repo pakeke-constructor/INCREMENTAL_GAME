@@ -45,6 +45,19 @@ g.defineToken("bomb", "Bomb", {
 
 
 
+g.defineToken("bomb_without_fuse", "Bomb", {
+    image = "bomb",
+    maxHealth = 200,
+    resources = {},
+    tokenDestroyed = function(tok)
+        worldutil.explosion(tok.x, tok.y)
+    end,
+})
+
+
+
+
+
 g.defineToken("knife_bush", "Knife Bush", {
     maxHealth = 200,
     resources = {money = 10},
