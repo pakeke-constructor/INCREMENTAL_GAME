@@ -149,6 +149,11 @@ local function currencyDevButton(txt, rr)
     end
 end
 
+
+
+local RES_METER_BG_COL = objects.Color("#".."FF39B9E3")
+
+
 ---@param self g.hud.Resources
 ---@param kind g.ResourceType
 ---@param x number
@@ -179,9 +184,7 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         -- draw res bar background:
         local col = g.getResourceInfo(kind).color
         do
-        lg.setColor(col)
-        ui.drawSingleColorPanel(reg:get())
-        lg.setColor(0.2,0.2,0.4,0.4)
+        lg.setColor(RES_METER_BG_COL)
         ui.drawSingleColorPanel(reg:get())
         end
 
