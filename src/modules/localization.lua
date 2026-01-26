@@ -79,14 +79,21 @@ local missingKeys = {}
 ---@class localization.InterpolatorObject: objects.Class
 local Interpolator = objects.Class("localization:Interpolator")
 
----@param text string
+---@param key string
 ---@param metadata localization.Metadata?
-function Interpolator:init(text, metadata)
-    local key = text
+local function getTranslationKey(key, metadata)
     local context = metadata and metadata.context or ""
     if #context > 0 then
         key = key.."\0"..context
     end
+    return key, context
+end
+
+---@param text string
+---@param metadata localization.Metadata?
+---@param raw boolean?
+function Interpolator:init(text, metadata, raw)
+    local key, context = getTranslationKey(text, metadata)
 
     if translatedKeys[key] then
         self.text = translatedKeys[key]
@@ -134,12 +141,11 @@ local strTc = typecheck.assert("string")
 function localization.newInterpolator(text, metadata)
     strTc(text)
     assert(isLoadTime(), "this can only be called at load-time")
-    local key = text
-    local interpolator = interpolators[key]
+    local interpolator = interpolators[getTranslationKey(text, metadata)]
 
     if not interpolator then
         interpolator = Interpolator(text, metadata)
-        interpolators[key] = interpolator
+        interpolators[text] = interpolator
     end
 
     return interpolator
@@ -158,94 +164,28 @@ end
 
 
 
----@param lang string
----@return string
----@return string|nil
-local function extractLangRegCode(lang)
-    local langcode, regcode = lang:match("(%l%l)_(%u%u)")
-    if not langcode then
-        return lang, nil
-    end
-
-    return langcode, regcode
-end
-
 ---Load localization data (callable only during initialization).
----@param targetLang string
-function localization.load(targetLang)
-    local loadingContext = assert(isLoadTime(), "this can only be called at load-time")
-    local langcode, regcode = extractLangRegCode(targetLang)
-    local stringsWithRegCode = nil
-    local stringsWithoutRegCode = nil
+---@param strings table<string, string>
+function localization.load(strings)
+    assert(isLoadTime(), "this can only be called at load-time")
 
-    -- Load all localization
-    for _, lang in ipairs(love.filesystem.getDirectoryItems("assets/localization")) do
-        if lang:lower():sub(-5) == ".json" then
-            local contents = assert(love.filesystem.read("assets/localization/"..lang))
-            local ok, jsondata = pcall(json.decode, contents)
-
-            if ok then
-                local langname = lang:sub(1, -6)
-                languageList[langname] = helper.assert(jsondata.name, "missing name from", lang)
-                local strings = helper.assert(jsondata.strings, "missing strings from", lang)
-
-                if targetLang == langname then
-                    if regcode then
-                        stringsWithRegCode = strings
-                    else
-                        stringsWithoutRegCode = strings
-                    end
-                elseif langcode == langname then
-                    stringsWithoutRegCode = strings
-                end
-            else
-                log.error("unable to load localization from '"..lang.."': "..jsondata)
-            end
-        end
-    end
-
-    -- Localization file with country-specific code has higher priority.
-    -- so load non-region strings first
-    if stringsWithoutRegCode then
-        for k, v in pairs(stringsWithoutRegCode) do
-            translatedKeys[k] = v
-        end
-    end
-    -- now load with region code
-    if stringsWithRegCode then
-        for k, v in pairs(stringsWithRegCode) do
-            translatedKeys[k] = v
-        end
+    for k, v in pairs(strings) do
+        translatedKeys[k] = v
     end
 end
 
 
 -- Dump list of strings to be translated.
+---@return table<string, string>
 function localization.dump()
-    local jsondata = love.filesystem.read("localization.json")
     local strings = {}
-
-    if jsondata then
-        local res, strs = pcall(json.decode, jsondata)
-        if res then
-            strings = strs.strings or strings
-        end
-    end
 
     for k, v in pairs(stringsToLocalize) do
         strings[k] = v
     end
 
-    jsondata = json.encode({name = "", strings = strings})
-    love.filesystem.write("localization.json", jsondata)
+    return strings
 end
-
-
-
-function localization.getLanguages()
-    return languageList
-end
-
 
 
 return localization

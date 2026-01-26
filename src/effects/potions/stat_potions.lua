@@ -22,7 +22,7 @@ local function defStatPotion(i, id, stat, name, amount)
     g.defineEffect(newId, realName, {
         image = image,
         isDebuff = false,
-        description = effectDescription({amount = amount}),
+        rawDescription = effectDescription({amount = amount}),
 
         ---@diagnostic disable-next-line
         [statInfo.addQuestion] = function(duration, ...)
@@ -55,7 +55,7 @@ for i, v in ipairs(speedreduction) do
     g.defineEffect("faster_spawn_"..i, "Crop Respawn Time ("..i..")", {
         image = "faster_spawn_potion",
         isDebuff = false,
-        description = effectDescription({amount = (1 - v) * 100}),
+        rawDescription = effectDescription({amount = (1 - v) * 100}),
 
         ---@diagnostic disable-next-line: assign-type-mismatch
         [g.VALID_STATS.TokenRespawnTime.multQuestion] = function()
@@ -70,7 +70,7 @@ for i, v in ipairs(xpmul) do
     g.defineEffect("xp_"..i, "XP ("..i..")", {
         image = "xp_potion",
         isDebuff = false,
-        description = effectDescription({amount = v * 100}),
+        rawDescription = effectDescription({amount = v * 100}),
 
         ---@diagnostic disable-next-line: assign-type-mismatch
         [g.VALID_STATS.XpMultiplier.multQuestion] = function()
@@ -86,7 +86,7 @@ for i, v in ipairs(goldminemul) do
     g.defineEffect("goldmine_"..i, "Goldmine ("..i..")", {
         image = "goldmine_potion",
         isDebuff = false,
-        description = effectDescription({amount = v}),
+        rawDescription = effectDescription({amount = v}),
 
         getTokenResourceMultiplier = function()
             return mul

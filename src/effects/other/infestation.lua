@@ -5,7 +5,7 @@ local effectDescription = interp("Spawn +%{count} more %{token}", {
 local function defInfest(toktype, name, count)
     local tokinfo = g.getTokenInfo(toktype)
     return g.defineEffect(toktype.."_infestation", name, {
-        description = effectDescription {count = count, token = tokinfo.name},
+        rawDescription = effectDescription {count = count, token = tokinfo.name},
         image = tokinfo.image,
         isDebuff = false,
 
