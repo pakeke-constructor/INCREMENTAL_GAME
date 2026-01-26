@@ -65,7 +65,7 @@ function settingscene:init()
     -- TODO: bgm.setVolume here
 
     -- key = language code, value = language name
-    self.languages = localization.getLanguages()
+    self.languages = getLanguageList()
     -- Interleaved
     ---@type [string,string][]
     self.languageListInterleaved = {}

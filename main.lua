@@ -125,9 +125,10 @@ _G.settings = require("src.settings")
 _G.richtext = require("src.modules.richtext.exports")
 
 _G.localization = require("src.modules.localization")
-_G.localization.load(_G.settings.getLanguage())
 _G.loc = _G.localization.localize
 _G.interp = _G.localization.newInterpolator
+local loadLoc = require("src.load_loc")
+_G.getLanguageList = loadLoc.getLanguages
 
 
 _G.Kirigami = require("lib.kirigami")
@@ -245,7 +246,7 @@ end
 function love.quit()
     log.info("love.quit begin...")
     if consts.DEV_MODE then
-        localization.dump()
+        loadLoc.dump()
     end
 
     settings.save()
