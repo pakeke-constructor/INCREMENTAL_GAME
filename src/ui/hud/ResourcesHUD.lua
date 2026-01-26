@@ -174,25 +174,8 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
     local t = self:_getInterpolationTime(kind)
 
     if not noDraw then
-        -- Draw bar background (unfilled)
-        love.graphics.setColor(1, 1, 1)
-        g.drawImageOffset(barimage, x, y, 0, scale, scale, 0, 0)
-
-        -- Draw filled bar (potentially partially filled)
-        local q = helper.cloneQuad(g.getImageQuad(barimagefill))
         local fillVal = self.displayValue[kind] / math.max(g.getResourceLimit(kind), 1)
-        do
-            -- Compute bar width
-            local qx, qy, qw, qh = q:getViewport()
-            local mult = helper.clamp(fillVal, 0, 1)
-            q:setViewport(qx, qy, qw * mult, qh)
-        end
-        -- Cannot use g.drawImageOffset here because we're using different quad.
-        -- Don't worry, it's still batched though.
-        love.graphics.draw(g.getAtlas(), q, x, y, 0, scale, scale)
-        q:release()
 
-        --[[
         -- draw res bar background:
         local col = g.getResourceInfo(kind).color
         do
@@ -208,7 +191,6 @@ local function _drawResourcesMeter(self, kind, x, y, image, scale, barimage, bar
         local reg2 = reg:shrinkTo(reg.w*fillVal,reg.h)
         ui.drawSingleColorPanel(reg2:get())
         end
-        ]]
 
         -- Draw resource value
         love.graphics.setColor(1, 1, 1)
