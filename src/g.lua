@@ -723,6 +723,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field priceScaling number?
 ---@field description string?
 ---@field descriptionContext string?
+---@field rawDescription string?
 ---@field getPriceOverride (fun(uinfo:g.UpgradeInfo, level:integer): g.Bundle)?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number,number?,number?,number?)?
@@ -746,6 +747,7 @@ local g_UpgradeDefinition = {}
 ---@field flightCustomWings {image: string, distance: number}?
 ---@field description string?
 ---@field descriptionContext string?
+---@field rawDescription string?
 ---@field upgradeNameContext string?
 ---@field upgradeDescriptionContext string?
 ---@field drawOrder number?
@@ -779,6 +781,7 @@ local g_TokenDefinition = {}
 ---@field public nameContext string?
 ---@field public description string?
 ---@field public descriptionContext string?
+---@field public rawDescription string?
 ---@field public update fun(duration:number, dt:number)?
 ---@field public image string?
 ---@field public isDebuff boolean?
@@ -1211,7 +1214,12 @@ function g.defineEffect(id, name, def)
 
     ---@cast def g.EffectInfo
     def.name = loc(name, nil, {context = def.nameContext})
-    def.description = loc(def.description, nil, {context = def.descriptionContext})
+    assert(not (def.rawDescription and def.description), "raw description and description is mutually exclusive")
+    if def.rawDescription then
+        def.description = def.rawDescription
+    else
+        def.description = loc(def.description, nil, {context = def.descriptionContext})
+    end
     def.type = id
     def.image = img
     def.isDebuff = not not def.isDebuff
@@ -1365,7 +1373,12 @@ function g.defineUpgrade(id, name, def)
 
     ---@cast def g.UpgradeInfo
     def.name = loc(name, nil, {context = def.nameContext})
-    if def.description then
+    assert(not (def.rawDescription and def.description), "raw description and description is mutually exclusive")
+    if def.rawDescription then
+        def.description = function()
+            return def.rawDescription
+        end
+    elseif def.description then
         local d = def.description --[[@as string]]
         def.description = localization.newInterpolator(d, {context = def.descriptionContext})
     end
@@ -1562,7 +1575,10 @@ function g.defineToken(tokType, name, tabl)
     tabl.image = tabl.image or tokType
 
     local oldDescription = tabl.description
-    if tabl.description then
+    assert(not (tabl.rawDescription and tabl.description), "raw description and description is mutually exclusive")
+    if tabl.rawDescription then
+        tabl.description = tabl.rawDescription
+    elseif tabl.description then
         tabl.description = loc(tabl.description, nil, {context = tabl.descriptionContext})
     end
 
