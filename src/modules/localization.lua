@@ -79,14 +79,21 @@ local missingKeys = {}
 ---@class localization.InterpolatorObject: objects.Class
 local Interpolator = objects.Class("localization:Interpolator")
 
----@param text string
+---@param key string
 ---@param metadata localization.Metadata?
-function Interpolator:init(text, metadata)
-    local key = text
+local function getTranslationKey(key, metadata)
     local context = metadata and metadata.context or ""
     if #context > 0 then
         key = key.."\0"..context
     end
+    return key, context
+end
+
+---@param text string
+---@param metadata localization.Metadata?
+---@param raw boolean?
+function Interpolator:init(text, metadata, raw)
+    local key, context = getTranslationKey(text, metadata)
 
     if translatedKeys[key] then
         self.text = translatedKeys[key]
@@ -134,12 +141,11 @@ local strTc = typecheck.assert("string")
 function localization.newInterpolator(text, metadata)
     strTc(text)
     assert(isLoadTime(), "this can only be called at load-time")
-    local key = text
-    local interpolator = interpolators[key]
+    local interpolator = interpolators[getTranslationKey(text, metadata)]
 
     if not interpolator then
         interpolator = Interpolator(text, metadata)
-        interpolators[key] = interpolator
+        interpolators[text] = interpolator
     end
 
     return interpolator
