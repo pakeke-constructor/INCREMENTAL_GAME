@@ -31,19 +31,19 @@ local PARTICLE_SPAWN_CATEGORY = {
     },
     fabric = {
         format = "fabric_particle_%d",
-        counts = {1, 10, 100, 1000},
+        counts = {1, 2, 4, 10},
     },
     juice = {
         format = "juice_particle_%d",
-        counts = {1, 10, 100, 1000},
+        counts = {1, 2, 4, 10},
     },
     bread = {
         format = "bread_particle_%d",
-        counts = {1, 10, 100, 1000},
+        counts = {1, 2, 4, 10},
     },
     fish = {
         format = "fish_particle_%d",
-        counts = {1, 10, 100, 1000},
+        counts = {1, 2, 4, 10},
     },
 }
 
