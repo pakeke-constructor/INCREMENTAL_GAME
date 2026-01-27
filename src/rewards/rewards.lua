@@ -305,6 +305,21 @@ local INSTANT_REWARDS = {
                 e.lifetime = 15
             end
         end
+    },
+    knife_cats = {
+        type = "instant",
+        icon = "knife_cat",
+        name = "{c r=0.9 b=0.6 g=0.2}" .. loc "Knife Cats!",
+        description = loc "Temporarily hire knife-knives for 15 seconds!",
+        func = function()
+            local w,h = g.getWorldDimensions()
+            for i=1,10 do
+                local x = helper.lerp(20,w-20, love.math.random())
+                local y = helper.lerp(20,h-20, love.math.random())
+                local e = g.spawnEntity("knife_cat", x,y)
+                e.lifetime = 15
+            end
+        end
     }
 }
 
@@ -600,13 +615,8 @@ function rewards.generateRandomRewards()
         assert(g.isImage(uinfo.image), "Missing image for: " .. upgradeId)
     end
 
-    -- Generate normal reward list
-    local rewardList = {
-        helper.randomChoice({generateResourceReward, generateInstantReward}, function(max) return rng:random(max) end)(rng),
-        generateStackedTokenReward(rng),
-        generatePotionReward(rng),
-    }
 
+    local rewardList
     -- every 3 levels = get a permanent reward.
     -- (todo could tweak this?)
     if sn.level % 3 == 0 then
@@ -617,6 +627,7 @@ function rewards.generateRandomRewards()
             rewardList[i] = permanentReward
         end
     else
+        -- Else, generate normal reward list
         rewardList = {
             helper.randomChoice({generateResourceReward, generateInstantReward}, function(max) return rng:random(max) end)(rng),
             generateStackedTokenReward(rng),
