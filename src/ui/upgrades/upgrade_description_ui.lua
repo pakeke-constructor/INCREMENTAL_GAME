@@ -87,6 +87,8 @@ function UpgradeDescription:init(tree, upg)
     self.largeFont = g.getSmallFont(32)
     self.titleFont = g.getBigFont(32)
 
+    self.time = 0
+
     self.boxWidth = 100
 
     ---@class ui._UpgradeDescriptionElem
@@ -293,9 +295,31 @@ function UpgradeDescription:addTokenInfo(tinfo)
 end
 
 
+
+-- hover on wobble
+local HOVER_ROT_AMOUNT = 0.1
+local HOVER_ROT_JERK_TIME = 0.1
+
 ---@param x number
 ---@param y number
 function UpgradeDescription:draw(x, y)
+    self.time = self.time + love.timer.getAverageDelta()
+    lg.push()
+    if self.time < HOVER_ROT_JERK_TIME then
+        local w, h = self:getMainBoxDimensions()
+        local centerX = x + w / 2
+        local centerY = y + h / 2
+
+        -- Lerp from ROT_AMOUNT to 0 with wobble
+        local t = self.time / HOVER_ROT_JERK_TIME
+        local eased = helper.EASINGS.easeOutBack(t)
+        local wobble = math.sin(t * math.pi * 3) * (1 - t) * HOVER_ROT_AMOUNT
+        local currentRotation = HOVER_ROT_AMOUNT * (1 - eased) + wobble
+        lg.translate(centerX, centerY)
+        lg.rotate(currentRotation)
+        lg.translate(-centerX, -centerY)
+    end
+
     local w, h = self:getMainBoxDimensions()
     local uinfo = g.getUpgradeInfo(self.upg.id)
     local upg = self.upg
@@ -346,6 +370,8 @@ function UpgradeDescription:draw(x, y)
 
         richtext.printRich(ptagText, self.largeFont, ptagR.x - 4, ptagR.y + 6, ptagR.w, "center")
     end
+
+    lg.pop()
 end
 
 ---@return integer
