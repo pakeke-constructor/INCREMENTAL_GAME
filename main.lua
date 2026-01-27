@@ -136,6 +136,13 @@ _G.iml = require("lib.iml.iml")
 
 _G.ui = require("src.ui.ui")
 
+local hasluasteam, Steam = pcall(require, "luasteam")
+if hasluasteam and Steam.init() then
+    _G.Steam = Steam
+else
+    _G.Steam = false
+end
+
 _G.g = require("src.g")
 
 _G.worldutil = require("src.world.worldutil")
@@ -252,6 +259,10 @@ function love.quit()
     settings.save()
     g.saveAndInvalidateSession()
     asynchttp.finish()
+
+    if hasluasteam then
+        Steam.shutdown()
+    end
     log.info("love.quit done.")
 end
 
