@@ -27,7 +27,7 @@ local CURRENCY_PARTICLE_LIMIT = consts.IS_MOBILE and 10 or 100
 local PARTICLE_SPAWN_CATEGORY = {
     money = {
         format = "money_particle_%d",
-        counts = {1, 10, 100, 1000},
+        counts = {1, 4, 10, 30},
     },
     fabric = {
         format = "fabric_particle_%d",
@@ -402,12 +402,10 @@ function Resources:spawnParticles(kind, x, y, amount)
     local tiersToSpawn = {}
 
     for i = #category.counts, 1, -1 do
-        local spawnCount = math.floor(amount / category.counts[i])
+        local spawnCount = math.min(3, math.floor(amount / category.counts[i]))
         amount = amount - spawnCount * category.counts[i]
         table.insert(tiersToSpawn, 1, spawnCount)
     end
-
-    assert(amount == 0)
 
     for tier, spawnCount in ipairs(tiersToSpawn) do
         local spawnAmount = category.counts[tier]
