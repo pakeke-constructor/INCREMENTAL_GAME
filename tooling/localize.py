@@ -60,7 +60,7 @@ async def translate_text(lang: str, text: str):
     prompt = textwrap.dedent(
         f"""
     # ROLE AND GOAL
-    You are an expert localization specialist, translating a strategy game from English to {langname[0]}. Your primary goal is to produce translations that are extremely clear, concise, and natural-sounding for gamers. The game revolves around earning money, buying items, and gaining points.
+    You are an expert localization specialist, translating a casual incremental game from English to {langname[0]}. Your primary goal is to produce translations that are extremely clear, concise, and natural-sounding for gamers. The game revolves around farming crops in an arcade-style, buying upgrades in the upgrade-tree, and earning money.
 
     # CRITICAL RULES
     Follow these rules without exception:
@@ -81,17 +81,14 @@ async def translate_text(lang: str, text: str):
         * Sacrifice grammatical complexity for punchy, direct language.
         * This is the most important rule after keyword and tag handling.
 
-    4. **Mandatory Keywords:** Below is a list of keywords. These keywords MUST be translated exactly as specified in the list below, regardless of context or casing in the source text. This rule overrides all other grammatical or stylistic considerations.
-    {get_keywords(lang)}
-
-    5. **Input Format:** The input format will be as follows:
+    4. **Input Format:** The input format will be as follows:
        ```
        String: text to be translated, may span multiple lines.
        Context: additional context to aid translation.
        ```
        `Context` may or may not be provided. If provided, use it to improve translation accuracy.
 
-    6. **Output Format:** Your ONLY output must be the raw translated text. No explanations, apologies, or conversational text like "Here is the translation:".
+    5. **Output Format:** Your ONLY output must be the raw translated text. No explanations, apologies, or conversational text like "Here is the translation:".
 
     # TRANSLATION TASK
 
