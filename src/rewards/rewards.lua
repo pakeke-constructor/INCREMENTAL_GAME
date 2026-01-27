@@ -310,7 +310,9 @@ local INSTANT_REWARDS = {
         type = "instant",
         icon = "knife_cat",
         name = "{c r=0.9 b=0.6 g=0.2}" .. loc "Knife Cats!",
-        description = loc "Temporarily hire knife-knives for 15 seconds!",
+        description = loc("Temporarily hire knife cats for 15 seconds!", {
+            context = "Cats that run around the map temporarily, throwing knives and harvesting crops"
+        }),
         func = function()
             local w,h = g.getWorldDimensions()
             for i=1,10 do
