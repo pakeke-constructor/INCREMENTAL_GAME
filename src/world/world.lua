@@ -220,7 +220,6 @@ local function drawTokenHealthBar(tok)
         return -- dont draw
     end
     local x,y = tok.x, tok.y
-    love.graphics.setColor(1,0,0)
     local HP_BAR_W = 14
     local HP_BAR_H = 3
     local realW = HP_BAR_W * (tok.health / tok.maxHealth)
@@ -240,7 +239,11 @@ local function drawTokenHealthBar(tok)
     g.drawImageOffset("1x1", hx, hy, 0, laggedW, HP_BAR_H, 0, 0)
     -- Draw health
     if realW > 0 then
-        love.graphics.setColor(0.1,0.9,0.1,1)
+        if tok.starred then
+            love.graphics.setColor(g.COLORS.MONEY)
+        else
+            love.graphics.setColor(0.1,0.9,0.1,1)
+        end
         g.drawImageOffset("1x1", hx, hy, 0, realW, HP_BAR_H, 0, 0)
     end
 
