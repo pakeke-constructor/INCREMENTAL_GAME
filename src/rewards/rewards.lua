@@ -179,8 +179,8 @@ end
 ---@param rng love.RandomGenerator
 local function generateResourceReward(rng)
     local resId = getRandomUnlockedResource(rng)
-    local amount = math.max(3, getMostExpensiveUpgPrice(resId) / 10)
-    local resAmount = math.floor(amount / 5) * 5
+    local amount = getMostExpensiveUpgPrice(resId) / 10
+    local resAmount = math.max(30, math.floor(amount / 5) * 5)
     if love.math.random() < 0.3 then
         resAmount = resAmount * 2
     end
@@ -607,20 +607,28 @@ function rewards.generateRandomRewards()
         generatePotionReward(rng),
     }
 
+    -- every 3 levels = get a permanent reward.
+    -- (todo could tweak this?)
+    if sn.level % 3 == 0 then
+        rewardList = {}
+        for i=1, 3 do
+            local randomUpgradeId = helper.randomChoice(PERM_UPGRADES, function(max) return rng:random(max) end)
+            local permanentReward = makePermanentReward(randomUpgradeId)
+            rewardList[i] = permanentReward
+        end
+    else
+        rewardList = {
+            helper.randomChoice({generateResourceReward, generateInstantReward}, function(max) return rng:random(max) end)(rng),
+            generateStackedTokenReward(rng),
+            generatePotionReward(rng),
+        }
+    end
+
     -- Validate and shuffle rewards
     for _, rew in ipairs(rewardList) do
         assertRewardIsValid(rew)
     end
     helper.shuffle(rewardList)
-
-    -- CHANCE% chance to replace reward with a random permanent upgrade
-    local CHANCE = 0.4
-    if rng:random() < CHANCE then
-        local randomUpgradeId = helper.randomChoice(PERM_UPGRADES, function(max) return rng:random(max) end)
-        local permanentReward = makePermanentReward(randomUpgradeId)
-        local replaceIndex = rng:random(1, #rewardList)
-        rewardList[replaceIndex] = permanentReward
-    end
 
     return rewardList
 end
@@ -752,7 +760,9 @@ function rewards.drawRewardDescription(rew, r)
             local tinfo = g.getTokenInfo(uinfo.tokenType)
             local res,val = nil,nil
             for k,v in pairs(tinfo.resources) do
-                res,val = k, g.formatNumber(v)
+                if v > 0 then
+                    res,val = k, g.formatNumber(v)
+                end
             end
 
             if res then
