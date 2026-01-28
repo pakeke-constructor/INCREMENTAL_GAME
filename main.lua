@@ -233,7 +233,10 @@ function love.load(arg)
     else
         local steamid = "0"
         if Steam.init() then
-            steamid = tostring(Steam.user.getSteamID())
+            local luasteam = Steam.getSteam()
+            if luasteam then
+                steamid = tostring(luasteam.user.getSteamID())
+            end
         end
 
         analytics.init(steamid)
@@ -276,8 +279,9 @@ function love.update(dt)
     prof_push("love.update")
 
     asynchttp.update()
-    if Steam.active then
-        Steam.runCallbacks()
+    local luasteam = Steam.getSteam() 
+    if luasteam then
+        luasteam.runCallbacks()
     end
     sfx.update()
     bgm.update(dt, settings.getBGMVolume() / 100)
