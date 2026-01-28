@@ -1,3 +1,4 @@
+import datetime
 import pathlib
 
 import pydantic
@@ -155,6 +156,7 @@ def populate_localized(obj: object, prefix: str, kv: dict[str, str]):
 
 
 def main(root: pathlib.Path):
+    # Generate Steam itemdef JSON
     with open(root / "steam_appid.txt", "r", encoding="utf-8") as f:
         appid = int(f.read())
 
@@ -209,6 +211,19 @@ def main(root: pathlib.Path):
     )
     with open(root / "steamitemdef.json", "w", encoding="utf-8") as f:
         f.write(steam_itemdef.model_dump_json(by_alias=True, indent=4, exclude_none=True))
+
+    # Generate src/cosmetics/list.lua
+    with open(root / "src/cosmetics/list.lua", "w", encoding="utf-8", newline="\n") as f:
+        f.write(f"-- Auto-generated at {datetime.datetime.now(datetime.timezone.utc)}.\n")
+        f.write("-- DO NOT EDIT! Changes on this file will be lost!\n")
+        f.write("-- Modify tooling/make_cosmetics.py then re-run the script!\n\n")
+        f.write("---@param defineCosmetic fun(type:g.CosmeticInfo.Type, id:string, name:string, def:g.CosmeticDef)\n")
+        f.write("return function(defineCosmetic)\n")
+
+        for c in COSMETICS:
+            f.write(f"    defineCosmetic({c.type!r}, {c.image!r}, {c.name!r}, {{image = {c.image!r}}})\n")
+
+        f.write("end\n")
 
 
 if __name__ == "__main__":
