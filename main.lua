@@ -136,12 +136,7 @@ _G.iml = require("lib.iml.iml")
 
 _G.ui = require("src.ui.ui")
 
-local hasluasteam, Steam = pcall(require, "luasteam")
-if hasluasteam and Steam.init() then
-    _G.Steam = Steam
-else
-    _G.Steam = false
-end
+_G.Steam = require("src.modules.steam.steam")
 
 _G.g = require("src.g")
 
@@ -236,8 +231,12 @@ function love.load(arg)
     if simulation.isSimulating() then
         sceneManager.gotoScene("harvest_scene")
     else
-        -- TODO: Get actual steam ID
-        analytics.init("0")
+        local steamid = "0"
+        if Steam.init() then
+            steamid = tostring(Steam.user.getSteamID())
+        end
+
+        analytics.init(steamid)
         sceneManager.gotoScene("title_scene")
     end
 
@@ -259,10 +258,7 @@ function love.quit()
     settings.save()
     g.saveAndInvalidateSession()
     asynchttp.finish()
-
-    if hasluasteam then
-        Steam.shutdown()
-    end
+    Steam.shutdown()
     log.info("love.quit done.")
 end
 
