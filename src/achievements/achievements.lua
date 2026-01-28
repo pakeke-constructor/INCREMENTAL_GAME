@@ -5,18 +5,18 @@
 ACHIVEMENTS:
 ======================
 
-rich_1: Earn over $1000!
-rich_2: Earn over $10000!
-slime: Unlock slime upgrade!
-knife_cat: Spawn a knife-cat!
-slayer: Kill a boss!
-levelup: Reach level 30
-merchant_1: Spend over $5000 on one upgrade
-merchant_2: Spend over $20000 on one upgrade
+delegation: Unlock farmer-cat upgrade!
 fishercat: Catch a fish!
 harvester_1: Harvest 500 crops!
 harvester_2: Harvest 5000 crops!
-delegation: Unlock farmer-cat upgrade!
+knife_cat: Spawn a knife-cat!
+levelup: Reach level 30
+merchant_1: Spend over $5000 on one upgrade
+merchant_2: Spend over $20000 on one upgrade
+rich_1: Earn over $1000!
+rich_2: Earn over $10000!
+slayer: Kill a boss!
+slime: Unlock slime upgrade!
 
 ]]
 
