@@ -136,6 +136,8 @@ _G.iml = require("lib.iml.iml")
 
 _G.ui = require("src.ui.ui")
 
+_G.Steam = require("src.modules.steam.steam")
+
 _G.g = require("src.g")
 
 _G.worldutil = require("src.world.worldutil")
@@ -229,8 +231,12 @@ function love.load(arg)
     if simulation.isSimulating() then
         sceneManager.gotoScene("harvest_scene")
     else
-        -- TODO: Get actual steam ID
-        analytics.init("0")
+        local steamid = "0"
+        if Steam.init() then
+            steamid = tostring(Steam.user.getSteamID())
+        end
+
+        analytics.init(steamid)
         sceneManager.gotoScene("title_scene")
     end
 
@@ -252,6 +258,7 @@ function love.quit()
     settings.save()
     g.saveAndInvalidateSession()
     asynchttp.finish()
+    Steam.shutdown()
     log.info("love.quit done.")
 end
 
@@ -269,6 +276,9 @@ function love.update(dt)
     prof_push("love.update")
 
     asynchttp.update()
+    if Steam.active then
+        Steam.runCallbacks()
+    end
     sfx.update()
     bgm.update(dt, settings.getBGMVolume() / 100)
     iml.setPointer(love.mouse.getPosition())
