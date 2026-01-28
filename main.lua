@@ -276,6 +276,9 @@ function love.update(dt)
     prof_push("love.update")
 
     asynchttp.update()
+    if Steam.active then
+        Steam.runCallbacks()
+    end
     sfx.update()
     bgm.update(dt, settings.getBGMVolume() / 100)
     iml.setPointer(love.mouse.getPosition())
