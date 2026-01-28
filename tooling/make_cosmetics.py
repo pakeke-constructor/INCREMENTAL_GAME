@@ -16,7 +16,11 @@ class Cosmetic(pydantic.BaseModel):
     """Description of the item. If dict is given, it expects the description in each locale. (Usage: Steam Inventory)"""
 
     image: str
-    """Image ID used to draw this cosmetic. (Usage: In-Game)"""
+    """
+    Image ID used to draw this cosmetic. (Usage: In-Game)
+
+    Image ID used to create the icon URL for Steam Inventory. (Usage: Steam Inventory)
+    """
 
     type: Literal["HAT", "BACKGROUND", "AVATAR"]
     """Cosmetic type. (Usage: Steam Inventory, In-Game)"""
@@ -26,6 +30,8 @@ CHEST_ITEMDEF_ID = 1
 CHEST_GENERATOR_ITEMDEF_ID = CHEST_ITEMDEF_ID + 1
 COSMETIC_ITEMDEF_ID_START = 1000  # Cosmetic item ID will start at 1001
 BASE_IMAGE_URL = "https://incrementalgame.npdep.com"
+COSMETIC_IMAGE_FORMAT = "%(base_url)s/cosmetics/%(type)s/%(image)s.png"
+COSMETIC_IMAGE_LARGE_FORMAT = "%(base_url)s/cosmetics/%(type)s/%(image)s_large.png"
 
 # VERY IMPORTANT, READ THIS!!!!
 # If you add items, ALWAYS APPEND to this list.
@@ -138,6 +144,7 @@ class SteamItem(pydantic.BaseModel):
     tradable: bool
     marketable: bool
     price: str | None = None
+    exchange: str | None = None
 
 
 class SteamItemdef(pydantic.BaseModel):
@@ -162,6 +169,7 @@ def main(root: pathlib.Path):
 
     cosmetic_items: list[SteamItem] = []
     for itemdefid, cosmetic in enumerate(COSMETICS, COSMETIC_ITEMDEF_ID_START + 1):
+        format = {"base_url": BASE_IMAGE_URL, "type": cosmetic.type, "image": cosmetic.image}
         si = SteamItem(
             itemdefid=itemdefid,
             type="item",
@@ -170,8 +178,8 @@ def main(root: pathlib.Path):
                 cosmetic.description if isinstance(cosmetic.description, str) else cosmetic.description["english"]
             ),
             display_type=cosmetic.type.capitalize(),
-            icon_url=f"{BASE_IMAGE_URL}/cosmetics/{cosmetic.type}/{cosmetic.image}.png",
-            icon_url_large=f"{BASE_IMAGE_URL}/cosmetics/{cosmetic.type}/{cosmetic.image}_large.png",
+            icon_url=COSMETIC_IMAGE_FORMAT % format,
+            icon_url_large=COSMETIC_IMAGE_LARGE_FORMAT % format,
             tradable=True,
             marketable=True,
             price="1;VLV25",  # Change this if needed
@@ -205,6 +213,7 @@ def main(root: pathlib.Path):
                 icon_url_large=f"{BASE_IMAGE_URL}/cosmetics/chest_large.png",
                 tradable=False,
                 marketable=False,
+                exchange=f"{CHEST_ITEMDEF_ID}x1",
             ),
             *cosmetic_items,
         ],
