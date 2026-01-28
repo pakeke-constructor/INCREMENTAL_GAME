@@ -5,7 +5,7 @@ local Steam
 if hasluasteam then
     local lsinit = luasteam.init
     local lsshutdown = luasteam.shutdown
-    Steam = luasteam
+    Steam = {}
     Steam.available = true
     Steam.active = false
 
@@ -19,6 +19,13 @@ if hasluasteam then
         lsshutdown()
         Steam.active = false
     end
+
+    ---@return table?
+    function Steam.getSteam()
+        if Steam.available and Steam.active then
+            return luasteam
+        end
+    end
 else
     Steam = {
         available = false,
@@ -27,6 +34,9 @@ else
             return false
         end,
         shutdown = function()
+        end,
+        getSteam = function()
+            return nil
         end
     }
 end
