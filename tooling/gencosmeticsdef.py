@@ -11,7 +11,9 @@ def write_cosmetic(path: str, type: str):
         if file.is_file():
             name, ext = os.path.splitext(file.name)
             if ext.lower() == ".png":
-                print(f"    Cosmetic(name={name!r}, description='', image={name!r}, type={type!r}),")
+                print(
+                    f"    Cosmetic(id={name!r}, name='{name.capitalize()}', description='', image={name!r}, type={type!r}),"
+                )
 
 
 print("COSMETICS = [")
