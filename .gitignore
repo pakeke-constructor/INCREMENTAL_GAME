@@ -10,6 +10,8 @@ _notes/.obsidian
 *.ase
 *.aseprite
 
+luasteam.dll
+
 *.pyc
 jit/
 
