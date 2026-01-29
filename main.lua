@@ -280,7 +280,7 @@ function love.update(dt)
     prof_push("love.update")
 
     asynchttp.update()
-    local luasteam = Steam.getSteam() 
+    local luasteam = Steam.getSteam()
     if luasteam then
         luasteam.runCallbacks()
     end
