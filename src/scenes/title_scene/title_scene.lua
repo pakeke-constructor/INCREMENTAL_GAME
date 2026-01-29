@@ -85,6 +85,8 @@ local PRIMARY_BUTTON_SIZE = {200, 80}
 local SECONDARY_BUTTON_SIZE = {144, 40}
 local BUTTON_PAD = 4
 
+local RAY_COLOR = objects.Color("#".."FFEFC52C")
+
 function title:draw()
     ui.startUI()
 
@@ -138,7 +140,7 @@ function title:draw()
         godrays.drawRays(cx,cy, t/2.5, {
             rayCount = 3,
             divisions=100,
-            color = objects.Color.GOLD,
+            color = RAY_COLOR,
             startWidth=8,
             length=600,
             fadeTo=0,
@@ -148,7 +150,7 @@ function title:draw()
         godrays.drawRays(cx,cy, -t/1.5, {
             rayCount = 5,
             divisions=100,
-            color = objects.Color.GOLD,
+            color = RAY_COLOR,
             startWidth=9,
             length=150,
             fadeTo=0,
@@ -158,7 +160,7 @@ function title:draw()
         godrays.drawRays(cx,cy, t, {
             rayCount = 6,
             divisions=100,
-            color = objects.Color.GOLD,
+            color = RAY_COLOR,
             startWidth=10,
             length=200,
             fadeTo=0,
@@ -168,7 +170,7 @@ function title:draw()
         godrays.drawRays(cx,cy, t*-1, {
             rayCount = 5,
             divisions=100,
-            color = objects.Color.YELLOW,
+            color = RAY_COLOR,
             startWidth=10,
             length=300,
             fadeTo=0,
