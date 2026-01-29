@@ -208,9 +208,9 @@ def populate_localized(obj: object, prefix: str, kv: dict[str, str]):
 
 
 RARITY_COLORS = {
-    0: "95beed", # common
-    1: "f2cf83", # rare
-    2: "c7002e" # legendary
+    0: "95BEED", # common
+    1: "F2CF83", # rare
+    2: "C7002E" # legendary
 }
 
 
