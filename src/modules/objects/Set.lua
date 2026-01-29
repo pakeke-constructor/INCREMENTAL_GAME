@@ -19,7 +19,6 @@ Order is not consistent, and will change quite dynamically.
 local Set = Class("objects:Set")
 
 if false then
-    ---Availability: Client and Server
     ---@param initial any[]?
     ---@return objects.Set
     function Set(initial) end ---@diagnostic disable-line: cast-local-type, missing-return

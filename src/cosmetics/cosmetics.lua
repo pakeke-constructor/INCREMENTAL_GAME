@@ -113,12 +113,15 @@ end
 
 
 
+---@param typeFilter "BACKGROUND"|"HAT"|"AVATAR"
 ---@return string[]
-function cosmetics.getUnlocked()
+function cosmetics.getUnlocked(typeFilter)
     ensureLoaded()
     local t = {}
-    for k,_ in pairs(COSMETIC_INFO) do
-        table.insert(t,k)
+    for k,def in pairs(COSMETIC_INFO) do
+        if (not typeFilter) or (typeFilter == def.type) then
+            table.insert(t,k)
+        end
     end
     return t
 end

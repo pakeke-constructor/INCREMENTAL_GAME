@@ -5,6 +5,15 @@
 local CustomSelect = objects.Class("g:CustomSelect")
 
 
+if false then
+    ---@param items table
+    ---@param onDraw fun(item, reg)
+    ---@return g.CustomSelect
+    function CustomSelect(items, onDraw) end ---@diagnostic disable-line: cast-local-type, missing-return
+end
+
+
+
 ---@param items table
 ---@param onDraw fun(item, reg)
 function CustomSelect:init(items, onDraw)
@@ -19,20 +28,8 @@ function CustomSelect:setItems(items)
 end
 
 
----Draws an arrow within a bounding box
----@param direction number -1 for left, 1 for right
----@param x number Top-left x
----@param y number Top-left y
----@param w number Width of the bounding box
----@param h number Height of the bounding box
-local function drawArrow(direction, x, y, w, h)
+local function arrow(direction, x,y,w,h)
     local tipX, baseX
-    local color = objects.Color.WHITE
-    if iml.isHovered(x,y,w,h) then
-        color=objects.Color.GRAY
-    end
-    lg.setColor(color)
-
     if direction == 1 then
         -- Pointing Right: Tip is at the right edge, base is at the left
         tipX = x + w
@@ -47,6 +44,31 @@ local function drawArrow(direction, x, y, w, h)
         baseX, y,          -- Top corner of the base
         baseX, y + h       -- Bottom corner of the base
     )
+end
+
+
+---Draws an arrow within a bounding box
+---@param direction number -1 for left, 1 for right
+---@param x number Top-left x
+---@param y number Top-left y
+---@param w number Width of the bounding box
+---@param h number Height of the bounding box
+local function drawArrow(direction, x, y, w, h)
+    local r = Kirigami(x,y,w,h):padRatio(0.1)
+
+    local color = objects.Color.WHITE
+    if iml.isHovered(x,y,w,h) then
+        color=objects.Color.GRAY
+    end
+    lg.setColor(color)
+
+    if direction == 1 then
+        g.drawImageContained("button_right", x,y,w,h)
+        --g.drawImage("button_right", x+w/2,y+h/2)
+    else
+        g.drawImageContained("button_left", x,y,w,h)
+        --g.drawImage("button_left", x+w/2,y+h/2)
+    end
 
     return iml.wasJustPressed(x,y,w,h)
 end
@@ -66,17 +88,28 @@ function CustomSelect:drawItem(i, reg)
 end
 
 
+local COL1 = objects.Color.DARK_BLUE
+local COL2 = objects.Color.DARK_CYAN
+
 ---@param reg kirigami.Region
 function CustomSelect:draw(reg)
-    local left,a,b,c,d,e,right = reg:splitHorizontal(1,1,1,1.5,1,1,1)
+    lg.setColor(1,1,1)
+    local left,a0,a,b,c,d,e,e0,right = reg:splitHorizontal(1,1,1,1,1.5,1,1,1,1)
     local len = #self.items
+
+    local PD=0.3
+    local panelR = reg:padRatio(PD,0,PD,0)
+    ui.drawPanel(panelR:get())
+    helper.gradientRect("horizontal", COL1,COL2, panelR:padUnit(4):get())
 
     self.i = helper.clamp(self.i, 1,len)
 
-    self:drawItem(self.i-2, a)
-    self:drawItem(self.i+2, e)
-    self:drawItem(self.i-1, b)
-    self:drawItem(self.i+1, d)
+    self:drawItem(self.i-3, a0:padRatio(0.4))
+    self:drawItem(self.i+3, e0:padRatio(0.4))
+    self:drawItem(self.i-2, a:padRatio(0.3))
+    self:drawItem(self.i+2, e:padRatio(0.3))
+    self:drawItem(self.i-1, b:padRatio(0.2))
+    self:drawItem(self.i+1, d:padRatio(0.2))
     self:drawItem(self.i, c)
 
     if drawArrow(-1, left:get()) then

@@ -1,5 +1,6 @@
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+
 local vignette = require("src.modules.vignette.vignette")
 
 local CustomSelect = require(".CustomSelect")
@@ -70,9 +71,18 @@ function custom:init()
     self.rowOffset = 0
     self.scrollbarClicked = false
 
-    self.bgSelect = CustomSelect()
-    self.hatSelect = CustomSelect()
-    self.catSelect = CustomSelect()
+    self.bgSelect = CustomSelect(g.getUnlockedCosmetics("BACKGROUND"), function (item, reg)
+        local cinfo = g.getCosmeticInfo(item)
+        g.drawImageContained(cinfo.image, reg:get())
+    end)
+    self.hatSelect = CustomSelect(g.getUnlockedCosmetics("HAT"), function (item, reg)
+        local cinfo = g.getCosmeticInfo(item)
+        g.drawImageContained(cinfo.image, reg:get())
+    end)
+    self.catSelect = CustomSelect(g.getUnlockedCosmetics("AVATAR"), function (item, reg)
+        local cinfo = g.getCosmeticInfo(item)
+        g.drawImageContained(cinfo.image, reg:get())
+    end)
 end
 
 
@@ -102,27 +112,24 @@ local filters = {
 function custom:_drawUI(mapButtonR)
     local r = ui.getScreenRegion()
 
-    local leftHalf, rightHalf = r:splitHorizontal(1,1)
-
+    local top,bot = r:splitVertical(3,2)
+    local a,b,c = bot:splitHorizontal(3, 7, 2)
 
     -- Draw avatar with background
-    local drawBg = self.activeCategory == 1 or self.activeCategory == 3
-    local safeArea = g.getHUD():getSafeArea()
-    local avatarX = helper.lerp(safeArea.x, baseCosmeticGridR.x, 0.5)
-    local avatarY = math.floor(leftHalf.y + leftHalf.h / 2)
     local avatarSize = consts.AVATAR_SIZE * AVATAR_SCALE
-    if drawBg then
-        love.graphics.setStencilMode("draw", 3)
-        love.graphics.rectangle("fill", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
-        love.graphics.setStencilMode("test", 3)
-    end
-    g.drawPlayerAvatar(avatarX, avatarY, AVATAR_SCALE, drawBg)
-    if drawBg then
-        love.graphics.setStencilMode()
-        love.graphics.setColor(0, 0, 0)
-        love.graphics.rectangle("line", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
-    end
+    local avatarX, avatarY = a:getCenter()
+    love.graphics.setStencilMode("draw", 3)
+    love.graphics.rectangle("fill", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
+    love.graphics.setStencilMode("test", 3)
+    g.drawPlayerAvatar(avatarX, avatarY, AVATAR_SCALE, true)
+    love.graphics.setStencilMode()
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.rectangle("line", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
 
+    local hat, cat, bg = b:padRatio(0.1):splitVertical(1,1,1)
+    self.hatSelect:draw(hat:padRatio(0.2))
+    self.catSelect:draw(cat:padRatio(0.2))
+    self.bgSelect:draw(bg:padRatio(0.2))
 end
 
 
@@ -136,6 +143,7 @@ function custom:draw()
     local w, h = love.graphics.getDimensions()
 
     -- Draw background
+    lg.setColor(1,1,1)
     love.graphics.draw(self.background, 0, 0, 0, w, h)
 
     -- Draw vignette
