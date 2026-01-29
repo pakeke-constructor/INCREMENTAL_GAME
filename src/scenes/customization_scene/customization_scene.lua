@@ -1,5 +1,9 @@
+
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local vignette = require("src.modules.vignette.vignette")
+
+local CustomSelect = require(".CustomSelect")
+
 
 
 
@@ -65,6 +69,10 @@ function custom:init()
     self.activeCategory = 2
     self.rowOffset = 0
     self.scrollbarClicked = false
+
+    self.bgSelect = CustomSelect()
+    self.hatSelect = CustomSelect()
+    self.catSelect = CustomSelect()
 end
 
 
@@ -93,170 +101,9 @@ local filters = {
 ---@param mapButtonR kirigami.Region
 function custom:_drawUI(mapButtonR)
     local r = ui.getScreenRegion()
-    
-    -- Split screen in half
+
     local leftHalf, rightHalf = r:splitHorizontal(1,1)
 
-    -- Compute right center cosmetic category.
-    local categoryHeight = (CATEGORY_SIZE + CATEGORY_DIVIDER) * #CATEGORIES - CATEGORY_DIVIDER
-    local allCategoryR = Kirigami(0, 0, CATEGORY_SIZE, categoryHeight)
-        :attachToRightOf(leftHalf)
-        :centerY(leftHalf)
-        :moveRatio(-1, 0)
-        :moveUnit(-8, 0)
-    local categoryR = Kirigami(0, 0, CATEGORY_SIZE, CATEGORY_SIZE)
-        :attachToTopOf(allCategoryR)
-        :attachToLeftOf(allCategoryR)
-        :moveRatio(1, 1)
-
-    -- Draw categories
-    for i, v in ipairs(CATEGORIES) do
-        local color = CATEGORY_COLOR[i == self.activeCategory]
-
-        -- Draw category
-        -- For now, use rounded rectangle.
-        local cx, cy, cw, ch = categoryR:get()
-        love.graphics.setColor(color[1])
-        love.graphics.rectangle("fill", cx, cy, cw, ch, 8, 8)
-
-        -- Draw icon
-        love.graphics.setColor(color[2])
-        local s = math.floor(CATEGORY_SIZE / 16)
-        g.drawImage(v[2], cx + cw / 2, cy + ch / 2, 0, s, s)
-
-        -- Draw hover outline
-        if iml.isHovered(cx, cy, cw, ch) then
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.rectangle("line", cx, cy, cw, ch, 8, 8)
-            -- TODO: Draw tooltip, probably
-        end
-
-        if iml.wasJustClicked(cx, cy, cw, ch) then
-            self.activeCategory = i
-        end
-
-        if i < #CATEGORIES then
-            -- Draw divider
-            local y = cy + ch + CATEGORY_DIVIDER / 2
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.line(cx, y, cx + cw, y)
-        end
-        categoryR = categoryR:moveRatio(0, 1):moveUnit(0, CATEGORY_DIVIDER)
-    end
-
-    -- Prepare scrollbar
-    local cellSize = COSMETIC_TILE_SIZE + COSMETIC_PADDING
-    local scrollbarHeight = cellSize * COSMETIC_ROWS
-    local scrollbarR = Kirigami(0, 0, 16, scrollbarHeight)
-        :attachToLeftOf(categoryR)
-        :centerY(leftHalf)
-        :moveUnit(-8, 0)
-    scrollbarR.x = math.floor(scrollbarR.x)
-    scrollbarR.y = math.floor(scrollbarR.y)
-
-    -- Prepare cosmetic cell
-    local categoryfilter = filters[self.activeCategory]
-    local baseCosmeticGridR = Kirigami(0, 0, cellSize * COSMETIC_COLUMNS, scrollbarHeight)
-        :attachToLeftOf(scrollbarR)
-        :centerY(scrollbarR)
-        :moveUnit(-8, 0)
-    local cosmeticGrid = baseCosmeticGridR:grid(COSMETIC_COLUMNS, COSMETIC_ROWS)
-
-    -- Get cosmetic infos of unlocked cosmetics, possibly in the current category
-    -- We need to do it in 2-pass to be able to show scrollbar.
-    ---@type g.CosmeticInfo[]
-    local cosmetics = {}
-    for _, v in ipairs(g.getUnlockedCosmetics()) do
-        local cinfo = g.getCosmeticInfo(v)
-        if categoryfilter(cinfo) then
-            cosmetics[#cosmetics+1] = cinfo
-        end
-    end
-    -- Draw scrollbar background
-    love.graphics.setColor(SCROLLBAR_BACKGROUND)
-    love.graphics.rectangle("fill", scrollbarR:padUnit(-1):get())
-    -- Draw slider
-    local scrollCount = math.max(math.ceil(#cosmetics / COSMETIC_COLUMNS) - COSMETIC_ROWS, 0) + 1
-    self.rowOffset = ui.Slider(
-        "custom:accessorySlider",
-        "vertical",
-        SCROLLBAR_COLOR,
-        self.rowOffset + 1,
-        scrollCount,
-        math.max(1 / scrollCount, 0.1),
-        scrollbarR
-    ) - 1
-
-
-    -- Draw cosmetic cell
-    -- TODO: Scrollbar or a way to display more cosmetics later.
-    for i = 1, #cosmeticGrid do
-        local cinfo = cosmetics[i + self.rowOffset * COSMETIC_COLUMNS]
-        if not cinfo then break end
-
-        local cellR = cosmeticGrid[i]
-        local clickableR = cellR:padUnit(COSMETIC_PADDING)
-        local selected = isCosmeticSelected(cinfo)
-
-        -- Draw  background
-        local alpha = selected and 1 or 0.1
-        love.graphics.setColor(helper.multiplyAlpha(SELECTED_COLOR[cinfo.type], alpha))
-        love.graphics.rectangle("fill", clickableR:get())
-
-        if iml.isHovered(clickableR:get()) then
-            love.graphics.setColor(1, 1, 1)
-            love.graphics.rectangle("line", cellR:get())
-        end
-
-        local cx, cy = cellR:getCenter()
-        local scale = cinfo.type == "BACKGROUND" and 1 or 2
-        love.graphics.setColor(cinfo.color)
-        assert(#cinfo.image > 0, cinfo.id)
-        g.drawImage(cinfo.image, cx, cy, 0, scale * cinfo.upscale)
-
-        if iml.wasJustClicked(clickableR:get()) then
-            local s = g.getSn()
-            -- Select this avatar
-            if cinfo.type == "AVATAR" then
-                s.avatar.avatar = cinfo.id
-            elseif cinfo.type == "BACKGROUND" then
-                s.avatar.background = cinfo.id
-            elseif cinfo.type == "HAT" then
-                if selected then
-                    s.avatar.hat = nil
-                else
-                    s.avatar.hat = cinfo.id
-                end
-            end
-        end
-    end
-
-    -- Prepare text layout for the cosmetic name
-    local cosmeticNameR = Kirigami(0, 0, 0, 32)
-        :attachToTopOf(baseCosmeticGridR)
-        :attachToRightOf(baseCosmeticGridR)
-        :moveUnit(0, -4)
-
-    -- Draw category name and the selected cosmetic
-    local textDisplay = "{o}"..CATEGORIES[self.activeCategory][1].."{/o}"
-    if self.activeCategory > 1 then -- "all" category doesn't make sense to have this
-        local cosmeticid = getWornCosmeticId(self.activeCategory)
-
-        if cosmeticid then
-            local cinfo = g.getCosmeticInfo(cosmeticid)
-            -- Why this {o} tag abomination? to make the outline in effect with the wavy
-            local coloredCosmeticName = helper.wrapRichtextColor(SELECTED_COLOR[cinfo.type], "{w}{o}"..cinfo.name.."{/o}{/w}")
-            textDisplay = textDisplay.."{o} - {/o}"..coloredCosmeticName
-        end
-    end
-    love.graphics.setColor(1, 1, 1)
-    richtext.printRich(
-        textDisplay,
-        g.getSmallFont(32),
-        cosmeticNameR.x - 1000,
-        cosmeticNameR.y,
-        1000, "right"
-    )
 
     -- Draw avatar with background
     local drawBg = self.activeCategory == 1 or self.activeCategory == 3
@@ -276,15 +123,6 @@ function custom:_drawUI(mapButtonR)
         love.graphics.rectangle("line", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
     end
 
-    -- Town view in bottom half
-    local townViewR = rightHalf:padUnit(16)
-    
-    -- TODO: Draw town background and other players here
-    -- Placeholder for town view
-    love.graphics.setColor(0.2, 0.2, 0.3, 0.8)
-    love.graphics.rectangle("fill", townViewR:get())
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("line", townViewR:get())
 end
 
 
