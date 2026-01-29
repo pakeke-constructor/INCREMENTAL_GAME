@@ -37,6 +37,8 @@ class Cosmetic(pydantic.BaseModel):
     offset_y: float = 0
     """Image Y offset. Positive Y goes down. (Usage: In-Game)"""
 
+    rarity: int = 0
+
 
 CHEST_ITEMDEF_ID = 1
 CHEST_GENERATOR_ITEMDEF_ID = CHEST_ITEMDEF_ID + 1
@@ -60,36 +62,36 @@ COSMETICS = [
     Cosmetic(id="daytime", name="Daytime", description="", image="daytime", type="BACKGROUND"),
     Cosmetic(id="diamond", name="Diamond", description="", image="diamond", type="BACKGROUND"),
     Cosmetic(id="emerald", name="Emerald", description="", image="emerald", type="BACKGROUND"),
-    Cosmetic(id="gold", name="Gold", description="", image="gold", type="BACKGROUND"),
+    Cosmetic(id="gold", name="Gold", description="", image="gold", type="BACKGROUND", rarity=2),
     Cosmetic(id="gray", name="Gray", description="", image="gray", type="BACKGROUND"),
     Cosmetic(id="grayroom", name="Grayroom", description="", image="grayroom", type="BACKGROUND"),
     Cosmetic(id="green", name="Green", description="", image="green", type="BACKGROUND"),
     Cosmetic(id="neon", name="Neon", description="", image="neon", type="BACKGROUND"),
-    Cosmetic(id="night", name="Night", description="", image="night", type="BACKGROUND"),
+    Cosmetic(id="night", name="Night", description="", image="night", type="BACKGROUND", rarity=1),
     Cosmetic(id="orange", name="Orange", description="", image="orange", type="BACKGROUND"),
     Cosmetic(id="pitchblack", name="Pitch Black", description="", image="pitchblack", type="BACKGROUND"),
     Cosmetic(id="purple", name="Purple", description="", image="purple", type="BACKGROUND"),
     Cosmetic(id="ruby", name="Ruby", description="", image="ruby", type="BACKGROUND"),
     Cosmetic(id="silver", name="Silver", description="", image="silver", type="BACKGROUND"),
     Cosmetic(id="striped", name="Striped", description="", image="striped", type="BACKGROUND"),
-    Cosmetic(id="sunset", name="Sunset", description="", image="sunset", type="BACKGROUND"),
+    Cosmetic(id="sunset", name="Sunset", description="", image="sunset", type="BACKGROUND", rarity=1),
     Cosmetic(id="tiger", name="Tiger", description="", image="tiger", type="BACKGROUND"),
     Cosmetic(id="whiteroom", name="Whiteroom", description="", image="whiteroom", type="BACKGROUND"),
-    Cosmetic(id="woodframe", name="Wood Frame", description="", image="woodframe", type="BACKGROUND"),
-    Cosmetic(id="woodframe_black", name="Black Wood Frame", description="", image="woodframe_black", type="BACKGROUND"),
-    Cosmetic(id="woodframe_blue", name="Blue Wood Frame", description="", image="woodframe_blue", type="BACKGROUND"),
-    Cosmetic(id="woodframe_green", name="Green Wood Frame", description="", image="woodframe_green", type="BACKGROUND"),
-    Cosmetic(id="woodframe_red", name="Red Wood Frame", description="", image="woodframe_red", type="BACKGROUND"),
-    Cosmetic(id="woodframe_white", name="White Wood Frame", description="", image="woodframe_white", type="BACKGROUND"),
+    Cosmetic(id="woodframe", name="Wood Frame", description="", image="woodframe", type="BACKGROUND", rarity=1),
+    Cosmetic(id="woodframe_black", name="Black Wood Frame", description="", image="woodframe_black", type="BACKGROUND", rarity=1),
+    Cosmetic(id="woodframe_blue", name="Blue Wood Frame", description="", image="woodframe_blue", type="BACKGROUND", rarity=1),
+    Cosmetic(id="woodframe_green", name="Green Wood Frame", description="", image="woodframe_green", type="BACKGROUND", rarity=1),
+    Cosmetic(id="woodframe_red", name="Red Wood Frame", description="", image="woodframe_red", type="BACKGROUND", rarity=1),
+    Cosmetic(id="woodframe_white", name="White Wood Frame", description="", image="woodframe_white", type="BACKGROUND", rarity=1),
     Cosmetic(id="yellow", name="Yellow", description="", image="yellow", type="BACKGROUND"),
-    Cosmetic(id="zebra", name="Zebra", description="", image="zebra", type="BACKGROUND"),
+    Cosmetic(id="zebra", name="Zebra", description="", image="zebra", type="BACKGROUND", rarity=2),
     # Cats
     Cosmetic(
         id="actuallyinvisiblecat",
         name="Actually Invisible Cat",
         description="",
         image="actuallyinvisiblecat",
-        type="AVATAR",
+        type="AVATAR", rarity = 2
     ),
     Cosmetic(id="angelcat", name="Angel Cat", description="", image="angelcat", type="AVATAR"),
     Cosmetic(id="angrycat", name="Angry Cat", description="", image="angrycat", type="AVATAR"),
@@ -97,21 +99,21 @@ COSMETICS = [
     Cosmetic(id="blankcat", name="Blank Cat", description="", image="blankcat", type="AVATAR"),
     Cosmetic(id="brownsuitcat", name="Brown Suit Cat", description="", image="brownsuitcat", type="AVATAR"),
     Cosmetic(id="catptain", name="Catptain", description="", image="catptain", type="AVATAR"),
-    Cosmetic(id="cutecat", name="Cute Cat", description="", image="cutecat", type="AVATAR"),
-    Cosmetic(id="cyclopscat", name="Cyclops Cat", description="", image="cyclopscat", type="AVATAR"),
-    Cosmetic(id="demonicat", name="Demonicat", description="", image="demonicat", type="AVATAR"),
-    Cosmetic(id="diamondcat", name="Diamond Cat", description="", image="diamondcat", type="AVATAR"),
-    Cosmetic(id="emeraldcat", name="Emerald cat", description="", image="emeraldcat", type="AVATAR"),
+    Cosmetic(id="cutecat", name="Cute Cat", description="", image="cutecat", type="AVATAR", rarity=1),
+    Cosmetic(id="cyclopscat", name="Cyclops Cat", description="", image="cyclopscat", type="AVATAR", rarity=1),
+    Cosmetic(id="demonicat", name="Demonicat", description="", image="demonicat", type="AVATAR", rarity=2),
+    Cosmetic(id="diamondcat", name="Diamond Cat", description="", image="diamondcat", type="AVATAR", rarity=1),
+    Cosmetic(id="emeraldcat", name="Emerald cat", description="", image="emeraldcat", type="AVATAR", rarity=1),
     Cosmetic(id="fatcat", name="Fat Cat", description="", image="fatcat", type="AVATAR"),
-    Cosmetic(id="goldencat", name="Golden Cat", description="", image="goldencat", type="AVATAR"),
+    Cosmetic(id="goldencat", name="Golden Cat", description="", image="goldencat", type="AVATAR", rarity=2),
     Cosmetic(id="graycat", name="Gray Cat", description="", image="graycat", type="AVATAR"),
     Cosmetic(id="greenscarfcat", name="Green Scarf Cat", description="", image="greenscarfcat", type="AVATAR"),
-    Cosmetic(id="invisiblecat", name="Invisible Cat", description="", image="invisiblecat", type="AVATAR"),
-    Cosmetic(id="negacat", name="Negative Cat", description="", image="negacat", type="AVATAR"),
-    Cosmetic(id="orangecat", name="Orange Cat", description="", image="orangecat", type="AVATAR"),
+    Cosmetic(id="invisiblecat", name="Invisible Cat", description="", image="invisiblecat", type="AVATAR", rarity=1),
+    Cosmetic(id="negacat", name="Negative Cat", description="", image="negacat", type="AVATAR", rarity=2),
+    Cosmetic(id="orangecat", name="Orange Cat", description="", image="orangecat", type="AVATAR", rarity=1),
     Cosmetic(id="plushcat", name="Plush Cat", description="", image="plushcat", type="AVATAR"),
     Cosmetic(id="purplescarfcat", name="Purple Scarf Cat", description="", image="purplescarfcat", type="AVATAR"),
-    Cosmetic(id="quizzicalcat", name="Quizzical Cat", description="", image="quizzicalcat", type="AVATAR"),
+    Cosmetic(id="quizzicalcat", name="Quizzical Cat", description="", image="quizzicalcat", type="AVATAR", rarity=1),
     Cosmetic(id="reanimatedcat", name="Re-Animated Cat", description="", image="reanimatedcat", type="AVATAR"),
     Cosmetic(id="redscarfcat", name="Red Scarf Cat", description="", image="redscarfcat", type="AVATAR"),
     Cosmetic(id="rubycat", name="Ruby Cat", description="", image="rubycat", type="AVATAR"),
@@ -121,21 +123,21 @@ COSMETICS = [
     Cosmetic(id="surprisedcat", name="Surprised Cat", description="", image="surprisedcat", type="AVATAR"),
     Cosmetic(id="triplecat", name="Triple Cat", description="", image="triplecat", type="AVATAR"),
     Cosmetic(id="tuffcat", name="Tuff Cat", description="", image="tuffcat", type="AVATAR"),
-    Cosmetic(id="tuxcat", name="Tuxedo Cat", description="", image="tuxcat", type="AVATAR"),
+    Cosmetic(id="tuxcat", name="Tuxedo Cat", description="", image="tuxcat", type="AVATAR", rarity=2),
     # Hats
     Cosmetic(id="blackcap", name="Black Cap", description="", image="blackcap", type="HAT", offset_x=-1, offset_y=8),
     Cosmetic(id="bluecap", name="Blue Cap", description="", image="bluecap", type="HAT", offset_x=1.5, offset_y=5),
-    Cosmetic(id="buckethat", name="Bucket Hat", description="", image="buckethat", type="HAT", offset_y=11),
-    Cosmetic(id="conehat", name="Cone Hat", description="", image="conehat", type="HAT", offset_y=6),
+    Cosmetic(id="buckethat", name="Bucket Hat", description="", image="buckethat", type="HAT", offset_y=11, rarity=1),
+    Cosmetic(id="conehat", name="Cone Hat", description="", image="conehat", type="HAT", offset_y=6, rarity=1),
     Cosmetic(id="cowboyhat", name="Cowboy Hat", description="", image="cowboyhat", type="HAT", offset_y=6),
-    Cosmetic(id="crown", name="Crown", description="", image="crown", type="HAT", offset_y=5),
-    Cosmetic(id="divinghelmet", name="Diving Helmet", description="", image="divinghelmet", type="HAT", offset_y=12),
+    Cosmetic(id="crown", name="Crown", description="", image="crown", type="HAT", offset_y=5, rarity=2),
+    Cosmetic(id="divinghelmet", name="Diving Helmet", description="", image="divinghelmet", type="HAT", offset_y=12, rarity=1),
     Cosmetic(
         id="fishinghat", name="Fishing Hat", description="", image="fishinghat", type="HAT", offset_x=-0.5, offset_y=6
     ),
-    Cosmetic(id="ghost", name="Ghost", description="", image="ghost", type="HAT", offset_x=-0.5, offset_y=15),
+    Cosmetic(id="ghost", name="Ghost", description="", image="ghost", type="HAT", offset_x=-0.5, offset_y=15, rarity=1),
     Cosmetic(id="halo", name="Halo", description="", image="halo", type="HAT", offset_y=2),
-    Cosmetic(id="kitten", name="Kitten", description="", image="kitten", type="HAT", offset_y=4),
+    Cosmetic(id="kitten", name="Kitten", description="", image="kitten", type="HAT", offset_y=4, rarity=1),
     Cosmetic(id="mafiahat", name="Mafia Hat", description="", image="mafiahat", type="HAT", offset_y=5),
     Cosmetic(
         id="monkblindfold",
@@ -144,12 +146,12 @@ COSMETICS = [
         image="monkblindfold",
         type="HAT",
         offset_x=-0.5,
-        offset_y=8,
+        offset_y=8, rarity=2
     ),
     Cosmetic(
         id="orangecap", name="Orange Cap", description="", image="orangecap", type="HAT", offset_x=1.5, offset_y=5
     ),
-    Cosmetic(id="pinkcap", name="Pink Cap", description="", image="pinkcap", type="HAT", offset_x=0.5, offset_y=9),
+    Cosmetic(id="pinkcap", name="Pink Cap", description="", image="pinkcap", type="HAT", offset_x=0.5, offset_y=9, rarity=1),
     Cosmetic(
         id="piratehat", name="Pirate Hat", description="", image="piratehat", type="HAT", offset_x=-0.5, offset_y=6
     ),
@@ -157,9 +159,9 @@ COSMETICS = [
         id="rainbowcap", name="Rainbow Cap", description="", image="rainbowcap", type="HAT", offset_x=1.5, offset_y=5
     ),
     Cosmetic(id="redcap", name="Red Cap", description="", image="redcap", type="HAT", offset_x=1.5, offset_y=5),
-    Cosmetic(id="stache", name="Stache", description="", image="stache", type="HAT", offset_x=0.5, offset_y=13),
+    Cosmetic(id="stache", name="Stache", description="", image="stache", type="HAT", offset_x=0.5, offset_y=13, rarity=1),
     Cosmetic(id="tinyhat", name="Tiny Hat", description="", image="tinyhat", type="HAT", offset_y=4),
-    Cosmetic(id="tophat", name="Top Hat", description="", image="tophat", type="HAT", offset_y=5),
+    Cosmetic(id="tophat", name="Top Hat", description="", image="tophat", type="HAT", offset_y=5, rarity=2),
     Cosmetic(id="whitecap", name="White Cap", description="", image="whitecap", type="HAT", offset_x=1.5, offset_y=5),
     Cosmetic(
         id="yellowcap", name="Yellow Cap", description="", image="yellowcap", type="HAT", offset_x=1.5, offset_y=5
@@ -181,6 +183,10 @@ class SteamItem(pydantic.BaseModel):
     icon_url_large: str
     tradable: bool
     marketable: bool
+    granted_manually: bool
+    background_color: str
+    name_color: str
+    granted_manually: bool
     price: str | None = None
     exchange: str | None = None
 
@@ -200,6 +206,14 @@ def populate_localized(obj: object, prefix: str, kv: dict[str, str]):
         setattr(obj, f"{prefix}_{k}", v)
 
 
+
+RARITY_COLORS = {
+    0: "95beed", # common
+    1: "95beed", # rare
+    0: "95beed" # legendary
+}
+
+
 def main(root: pathlib.Path):
     # Generate Steam itemdef JSON
     with open(root / "steam_appid.txt", "r", encoding="utf-8") as f:
@@ -208,6 +222,7 @@ def main(root: pathlib.Path):
     cosmetic_items: list[SteamItem] = []
     for itemdefid, cosmetic in enumerate(COSMETICS, COSMETIC_ITEMDEF_ID_START + 1):
         format = {"base_url": BASE_IMAGE_URL, "type": cosmetic.type, "image": cosmetic.id}
+        col = RARITY_COLORS[cosmetic.rarity]
         si = SteamItem(
             itemdefid=itemdefid,
             type="item",
@@ -220,6 +235,9 @@ def main(root: pathlib.Path):
             icon_url_large=COSMETIC_IMAGE_LARGE_FORMAT % format,
             tradable=True,
             marketable=True,
+            granted_manually=True,
+            background_color=col,
+            name_color=col,
             price="1;VLV25",  # Change this if needed
         )
         if isinstance(cosmetic.name, dict):
@@ -240,6 +258,9 @@ def main(root: pathlib.Path):
                 icon_url_large=f"{BASE_IMAGE_URL}/cosmetics/chest_large.png",
                 tradable=False,
                 marketable=False,
+                granted_manually=True,
+                background_color="FFFFFF",
+                name_color="FFFFFF",
             ),
             SteamItem(
                 itemdefid=CHEST_GENERATOR_ITEMDEF_ID,
@@ -252,6 +273,9 @@ def main(root: pathlib.Path):
                 tradable=False,
                 marketable=False,
                 exchange=f"{CHEST_ITEMDEF_ID}x1",
+                granted_manually=True,
+                background_color="FFFFFF",
+                name_color="FFFFFF",
             ),
             *cosmetic_items,
         ],
