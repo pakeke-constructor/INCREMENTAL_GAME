@@ -137,7 +137,7 @@ function title:draw()
 
         godrays.drawRays(cx,cy, t/2.5, {
             rayCount = 3,
-            divisions=30,
+            divisions=100,
             color = objects.Color.GOLD,
             startWidth=8,
             length=600,
@@ -147,7 +147,7 @@ function title:draw()
 
         godrays.drawRays(cx,cy, -t/1.5, {
             rayCount = 5,
-            divisions=30,
+            divisions=100,
             color = objects.Color.GOLD,
             startWidth=9,
             length=150,
@@ -157,7 +157,7 @@ function title:draw()
 
         godrays.drawRays(cx,cy, t, {
             rayCount = 6,
-            divisions=30,
+            divisions=100,
             color = objects.Color.GOLD,
             startWidth=10,
             length=200,
@@ -167,7 +167,7 @@ function title:draw()
 
         godrays.drawRays(cx,cy, t*-1, {
             rayCount = 5,
-            divisions=30,
+            divisions=100,
             color = objects.Color.YELLOW,
             startWidth=10,
             length=300,
