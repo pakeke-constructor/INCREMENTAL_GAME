@@ -285,6 +285,7 @@ function Tree:tryBuyUpgrade(upg)
     end
     if self:canAffordUpgrade(upg) then
         local price = self:getUpgradePrice(upg)
+        achievements.emitUnlockUpgrade(upg.id, price)
         g.subtractResources(price)
         self:setUpgradeLevel(upg, upg.level + 1)
         return true

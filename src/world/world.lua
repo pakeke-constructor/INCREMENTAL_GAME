@@ -1181,6 +1181,8 @@ function World:_update(dt)
     while self.timer >= 1 do
         self.seconds = self.seconds + 1
 
+        achievements.emitPerSecondUpdate()
+
         for _, ent in ipairs(self.entities) do
             if ent.perSecondUpdate then
                 ent:perSecondUpdate(self.seconds)

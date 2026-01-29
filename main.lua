@@ -143,6 +143,7 @@ _G.g = require("src.g")
 _G.worldutil = require("src.world.worldutil")
 
 _G.analytics = require("src.modules.analytics.analytics")
+_G.achievements = require("src.achievements.achievements")
 --[[
 =========
 GLOBALS END

@@ -210,7 +210,11 @@ g.defineEntity("knife_cat", {
     radius = 20,
     baseSpeed = 30,
 
-    init = randomizeDir,
+    init = function(self)
+        ---@diagnostic disable-next-line
+        randomizeDir(self)
+        achievements.unlockAchievement("KNIFE_CAT")
+    end,
 
     update = makeCatUpdate(function (self, dt)end),
 

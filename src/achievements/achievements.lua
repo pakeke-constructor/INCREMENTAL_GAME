@@ -20,17 +20,54 @@ slime: Unlock slime upgrade!
 
 ]]
 
+---@class g.achievements
 local achievements = {}
 
 
 
-function achievements.perSecondUpdate()
-    
+function achievements.emitPerSecondUpdate()
+    local money = g.getResource("money")
+    if money > 1000 then
+        achievements.unlockAchievement("RICH_1")
+    end
+    if money > 10000 then
+        achievements.unlockAchievement("RICH_2")
+    end
+
+    local cropsHarv = g.getMetric("totalTokensHarvested")
+    if cropsHarv > 500 then
+        achievements.unlockAchievement("HARVESTER_1")
+    end
+    if cropsHarv > 5000 then
+        achievements.unlockAchievement("HARVESTER_2")
+    end
+    local sn = g.getSn()
+    if sn.level > 30 then
+        achievements.unlockAchievement("LEVELUP")
+    end
 end
 
 
-function achievements.defineAchievement(id, img)
+
+---@param upgId string
+---@param priceSpent g.Bundle
+function achievements.emitUnlockUpgrade(upgId, priceSpent)
+    if upgId == "grass_farmer_cat" then
+        achievements.unlockAchievement("DELEGATION")
+    end
+    if upgId == "slime_token" then
+        achievements.unlockAchievement("SLIME")
+    end
+    local money = (priceSpent and priceSpent.money) or 0
+    if money > 5000 then
+        achievements.unlockAchievement("MERCHANT_1")
+    end
+    if money > 20000 then
+        achievements.unlockAchievement("MERCHANT_2")
+    end
 end
+
+
 
 
 

@@ -2247,6 +2247,7 @@ local function killBoss(prestige)
         log.error("wat??")
         return -- wtf? what happened here?
     end
+    achievements.unlockAchievement("SLAYER")
     g.call("bossSlain")
 end
 
