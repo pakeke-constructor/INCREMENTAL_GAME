@@ -82,7 +82,7 @@ function achievements.unlockAchievement(id)
     UNLOCKED_ACHIEVEMENT_RUNTIME_CACHE[id] = true
     local luasteam = Steam.getSteam()
     if luasteam then
-        luasteam.setAchievement(id)
+        luasteam.userStats.setAchievement(id)
     end
 end
 
