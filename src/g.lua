@@ -539,6 +539,7 @@ g.walkDirectory("src/bosses", loadImage)
 g.walkDirectory("src/scythes", loadImage)
 g.walkDirectory("src/rewards", loadImage)
 g.walkDirectory("src/effects", loadImage)
+g.walkDirectory("src/cosmetics", loadImage)
 
 -- Set this to true to dump the atlas
 if false then

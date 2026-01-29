@@ -5,6 +5,7 @@
 
 _notes/private
 _notes/.obsidian
+.cosmetics
 
 *.ase
 *.aseprite
@@ -13,3 +14,4 @@ _notes/.obsidian
 jit/
 
 incremental_game.zip
+steamitemdef.json
