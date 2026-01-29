@@ -89,15 +89,19 @@ local filters = {
     function(cinfo) return cinfo.type == "HAT" end, -- Hats
 }
 
+
 ---@param mapButtonR kirigami.Region
 function custom:_drawUI(mapButtonR)
     local r = ui.getScreenRegion()
+    
+    -- Split screen in half
+    local leftHalf, rightHalf = r:splitHorizontal(1,1)
 
     -- Compute right center cosmetic category.
     local categoryHeight = (CATEGORY_SIZE + CATEGORY_DIVIDER) * #CATEGORIES - CATEGORY_DIVIDER
     local allCategoryR = Kirigami(0, 0, CATEGORY_SIZE, categoryHeight)
-        :attachToRightOf(r)
-        :centerY(r)
+        :attachToRightOf(leftHalf)
+        :centerY(leftHalf)
         :moveRatio(-1, 0)
         :moveUnit(-8, 0)
     local categoryR = Kirigami(0, 0, CATEGORY_SIZE, CATEGORY_SIZE)
@@ -145,8 +149,7 @@ function custom:_drawUI(mapButtonR)
     local scrollbarHeight = cellSize * COSMETIC_ROWS
     local scrollbarR = Kirigami(0, 0, 16, scrollbarHeight)
         :attachToLeftOf(categoryR)
-        -- Take the map button into account
-        :centerY(r:padUnit(0, mapButtonR.y + mapButtonR.h, 0, 0))
+        :centerY(leftHalf)
         :moveUnit(-8, 0)
     scrollbarR.x = math.floor(scrollbarR.x)
     scrollbarR.y = math.floor(scrollbarR.y)
@@ -259,7 +262,7 @@ function custom:_drawUI(mapButtonR)
     local drawBg = self.activeCategory == 1 or self.activeCategory == 3
     local safeArea = g.getHUD():getSafeArea()
     local avatarX = helper.lerp(safeArea.x, baseCosmeticGridR.x, 0.5)
-    local avatarY = math.floor(select(2, ui.getScaledUIDimensions()) / 2)
+    local avatarY = math.floor(leftHalf.y + leftHalf.h / 2)
     local avatarSize = consts.AVATAR_SIZE * AVATAR_SCALE
     if drawBg then
         love.graphics.setStencilMode("draw", 3)
@@ -272,8 +275,17 @@ function custom:_drawUI(mapButtonR)
         love.graphics.setColor(0, 0, 0)
         love.graphics.rectangle("line", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
     end
-end
 
+    -- Town view in bottom half
+    local townViewR = rightHalf:padUnit(16)
+    
+    -- TODO: Draw town background and other players here
+    -- Placeholder for town view
+    love.graphics.setColor(0.2, 0.2, 0.3, 0.8)
+    love.graphics.rectangle("fill", townViewR:get())
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", townViewR:get())
+end
 
 
 ---@param dt number
@@ -295,7 +307,7 @@ function custom:draw()
     ui.startUI()
     local mapButtonR = self:renderMapButton()
     self:_drawUI(mapButtonR)
-    g.getHUD():draw({profile = false, xpbar = false})
+    --g.getHUD():draw({profile = false, xpbar = false})
     self:renderPause()
     ui.endUI()
 end
