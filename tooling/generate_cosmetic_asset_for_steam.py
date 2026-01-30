@@ -43,8 +43,8 @@ async def main(root: pathlib.Path):
             await awaitable
 
     tasks = [
-        *[create_icon(root, COSMETIC_IMAGE_FORMAT, c.type, c.image, 10) for c in COSMETICS],
-        *[create_icon(root, COSMETIC_IMAGE_LARGE_FORMAT, c.type, c.image, 96) for c in COSMETICS],
+        *[create_icon(root, COSMETIC_IMAGE_FORMAT, c.type, c.image, 10) for c in COSMETICS if c is not None],
+        *[create_icon(root, COSMETIC_IMAGE_LARGE_FORMAT, c.type, c.image, 96) for c in COSMETICS if c is not None],
     ]
     tasks2 = [run_max_concurrent(t) for t in tasks]
     await asyncio.gather(*tasks2)
