@@ -109,87 +109,135 @@ local filters = {
 
 
 
-local TOWN_BUILDINGS = {
+
+local TOWN_GROUND = {
+    -- BIG DECOR:
+    {image = "decor_big_1", x = 0.15, y = 0.2},
+    {image = "decor_big_3", x = 0.82, y = 0.48},
+    {image = "decor_big_2", x = 0.4, y = 0.9},
+    {image = "decor_big_4", x = 0.93, y = 0.3},
+    {image = "decor_big_1", x = 0.07, y = 0.62},
+    {image = "decor_big_2", x = 0.55, y = 0.12},
+    {image = "decor_big_3", x = 0.68, y = 0.78},
+    {image = "decor_big_4", x = 0.24, y = 0.44},
+    {image = "decor_big_1", x = 0.5, y = 0.6},
+    {image = "decor_big_2", x = 0.88, y = 0.07},
+    {image = "decor_big_3", x = 0.31, y = 0.26},
+    {image = "decor_big_4", x = 0.73, y = 0.55},
+    {image = "decor_big_1", x = 0.19, y = 0.85},
+    {image = "decor_big_2", x = 0.61, y = 0.36},
+    {image = "decor_big_3", x = 0.46, y = 0.18},
+    {image = "decor_big_4", x = 0.97, y = 0.72},
+    {image = "decor_big_1", x = 0.28, y = 0.58},
+    {image = "decor_big_2", x = 0.77, y = 0.41},
+    {image = "decor_big_3", x = 0.12, y = 0.33},
+    {image = "decor_big_4", x = 0.6, y = 0.95},
+
+    {image = "decor_big_2", x = 0.34, y = 0.11},
+    {image = "decor_big_4", x = 0.9, y = 0.52},
+    {image = "decor_big_1", x = 0.06, y = 0.73},
+    {image = "decor_big_3", x = 0.58, y = 0.27},
+    {image = "decor_big_2", x = 0.79, y = 0.88},
+    {image = "decor_big_4", x = 0.21, y = 0.49},
+    {image = "decor_big_1", x = 0.47, y = 0.05},
+    {image = "decor_big_3", x = 0.99, y = 0.34},
+    {image = "decor_big_2", x = 0.63, y = 0.6},
+    {image = "decor_big_4", x = 0.14, y = 0.92},
+    {image = "decor_big_1", x = 0.52, y = 0.39},
+    {image = "decor_big_3", x = 0.83, y = 0.16},
+    {image = "decor_big_2", x = 0.25, y = 0.7},
+    {image = "decor_big_4", x = 0.71, y = 0.46},
+    {image = "decor_big_1", x = 0.38, y = 0.83},
+    {image = "decor_big_3", x = 0.95, y = 0.58},
+    {image = "decor_big_2", x = 0.18, y = 0.24},
+    {image = "decor_big_4", x = 0.67, y = 0.74},
+    {image = "decor_big_1", x = 0.44, y = 0.57},
+    {image = "decor_big_3", x = 0.86, y = 0.03},
+
+}
+
+local TOWN_GROUND_DETAIL = {
     -- DECOR:
     {image = "decor_tex_3", x = 0.52, y = 0.71},
     {image = "decor_tex_1", x = 0.12, y = 0.34},
     {image = "decor_tex_5", x = 0.77, y = 0.22},
     {image = "decor_tex_2", x = 0.43, y = 0.88},
-    {image = "decor_tex_4", x = 0.91, y = 0.47},
+    {image = "decor_tex_1", x = 0.91, y = 0.47},
     {image = "decor_tex_3", x = 0.25, y = 0.63},
     {image = "decor_tex_1", x = 0.68, y = 0.15},
     {image = "decor_tex_5", x = 0.36, y = 0.79},
     {image = "decor_tex_2", x = 0.84, y = 0.05},
-    {image = "decor_tex_4", x = 0.18, y = 0.56},
+    {image = "decor_tex_1", x = 0.18, y = 0.56},
     {image = "decor_tex_3", x = 0.59, y = 0.92},
 
     {image = "decor_tex_2", x = 0.07, y = 0.44},
-    {image = "decor_tex_4", x = 0.95, y = 0.12},
+    {image = "decor_tex_1", x = 0.95, y = 0.12},
     {image = "decor_tex_1", x = 0.33, y = 0.67},
     {image = "decor_tex_5", x = 0.81, y = 0.73},
     {image = "decor_tex_3", x = 0.48, y = 0.21},
     {image = "decor_tex_2", x = 0.14, y = 0.9},
-    {image = "decor_tex_4", x = 0.62, y = 0.38},
+    {image = "decor_tex_1", x = 0.62, y = 0.38},
     {image = "decor_tex_1", x = 0.29, y = 0.52},
     {image = "decor_tex_5", x = 0.74, y = 0.31},
     {image = "decor_tex_3", x = 0.57, y = 0.08},
 
     {image = "decor_tex_2", x = 0.41, y = 0.6},
-    {image = "decor_tex_4", x = 0.88, y = 0.83},
+    {image = "decor_tex_1", x = 0.88, y = 0.83},
     {image = "decor_tex_1", x = 0.05, y = 0.27},
     {image = "decor_tex_5", x = 0.69, y = 0.49},
     {image = "decor_tex_3", x = 0.22, y = 0.75},
     {image = "decor_tex_2", x = 0.97, y = 0.41},
-    {image = "decor_tex_4", x = 0.53, y = 0.58},
+    {image = "decor_tex_1", x = 0.53, y = 0.58},
     {image = "decor_tex_1", x = 0.31, y = 0.14},
     {image = "decor_tex_5", x = 0.79, y = 0.66},
     {image = "decor_tex_3", x = 0.11, y = 0.37},
 
     {image = "decor_tex_2", x = 0.46, y = 0.95},
-    {image = "decor_tex_4", x = 0.83, y = 0.18},
+    {image = "decor_tex_1", x = 0.83, y = 0.18},
     {image = "decor_tex_1", x = 0.27, y = 0.7},
     {image = "decor_tex_5", x = 0.6, y = 0.26},
     {image = "decor_tex_3", x = 0.35, y = 0.82},
     {image = "decor_tex_2", x = 0.9, y = 0.54},
-    {image = "decor_tex_4", x = 0.16, y = 0.61},
+    {image = "decor_tex_1", x = 0.16, y = 0.61},
     {image = "decor_tex_1", x = 0.72, y = 0.09},
     {image = "decor_tex_5", x = 0.5, y = 0.45},
     {image = "decor_tex_3", x = 0.24, y = 0.97},
 
     {image = "decor_tex_2", x = 0.38, y = 0.19},
-    {image = "decor_tex_4", x = 0.86, y = 0.69},
+    {image = "decor_tex_1", x = 0.86, y = 0.69},
     {image = "decor_tex_1", x = 0.02, y = 0.48},
     {image = "decor_tex_5", x = 0.66, y = 0.87},
     {image = "decor_tex_3", x = 0.55, y = 0.33},
     {image = "decor_tex_2", x = 0.19, y = 0.8},
-    {image = "decor_tex_4", x = 0.93, y = 0.24},
+    {image = "decor_tex_1", x = 0.93, y = 0.24},
     {image = "decor_tex_1", x = 0.44, y = 0.57},
     {image = "decor_tex_5", x = 0.76, y = 0.11},
     {image = "decor_tex_3", x = 0.3, y = 0.64},
 
     {image = "decor_tex_2", x = 0.58, y = 0.04},
-    {image = "decor_tex_4", x = 0.99, y = 0.76},
+    {image = "decor_tex_1", x = 0.99, y = 0.76},
     {image = "decor_tex_1", x = 0.21, y = 0.55},
     {image = "decor_tex_5", x = 0.63, y = 0.2},
     {image = "decor_tex_3", x = 0.47, y = 0.89},
     {image = "decor_tex_2", x = 0.08, y = 0.68},
-    {image = "decor_tex_4", x = 0.82, y = 0.36},
+    {image = "decor_tex_1", x = 0.82, y = 0.36},
     {image = "decor_tex_1", x = 0.54, y = 0.13},
     {image = "decor_tex_5", x = 0.7, y = 0.59},
     {image = "decor_tex_3", x = 0.26, y = 0.42},
 
     {image = "decor_tex_2", x = 0.49, y = 0.77},
-    {image = "decor_tex_4", x = 0.87, y = 0.29},
+    {image = "decor_tex_1", x = 0.87, y = 0.29},
     {image = "decor_tex_1", x = 0.17, y = 0.93},
     {image = "decor_tex_5", x = 0.61, y = 0.4},
     {image = "decor_tex_3", x = 0.34, y = 0.17},
     {image = "decor_tex_2", x = 0.92, y = 0.62},
-    {image = "decor_tex_4", x = 0.23, y = 0.5},
+    {image = "decor_tex_1", x = 0.23, y = 0.5},
     {image = "decor_tex_1", x = 0.75, y = 0.07},
     {image = "decor_tex_5", x = 0.56, y = 0.84},
     {image = "decor_tex_3", x = 0.4, y = 0.28},
+}
 
-
+local TOWN_BUILDINGS = {
     -- HOUSES:
     {image = "bighouse", x = 0.8, y = 0.1},
     {image = "longhouse", x = 0.6, y = 0.0},
@@ -205,16 +253,36 @@ local TOWN_BUILDINGS = {
     {image = "town_board", x = 0.6, y = 0.55},
 }
 
+
 local seed = love.math.newRandomGenerator(889323)
 for i=1, 40 do
     local g = {image="grass"}
 end
 
 
+local GROUND_COLOR = objects.Color("#" .. "FF1DAE65")
+local DARK_COLOR = objects.Color("#" .. "FF20A362")
+local LIGHT_COLOR = objects.Color("#" .. "FF35BA64")
 
 ---@param self CustomizationScene
 ---@param reg kirigami.Region
 local function drawTown(self,reg)
+    lg.setColor(GROUND_COLOR)
+    lg.rectangle("fill", reg:get())
+
+    lg.setColor(DARK_COLOR)
+    for _,b in ipairs(TOWN_GROUND)do
+        local x = math.floor(reg.x + (reg.w*b.x))
+        local y = math.floor(reg.y + (reg.h*b.y))
+        g.drawImage(b.image, x,y, 0, 2,2)
+    end
+    lg.setColor(LIGHT_COLOR)
+    for _,b in ipairs(TOWN_GROUND_DETAIL)do
+        local x = math.floor(reg.x + (reg.w*b.x))
+        local y = math.floor(reg.y + (reg.h*b.y))
+        g.drawImage(b.image, x,y)
+    end
+    lg.setColor(1,1,1)
     for _,b in ipairs(TOWN_BUILDINGS)do
         local x = math.floor(reg.x + (reg.w*b.x))
         local y = math.floor(reg.y + (reg.h*b.y))
