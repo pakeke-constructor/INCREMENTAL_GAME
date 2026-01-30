@@ -110,7 +110,10 @@ function CustomSelect:draw(reg)
     self:drawItem(self.i+2, e:padRatio(0.3))
     self:drawItem(self.i-1, b:padRatio(0.2))
     self:drawItem(self.i+1, d:padRatio(0.2))
-    self:drawItem(self.i, c)
+    c = c:padUnit(-4, -1)
+    ui.drawPanel(c:get())
+    --helper.gradientRect("horizontal", COL2,COL1, c:padUnit(4):get())
+    self:drawItem(self.i, c:padRatio(0.2))
 
     if drawArrow(-1, left:get()) then
         self.i = helper.clamp(self.i - 1, 1,len)
