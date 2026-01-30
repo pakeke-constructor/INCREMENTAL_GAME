@@ -86,13 +86,6 @@ COSMETICS = [
     Cosmetic(id="yellow", name="Yellow", description="", image="yellow", type="BACKGROUND"),
     Cosmetic(id="zebra", name="Zebra", description="", image="zebra", type="BACKGROUND", rarity=2),
     # Cats
-    Cosmetic(
-        id="actuallyinvisiblecat",
-        name="Actually Invisible Cat",
-        description="",
-        image="actuallyinvisiblecat",
-        type="AVATAR", rarity = 2
-    ),
     Cosmetic(id="angelcat", name="Angel Cat", description="", image="angelcat", type="AVATAR"),
     Cosmetic(id="angrycat", name="Angry Cat", description="", image="angrycat", type="AVATAR"),
     Cosmetic(id="blackcat", name="Black Cat", description="", image="blackcat", type="AVATAR"),
