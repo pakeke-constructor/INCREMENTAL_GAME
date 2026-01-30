@@ -254,10 +254,24 @@ local TOWN_BUILDINGS = {
 }
 
 
-local seed = love.math.newRandomGenerator(889323)
-for i=1, 40 do
-    local g = {image="grass"}
+local GRASSES = {}
+local rng = love.math.newRandomGenerator(889323)
+for i=1, 70 do
+    local img = "grass_"..rng:random(1,3)
+    local g = {image=img, x=rng:random(), y=rng:random()}
+    local bad=false
+    for _,t in ipairs(TOWN_BUILDINGS)do
+        local dist = helper.magnitude(g.x-t.x, g.y-t.y)
+        if dist < 0.02 then
+            bad=true
+            break
+        end
+    end
+    if not bad then
+        table.insert(GRASSES, g)
+    end
 end
+
 
 
 local GROUND_COLOR = objects.Color("#" .. "FF1DAE65")
@@ -281,6 +295,16 @@ local function drawTown(self,reg)
         local x = math.floor(reg.x + (reg.w*b.x))
         local y = math.floor(reg.y + (reg.h*b.y))
         g.drawImage(b.image, x,y)
+    end
+    lg.setColor(1,1,1)
+    for i,b in ipairs(GRASSES)do
+        local x = math.floor(reg.x + (reg.w*b.x))
+        local y = math.floor(reg.y + (reg.h*b.y))
+        local scc = math.sin(i + love.timer.getTime()*2)/8
+        local quad = g.getImageQuad(b.image)
+        local _,_,w,h = quad:getViewport()
+        local oy = scc*h/2
+        g.drawImage(b.image, x,y-oy, 0, 1,1+scc, 0,0)
     end
     lg.setColor(1,1,1)
     for _,b in ipairs(TOWN_BUILDINGS)do
