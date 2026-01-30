@@ -121,6 +121,54 @@ jobs:
         if-no-files-found: error
         compression-level: 0
 
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: build-love
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+    
+    - name: Extract LOVE
+      run: build/linux/love.AppImage --appimage-extract
+
+    - name: Update Extracted AppImage
+      run: |
+        set -e
+
+        sudo chown -R $USER:$USER squashfs-root
+        mkdir -p squashfs-root/lib/lua/5.1
+        cp build/linux/luasteam.so squashfs-root/lib/lua/5.1/luasteam.so
+        cp build/linux/libsteam_api.so squashfs-root/lib/libsteam_api.so
+        rm squashfs-root/love.svg squashfs-root/love.desktop
+
+    - name: Download game.love Artifact
+      uses: actions/download-artifact@v5
+      with:
+        name: lovegame
+        # The artifact name is lovegame, contains 1 file: game.love
+
+    - name: Fuse
+      working-directory: squashfs-root
+      run: |
+        set -e
+
+        cat bin/love ../game.love > bin/catx11
+        rm bin/love
+        sed -i 's#$APPDIR/bin/love#$APPDIR/bin/catx11#' AppRun
+        chmod +x AppRun bin/catx11
+
+    - name: Tar
+      working-directory: squashfs-root
+      run: tar cvf ../game.tar *
+
+    - name: Artifact Linux Builds
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-build
+        path: game.tar
+        if-no-files-found: error
+        compression-level: 0
+
   publish-build:
     runs-on: ubuntu-latest
     needs: [build-love, build-windows]
@@ -175,7 +223,7 @@ jobs:
   publish-steam:
     runs-on: ubuntu-latest
     if: inputs.push_steam
-    needs: build-windows
+    needs: [build-windows, build-linux]
     steps:
     - name: Test Secrets Validity
       env:
@@ -187,6 +235,11 @@ jobs:
 
         if not (os.environ.get("STEAM_USERNAME") and os.environ.get("STEAM_CONFIG_VDF")):
           raise Exception("Secrets are improperly set up!")
+
+    - name: Prepare Build
+      run: |
+        set -e
+        mkdir -p build/win64 build/linux64
     
     - name: Download Windows Artifact
       uses: actions/download-artifact@v5
@@ -194,9 +247,17 @@ jobs:
         name: windows-build
 
     - name: Extract Windows Artifact
-      run: |
-        set -e
-        mkdir -p build/win64
+      working-directory: build/win64
+      run: 7z x ../../game.zip
+    
+    - name: Download Linux Artifact
+      uses: actions/download-artifact@v5
+      with:
+        name: linux-build
+
+    - name: Extract Linux Artifact
+      working-directory: build/linux64
+      run: tar xvf ../../game.tar
 
     - name: Publish to Steam
       uses: game-ci/steam-deploy@v3
@@ -210,4 +271,5 @@ jobs:
 
         rootPath: build
         depot1Path: win64
+        depot2Path: linux64
         releaseBranch: ${{ inputs.steam_release_branch }}
