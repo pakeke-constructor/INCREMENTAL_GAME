@@ -1,44 +1,33 @@
 ---@diagnostic disable: inject-field
 local hasluasteam, luasteam = pcall(require, "luasteam")
 
-local Steam
-if hasluasteam then
-    local lsinit = luasteam.init
-    local lsshutdown = luasteam.shutdown
-    Steam = {}
-    Steam.available = true
-    Steam.active = false
+local Steam = {
+    available = hasluasteam,
+    active = false
+}
 
-    function Steam.init()
-        local result = lsinit()
+function Steam.init()
+    if hasluasteam then
+        local result = luasteam.init()
         Steam.active = result
-        return result
     end
 
-    function Steam.shutdown()
-        lsshutdown()
+    return Steam.active
+end
+
+function Steam.shutdown()
+    if hasluasteam then
+        luasteam.shutdown()
         Steam.active = false
     end
+end
 
-    ---@return table?
-    function Steam.getSteam()
-        if Steam.available and Steam.active then
-            return luasteam
-        end
+function Steam.getSteam()
+    if hasluasteam then
+        return luasteam
     end
-else
-    Steam = {
-        available = false,
-        active = false,
-        init = function()
-            return false
-        end,
-        shutdown = function()
-        end,
-        getSteam = function()
-            return nil
-        end
-    }
+
+    return nil
 end
 
 return Steam

@@ -5,7 +5,7 @@ import pydantic
 
 from util import find_game_root
 
-from typing import Literal
+from typing import Literal, cast
 
 
 class Cosmetic(pydantic.BaseModel):
@@ -38,6 +38,18 @@ class Cosmetic(pydantic.BaseModel):
     """Image Y offset. Positive Y goes down. (Usage: In-Game)"""
 
     rarity: int = 0
+    """Rarity ID. See `RARITY` keys for possible rarities."""
+
+
+class Rarity(pydantic.BaseModel):
+    name: str
+    """Rarity Name"""
+
+    color: str
+    """Background Color"""
+
+    weight: int
+    """Rarity weight. Higher number means higher chance."""
 
 
 CHEST_ITEMDEF_ID = 1
@@ -49,9 +61,10 @@ COSMETIC_IMAGE_LARGE_FORMAT = "%(base_url)s/cosmetics/%(type)s/%(image)s_large.p
 
 # VERY IMPORTANT, READ THIS!!!!
 # If you add items, ALWAYS APPEND to this list.
-# PUT NEW COSMETICS ON THE BOTTOM AND DO NOT REORDER THIS LIST!!!!!
+# If you remove items, REPLACE THEM WITH `None` (DON'T REMOVE THEM!).
+# PUT NEW COSMETICS ON THE BOTTOM AND DO NOT REORDER NOR REMOVE ITEM FROM THIS LIST!!!!!
 # REORDERING THIS LIST CHANGES THE STEAM ITEMDEF ID!!!!!!! (REALLY BAD)
-COSMETICS = [
+COSMETICS: list[Cosmetic | None] = [
     # Backgrounds
     Cosmetic(id="black", name="Black", description="", image="black", type="BACKGROUND"),
     Cosmetic(id="blue", name="Blue", description="", image="blue", type="BACKGROUND"),
@@ -78,14 +91,40 @@ COSMETICS = [
     Cosmetic(id="tiger", name="Tiger", description="", image="tiger", type="BACKGROUND"),
     Cosmetic(id="whiteroom", name="Whiteroom", description="", image="whiteroom", type="BACKGROUND"),
     Cosmetic(id="woodframe", name="Wood Frame", description="", image="woodframe", type="BACKGROUND", rarity=1),
-    Cosmetic(id="woodframe_black", name="Black Wood Frame", description="", image="woodframe_black", type="BACKGROUND", rarity=1),
-    Cosmetic(id="woodframe_blue", name="Blue Wood Frame", description="", image="woodframe_blue", type="BACKGROUND", rarity=1),
-    Cosmetic(id="woodframe_green", name="Green Wood Frame", description="", image="woodframe_green", type="BACKGROUND", rarity=1),
-    Cosmetic(id="woodframe_red", name="Red Wood Frame", description="", image="woodframe_red", type="BACKGROUND", rarity=1),
-    Cosmetic(id="woodframe_white", name="White Wood Frame", description="", image="woodframe_white", type="BACKGROUND", rarity=1),
+    Cosmetic(
+        id="woodframe_black",
+        name="Black Wood Frame",
+        description="",
+        image="woodframe_black",
+        type="BACKGROUND",
+        rarity=1,
+    ),
+    Cosmetic(
+        id="woodframe_blue", name="Blue Wood Frame", description="", image="woodframe_blue", type="BACKGROUND", rarity=1
+    ),
+    Cosmetic(
+        id="woodframe_green",
+        name="Green Wood Frame",
+        description="",
+        image="woodframe_green",
+        type="BACKGROUND",
+        rarity=1,
+    ),
+    Cosmetic(
+        id="woodframe_red", name="Red Wood Frame", description="", image="woodframe_red", type="BACKGROUND", rarity=1
+    ),
+    Cosmetic(
+        id="woodframe_white",
+        name="White Wood Frame",
+        description="",
+        image="woodframe_white",
+        type="BACKGROUND",
+        rarity=1,
+    ),
     Cosmetic(id="yellow", name="Yellow", description="", image="yellow", type="BACKGROUND"),
     Cosmetic(id="zebra", name="Zebra", description="", image="zebra", type="BACKGROUND", rarity=2),
     # Cats
+    None,  # was Actually Invisible Cat
     Cosmetic(id="angelcat", name="Angel Cat", description="", image="angelcat", type="AVATAR"),
     Cosmetic(id="angrycat", name="Angry Cat", description="", image="angrycat", type="AVATAR"),
     Cosmetic(id="blackcat", name="Black Cat", description="", image="blackcat", type="AVATAR"),
@@ -124,7 +163,9 @@ COSMETICS = [
     Cosmetic(id="conehat", name="Cone Hat", description="", image="conehat", type="HAT", offset_y=6, rarity=1),
     Cosmetic(id="cowboyhat", name="Cowboy Hat", description="", image="cowboyhat", type="HAT", offset_y=6),
     Cosmetic(id="crown", name="Crown", description="", image="crown", type="HAT", offset_y=5, rarity=2),
-    Cosmetic(id="divinghelmet", name="Diving Helmet", description="", image="divinghelmet", type="HAT", offset_y=12, rarity=1),
+    Cosmetic(
+        id="divinghelmet", name="Diving Helmet", description="", image="divinghelmet", type="HAT", offset_y=12, rarity=1
+    ),
     Cosmetic(
         id="fishinghat", name="Fishing Hat", description="", image="fishinghat", type="HAT", offset_x=-0.5, offset_y=6
     ),
@@ -139,12 +180,15 @@ COSMETICS = [
         image="monkblindfold",
         type="HAT",
         offset_x=-0.5,
-        offset_y=8, rarity=2
+        offset_y=8,
+        rarity=2,
     ),
     Cosmetic(
         id="orangecap", name="Orange Cap", description="", image="orangecap", type="HAT", offset_x=1.5, offset_y=5
     ),
-    Cosmetic(id="pinkcap", name="Pink Cap", description="", image="pinkcap", type="HAT", offset_x=0.5, offset_y=9, rarity=1),
+    Cosmetic(
+        id="pinkcap", name="Pink Cap", description="", image="pinkcap", type="HAT", offset_x=0.5, offset_y=9, rarity=1
+    ),
     Cosmetic(
         id="piratehat", name="Pirate Hat", description="", image="piratehat", type="HAT", offset_x=-0.5, offset_y=6
     ),
@@ -152,7 +196,9 @@ COSMETICS = [
         id="rainbowcap", name="Rainbow Cap", description="", image="rainbowcap", type="HAT", offset_x=1.5, offset_y=5
     ),
     Cosmetic(id="redcap", name="Red Cap", description="", image="redcap", type="HAT", offset_x=1.5, offset_y=5),
-    Cosmetic(id="stache", name="Stache", description="", image="stache", type="HAT", offset_x=0.5, offset_y=13, rarity=1),
+    Cosmetic(
+        id="stache", name="Stache", description="", image="stache", type="HAT", offset_x=0.5, offset_y=13, rarity=1
+    ),
     Cosmetic(id="tinyhat", name="Tiny Hat", description="", image="tinyhat", type="HAT", offset_y=4),
     Cosmetic(id="tophat", name="Top Hat", description="", image="tophat", type="HAT", offset_y=5, rarity=2),
     Cosmetic(id="whitecap", name="White Cap", description="", image="whitecap", type="HAT", offset_x=1.5, offset_y=5),
@@ -161,6 +207,12 @@ COSMETICS = [
     ),
     # Add new items below, not above!
 ]
+
+RARITY = {
+    0: Rarity(name="Common", color="95BEED", weight=80),
+    1: Rarity(name="Rare", color="F2CF83", weight=15),
+    2: Rarity(name="Legendary", color="C7002E", weight=5),
+}
 
 
 class SteamItem(pydantic.BaseModel):
@@ -182,6 +234,8 @@ class SteamItem(pydantic.BaseModel):
     granted_manually: bool
     price: str | None = None
     exchange: str | None = None
+    auto_stack: bool | None = None
+    purchase_limit: int | None = None
 
 
 class SteamItemdef(pydantic.BaseModel):
@@ -199,25 +253,22 @@ def populate_localized(obj: object, prefix: str, kv: dict[str, str]):
         setattr(obj, f"{prefix}_{k}", v)
 
 
-
-RARITY_COLORS = {
-    0: "95BEED", # common
-    1: "F2CF83", # rare
-    2: "C7002E" # legendary
-}
-
-
 def main(root: pathlib.Path):
     # Generate Steam itemdef JSON
     with open(root / "steam_appid.txt", "r", encoding="utf-8") as f:
         appid = int(f.read())
 
-    cosmetic_items: list[SteamItem] = []
-    for itemdefid, cosmetic in enumerate(COSMETICS, COSMETIC_ITEMDEF_ID_START + 1):
+    # This has to be dict, the key is the indices in COSMETICS list.
+    cosmetic_items: dict[int, SteamItem] = {}
+
+    for i, cosmetic in enumerate(COSMETICS):
+        if cosmetic is None:
+            continue
+
         format = {"base_url": BASE_IMAGE_URL, "type": cosmetic.type, "image": cosmetic.id}
-        col = RARITY_COLORS[cosmetic.rarity]
+        rarity = RARITY[cosmetic.rarity]
         si = SteamItem(
-            itemdefid=itemdefid,
+            itemdefid=i + COSMETIC_ITEMDEF_ID_START + 1,
             type="item",
             name=cosmetic.name if isinstance(cosmetic.name, str) else cosmetic.name["english"],
             description=(
@@ -229,15 +280,38 @@ def main(root: pathlib.Path):
             tradable=True,
             marketable=True,
             granted_manually=True,
-            background_color=col,
-            name_color=col,
+            background_color=rarity.color,
+            name_color=rarity.color,
             price="1;VLV25",  # Change this if needed
+            auto_stack=True,
         )
         if isinstance(cosmetic.name, dict):
             populate_localized(si, "name", cosmetic.name)
         if isinstance(cosmetic.description, dict):
             populate_localized(si, "name", cosmetic.description)
-        cosmetic_items.append(si)
+        cosmetic_items[i] = si
+
+    rarity_chest = {
+        k: SteamItem(
+            itemdefid=i,
+            type="generator",
+            bundle=";".join(
+                f"{cobj.itemdefid}x1"
+                for ci, cobj in cosmetic_items.items()
+                if cast(Cosmetic, COSMETICS[ci]).rarity == k
+            ),
+            name=f"{v.name} Chest Generator",
+            description=f"{v.name} Chest Generator",
+            icon_url=f"{BASE_IMAGE_URL}/cosmetics/chest.png",
+            icon_url_large=f"{BASE_IMAGE_URL}/cosmetics/chest_large.png",
+            tradable=False,
+            marketable=False,
+            granted_manually=True,
+            background_color="FFFFFF",
+            name_color="FFFFFF",
+        )
+        for i, (k, v) in enumerate(RARITY.items(), CHEST_GENERATOR_ITEMDEF_ID + 1)
+    }
 
     steam_itemdef = SteamItemdef(
         appid=appid,
@@ -254,11 +328,12 @@ def main(root: pathlib.Path):
                 granted_manually=True,
                 background_color="FFFFFF",
                 name_color="FFFFFF",
+                auto_stack=True,
             ),
             SteamItem(
                 itemdefid=CHEST_GENERATOR_ITEMDEF_ID,
                 type="generator",
-                bundle=";".join(f"{c.itemdefid}x1" for c in cosmetic_items),
+                bundle=";".join(f"{c.itemdefid}x{RARITY[i].weight}" for i, c in rarity_chest.items()),
                 name="Chest Generator",
                 description="Cosmetic Chest Generator",
                 icon_url=f"{BASE_IMAGE_URL}/cosmetics/chest.png",
@@ -270,7 +345,8 @@ def main(root: pathlib.Path):
                 background_color="FFFFFF",
                 name_color="FFFFFF",
             ),
-            *cosmetic_items,
+            *rarity_chest.values(),
+            *cosmetic_items.values(),
         ],
     )
     with open(root / "steamitemdef.json", "w", encoding="utf-8") as f:
@@ -286,6 +362,9 @@ def main(root: pathlib.Path):
         f.write("    local map = {}")
 
         for itemdefid, c in enumerate(COSMETICS, COSMETIC_ITEMDEF_ID_START + 1):
+            if c is None:
+                continue
+
             tabledef: list[str] = []
             if c.image != c.id:
                 tabledef.append(f"image = {c.image!r}")

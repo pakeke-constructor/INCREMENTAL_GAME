@@ -232,12 +232,10 @@ function love.load(arg)
     if simulation.isSimulating() then
         sceneManager.gotoScene("harvest_scene")
     else
-        local steamid = "0"
+        local steamid = nil
         if Steam.init() then
-            local luasteam = Steam.getSteam()
-            if luasteam then
-                steamid = tostring(luasteam.user.getSteamID())
-            end
+            local luasteam = assert(Steam.getSteam())
+            steamid = tostring(luasteam.user.getSteamID())
         end
 
         analytics.init(steamid)
@@ -280,7 +278,7 @@ function love.update(dt)
     prof_push("love.update")
 
     asynchttp.update()
-    local luasteam = Steam.getSteam() 
+    local luasteam = Steam.getSteam()
     if luasteam then
         luasteam.runCallbacks()
     end

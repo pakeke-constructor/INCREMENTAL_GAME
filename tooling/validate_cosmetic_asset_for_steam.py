@@ -27,7 +27,7 @@ async def main():
 
     async with httpx.AsyncClient() as client:
         with tqdm.tqdm(total=len(COSMETICS) * 2, unit="image") as pbar:
-            for cosmetic in COSMETICS:
+            for cosmetic in filter(None, COSMETICS):
                 format = {"base_url": BASE_IMAGE_URL, "type": cosmetic.type, "image": cosmetic.id}
 
                 if not await validate(client, COSMETIC_IMAGE_FORMAT % format):
