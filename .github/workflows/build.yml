@@ -7,6 +7,18 @@ on:
         required: false
         type: boolean
         default: false
+      push_steam:
+        description: Push to Steam?
+        required: false
+        type: boolean
+        default: false
+      steam_build_description:
+        description: 'Version description. Must be of the form 0.0.0'  
+        required: false
+      steam_release_branch: 
+        description: 'Steam release branch'
+        required: false
+        default: 'prerelease'
 
 jobs:
   build-love:
@@ -88,10 +100,18 @@ jobs:
 
     - name: Fuse
       run: copy /b build\windows\love_manifested.exe+game.love love\love-12.0-win64\game.exe
+    
+    - name: Copy Dependent DLLs
+      run: |
+        copy build\windows\luasteam.dll love\love-12.0-win64\luasteam.dll || exit /b 1
+        copy build\windows\steam_api64.dll love\love-12.0-win64\steam_api64.dll || exit /b 1
 
     - name: Archive Game
       working-directory: love/love-12.0-win64
-      run: 7z a -mx9 ..\..\game.zip *
+      run: |
+        del game.ico || exit /b 1
+        del love.ico || exit /b 1
+        7z a -mx9 ..\..\game.zip * || exit /b 1
 
     - name: Artifact Windows Builds
       uses: actions/upload-artifact@v4
@@ -151,3 +171,43 @@ jobs:
         ITCH_GAME: incremental-game-1
         ITCH_USER: codetheory
         PACKAGE: game.zip
+
+  publish-steam:
+    runs-on: ubuntu-latest
+    if: inputs.push_steam
+    needs: build-windows
+    steps:
+    - name: Test Secrets Validity
+      env:
+        STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+        STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF}}
+      shell: python
+      run: |
+        import os
+
+        if not (os.environ.get("STEAM_USERNAME") and os.environ.get("STEAM_CONFIG_VDF")):
+          raise Exception("Secrets are improperly set up!")
+    
+    - name: Download Windows Artifact
+      uses: actions/download-artifact@v5
+      with:
+        name: windows-build
+
+    - name: Extract Windows Artifact
+      run: |
+        set -e
+        mkdir -p build/win64
+
+    - name: Publish to Steam
+      uses: game-ci/steam-deploy@v3
+      continue-on-error: false
+      with:
+        username: ${{ secrets.STEAM_USERNAME }}
+        configVdf: ${{ secrets.STEAM_CONFIG_VDF}}
+
+        appId: 4173020
+        buildDescription: ${{ inputs.steam_build_description }}
+
+        rootPath: build
+        depot1Path: win64
+        releaseBranch: ${{ inputs.steam_release_branch }}
