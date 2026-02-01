@@ -9,7 +9,7 @@ if isMobile then
 end
 
 function _G.love.conf(t)
-    t.identity = nil                    -- The name of the save directory (string)
+    t.identity = "catx11"                    -- The name of the save directory (string)
     t.appendidentity = false            -- Search files in source directory before save directory (boolean)
     -- t.version = we are using "12.0"                  -- The LÖVE version this game was made for (string)
     t.console = true                    -- Attach a console (boolean, Windows only)
