@@ -18,6 +18,7 @@ function _G.love.conf(t)
     t.highdpi = true                   -- Enable high-dpi mode for the window on a Retina display (boolean)
 
     t.graphics.gammacorrect = false              -- Enable gamma-correct rendering, when supported by the system (boolean)
+    t.graphics.excluderenderers = {"vulkan"}
 
     t.audio.mic = false                 -- Request and use microphone capabilities in Android (boolean)
     t.audio.mixwithsystem = true        -- Keep background music playing when opening LOVE (boolean, iOS and Android only)
