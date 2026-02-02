@@ -2,6 +2,7 @@
 -- Includes doing first-time (login) bonus, getting friend code, and entering friend code.
 
 local asynchttp = require("src.modules.asynchttp.asynchttp")
+local cosmetics = require("src.cosmetics.cosmetics")
 local SteamTicket = require("src.steam.ticket")
 
 local User = {}
@@ -15,16 +16,16 @@ function User.init()
     end
 
     SteamTicket.request(function(ticket, err)
-        print("ticket request", err)
         if ticket and err == "OK" then
-            print("got ticket", ticket:getHexTicket())
-
             asynchttp.request(function(code, body)
-                print("user init", code, body)
                 if code == 200 then
                     local jsondata = json.decode(body)
+                    local steamid = assert(Steam.getSteam()).user.getSteamID()
+                    assert(jsondata.steam_id == tostring(steamid), "?")
                     hasSubmittedCode = jsondata.has_used_code --[[@as boolean]]
                     friendCode = jsondata.friend_code --[[@as string]]
+
+                    cosmetics.tryRefresh()
                 end
 
                 ticket:destroy()
@@ -62,6 +63,8 @@ function User.submitFriendCode(friendcode, callback)
             asynchttp.request(function(code, body)
                 if code == 200 then
                     local jsondata = json.decode(body)
+                    local steamid = assert(Steam.getSteam()).user.getSteamID()
+                    assert(jsondata.steam_id == tostring(steamid), "?")
                     hasSubmittedCode = jsondata.has_used_code --[[@as boolean]]
                     friendCode = jsondata.friend_code --[[@as string]]
                 end

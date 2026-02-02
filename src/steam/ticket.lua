@@ -63,7 +63,7 @@ function Ticket.request(callback)
     local ticketHandle = luasteam.user.getAuthTicketForWebApi(consts.ANALYTICS_IDENTITY)
 
     if ticketHandle then
-        ticketCallbacks[ticketHandle] = callback
+        ticketCallbacks[ticketHandle.ticket] = callback
     end
 end
 
