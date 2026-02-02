@@ -134,11 +134,11 @@ end
 
 
 
-local CAST_ROD = "{o}{c r=0.7 g=0.8 b=1}"..loc("Fish!").."{/c}{/o}"
-local WAITING_FOR_FISH = "{o}{c r=0.7 g=0.8 b=1}"..loc("Waiting for fish...").."{/c}{/o}"
+local CAST_ROD = "{wavy}{o}{c r=0.7 g=0.8 b=1}"..loc("Cast Rod!", {}, {context = "prompting player to cast a fishing rod"}).."{/c}{/o}{/wavy}"
+local WAITING_FOR_FISH = "{wavy}{o}{c r=0.7 g=0.8 b=1}"..loc("Waiting for fish...").."{/c}{/o}"
 
 local CATCH_SUCCESS = "{o}{c r=0.7 g=0.8 b=1}"..loc("CAUGHT!").."{/c}{/o}"
-local CATCH_FAILED = "{o}{c r=0.9 g=0.2 b=0.1}"..loc("FAILED!").."{/c}{/o}"
+local CATCH_FAILED = "{wavy}{o}{c r=0.9 g=0.2 b=0.1}"..loc("FAILED!").."{/c}{/o}"
 
 local HIRE_FISHERCAT = "{o}{c r=0.7 g=0.8 b=1}"..loc("Hire fishercat!").."{/c}{/o}"
 
@@ -150,6 +150,33 @@ local function getFisherCatPrice()
 end
 
 
+
+local GOLD = objects.Color("#".."FFFAE06B")
+
+local POPUP_FADE_IN_TIME = 0.25
+
+---@param self FishingScene
+local function drawCatchFishPopup(self)
+    local t = self.timeSinceCatch
+    local ratio = math.min(t / POPUP_FADE_IN_TIME, 1)
+
+    local r = ui.getScreenRegion()
+        :padRatio(math.max(POPUP_FADE_IN_TIME - t, 0))
+
+    local txt, body = r:splitVertical(1,4)
+
+    richtext.printRichContained(CATCH_SUCCESS, g.getSmallFont(16), txt:get())
+
+    local x,y = body:getCenter()
+    godrays.drawRays(x,y, love.timer.getTime() * 2.5, {
+        rayCount = 5,
+        color = GOLD,
+        startWidth = 30,
+        length = 300 * ratio,
+        fadeTo = 0.0,
+        divisions = 40
+    })
+end
 
 
 function fishing:drawUI()
@@ -165,7 +192,7 @@ function fishing:drawUI()
         :attachToBottomOf(r)
         :attachToRightOf(r)
         :moveRatio(-1,-1)
-        :padRatio(0.1)
+        :padRatio(0.2)
 
     local _, bot = buttonR:splitVertical(1,1)
     local left,right = bot:splitHorizontal(1,1)
@@ -179,9 +206,9 @@ function fishing:drawUI()
     if self.timeSinceCatch < 1.25 then
         lg.setColor(1,1,1)
         if self.catchSuccess then
-            richtext.printRichContained(CATCH_SUCCESS, g.getSmallFont(16), buttonR:get())
+            drawCatchFishPopup(self)
         else
-            richtext.printRichContained(CATCH_FAILED, g.getSmallFont(16), buttonR:get())
+            richtext.printRichContained(CATCH_FAILED, g.getSmallFont(16), buttonR:padRatio(0.4):get())
         end
 
     elseif self.mainCat.state == "idle" then

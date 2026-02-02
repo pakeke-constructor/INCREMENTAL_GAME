@@ -127,6 +127,7 @@ end)
 ---@field public price g.Bundle?
 ---@field public zoomOx number? zoom offsets, if we wanna zoom to a particular pos
 ---@field public zoomOy number? 
+---@field public disabled boolean? Whether to disable this POI
 
 ---@class (exact) _POI: _POI.Def
 ---@field public type string
@@ -156,6 +157,9 @@ end
 ---@return boolean
 local function isUnlocked(poiId)
     local def = assert(POI[poiId])
+    if def.disabled then
+        return false
+    end
     if not def.price then
         return true -- no price => unlocked
     end
@@ -180,6 +184,7 @@ definePOI("upgrade", "Upgrade", {
     zoomOx = -2, zoomOy = 18
 })
 definePOI("fishing", "Fish", {
+    disabled = true,
     scene = "fishing_scene",
     x = 236, y = 82, w = 142, h = 74,
     highlight = {"fishingarea_buildings", "fishingarea_dock"},
@@ -540,7 +545,7 @@ function map:draw()
                 }
                 g.playUISound("map_zoom_woosh3",1,0.4)
             end
-        else
+        elseif not poi.disabled then
             local buyText = ""
 
             for _, resId in ipairs(g.RESOURCE_LIST) do
