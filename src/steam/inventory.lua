@@ -14,23 +14,12 @@ function Inventory.init()
         function luasteam.inventory.onSteamInventoryResultReady(data)
             local cb = inventoryCallbacks[data.handle]
 
-            local tempobj = {destroyed = false}
-            function tempobj:__gc()
-                if not tempobj.destroyed then
-                    luasteam.inventory.destroyResult(data.handle)
-                    tempobj.destroyed = true
-                end
-            end
-            -- In case of callback error, tempobj:__gc call below won't be called.
-            -- So, make a temp proxy so it calls `__gc`.
-            tempobj.proxy = newproxy(tempobj)
-
             if cb then
                 inventoryCallbacks[data.handle] = nil
                 cb(data.result, data.handle)
             end
 
-            tempobj:__gc() -- destroy manually if possible
+            luasteam.inventory.destroyResult(data.handle)
         end
     end
 end
