@@ -1,4 +1,3 @@
----@diagnostic disable: inject-field
 local hasluasteam, luasteam = pcall(require, "luasteam")
 
 local Steam = {
@@ -23,7 +22,7 @@ function Steam.shutdown()
 end
 
 function Steam.getSteam()
-    if hasluasteam then
+    if hasluasteam and Steam.active then
         return luasteam
     end
 
