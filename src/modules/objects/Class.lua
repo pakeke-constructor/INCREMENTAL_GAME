@@ -36,6 +36,11 @@ local function newObj(class, ...)
     if type(obj.init) == "function" then
         obj:init(...)
     end
+    if type(obj.__gc) == "function" and rawget(_G, "newproxy") then
+        obj.__gcobj = newproxy {
+            __gc = function() return obj:__gc() end
+        }
+    end
     return obj
 end
 
