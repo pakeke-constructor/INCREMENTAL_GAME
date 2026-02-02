@@ -199,7 +199,9 @@ TESTS END
 
 local sceneManager = require("src.scenes.sceneManager")
 local cosmetics = require("src.cosmetics.cosmetics")
-local steamInventory = require("src.steam.inventory")
+local SteamTicket = require("src.steam.ticket")
+local SteamInventory = require("src.steam.inventory")
+local User = require("src.user")
 local bgm = require("src.sound.bgm")
 local sfx = require("src.sound.sfx")
 local emulation = nil
@@ -247,7 +249,9 @@ function love.load(arg)
     _isloadtime = false
 
     love.window.setFullscreen(settings.isFullscreen())
-    steamInventory.init()
+    SteamInventory.init()
+    SteamTicket.init()
+    User.init()
     cosmetics.init()
 
     if heartbeat then
