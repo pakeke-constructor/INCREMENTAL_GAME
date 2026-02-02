@@ -198,6 +198,8 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local cosmetics = require("src.cosmetics.cosmetics")
+local steamInventory = require("src.steam.inventory")
 local bgm = require("src.sound.bgm")
 local sfx = require("src.sound.sfx")
 local emulation = nil
@@ -245,6 +247,8 @@ function love.load(arg)
     _isloadtime = false
 
     love.window.setFullscreen(settings.isFullscreen())
+    steamInventory.init()
+    cosmetics.init()
 
     if heartbeat then
         heartbeat:StartCapture()
