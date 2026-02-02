@@ -15,6 +15,7 @@ local consts = {
     -- How long it should take before sending "update" event to analytics server (in seconds)?
     ANALYTICS_UPDATE_INTERVAL = 60,
     GAME_VERSION = 0,
+    ANALYTICS_IDENTITY = "incremental_game",
 
     FILE_LOG_LEVEL = "warn",
     CONSOLE_LOG_LEVEL = "trace",
@@ -57,6 +58,7 @@ local consts = {
     DEFAULT_CAT_AVATAR = "cat",
     DEFAULT_BACKGROUND_AVATAR = "white",
     DEFAULT_SCYTHE = "starting_scythe",
+    STEAM_CHEST_ITEMDEFID = 1,
 
     ORBIT_RING_DISTANCE = 20, -- Radius of each orbit ring.
 
