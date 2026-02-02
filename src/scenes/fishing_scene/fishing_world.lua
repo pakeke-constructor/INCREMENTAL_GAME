@@ -17,7 +17,7 @@ FishingWorld.FISHING_RARITIES = {
 
 local img = love.graphics.newImage("src/scenes/fishing_scene/fishing_wharf.png")
 
-local WHARF_IMAGE_REGION = Kirigami(169,148, 124,56)
+local WHARF_IMAGE_REGION = Kirigami(175,150, 96,54)
 
 
 FishingWorld.MAX_FISHERCATS = 4
@@ -28,7 +28,7 @@ FishingWorld.MAX_ROD_LEVEL = 9
 ---@param self FishingWorld
 ---@return number,number
 local function getImagePos(self)
-    local ix = -self.worldArea.w/2 - 20
+    local ix = -self.worldArea.w/2
     local iy = -self.worldArea.h/2
     return ix,iy
 end
@@ -56,7 +56,7 @@ function FishingWorld:getWharfArea()
     local x,y = getImagePos(self)
     return WHARF_IMAGE_REGION
         :moveUnit(x,y)
-        :padRatio(0.3)
+        :padRatio(0.1)
 end
 
 
