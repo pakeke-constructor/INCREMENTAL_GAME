@@ -257,8 +257,11 @@ local LIGHT_COLOR = objects.Color("#" .. "FF35BA64")
 ---@param reg kirigami.Region
 local function drawTown(self,reg)
     lg.setColor(GROUND_COLOR)
+    lg.setStencilMode("draw", 4)
+    lg.setColorMask(true, true, true, true)
     lg.rectangle("fill", reg:get())
 
+    lg.setStencilMode("test", 4)
     lg.setColor(DARK_COLOR)
     for _,b in ipairs(TOWN_GROUND)do
         local x = math.floor(reg.x + (reg.w*b.x))
@@ -287,6 +290,7 @@ local function drawTown(self,reg)
         local y = math.floor(reg.y + (reg.h*b.y))
         g.drawImage(b.image, x,y)
     end
+    lg.setStencilMode()
 end
 
 
