@@ -244,5 +244,44 @@ function cosmetics.getChestCount()
 end
 
 
+---Open one cosmetic chest.
+---@param callback fun(success:boolean, cosmetic:string?) The unlocked cosmetic ID is passed or nil on failure.
+function cosmetics.openChest(callback)
+    if CHEST_COUNT <= 0 or not CHEST_ITEMID then
+        return callback(false)
+    end
+
+    local luasteam = Steam.getSteam()
+    if not luasteam then
+        return callback(false)
+    end
+
+    steamInventory.exchangeItems(consts.STEAM_CHEST_GENERATOR_ITEMDEFID, {[CHEST_ITEMID] = 1}, function(result, handle)
+        if result == "OK" then
+            CHEST_COUNT = CHEST_COUNT - 1
+            local items = luasteam.inventory.getResultItems(handle)
+
+            if items then
+                for _, item in ipairs(items) do
+                    -- TODO: Remove this later. This is debugging only.
+                    print("=====")
+                    table.foreach(item, print)
+
+                    if item.definition == consts.STEAM_CHEST_ITEMDEFID then
+                        CHEST_COUNT = item.quantity
+                        CHEST_ITEMID = item.id
+                    elseif STEAM_ITEMDEF_MAP[item.definition] then
+                        COSMETIC_UNLOCKS:add(STEAM_ITEMDEF_MAP[item.definition])
+                        callback(true, STEAM_ITEMDEF_MAP[item.definition])
+                    end
+                end
+            end
+
+            cosmetics.tryRefresh()
+        end
+    end)
+end
+
+
 
 return cosmetics

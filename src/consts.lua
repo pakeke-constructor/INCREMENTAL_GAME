@@ -58,7 +58,10 @@ local consts = {
     DEFAULT_CAT_AVATAR = "cat",
     DEFAULT_BACKGROUND_AVATAR = "white",
     DEFAULT_SCYTHE = "starting_scythe",
+
+    -- Make sure to sync these 2 with `tooling/make_cosmetics.py`
     STEAM_CHEST_ITEMDEFID = 1,
+    STEAM_CHEST_GENERATOR_ITEMDEFID = 2, -- CHEST_GENERATOR_ITEMDEF_ID = CHEST_ITEMDEF_ID + 1
 
     ORBIT_RING_DISTANCE = 20, -- Radius of each orbit ring.
 
