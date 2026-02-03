@@ -2331,7 +2331,12 @@ end
 local cosmetics = require("src.cosmetics.cosmetics")
 
 g.getCosmeticInfo = cosmetics.getInfo
-g.getUnlockedCosmetics = cosmetics.getUnlocked
+---@param typeFilter? "BACKGROUND"|"HAT"|"AVATAR"
+function g.getUnlockedCosmetics(typeFilter)
+    local t = cosmetics.getUnlocked(typeFilter)
+    table.sort(t)
+    return t
+end
 
 g.drawAvatar = cosmetics.drawAvatar
 g.drawPlayerAvatar = cosmetics.drawPlayerAvatar
