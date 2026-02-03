@@ -9,7 +9,7 @@ local CLOUD_IMAGES = {
     {"bigcloud_bosszone", 1},
     {"bigcloud_emptyzone", 1},
     {"bigcloud_fishingzone", 1},
-    {"bigcloud_chestzone", 1},
+    {"bigcloud_minigamezone", 1},
     {"bigcloud_questzone", 1},
     {"bigcloud_upgradezone", 1},
     {"smallcloud_dot", 3},
