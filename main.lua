@@ -290,6 +290,7 @@ function love.update(dt)
     if luasteam then
         luasteam.runCallbacks()
     end
+    achievements.update()
     sfx.update()
     bgm.update(dt, settings.getBGMVolume() / 100)
     iml.setPointer(love.mouse.getPosition())
