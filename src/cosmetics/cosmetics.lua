@@ -189,26 +189,23 @@ end
 function cosmetics.init()
     ensureLoaded()
 
-    assert(love.filesystem.createDirectory("cosmeticcache"))
     local luasteam = Steam.getSteam()
     if luasteam then
-        -- Load cached cosmetics unlocks
-        local steamid = tostring(luasteam.user.getSteamID())
-        local path = "cosmeticcache/"..steamid..".json"
-        if love.filesystem.getInfo(path, "file") then
-            local read = love.filesystem.read(path)
-            if read then
-                local ok, jsondata = pcall(json.decode, read)
-                if ok then
-                    for _, cosmeticid in ipairs(jsondata) do
-                        COSMETIC_UNLOCKS:add(cosmeticid)
-                    end
+        -- Try refresh
+        cosmetics.tryRefresh()
+    end
+
+    -- Load cached cosmetics unlocks
+    if love.filesystem.getInfo("cosmeticcache.json", "file") then
+        local read = love.filesystem.read("cosmeticcache.json")
+        if read then
+            local ok, jsondata = pcall(json.decode, read)
+            if ok then
+                for _, cosmeticid in ipairs(jsondata) do
+                    COSMETIC_UNLOCKS:add(cosmeticid)
                 end
             end
         end
-
-        -- Try refresh
-        cosmetics.tryRefresh()
     end
 end
 
@@ -233,6 +230,9 @@ function cosmetics.tryRefresh()
                         end
                     end
                 end
+
+                -- Save cosmetics unlocks cache
+                love.filesystem.write("cosmeticcache.json", json.encode(COSMETIC_UNLOCKS:totable()))
             end
         end)
     end
