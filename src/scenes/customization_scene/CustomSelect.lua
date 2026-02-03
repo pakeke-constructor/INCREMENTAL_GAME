@@ -40,25 +40,6 @@ function CustomSelect:setItems(items)
 end
 
 
-local function arrow(direction, x,y,w,h)
-    local tipX, baseX
-    if direction == 1 then
-        -- Pointing Right: Tip is at the right edge, base is at the left
-        tipX = x + w
-        baseX = x
-    else
-        -- Pointing Left: Tip is at the left edge, base is at the right
-        tipX = x
-        baseX = x + w
-    end
-    love.graphics.polygon('fill',
-        tipX,  y + h / 2,  -- The Tip (centered vertically)
-        baseX, y,          -- Top corner of the base
-        baseX, y + h       -- Bottom corner of the base
-    )
-end
-
-
 ---Draws an arrow within a bounding box
 ---@param direction number -1 for left, 1 for right
 ---@param x number Top-left x

@@ -9,53 +9,9 @@ local cosmetics = require("src.cosmetics.cosmetics")
 
 
 
-
-local COSMETIC_TILE_SIZE = 48
-local COSMETIC_PADDING = 4
-local COSMETIC_COLUMNS = 4
-local COSMETIC_ROWS = 5
-
-local CATEGORY_SIZE = 40
-local CATEGORY_DIVIDER = 8
-
 local AVATAR_SCALE = 8
 
 
-local CATEGORIES = {
-    {"All", "cosmetic_category_all"},
-    {"Cats", "cosmetic_category_cats"},
-    {"Backgrounds", "cosmetic_category_backgrounds"},
-    {"Hats", "cosmetic_category_hats"}
-}
-local CATEGORY_COLOR = {
-    -- boolean is if the category is active
-    -- 1st value is the area color, 2nd value is the icon color
-    [true] = {objects.Color.WHITE, objects.Color("#".."FF797568")},
-    [false] = {objects.Color.TRANSPARENT, objects.Color.WHITE}
-}
-local SELECTED_COLOR = {
-    AVATAR = objects.Color("#".."FFDEBAE7"),
-    BACKGROUND = objects.Color("#".."FFB1D8EA"),
-    HAT = objects.Color("#".."FFEAB5B1"),
-}
-
-local SCROLLBAR_BACKGROUND = objects.Color("#".."40FFFFFF")
-local SCROLLBAR_COLOR = objects.Color("#".."90C9DE75")
-
----@param categoryId integer
-local function getWornCosmeticId(categoryId)
-    local s = g.getSn()
-
-    if categoryId == 2 then
-        return s.avatar.avatar
-    elseif categoryId == 3 then
-        return s.avatar.background
-    elseif categoryId == 4 then
-        return s.avatar.hat
-    end
-
-    return nil
-end
 
 local function getHats()
     local hats = g.getUnlockedCosmetics("HAT")
@@ -75,9 +31,6 @@ function custom:init()
         objects.Color("#".."FF090372"),
         objects.Color("#".."FF2B6CB6")
     )
-    self.activeCategory = 2
-    self.rowOffset = 0
-    self.scrollbarClicked = false
 
     self.bgSelect = CustomSelect(g.getUnlockedCosmetics("BACKGROUND"), function (item, reg)
         local cinfo = g.getCosmeticInfo(item)
@@ -128,28 +81,6 @@ function custom:enter()
         end
     end
 end
-
-
----@param cinfo g.CosmeticInfo
-local function isCosmeticSelected(cinfo)
-    local s = g.getSn()
-
-    if cinfo.type == "AVATAR" then
-        return s.avatar.avatar == cinfo.id
-    elseif cinfo.type == "BACKGROUND" then
-        return s.avatar.background == cinfo.id
-    elseif cinfo.type == "HAT" then
-        return s.avatar.hat == cinfo.id
-    end
-end
-
----@type (fun(cinfo:g.CosmeticInfo):boolean)[]
-local filters = {
-    function(cinfo) return true end, -- All
-    function(cinfo) return cinfo.type == "AVATAR" end, -- Cats
-    function(cinfo) return cinfo.type == "BACKGROUND" end, -- Backgrounds
-    function(cinfo) return cinfo.type == "HAT" end, -- Hats
-}
 
 
 
@@ -300,7 +231,7 @@ local TOWN_BUILDINGS = {
 
 local GRASSES = {}
 local rng = love.math.newRandomGenerator(889323)
-for i=1, 70 do
+for _=1, 70 do
     local img = "grass_"..rng:random(1,3)
     local g = {image=img, x=rng:random(), y=rng:random()}
     local bad=false
@@ -421,11 +352,6 @@ function custom:draw()
     self:_drawUI(bot)
     self:renderPause()
     ui.endUI()
-end
-
-function custom:wheelmoved(dx, dy)
-    local dir = helper.sign(dy)
-    self.rowOffset = self.rowOffset - dir
 end
 
 function custom:keyreleased(k)
