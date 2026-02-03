@@ -191,9 +191,8 @@ definePOI("fishing", "Fish", {
     tx = 323, ty = 100, tcolor = objects.Color("#".."FF14A0CD"),
     price = {money = 5000},
 })
-definePOI("minigame", "Minigames", {
-    -- TODO: scene
-    scene = "",
+definePOI("minigame", "Chests and Rewards!", {
+    scene = "chest_scene",
     x = 121, y = 246, w = 109, h = 93,
     highlight = {"carnivalarea_attractions"},
     tx = 188, ty = 277, tcolor = objects.Color("#".."FFE65AE6"),
