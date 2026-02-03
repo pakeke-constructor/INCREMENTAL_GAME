@@ -322,6 +322,23 @@ local INSTANT_REWARDS = {
                 e.lifetime = 15
             end
         end
+    },
+    bomber_cats = {
+        type = "instant",
+        icon = "demolition_cat",
+        name = "{c r=0.9 b=0.6 g=0.2}" .. loc "Bomber Cats!",
+        description = loc("Temporarily hire cats with bombs for 15 seconds!", {
+            context = "Cats that run around map temporarily, dropping bombs and harvesting crops"
+        }),
+        func = function()
+            local w,h = g.getWorldDimensions()
+            for i=1,8 do
+                local x = helper.lerp(20,w-20, love.math.random())
+                local y = helper.lerp(20,h-20, love.math.random())
+                local e = g.spawnEntity("demolition_cat", x,y)
+                e.lifetime = 15
+            end
+        end
     }
 }
 
@@ -598,6 +615,12 @@ function rewards.generateRandomRewards()
                 makePermanentReward("flat_2_more_damage"),
                 makePermanentReward("flat_1_more_speed"),
                 makePermanentReward("flat_2_more_area")
+            }
+        elseif sn.level == 4 then
+            return {
+                INSTANT_REWARDS.explosion_swarm,
+                INSTANT_REWARDS.knife_swarm,
+                INSTANT_REWARDS.scythe_swarm,
             }
         end
     end
