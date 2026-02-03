@@ -23,27 +23,20 @@ function CustomSelect:init(items, onDraw)
 end
 
 
+---@param items any[]
 function CustomSelect:setItems(items)
+    local selected = self:getSelected()
     self.items = items
-end
 
-
-local function arrow(direction, x,y,w,h)
-    local tipX, baseX
-    if direction == 1 then
-        -- Pointing Right: Tip is at the right edge, base is at the left
-        tipX = x + w
-        baseX = x
-    else
-        -- Pointing Left: Tip is at the left edge, base is at the right
-        tipX = x
-        baseX = x + w
+    -- Update indices to new item indices
+    for i, item in ipairs(items) do
+        if item == selected then
+            self:setSelectionIndex(i)
+            break
+        end
     end
-    love.graphics.polygon('fill',
-        tipX,  y + h / 2,  -- The Tip (centered vertically)
-        baseX, y,          -- Top corner of the base
-        baseX, y + h       -- Bottom corner of the base
-    )
+    -- If there's no match, ensure index is clamped
+    self:setSelectionIndex(self.i)
 end
 
 
@@ -91,6 +84,11 @@ end
 local COL1 = objects.Color.DARK_BLUE
 local COL2 = objects.Color.DARK_CYAN
 
+---@param i integer
+function CustomSelect:setSelectionIndex(i)
+    self.i = helper.clamp(i, 1, #self.items)
+end
+
 ---@param reg kirigami.Region
 function CustomSelect:draw(reg)
     lg.setColor(1,1,1)
@@ -116,11 +114,11 @@ function CustomSelect:draw(reg)
     self:drawItem(self.i, c:padRatio(0.2))
 
     if drawArrow(-1, left:get()) then
-        self.i = helper.clamp(self.i - 1, 1,len)
+        self:setSelectionIndex(self.i - 1)
     end
 
     if drawArrow(1, right:get()) then
-        self.i = helper.clamp(self.i + 1, 1,len)
+        self:setSelectionIndex(self.i + 1)
     end
 end
 

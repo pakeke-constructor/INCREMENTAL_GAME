@@ -71,18 +71,33 @@ end
 
 
 
--- simple runtime caching, avoids overhead of steam API
-local UNLOCKED_ACHIEVEMENT_RUNTIME_CACHE = {}
+local dirty = false
 
 
+---@param id string
 function achievements.unlockAchievement(id)
-    if UNLOCKED_ACHIEVEMENT_RUNTIME_CACHE[id] then
-        return
-    end
-    UNLOCKED_ACHIEVEMENT_RUNTIME_CACHE[id] = true
     local luasteam = Steam.getSteam()
     if luasteam then
-        luasteam.userStats.setAchievement(id)
+        local success, achieved = luasteam.userStats.getAchievement(id)
+        if success and not achieved then
+            luasteam.userStats.setAchievement(id)
+            dirty = true
+        end
+    end
+end
+
+
+
+function achievements.update()
+    local luasteam = Steam.getSteam()
+    if not luasteam then return end
+
+    if dirty then
+        if not luasteam.userStats.storeStats() then
+            log.error("Steam.userStats.storeStats() failed")
+        end
+
+        dirty = false
     end
 end
 

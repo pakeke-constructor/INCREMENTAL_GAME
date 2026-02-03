@@ -198,6 +198,10 @@ TESTS END
 
 
 local sceneManager = require("src.scenes.sceneManager")
+local cosmetics = require("src.cosmetics.cosmetics")
+local SteamTicket = require("src.steam.ticket")
+local SteamInventory = require("src.steam.inventory")
+local User = require("src.user")
 local bgm = require("src.sound.bgm")
 local sfx = require("src.sound.sfx")
 local emulation = nil
@@ -245,6 +249,10 @@ function love.load(arg)
     _isloadtime = false
 
     love.window.setFullscreen(settings.isFullscreen())
+    SteamInventory.init()
+    SteamTicket.init()
+    User.init()
+    cosmetics.init()
 
     if heartbeat then
         heartbeat:StartCapture()
@@ -282,6 +290,7 @@ function love.update(dt)
     if luasteam then
         luasteam.runCallbacks()
     end
+    achievements.update()
     sfx.update()
     bgm.update(dt, settings.getBGMVolume() / 100)
     iml.setPointer(love.mouse.getPosition())
@@ -422,6 +431,15 @@ function love.keyreleased(key, scancode)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.keyreleased then
         sc:keyreleased(key, scancode)
+    end
+
+    -- TODO: Remove this once we have proper "open chest" scene.
+    if consts.DEV_MODE and key == "0" and love.keyboard.isDown("lshift") then
+        if cosmetics.getChestCount() > 0 then
+            cosmetics.openChest(function(success, cosmetic)
+                print("openChest", success, cosmetic)
+            end)
+        end
     end
 end
 

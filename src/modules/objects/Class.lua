@@ -36,6 +36,11 @@ local function newObj(class, ...)
     if type(obj.init) == "function" then
         obj:init(...)
     end
+    if type(obj.__gc) == "function" and rawget(_G, "newproxy") then
+        local proxy = newproxy(true)
+        getmetatable(proxy).__gc = function() return obj:__gc() end
+        obj.__gcobj = proxy -- to keep it in memory.
+    end
     return obj
 end
 
