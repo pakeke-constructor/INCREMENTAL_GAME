@@ -99,9 +99,34 @@ end
 
 function custom:enter()
     cosmetics.tryRefresh()
-    self.bgSelect:setItems(g.getUnlockedCosmetics("BACKGROUND"))
-    self.catSelect:setItems(g.getUnlockedCosmetics("AVATAR"))
-    self.hatSelect:setItems(getHats())
+    local sn = g.getSn()
+
+    local bgs = g.getUnlockedCosmetics("BACKGROUND")
+    self.bgSelect:setItems(bgs)
+    for i, item in ipairs(bgs) do
+        if sn.avatar.background == item then
+            self.bgSelect:setSelectionIndex(i)
+            break
+        end
+    end
+
+    local cats = g.getUnlockedCosmetics("AVATAR")
+    self.catSelect:setItems(cats)
+    for i, item in ipairs(cats) do
+        if sn.avatar.avatar == item then
+            self.catSelect:setSelectionIndex(i)
+            break
+        end
+    end
+
+    local hats = getHats()
+    self.hatSelect:setItems(hats)
+    for i, item in ipairs(hats) do
+        if (sn.avatar.hat or "") == item then
+            self.hatSelect:setSelectionIndex(i)
+            break
+        end
+    end
 end
 
 
@@ -359,11 +384,22 @@ end
 
 ---@param dt number
 function custom:update(dt)
+    local sn = g.getSn()
     g.getHUD():update(dt)
     g.requestBGM(g.BGMID.CUSTOMIZATION)
     self.bgSelect:setItems(g.getUnlockedCosmetics("BACKGROUND"))
     self.catSelect:setItems(g.getUnlockedCosmetics("AVATAR"))
     self.hatSelect:setItems(getHats())
+
+    sn.avatar.background = self.bgSelect:getSelected()
+    sn.avatar.avatar = self.catSelect:getSelected()
+    local hat = self.hatSelect:getSelected()
+    if #hat > 0 then
+        sn.avatar.hat = hat
+    else
+        print("set hat to nil")
+        sn.avatar.hat = nil
+    end
 end
 
 function custom:draw()

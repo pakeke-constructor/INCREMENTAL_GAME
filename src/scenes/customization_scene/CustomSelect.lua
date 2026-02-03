@@ -23,8 +23,20 @@ function CustomSelect:init(items, onDraw)
 end
 
 
+---@param items any[]
 function CustomSelect:setItems(items)
+    local selected = self:getSelected()
     self.items = items
+
+    -- Update indices to new item indices
+    for i, item in ipairs(items) do
+        if item == selected then
+            self:setSelectionIndex(i)
+            break
+        end
+    end
+    -- If there's no match, ensure index is clamped
+    self:setSelectionIndex(self.i)
 end
 
 
@@ -91,6 +103,11 @@ end
 local COL1 = objects.Color.DARK_BLUE
 local COL2 = objects.Color.DARK_CYAN
 
+---@param i integer
+function CustomSelect:setSelectionIndex(i)
+    self.i = helper.clamp(i, 1, #self.items)
+end
+
 ---@param reg kirigami.Region
 function CustomSelect:draw(reg)
     lg.setColor(1,1,1)
@@ -116,11 +133,11 @@ function CustomSelect:draw(reg)
     self:drawItem(self.i, c:padRatio(0.2))
 
     if drawArrow(-1, left:get()) then
-        self.i = helper.clamp(self.i - 1, 1,len)
+        self:setSelectionIndex(self.i - 1)
     end
 
     if drawArrow(1, right:get()) then
-        self.i = helper.clamp(self.i + 1, 1,len)
+        self:setSelectionIndex(self.i + 1)
     end
 end
 
