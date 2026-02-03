@@ -5,6 +5,8 @@ local vignette = require("src.modules.vignette.vignette")
 
 local CustomSelect = require(".CustomSelect")
 
+local cosmetics = require("src.cosmetics.cosmetics")
+
 
 
 
@@ -55,6 +57,12 @@ local function getWornCosmeticId(categoryId)
     return nil
 end
 
+local function getHats()
+    local hats = g.getUnlockedCosmetics("HAT")
+    table.insert(hats, 1, "")
+    return hats
+end
+
 
 ---@class CustomizationScene: FreeCameraScene
 local custom = FreeCameraScene()
@@ -76,13 +84,24 @@ function custom:init()
         g.drawImageContained(cinfo.image, reg:get())
     end)
     self.hatSelect = CustomSelect(g.getUnlockedCosmetics("HAT"), function (item, reg)
-        local cinfo = g.getCosmeticInfo(item)
-        g.drawImageContained(cinfo.image, reg:get())
+        if #item > 0 then
+            local cinfo = g.getCosmeticInfo(item)
+            g.drawImageContained(cinfo.image, reg:get())
+        end
     end)
     self.catSelect = CustomSelect(g.getUnlockedCosmetics("AVATAR"), function (item, reg)
         local cinfo = g.getCosmeticInfo(item)
         g.drawImageContained(cinfo.image, reg:get())
     end)
+end
+
+
+
+function custom:enter()
+    cosmetics.tryRefresh()
+    self.bgSelect:setItems(g.getUnlockedCosmetics("BACKGROUND"))
+    self.catSelect:setItems(g.getUnlockedCosmetics("AVATAR"))
+    self.hatSelect:setItems(getHats())
 end
 
 
@@ -342,6 +361,9 @@ end
 function custom:update(dt)
     g.getHUD():update(dt)
     g.requestBGM(g.BGMID.CUSTOMIZATION)
+    self.bgSelect:setItems(g.getUnlockedCosmetics("BACKGROUND"))
+    self.catSelect:setItems(g.getUnlockedCosmetics("AVATAR"))
+    self.hatSelect:setItems(getHats())
 end
 
 function custom:draw()
