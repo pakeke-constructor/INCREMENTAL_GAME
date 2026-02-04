@@ -461,6 +461,15 @@ function ui.getMouse()
     return globalScaleTransform:inverseTransformPoint(love.mouse.getPosition())
 end
 
+---@param reg kirigami.Region
+function ui.regionToScreenspace(reg)
+	local x, y, w, h = reg:get()
+	local x2, y2 = x + w, y + h
+	local px1, py1 = globalScaleTransform:transformPoint(x, y)
+	local px2, py2 = globalScaleTransform:transformPoint(x2, y2)
+	return px1, py1, px2 - px1, py2 - py1
+end
+
 end
 
 

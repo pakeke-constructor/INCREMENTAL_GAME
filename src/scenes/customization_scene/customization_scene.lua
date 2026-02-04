@@ -1,4 +1,3 @@
-
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 
 local vignette = require("src.modules.vignette.vignette")
@@ -257,8 +256,11 @@ local LIGHT_COLOR = objects.Color("#" .. "FF35BA64")
 ---@param reg kirigami.Region
 local function drawTown(self,reg)
     lg.setColor(GROUND_COLOR)
+    lg.setStencilMode("draw", 4)
+    lg.setColorMask(true, true, true, true)
     lg.rectangle("fill", reg:get())
 
+    lg.setStencilMode("test", 4)
     lg.setColor(DARK_COLOR)
     for _,b in ipairs(TOWN_GROUND)do
         local x = math.floor(reg.x + (reg.w*b.x))
@@ -287,12 +289,14 @@ local function drawTown(self,reg)
         local y = math.floor(reg.y + (reg.h*b.y))
         g.drawImage(b.image, x,y)
     end
+    lg.setStencilMode()
 end
 
 
+local MORE_COSMETICS = loc("Get More Cosmetics", nil, {context = "Label for a button"})
 
 ---@param bot kirigami.Region
-function custom:_drawUI(bot)
+function custom:_drawCosmeticUI(bot)
     local a,b,c = bot:splitHorizontal(3, 7, 2)
 
     -- Draw avatar with background
@@ -310,6 +314,10 @@ function custom:_drawUI(bot)
     self.hatSelect:draw(hat:padRatio(0.2))
     self.catSelect:draw(cat:padRatio(0.2))
     self.bgSelect:draw(bg:padRatio(0.2))
+
+    if ui.Button("{o}"..MORE_COSMETICS.."{/o}", GROUND_COLOR, LIGHT_COLOR, c:padUnit(16)) then
+        g.gotoScene("chest_scene")
+    end
 end
 
 
@@ -328,7 +336,6 @@ function custom:update(dt)
     if #hat > 0 then
         sn.avatar.hat = hat
     else
-        print("set hat to nil")
         sn.avatar.hat = nil
     end
 end
@@ -348,8 +355,7 @@ function custom:draw()
     local r = ui.getScreenRegion()
     local top,bot = r:splitVertical(3,2)
     drawTown(self, top)
-    local mapButtonR = self:renderMapButton()
-    self:_drawUI(bot)
+    self:_drawCosmeticUI(bot)
     self:renderPause()
     ui.endUI()
 end
