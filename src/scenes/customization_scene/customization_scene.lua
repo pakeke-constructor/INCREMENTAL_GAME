@@ -8,10 +8,6 @@ local cosmetics = require("src.cosmetics.cosmetics")
 
 
 
-local AVATAR_SCALE = 8
-
-
-
 local function getHats()
     local hats = g.getUnlockedCosmetics("HAT")
     table.insert(hats, 1, "")
@@ -300,15 +296,17 @@ function custom:_drawCosmeticUI(bot)
     local a,b,c = bot:splitHorizontal(3, 7, 2)
 
     -- Draw avatar with background
-    local avatarSize = consts.AVATAR_SIZE * AVATAR_SCALE
-    local avatarX, avatarY = a:getCenter()
+    local avatarR = a:shrinkToAspectRatio(1, 1):padUnit(4)
+    local avatarSize = math.min(avatarR.w, avatarR.h) / consts.AVATAR_SIZE
+    local avatarX, avatarY = avatarR:getCenter()
     love.graphics.setStencilMode("draw", 3)
-    love.graphics.rectangle("fill", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
+    love.graphics.rectangle("fill", avatarR:get())
     love.graphics.setStencilMode("test", 3)
-    g.drawPlayerAvatar(avatarX, avatarY, AVATAR_SCALE, true)
+    local bobbing = (love.timer.getTime() * 2 + 10) % (2 * math.pi)
+    g.drawPlayerAvatar(avatarX, avatarY, avatarSize, true, math.sin(bobbing))
     love.graphics.setStencilMode()
     love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("line", avatarX - avatarSize / 2, avatarY - avatarSize / 2, avatarSize, avatarSize)
+    love.graphics.rectangle("line", avatarR:get())
 
     local hat, cat, bg = b:padRatio(0.1):splitVertical(1,1,1)
     self.hatSelect:draw(hat:padRatio(0.2))
