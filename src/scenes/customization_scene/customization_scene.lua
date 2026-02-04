@@ -1,5 +1,3 @@
-local utf8 = require("utf8")
-
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 
 local vignette = require("src.modules.vignette.vignette")
