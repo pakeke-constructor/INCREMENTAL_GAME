@@ -335,7 +335,7 @@ local INSTANT_REWARDS = {
             for i=1,8 do
                 local x = helper.lerp(20,w-20, love.math.random())
                 local y = helper.lerp(20,h-20, love.math.random())
-                local e = g.spawnEntity("demolition_cat", x,y)
+                local e = g.spawnEntity("planter_cat_bomb", x,y)
                 e.lifetime = 15
             end
         end
