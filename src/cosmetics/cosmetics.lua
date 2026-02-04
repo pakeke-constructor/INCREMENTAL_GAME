@@ -240,14 +240,14 @@ end
 
 
 function cosmetics.getChestCount()
-    return CHEST_COUNT
+    return CHEST_ITEMID and CHEST_COUNT or 0
 end
 
 
 ---Open one cosmetic chest.
 ---@param callback fun(success:boolean, cosmetic:string?) The unlocked cosmetic ID is passed or nil on failure.
 function cosmetics.openChest(callback)
-    if CHEST_COUNT <= 0 or not CHEST_ITEMID then
+    if cosmetics.getChestCount() <= 0 then
         return callback(false)
     end
 

@@ -7,6 +7,8 @@ local CustomSelect = require(".CustomSelect")
 
 local cosmetics = require("src.cosmetics.cosmetics")
 
+local User = require("src.user")
+
 
 
 local AVATAR_SCALE = 8
@@ -46,6 +48,8 @@ function custom:init()
         local cinfo = g.getCosmeticInfo(item)
         g.drawImageContained(cinfo.image, reg:get())
     end)
+
+    self.showPopup = nil -- either "left" or "right"
 end
 
 
@@ -296,7 +300,7 @@ end
 
 
 ---@param bot kirigami.Region
-function custom:_drawUI(bot)
+function custom:_drawCosmeticUI(bot)
     local a,b,c = bot:splitHorizontal(3, 7, 2)
 
     -- Draw avatar with background
@@ -315,6 +319,110 @@ function custom:_drawUI(bot)
     self.catSelect:draw(cat:padRatio(0.2))
     self.bgSelect:draw(bg:padRatio(0.2))
 end
+
+
+
+local CHEST_BUTTON_COL = {
+    objects.Color("#".."FFB57705"),
+    objects.Color("#".."FFC3A40C"),
+}
+
+---@param text string
+---@param region kirigami.Region
+---@return boolean
+local function drawChestButton(text, region)
+    return ui.CustomButton(function(x, y, w, h)
+        local f = g.getSmallFont(32)
+        local wrap, lines = richtext.getWrap(text, f, w)
+        -- I'm lazy computing the centering myself, so abuse Kirigami
+        local newR = Kirigami(0, 0, wrap, lines * f:getHeight())
+            :center(Kirigami(x, y, w, h))
+        richtext.printRich(text, f, newR.x, newR.y, newR.w, "center")
+    end, CHEST_BUTTON_COL[1], CHEST_BUTTON_COL[2], region)
+end
+
+---@param bot kirigami.Region
+function custom:_drawChestUI(bot)
+    local a, b, c = bot:splitHorizontal(4, 5, 4)
+
+    -- Get Chest (Free)
+    local leftButton = a:padUnit(4)
+    if User.getFriendCode() then
+        if drawChestButton("{o}Get Chest (Free){/o}", leftButton) then
+            self.showPopup = "left"
+        end
+    end
+
+    -- Input Code (Free Chest)
+    if User.canSubmitFriendCode() then
+        local rightButton = c:padUnit(4)
+        if drawChestButton("{o}Put Code (Free Chest){/o}", rightButton) then
+            self.showPopup = "right"
+        end
+    end
+
+    g.drawImageContained("chest_big", b:shrinkToAspectRatio(1, 1):get())
+    local _, d = b:splitVertical(5, 2)
+    if cosmetics.getChestCount() > 0 then
+        if ui.Button("{o}Open Chest{/o}", CHEST_BUTTON_COL[1], CHEST_BUTTON_COL[2], d:padUnit(4)) then
+            print("TODO open chest")
+        end
+    end
+end
+
+
+local POPUP_COLOR = objects.Color("#".."FF735401")
+local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
+local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
+local BUTTON_GREEN_BASE_COL = objects.Color("#" .. "FF73ED75")
+local BUTTON_GREEN_MAIN_COL = objects.Color("#" .. "FF2DAA1F")
+
+local function drawCommonPopupBase()
+    -- Prevent propagation
+    local fullR = ui.getFullScreenRegion()
+    iml.panel(fullR:get())
+    lg.setColor(0, 0, 0, 0.3)
+    lg.rectangle("fill", fullR:get())
+
+    local r = ui.getScreenRegion():padRatio(0.2)
+
+    lg.setColor(POPUP_COLOR)
+    ui.drawSingleColorPanel(r:padUnit(2):get())
+    lg.setColor(1, 1, 1)
+    ui.drawPanel(r:get())
+
+    return r:padUnit(8)
+end
+
+---@param self CustomizationScene
+local function showGetChestPopup(self)
+    local r = drawCommonPopupBase()
+
+    local titleR, descriptionR, codeTitleR, codeR, buttonR = r:splitVertical(48, r.h - 48 - 32 - 32 - 48, 32, 32, 48)
+    helper.printTextOutline("Get Chest (Free)", g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
+    lg.printf("Everytime a friend uses your code, you also get a free chest! Give the code to your friends in Discord or your social media.", g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
+    helper.printTextOutline("Your Code:", g.getSmallFont(32), 1, codeTitleR.x, codeTitleR.y, codeTitleR.w, "center")
+    local codeArea = codeR:set(nil, nil, 16 * 8):padUnit(-2):center(codeR)
+    lg.setColor(1, 1, 1, 0.3)
+    helper.quickRoundedRectangle("fill", 4, codeArea)
+    lg.setColor(1, 1, 1)
+    local friendCode = assert(User.getFriendCode())
+    helper.printTextOutline(friendCode, g.getSmallFont(32), 1, codeR.x, codeR.y, codeR.w, "center")
+
+    local copyButtonR, okButtonR = buttonR:splitHorizontal(1, 1)
+    if ui.Button("{o}Copy{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, copyButtonR:padUnit(16, 8)) then
+        love.system.setClipboardText(friendCode)
+    end
+
+    if ui.Button("{o}Ok{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, okButtonR:padUnit(16, 8)) then
+        self.showPopup = nil
+    end
+end
+
+
+local POPUPS = {
+    left = showGetChestPopup,
+}
 
 
 ---@param dt number
@@ -352,8 +460,12 @@ function custom:draw()
     local r = ui.getScreenRegion()
     local top,bot = r:splitVertical(3,2)
     drawTown(self, top)
-    local mapButtonR = self:renderMapButton()
-    self:_drawUI(bot)
+    --self:_drawCosmeticUI(bot)
+    self:_drawChestUI(bot)
+
+    if POPUPS[self.showPopup] then
+        POPUPS[self.showPopup](self)
+    end
     self:renderPause()
     ui.endUI()
 end

@@ -42,7 +42,7 @@ function User.init()
 end
 
 function User.canSubmitFriendCode()
-    return hasSubmittedCode
+    return not hasSubmittedCode
 end
 
 function User.getFriendCode()
