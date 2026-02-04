@@ -1,3 +1,4 @@
+local utf8 = require("utf8")
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 
@@ -50,6 +51,8 @@ function custom:init()
     end)
 
     self.showPopup = nil -- either "left" or "right"
+    ---@type string[]
+    self.inputCode = {} -- table of character to ease insertion and removal
 end
 
 
@@ -84,6 +87,10 @@ function custom:enter()
             break
         end
     end
+end
+
+function custom:leave()
+    love.keyboard.setTextInput(false)
 end
 
 
@@ -420,8 +427,85 @@ local function showGetChestPopup(self)
 end
 
 
+---@param self CustomizationScene
+local function pasteToInput(self)
+    local clipboardText = love.system.getClipboardText()
+    if clipboardText and #clipboardText > 0 then
+        -- We don't want utf8.codes error propagate
+        pcall(function()
+            for _, c in utf8.codes(clipboardText) do
+                if #self.inputCode >= 8 then
+                    break
+                end
+
+                self.inputCode[#self.inputCode+1] = utf8.char(c)
+            end
+        end)
+    end
+end
+
+---@param self CustomizationScene
+local function showInputCodePopup(self)
+    local r = drawCommonPopupBase()
+
+    local titleR, descriptionR, inputCodeTextR, inputCodeR, enterCodeButtonR, closeButtonR = r:splitVertical(48, r.h - 2*48 - 2*32 - 64, 32, 32, 64, 48)
+    helper.printTextOutline("Input Code", g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
+    lg.printf("Input your friend code in here to earn chest for both of you.", g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
+    helper.printTextOutline("Input Code:", g.getSmallFont(32), 1, inputCodeTextR.x, inputCodeTextR.y, inputCodeTextR.w, "center")
+
+    local textAreaR, pasteButtonR = inputCodeR:padUnit(16, 0):splitHorizontal(3, 2)
+
+    -- Draw text input
+    local inputR = textAreaR:padUnit(0, 0, 8, 0)
+    local text = ""
+    local textInput = iml.consumeText()
+    if #self.inputCode < 8 and textInput then
+        self.inputCode[#self.inputCode+1] = textInput:upper()
+    end
+    if #self.inputCode > 0 then
+        text = table.concat(self.inputCode, "", 1, math.min(#self.inputCode, 8))
+    end
+    lg.setColor(1, 1, 1, 0.3)
+    helper.quickRoundedRectangle("fill", 4, inputR)
+    if #text > 0 then
+        lg.setColor(1, 1, 1)
+        helper.printTextOutline(text, g.getSmallFont(32), 1, inputR.x, inputR.y, inputR.w, "center")
+    else
+        lg.setColor(1, 1, 1, 0.5)
+        lg.printf("Input Code", g.getSmallFont(32), inputR.x, inputR.y, inputR.w, "center", 1, 1, 0, 0, 0.5)
+    end
+    lg.setColor(1, 1, 1)
+    -- Blinker
+    if love.timer.getTime() % 1 >= 0.5 then
+        local width = g.getSmallFont(32):getWidth(text)
+        local x = inputR.x + (inputR.w + width) / 2
+        love.graphics.line(x, inputR.y, x, inputR.y + inputR.h)
+    end
+
+    -- Draw paste button
+    if ui.Button("{o}Paste{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, pasteButtonR:padUnit(8, 0, 0, 0)) then
+        pasteToInput(self)
+    end
+
+    -- Draw enter code
+    if ui.Button("{o}Enter{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, enterCodeButtonR:padUnit(16, 8)) then
+        print("TODO enter code")
+    end
+
+    if ui.Button("{o}Close{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, closeButtonR:padUnit(16, 8)) then
+        love.keyboard.setTextInput(false)
+        self.showPopup = nil
+    else
+        -- FIXME: This cannot be called all the time in iOS/Android.
+        -- When porting to mobile, make sure to use different strategy.
+        love.keyboard.setTextInput(true, ui.regionToScreenspace(textAreaR))
+    end
+end
+
+
 local POPUPS = {
     left = showGetChestPopup,
+    right = showInputCodePopup
 }
 
 
@@ -474,6 +558,17 @@ function custom:keyreleased(k)
     if k == "escape" then
         local s = g.getSn()
         s.paused = not s.paused
+    end
+end
+
+function custom:keypressed(k)
+    if self.showPopup == "right" then
+        if k == "backspace" and #self.inputCode > 0 then
+            -- Erase
+            table.remove(self.inputCode)
+        elseif k == "v" and love.keyboard.isDown("lctrl", "rctrl") then
+            pasteToInput(self)
+        end
     end
 end
 
