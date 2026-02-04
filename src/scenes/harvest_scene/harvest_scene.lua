@@ -833,7 +833,6 @@ end
 
 ---@type table<integer, boolean>
 local COMBO_POPUP_MAP = setmetatable({
-    [5] = true,
     [10] = true,
     [20] = true,
     [50] = true,

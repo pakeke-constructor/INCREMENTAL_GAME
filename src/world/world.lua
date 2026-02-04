@@ -261,6 +261,26 @@ local TOKEN_SPAWN_ANIMATION_AMPLITUDE = 1.6
 local TOKEN_HIT_ANIMATION_DURATION = 0.15
 local TOKEN_HIT_SQUASH_AMOUNT = 0.6
 
+local TOKEN_BOB_SPEED = 4
+local TOKEN_BOB_AMOUNT = 0.03
+
+
+---@param tok g.Token
+---@return number
+---@return number
+local function getTokBob(tok)
+    local bobbing = math.sin(love.timer.getTime() * TOKEN_BOB_SPEED + tok.id * 894.12234) * TOKEN_BOB_AMOUNT
+    local sy = 1 + bobbing
+    local ww = 16
+    if tok.image then
+        local _
+        --_,_,ww,_ = g.getImageQuad(tok.image):getViewport()
+    end
+
+    local oy = -bobbing * ww
+    return sy,oy
+end
+
 
 ---@param tok g.Token
 ---@return number sx, number sy
@@ -268,7 +288,7 @@ local function getTokScale(tok)
     local sx,sy = 1,1
 
     if tok.bossfight then
-        return 1,1 -- boss-tokens dont rotate.
+        return 1,1 -- boss-tokens dont scale.
     end
 
     local ta = tok.timeAlive
@@ -335,7 +355,7 @@ local function drawScythe(tok, scytheImg)
     love.graphics.setColor(1,1,1)
     local t = tok.timeSinceHitStart / getAxeSwingTime()
     -- For scythe, we need to "damage" at mid-swing. This means narrowing down the timing for `t`.
-    local t2 = helper.EASINGS.sineInOut(helper.clamp(helper.remap(t, 0.6, 1.2, 0, 1), 0, 1))
+    local t2 = helper.EASINGS.sineInOut(helper.clamp(helper.remap(t, 0.4, 1.2, 0, 2), 0, 1))
     local flip = 2 * math.floor(tok.id % 2) - 1
     local rot = helper.lerp(0.7, 0.1, t2)
     g.drawImageOffset(scytheImg, tok.x + 3 * flip, tok.y + 22, rot * flip, flip, 1, 1, 1.5)
@@ -360,6 +380,9 @@ local function drawToken(tok)
     local sx,sy = getTokScale(tok)
     local rot = getTokRotation(tok)
     local kx,ky = getTokShear(tok)
+    local ssy, oy = getTokBob(tok)
+
+    sy = sy * ssy
 
     local stalkInfo = tok.growths and g.getStalkInfo(tok.growths.stalk)
     if stalkInfo and stalkInfo.dontFlip then
@@ -386,11 +409,11 @@ local function drawToken(tok)
 
     love.graphics.setColor(1,1,1)
     local tinfo = g.getTokenInfo(tok.type)
-    g.drawTokenImage(tinfo, tok.x, tok.y, rot, sx, sy, kx,ky)
+    g.drawTokenImage(tinfo, tok.x, tok.y + oy, rot, sx, sy, kx,ky)
 
     love.graphics.setColor(1,1,1)
     if tok.drawToken then
-        tok:drawToken(tok.x, tok.y, rot, sx, sy, kx,ky)
+        tok:drawToken(tok.x, tok.y + oy, rot, sx, sy, kx,ky)
     end
 
     if tok.slimed then
