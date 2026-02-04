@@ -266,10 +266,6 @@ function cosmetics.openChest(callback)
 
             if items then
                 for _, item in ipairs(items) do
-                    -- TODO: Remove this later. This is debugging only.
-                    print("=====")
-                    table.foreach(item, print)
-
                     if item.definition == consts.STEAM_CHEST_ITEMDEFID then
                         CHEST_COUNT = item.quantity
                         CHEST_ITEMID = item.id
