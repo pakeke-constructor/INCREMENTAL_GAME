@@ -1,7 +1,9 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+local asynchttp = require("src.modules.asynchttp.asynchttp")
 local cosmetics = require("src.cosmetics.cosmetics")
 local User = require("src.user")
 local sceneManager = require("src.scenes.sceneManager")
+local steamTicket = require("src.steam.ticket")
 
 ---@class ChestScene: FreeCameraScene
 ---@field chestOpening ChestScene.ChestOpening?
@@ -12,9 +14,22 @@ local lg = love.graphics
 
 ---@class ChestScene.ChestOpening
 ---@field timeOpened number
+---@field cosmetic string?
 -- put other data here. Like request-handle maybe? idk.
 
 local COSMETIC_REFRESH_INTERVAL = 30
+
+local ERROR_CODES = {
+    ERROR_ALREADY_ENTERED = loc("You've entered a code.", nil, {
+        context = "Error message when user already entered a friend code. Each user can only enter one code for their account."
+    }),
+    ERROR_CODE_NOT_FOUND = loc("Invalid code.", nil, {
+        context = "Error message when user typed wrong friend code."
+    }),
+    ERROR_SELF_REFERRAL = loc("Cannot enter your own code.", nil, {
+        context = "Error message when user typed their own code as an attempt to cheat the system."
+    })
+}
 
 
 function chestScene:init()
@@ -27,8 +42,13 @@ function chestScene:init()
     ---@type ChestScene.ChestOpening?
     self.chestOpening = nil
     self.showPopup = nil -- either "left" or "right"
+    self.inputCodeState = nil
     ---@type string[]
     self.inputCode = {} -- table of character to ease insertion and removal
+    self.inputCodeSubmitting = false -- true if it's submitting invite codes.
+    self.showInputCodeSuccess = false
+    ---@type string?
+    self.inputCodeError = nil
     self.cosmeticsRefreshTime = 0
 end
 
@@ -42,12 +62,42 @@ end
 
 
 
+local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
+local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
+local BUTTON_GREEN_BASE_COL = objects.Color("#" .. "FF73ED75")
+local BUTTON_GREEN_MAIN_COL = objects.Color("#" .. "FF2DAA1F")
+
+---@param r kirigami.Region
+function chestScene:_drawButtons(r)
+    local baseButtonR = Kirigami(0, 0, 96, 32)
+        :attachToRightOf(r)
+        :attachToTopOf(r)
+        :moveRatio(-1, 1)
+        :moveUnit(-8, 64)
+
+    local refreshR = baseButtonR:moveRatio(0, 1):moveUnit(0, 8)
+    if ui.Button("{o}Refresh{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, refreshR) then
+        cosmetics.tryRefresh()
+    end
+
+    local inventoryR = refreshR:moveRatio(0, 1):moveUnit(0, 8)
+    if ui.Button("{o}Open Inventory{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, inventoryR) then
+        local luasteam = Steam.getSteam()
+        if luasteam then
+            local steamid = tostring(luasteam.user.getSteamID())
+            local appid = luasteam.utils.getAppID()
+            love.system.openURL("steam://openurl/https://steamcommunity.com/profiles/"..steamid.."/inventory/#"..appid)
+        end
+    end
+end
+
 
 
 local CHEST_BUTTON_COL = {
     objects.Color("#".."FFB57705"),
     objects.Color("#".."FFC3A40C"),
 }
+local CHEST_COUNT_TEXT = interp("You have %{chestCount} chest(s)", {context = "Used to show how many cosmetic chest user has"})
 
 ---@param text string
 ---@param region kirigami.Region
@@ -83,21 +133,27 @@ function chestScene:_drawChestUI(bot)
         end
     end
 
-    g.drawImageContained("chest_big", b:shrinkToAspectRatio(1, 1):get())
+    local chestContainerR = b:shrinkToAspectRatio(1, 1)
+    g.drawImageContained("chest_big", chestContainerR:get())
+
+    local chestCount = cosmetics.getChestCount()
+    local chestCounterText = CHEST_COUNT_TEXT({chestCount = chestCount})
+    local sfont32 = g.getSmallFont(32)
+    local chestCounterTextR = Kirigami(0, 0, sfont32:getWidth(chestCounterText), sfont32:getHeight())
+        :centerX(chestContainerR)
+        :attachToTopOf(chestContainerR)
+    helper.printTextOutline(chestCounterText, sfont32, 2, chestCounterTextR.x, chestCounterTextR.y, chestCounterTextR.w, "left")
+
     local _, d = b:splitVertical(5, 2)
     if cosmetics.getChestCount() > 0 then
         if ui.Button("{o}Open Chest{/o}", CHEST_BUTTON_COL[1], CHEST_BUTTON_COL[2], d:padUnit(4)) then
-            print("TODO open chest")
+            self.showPopup = "center"
         end
     end
 end
 
 
 local POPUP_COLOR = objects.Color("#".."FF735401")
-local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
-local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
-local BUTTON_GREEN_BASE_COL = objects.Color("#" .. "FF73ED75")
-local BUTTON_GREEN_MAIN_COL = objects.Color("#" .. "FF2DAA1F")
 
 local function drawCommonPopupBase()
     -- Prevent propagation
@@ -163,7 +219,7 @@ end
 local function showInputCodePopup(self)
     local r = drawCommonPopupBase()
 
-    local titleR, descriptionR, inputCodeTextR, inputCodeR, enterCodeButtonR, closeButtonR = r:splitVertical(48, r.h - 2*48 - 2*32 - 64, 32, 32, 64, 48)
+    local titleR, descriptionR, inputCodeTextR, inputCodeR, enterCodeButtonR, errorMessageR, closeButtonR = r:splitVertical(48, r.h - 2*48 - 2*32 - 64 - 16, 32, 32, 64, 16, 48)
     helper.printTextOutline("Input Code", g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
     lg.printf("Input your friend code in here to earn chest for both of you.", g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
     helper.printTextOutline("Input Code:", g.getSmallFont(32), 1, inputCodeTextR.x, inputCodeTextR.y, inputCodeTextR.w, "center")
@@ -204,12 +260,48 @@ local function showInputCodePopup(self)
 
     -- Draw enter code
     if ui.Button("{o}Enter{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, enterCodeButtonR:padUnit(16, 8)) then
-        print("TODO enter code")
+        if #text > 0 then
+            User.submitFriendCode(text, function(success, reason)
+                cosmetics.tryRefresh()
+
+                if success then
+                    self.showInputCodeSuccess = true
+                    self.showPopup = nil
+                else
+                    self.inputCodeError = ERROR_CODES[reason] or reason or "Unknown error"
+                end
+
+                self.inputCodeSubmitting = false
+            end)
+            self.inputCodeSubmitting = true
+        else
+            self.inputCodeError = "Please enter a code."
+        end
+    end
+
+    if self.inputCodeError then
+        lg.setColor(1, 0.3, 0.3)
+        helper.printTextOutline(self.inputCodeError, g.getSmallFont(16), 1, errorMessageR.x, errorMessageR.y, errorMessageR.w, "center")
     end
 
     if ui.Button("{o}Close{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, closeButtonR:padUnit(16, 8)) then
         love.keyboard.setTextInput(false)
         self.showPopup = nil
+        self.inputCodeError = nil
+        return
+    end
+
+    if self.inputCodeSubmitting then
+        local fullR = ui.getFullScreenRegion()
+        iml.panel(fullR:get())
+        lg.setColor(0, 0, 0, 0.3)
+        lg.rectangle("fill", fullR:get())
+        lg.setColor(1, 1, 1)
+
+        local cx, cy = fullR:getCenter()
+        local f = g.getSmallFont(32)
+        richtext.printRich("{w}{o}Submitting...{/o}{/w}", f, cx, cy, fullR.w, "center", 0, 1, 1, cx, f:getHeight() / 2)
+        love.keyboard.setTextInput(false)
     else
         -- FIXME: This cannot be called all the time in iOS/Android.
         -- When porting to mobile, make sure to use different strategy.
@@ -217,10 +309,156 @@ local function showInputCodePopup(self)
     end
 end
 
+local RAY_COLOR = objects.Color("#".."FFEFC52C")
+---@param self ChestScene
+local function showOpenChestPopup(self)
+    if not self.chestOpening then
+        self.chestOpening = {timeOpened = love.timer.getTime()}
+
+        -- Do request
+        cosmetics.openChest(function(success, cosmetic)
+            if success and self.chestOpening and cosmetic then
+                self.chestOpening.cosmetic = cosmetic
+            else
+                self.inputCodeError = "Error opening chest"
+                self.showPopup = nil
+                self.chestOpening = nil
+            end
+        end)
+        -- Callback may fire immediately
+        if not self.chestOpening then
+            return
+        end
+    end
+
+    local t = love.timer.getTime()
+    local timeOpened = t - self.chestOpening.timeOpened
+    local showCosmetic = timeOpened >= 1 and self.chestOpening.cosmetic
+
+    local r = ui.getFullScreenRegion()
+    if iml.wasJustPressed(r:get()) and showCosmetic then
+        self.chestOpening = nil
+        self.showPopup = nil
+        return
+    end
+
+    lg.setColor(0, 0, 0, 0.3)
+    lg.rectangle("fill", r:get())
+
+    -- Yea this is quick and dirty to demo out how to open chest
+    local rx, ry = r:getCenter()
+    lg.setColor(1, 1, 1)
+    g.drawImage("chest_big", rx, ry, math.sin(t % (2 * math.pi)) * 0.5, 8, 8)
+
+    if showCosmetic then
+        -- Draw cosmetic in godray
+        local t2 = t/2
+        godrays.drawRays(rx,ry, t2/2.5, {
+            rayCount = 3,
+            divisions=100,
+            color = RAY_COLOR,
+            startWidth=8,
+            length=600,
+            fadeTo=0,
+            growRate=0.6,
+        })
+        godrays.drawRays(rx,ry, -t2/1.5, {
+            rayCount = 5,
+            divisions=100,
+            color = RAY_COLOR,
+            startWidth=9,
+            length=150,
+            fadeTo=0,
+            growRate=1.6,
+        })
+        godrays.drawRays(rx,ry, t2, {
+            rayCount = 6,
+            divisions=100,
+            color = RAY_COLOR,
+            startWidth=10,
+            length=200,
+            fadeTo=0,
+            growRate=2.6,
+        })
+        godrays.drawRays(rx,ry, t2*-1, {
+            rayCount = 5,
+            divisions=100,
+            color = RAY_COLOR,
+            startWidth=10,
+            length=300,
+            fadeTo=0,
+            growRate=2.6,
+        })
+
+        local cosmeticInfo = g.getCosmeticInfo(self.chestOpening.cosmetic)
+        lg.setColor(1, 1, 1)
+        g.drawImage(cosmeticInfo.image, rx, ry, 0, 10, 10)
+        helper.printTextOutline(cosmeticInfo.name, g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
+        helper.printTextOutline("Click anywhere to close", g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
+    end
+end
+
+---@param self ChestScene
+local function showChestOnGodrays(self)
+    local r = ui.getFullScreenRegion()
+    lg.setColor(0, 0, 0, 0.3)
+    lg.rectangle("fill", r:get())
+    lg.setColor(1, 1, 1)
+
+    local rx, ry = r:getCenter()
+    -- Draw cosmetic in godray
+    local t2 = love.timer.getTime()/2
+    godrays.drawRays(rx,ry, t2/2.5, {
+        rayCount = 3,
+        divisions=100,
+        color = RAY_COLOR,
+        startWidth=8,
+        length=600,
+        fadeTo=0,
+        growRate=0.6,
+    })
+    godrays.drawRays(rx,ry, -t2/1.5, {
+        rayCount = 5,
+        divisions=100,
+        color = RAY_COLOR,
+        startWidth=9,
+        length=150,
+        fadeTo=0,
+        growRate=1.6,
+    })
+    godrays.drawRays(rx,ry, t2, {
+        rayCount = 6,
+        divisions=100,
+        color = RAY_COLOR,
+        startWidth=10,
+        length=200,
+        fadeTo=0,
+        growRate=2.6,
+    })
+    godrays.drawRays(rx,ry, t2*-1, {
+        rayCount = 5,
+        divisions=100,
+        color = RAY_COLOR,
+        startWidth=10,
+        length=300,
+        fadeTo=0,
+        growRate=2.6,
+    })
+
+    lg.setColor(1, 1, 1)
+    g.drawImage("chest_big", rx, ry, 0, 10, 10)
+    helper.printTextOutline("You got 1 free chest!", g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
+    helper.printTextOutline("Click anywhere to close", g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
+
+    if iml.wasJustPressed(r:get()) then
+        self.showInputCodeSuccess = nil
+    end
+end
 
 local POPUPS = {
     left = showGetChestPopup,
-    right = showInputCodePopup
+    right = showInputCodePopup,
+    center = showOpenChestPopup
 }
 
 
@@ -246,10 +484,18 @@ function chestScene:draw()
     ui.startUI()
     local r = ui.getScreenRegion()
     local _,bot = r:splitVertical(3,2)
+
+    self:renderMapButton()
+    self:_drawButtons(r)
+
     self:_drawChestUI(bot)
 
     if POPUPS[self.showPopup] then
         POPUPS[self.showPopup](self)
+    end
+
+    if self.showInputCodeSuccess then
+        showChestOnGodrays(self)
     end
     ui.endUI()
 end
@@ -260,7 +506,7 @@ end
 
 
 function chestScene:keyreleased(k)
-    if k == "escape" then
+    if k == "escape" and self.showPopup == nil and not self.showInputCodeSuccess then
         sceneManager.gotoLastScene()
     end
 end

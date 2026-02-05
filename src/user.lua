@@ -53,24 +53,27 @@ function User.getFriendCode()
 end
 
 ---@param friendcode string
----@param callback fun(success:boolean)
+---@param callback fun(success:boolean,reason:string?)
 function User.submitFriendCode(friendcode, callback)
     assert(User.canSubmitFriendCode(), "Check User.canSubmitFriendCode() first")
 
     SteamTicket.request(function(ticket, err)
         if ticket and err == "OK" then
-
             asynchttp.request(function(code, body)
+                ticket:destroy()
+
                 if code == 200 then
                     local jsondata = json.decode(body)
                     local steamid = assert(Steam.getSteam()).user.getSteamID()
                     assert(jsondata.steam_id == tostring(steamid), "?")
                     hasSubmittedCode = jsondata.has_used_code --[[@as boolean]]
                     friendCode = jsondata.friend_code --[[@as string]]
+                    callback(true)
+                else
+                    local ok, jsondata = pcall(json.decode, body)
+                    jsondata = ok and jsondata or {}
+                    callback(false, jsondata.message)
                 end
-
-                ticket:destroy()
-                callback(code == 200)
             end, consts.ANALYTICS_URL.."/referral", {
                 headers = {
                     ["Content-Type"] = "application/json"

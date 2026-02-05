@@ -142,9 +142,11 @@ end
 ---@param y number
 ---@param scale number?
 ---@param drawBackground boolean?
-function cosmetics.drawAvatar(avatar, x, y, scale, drawBackground)
+---@param offsetY number?
+function cosmetics.drawAvatar(avatar, x, y, scale, drawBackground, offsetY)
     ensureLoaded()
     local oy = 0
+    offsetY = offsetY or 0
     scale = scale or 1
 
     -- Not 100% certain if this should be in g, but we can move it later.
@@ -158,7 +160,7 @@ function cosmetics.drawAvatar(avatar, x, y, scale, drawBackground)
 
     love.graphics.setColor(1, 1, 1)
     local catinfo = cosmetics.getInfo(avatar.avatar)
-    g.drawImage(catinfo.image, x, y + oy * scale, 0, scale)
+    g.drawImage(catinfo.image, x, y + (oy + offsetY) * scale, 0, scale)
 
     if avatar.hat then
         local hatinfo = cosmetics.getInfo(avatar.hat)
@@ -168,7 +170,7 @@ function cosmetics.drawAvatar(avatar, x, y, scale, drawBackground)
         g.drawImageOffset(
             hatinfo.image,
             x + (hatinfo.offsetX) * s,
-            y + (hatinfo.offsetY + oy - 8) * s,
+            y + (hatinfo.offsetY + oy + offsetY - 8) * s,
             0, s, s,
             hatinfo.originX,
             hatinfo.originY
@@ -180,9 +182,10 @@ end
 ---@param y number
 ---@param scale number?
 ---@param drawBackground boolean?
-function cosmetics.drawPlayerAvatar(x, y, scale, drawBackground)
+---@param offsetY number?
+function cosmetics.drawPlayerAvatar(x, y, scale, drawBackground, offsetY)
     ensureLoaded()
-    return cosmetics.drawAvatar(g.getSn().avatar, x, y, scale, drawBackground)
+    return cosmetics.drawAvatar(g.getSn().avatar, x, y, scale, drawBackground, offsetY)
 end
 
 
@@ -263,10 +266,6 @@ function cosmetics.openChest(callback)
 
             if items then
                 for _, item in ipairs(items) do
-                    -- TODO: Remove this later. This is debugging only.
-                    print("=====")
-                    table.foreach(item, print)
-
                     if item.definition == consts.STEAM_CHEST_ITEMDEFID then
                         CHEST_COUNT = item.quantity
                         CHEST_ITEMID = item.id
@@ -276,8 +275,6 @@ function cosmetics.openChest(callback)
                     end
                 end
             end
-
-            cosmetics.tryRefresh()
         end
     end)
 end
