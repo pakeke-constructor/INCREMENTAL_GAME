@@ -275,8 +275,6 @@ function cosmetics.openChest(callback)
                     end
                 end
             end
-
-            cosmetics.tryRefresh()
         end
     end)
 end
