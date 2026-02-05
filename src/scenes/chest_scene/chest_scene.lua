@@ -17,7 +17,7 @@ local lg = love.graphics
 ---@field cosmetic string?
 -- put other data here. Like request-handle maybe? idk.
 
-local COSMETIC_REFRESH_INTERVAL = 30
+local COSMETIC_REFRESH_INTERVAL = 60
 
 local ERROR_CODES = {
     ERROR_ALREADY_ENTERED = loc("You've entered a code.", nil, {
@@ -68,6 +68,7 @@ local CHEST_BUTTON_COL = {
     objects.Color("#".."FFB57705"),
     objects.Color("#".."FFC3A40C"),
 }
+local CHEST_COUNT_TEXT = interp("You have %{chestCount} chest(s)", {context = "Used to show how many cosmetic chest user has"})
 
 ---@param text string
 ---@param region kirigami.Region
@@ -103,7 +104,17 @@ function chestScene:_drawChestUI(bot)
         end
     end
 
-    g.drawImageContained("chest_big", b:shrinkToAspectRatio(1, 1):get())
+    local chestContainerR = b:shrinkToAspectRatio(1, 1)
+    g.drawImageContained("chest_big", chestContainerR:get())
+
+    local chestCount = cosmetics.getChestCount()
+    local chestCounterText = CHEST_COUNT_TEXT({chestCount = chestCount})
+    local sfont32 = g.getSmallFont(32)
+    local chestCounterTextR = Kirigami(0, 0, sfont32:getWidth(chestCounterText), sfont32:getHeight())
+        :centerX(chestContainerR)
+        :attachToTopOf(chestContainerR)
+    helper.printTextOutline(chestCounterText, sfont32, 2, chestCounterTextR.x, chestCounterTextR.y, chestCounterTextR.w, "left")
+
     local _, d = b:splitVertical(5, 2)
     if cosmetics.getChestCount() > 0 then
         if ui.Button("{o}Open Chest{/o}", CHEST_BUTTON_COL[1], CHEST_BUTTON_COL[2], d:padUnit(4)) then
