@@ -2242,14 +2242,15 @@ local VALID_BOSSES = {}
 local PRESTIGE_TO_BOSS = {}
 
 
----@param prestige integer
-local function killBoss(prestige)
-    if g.getPrestige()~=prestige then
-        log.error("wat??")
-        return -- wtf? what happened here?
+---@param tok g.Token
+local function killBoss(tok)
+    local bossPrestige = PRESTIGE_TO_BOSS[g.getPrestige()]
+    if bossPrestige and bossPrestige.type == tok.type then
+        achievements.unlockAchievement("SLAYER")
+        g.call("bossSlain")
+    else
+        log.error("wat??") -- wtf? what happened here?
     end
-    achievements.unlockAchievement("SLAYER")
-    g.call("bossSlain")
 end
 
 ---@param id string
