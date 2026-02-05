@@ -17,7 +17,7 @@ local lg = love.graphics
 ---@field cosmetic string?
 -- put other data here. Like request-handle maybe? idk.
 
-local COSMETIC_REFRESH_INTERVAL = 60
+local COSMETIC_REFRESH_INTERVAL = 30
 
 local ERROR_CODES = {
     ERROR_ALREADY_ENTERED = loc("You've entered a code.", nil, {
