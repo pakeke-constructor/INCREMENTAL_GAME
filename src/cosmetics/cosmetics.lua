@@ -89,8 +89,7 @@ local function ensureLoaded()
     })
 
     defineCosmetic("BACKGROUND", "white", "White", {
-        image = "1x1",
-        upscale = consts.AVATAR_SIZE,
+        image = "default_background",
     })
     ALWAYS_UNLOCKED:add("cat")
     ALWAYS_UNLOCKED:add("white")
@@ -182,10 +181,15 @@ end
 ---@param y number
 ---@param scale number?
 ---@param drawBackground boolean?
----@param offsetY number?
-function cosmetics.drawPlayerAvatar(x, y, scale, drawBackground, offsetY)
+---@param drawBobbing boolean?
+function cosmetics.drawPlayerAvatar(x, y, scale, drawBackground, drawBobbing)
     ensureLoaded()
-    return cosmetics.drawAvatar(g.getSn().avatar, x, y, scale, drawBackground, offsetY)
+    local dy = 0
+    if drawBobbing then
+        local t = (love.timer.getTime() * 2 + 10) % (2 * math.pi)
+        dy = math.sin(t)/2-1
+    end
+    return cosmetics.drawAvatar(g.getSn().avatar, x, y, scale, drawBackground, dy)
 end
 
 

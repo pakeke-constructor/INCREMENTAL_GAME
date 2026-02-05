@@ -74,15 +74,15 @@ function Profile:draw(sidebarWidth, noDraw)
 
         -- Draw avatar
         local scale = helper.lerp(w, h, 0.5) / consts.AVATAR_SIZE
-        g.drawPlayerAvatar(x + w / 2, y + h / 2, scale, true)
+        g.drawPlayerAvatar(x + w / 2, y + h / 2, scale, true, true)
         lg.setStencilMode()
 
-        -- Draw red border
-        lg.setColor(0, 0, 0)
-        local lw = lg.getLineWidth()
-        lg.setLineWidth(3)
-        lg.rectangle("line", profileR:get())
-        lg.setLineWidth(lw)
+        -- -- Draw red border
+        -- lg.setColor(0, 0, 0)
+        -- local lw = lg.getLineWidth()
+        -- lg.setLineWidth(3)
+        -- lg.rectangle("line", profileR:get())
+        -- lg.setLineWidth(lw)
 
         lg.setColor(1, 1, 1)
 
