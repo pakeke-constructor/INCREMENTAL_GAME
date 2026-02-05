@@ -227,7 +227,7 @@ local TOWN_BUILDINGS = {
 local GRASSES = {}
 local rng = love.math.newRandomGenerator(889323)
 for _=1, 70 do
-    local img = "grass_"..rng:random(1,3)
+    local img = "town_grass_"..rng:random(1,2)
     local g = {image=img, x=rng:random(), y=rng:random()}
     local bad=false
     for _,t in ipairs(TOWN_BUILDINGS)do
@@ -352,15 +352,17 @@ local GROUND_COLOR = objects.Color("#" .. "FF1DAE65")
 local DARK_COLOR = objects.Color("#" .. "FF20A362")
 local LIGHT_COLOR = objects.Color("#" .. "FF35BA64")
 
+local GROUND_COLOR = objects.Color("#" .. "FFC84DE0")
+local DARK_COLOR   = objects.Color("#" .. "FFB92ED8")
+local LIGHT_COLOR  = objects.Color("#" .. "FFDC66E9")
+
 ---@param self CustomizationScene
 ---@param reg kirigami.Region
 local function drawTown(self,reg)
     lg.setColor(GROUND_COLOR)
-    lg.setStencilMode("draw", 4)
     lg.setColorMask(true, true, true, true)
     lg.rectangle("fill", reg:get())
 
-    lg.setStencilMode("test", 4)
     lg.setColor(DARK_COLOR)
     for _,b in ipairs(TOWN_GROUND)do
         local x = math.floor(reg.x + (reg.w*b.x))
@@ -390,7 +392,6 @@ local function drawTown(self,reg)
         g.drawImage(b.image, x,y)
     end
     drawFakeCats(reg)
-    lg.setStencilMode()
 end
 
 
@@ -441,10 +442,8 @@ function custom:draw()
 
     -- Draw background
     lg.setColor(1,1,1)
-    love.graphics.draw(self.background, 0, 0, 0, w, h)
-
-    -- Draw vignette
-    vignette.draw()
+    --love.graphics.draw(self.background, 0, 0, 0, w, h)
+    lg.clear(GROUND_COLOR)
 
     -- Draw UI
     ui.startUI()

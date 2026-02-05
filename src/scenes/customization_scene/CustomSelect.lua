@@ -113,11 +113,11 @@ function CustomSelect:draw(reg)
     --helper.gradientRect("horizontal", COL2,COL1, c:padUnit(4):get())
     self:drawItem(self.i, c:padRatio(0.2))
 
-    if drawArrow(-1, left:get()) then
+    if drawArrow(-1, left:moveRatio(0.3,0):get()) then
         self:setSelectionIndex(self.i - 1)
     end
 
-    if drawArrow(1, right:get()) then
+    if drawArrow(1, right:moveRatio(-0.3,0):get()) then
         self:setSelectionIndex(self.i + 1)
     end
 end
