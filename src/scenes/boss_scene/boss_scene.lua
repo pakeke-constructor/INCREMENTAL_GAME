@@ -98,6 +98,23 @@ local function drawBossButtonStuff(self, bob)
     end
 end
 
+---@param r kirigami.Region
+local function drawPumpkinBoss(r)
+    local px, py = r:getCenter()
+    g.drawImage("pumpkin_boss", px, py, 0, 2, 2)
+end
+
+---@param r kirigami.Region
+local function drawCrabBoss(r)
+    local px, py = r:getCenter()
+    local t = love.timer.getTime() / 3
+    local rotleft = math.sin(t * 2 * math.pi) * 0.4
+    local rotright = math.cos(t * 2 * math.pi) * 0.4
+
+    g.drawImage("giantcrab_body", px, py, 0, 2, 2)
+    g.drawImageOffset("giantcrab_claw", px + 64, py + 38, rotright, 2, 2, 0.6, 0.2)
+    g.drawImageOffset("giantcrab_claw", px - 64, py + 38, rotleft, -2, 2, 0.6, 0.2)
+end
 
 function boss:draw()
     local w, h = love.graphics.getDimensions()
@@ -139,8 +156,12 @@ function boss:draw()
         :padRatio(0.6,0,0.6,0)
         :moveUnit(0,bob)
     local pumpkin,a,b,_ = r2:splitVertical(3,1,1,2)
-    local px, py = pumpkin:getCenter()
-    g.drawImage("pumpkin_boss", px, py, 0, 2, 2)
+    local prestige = g.getSn().prestige
+    if prestige == 0 then
+        drawPumpkinBoss(pumpkin)
+    elseif prestige == 1 then
+        drawCrabBoss(pumpkin)
+    end
     richtext.printRichContained(SUMMON_BOSS, f, a:get())
     richtext.printRichContained(BOSS_INFO, f, b:get())
     end
