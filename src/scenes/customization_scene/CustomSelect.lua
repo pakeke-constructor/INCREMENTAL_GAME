@@ -55,6 +55,10 @@ local function drawArrow(direction, x, y, w, h)
     end
     lg.setColor(color)
 
+    if iml.wasJustHovered(x,y,w,h) then
+		g.playUISound("ui_tick", 1.6,0.35, 0,0)
+    end
+
     if direction == 1 then
         g.drawImageContained("button_right", x,y,w,h)
         --g.drawImage("button_right", x+w/2,y+h/2)
@@ -63,7 +67,11 @@ local function drawArrow(direction, x, y, w, h)
         --g.drawImage("button_left", x+w/2,y+h/2)
     end
 
-    return iml.wasJustPressed(x,y,w,h)
+    local pressed = iml.wasJustPressed(x,y,w,h)
+    if pressed then
+		g.playUISound("ui_click_basic", 1.4,0.8)
+    end
+    return pressed
 end
 
 
@@ -82,7 +90,7 @@ end
 
 
 local COL1 = objects.Color.DARK_BLUE
-local COL2 = objects.Color.DARK_CYAN
+local COL2 = objects.Color("#".."FF530667")
 
 ---@param i integer
 function CustomSelect:setSelectionIndex(i)
