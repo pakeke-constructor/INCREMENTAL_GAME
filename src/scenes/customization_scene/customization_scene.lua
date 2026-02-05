@@ -390,10 +390,6 @@ local function drawTown(self,reg)
         g.drawImage(b.image, x,y)
     end
     drawFakeCats(reg)
-    for _,r in ipairs(CAT_REGS) do
-        local x,y,w,h = r:get()
-        lg.rectangle("line", reg.x+x*reg.w, reg.y+y*reg.h, w*reg.w,h*reg.h)
-    end
     lg.setStencilMode()
 end
 
@@ -453,12 +449,14 @@ function custom:draw()
     -- Draw UI
     ui.startUI()
     local r = ui.getScreenRegion()
-    local top,bot = r:splitVertical(3,2)
+    local top,bot = r:splitVertical(5,2)
     drawTown(self, top)
     self:_drawCosmeticUI(bot)
     self:renderMapButton()
     self:renderPause()
     ui.endUI()
+
+    vignette.draw()
 end
 
 function custom:keyreleased(k)
