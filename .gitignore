@@ -11,6 +11,7 @@ _notes/.obsidian
 *.aseprite
 
 luasteam.dll
+steam_api64.dll
 
 *.pyc
 jit/
