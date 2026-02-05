@@ -670,6 +670,7 @@ function drawBossPopup(self)
     if iml.wasJustClicked(buttonArea:get()) then
         g.playUISound("ui_click_basic", 1.4, 0.8)
         g.incrementPrestige()
+        self.bossPopup = false
     end
 
     prof_pop()
@@ -1184,8 +1185,8 @@ function harvest:keyreleased(k)
             g.grantEffect("explosion_swarm", 20)
         elseif k=="1" then
             --openBossPopup(self)
-            --g.summonBoss("pumpkin_boss")
-            g.incrementPrestige()
+            g.summonBoss("giantcrab_boss")
+            --g.incrementPrestige()
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do
@@ -1238,14 +1239,18 @@ end
 ---@param pool g.TokenPool
 function harvest:populateTokenPool(pool)
     local boss = g.getBossToken()
-    if boss and boss.type == "pumpkin_boss" then
-        pool:add("pumpkin_health", 5)
+    if boss then
+        if boss.type == "pumpkin_boss" then
+            pool:add("pumpkin_health", 5)
+        elseif boss.type == "giantcrab_boss" then
+            pool:add("giantcrab_crabberry", 6)
+        end
     end
 end
 
 ---@param toktype string
 function harvest:getPerTokenRespawnTimeMultiplier(toktype)
-    if toktype == "pumpkin_health" then
+    if toktype == "pumpkin_health" or toktype == "giantcrab_crabberry" then
         return 0 -- Respawn pumpkin_health instantly
     end
 
