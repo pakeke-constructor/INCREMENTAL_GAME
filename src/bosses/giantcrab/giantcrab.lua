@@ -49,3 +49,24 @@ g.defineBoss("giantcrab_boss", 1, {
         drawClaw(tok, 0)
     end
 })
+
+g.defineToken("giantcrab_crabberry", "giantcrab_health_internal", {
+    maxHealth = 50,
+    resources = {},
+
+    update = function(tok)
+        local boss = g.getBossToken()
+        if not boss or boss.type ~= "giantcrab_boss" then
+            g.deleteToken(tok)
+        end
+    end,
+
+    tokenDestroyed = function(tok)
+        local boss = g.getBossToken()
+        if boss and boss.type == "giantcrab_boss" then
+            local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.BLUE, 0.5)
+            ent.drawOrder = 100
+            g.damageToken(boss, 18000)
+        end
+    end
+})
