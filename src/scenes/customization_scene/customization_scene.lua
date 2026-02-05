@@ -278,6 +278,7 @@ end
 
 
 
+local WADDLE_ANIM_SPEED = 6
 
 local function drawFakeCats(reg)
     if spawnFakeCats then
@@ -288,15 +289,42 @@ local function drawFakeCats(reg)
     local dt = love.timer.getAverageDelta()
     for _, cat in ipairs(fakeCats) do
         local x,y = reg.x+cat.x*reg.w, reg.y+cat.y*reg.h
-        g.drawAvatar(cat.avatar, x,y, false, 0, 1,1)
+        
+        -- Calculate movement direction
+        local dx = cat.targX - cat.x
+        local dy = cat.targY - cat.y
+        local dist = math.sqrt(dx*dx + dy*dy)
+        
+        -- Waddle animation
+        local sx = 1
+        local rot = 0
+        local catDy = 0
+        
+        if dx > 0 then
+            sx = 1
+        elseif dx < 0 then
+            sx = -1
+        end
+        
+        local t = love.timer.getTime() * WADDLE_ANIM_SPEED
+        local isMoving = (dx*dx + dy*dy) > 0.01 and cat.waitTime <= 0
+        
+        if isMoving then
+            -- Waddle effect when moving
+            local height = math.abs(math.sin(t)) * 7
+            rot = math.cos(t) / 6
+            catDy = -height
+        end
+
+        lg.setColor(0,0,0, 0.4)
+        g.drawImage("shadow_medium", x, y+3)
+        
+        g.drawAvatar(cat.avatar, x, y, false, rot, sx, 1, catDy)
 
         if cat.waitTime > 0 then
             cat.waitTime = cat.waitTime - dt
         else
             -- move towards target
-            local dx = cat.targX-cat.x
-            local dy = cat.targY-cat.y
-            local dist = math.sqrt(dx*dx + dy*dy)
             if dist < 0.01 then
                 -- arrived!
                 if love.math.random() < 0.5 then
@@ -310,11 +338,8 @@ local function drawFakeCats(reg)
                 cat.y = cat.y+dy*0.1*dt/dist
             end
         end
-        --cat.x = cat.x + love.math.random()
-        --cat.y = cat.y + love.math.random()
     end
 end
-
 
 
 

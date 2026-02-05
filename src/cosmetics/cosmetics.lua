@@ -193,7 +193,7 @@ function cosmetics.drawAvatar(avatar, x, y, drawBackground, rot, sx,sy, catDy)
 
     love.graphics.setColor(1, 1, 1)
     local catinfo = cosmetics.getInfo(avatar.avatar)
-    g.drawImage(catinfo.image, x, y + (oy + catDy) * sx, 0, sx,sy)
+    g.drawImage(catinfo.image, x, y + (oy + catDy) * sy, 0, sx,sy)
 
     if avatar.hat then
         local hatinfo = cosmetics.getInfo(avatar.hat)
@@ -203,7 +203,7 @@ function cosmetics.drawAvatar(avatar, x, y, drawBackground, rot, sx,sy, catDy)
         g.drawImageOffset(
             hatinfo.image,
             x + (hatinfo.offsetX) * s,
-            y + (hatinfo.offsetY + oy + catDy - 8) * s * sx,
+            y + (hatinfo.offsetY + oy + catDy - 8) * s * sy,
             0, sx*s, sy*s,
             hatinfo.originX,
             hatinfo.originY
