@@ -134,43 +134,77 @@ end
 
 
 
+---Get all avatar cosmetic IDs
+---@return string[]
+function cosmetics.getAllAvatars()
+    ensureLoaded()
+    local t = {}
+    for k, def in pairs(COSMETIC_INFO) do
+        if def.type == "AVATAR" then
+            table.insert(t, k)
+        end
+    end
+    return t
+end
+
+
+
+---Get all hat cosmetic IDs
+---@return string[]
+function cosmetics.getAllHats()
+    ensureLoaded()
+    local t = {}
+    for k, def in pairs(COSMETIC_INFO) do
+        if def.type == "HAT" then
+            table.insert(t, k)
+        end
+    end
+    return t
+end
+
+
+
 
 ---Avatar occupy 32x32 in size, with background.
 ---@param avatar g.Avatar
 ---@param x number
 ---@param y number
----@param scale number?
 ---@param drawBackground boolean?
----@param offsetY number?
-function cosmetics.drawAvatar(avatar, x, y, scale, drawBackground, offsetY)
+---@param rot number?
+---@param sx number?
+---@param sy number?
+---@param catDy number?
+function cosmetics.drawAvatar(avatar, x, y, drawBackground, rot, sx,sy, catDy)
     ensureLoaded()
     local oy = 0
-    offsetY = offsetY or 0
-    scale = scale or 1
+    sx = sx or 1
+    sy = sy or sx
+    rot = rot or 0
+    catDy = catDy or 0
 
     -- Not 100% certain if this should be in g, but we can move it later.
     if drawBackground then
         local bginfo = cosmetics.getInfo(avatar.background)
         love.graphics.setColor(bginfo.color)
-        g.drawImage(bginfo.image, x, y, 0, scale * bginfo.upscale)
+        g.drawImage(bginfo.image, x, y, 0, sx * bginfo.upscale, sy)
         -- When drawing with background, assume it's for rendering in UI
         oy = math.floor((consts.AVATAR_SIZE - 16) / 2) - 1
     end
 
     love.graphics.setColor(1, 1, 1)
     local catinfo = cosmetics.getInfo(avatar.avatar)
-    g.drawImage(catinfo.image, x, y + (oy + offsetY) * scale, 0, scale)
+    g.drawImage(catinfo.image, x, y + (oy + catDy) * sx, 0, sx,sy)
 
     if avatar.hat then
         local hatinfo = cosmetics.getInfo(avatar.hat)
-        local s = scale * hatinfo.upscale
+        local s = hatinfo.upscale or 1
         love.graphics.setColor(hatinfo.color)
         -- Note: This assume cat avatar is 16x16. If not, make this configurable.
         g.drawImageOffset(
             hatinfo.image,
             x + (hatinfo.offsetX) * s,
-            y + (hatinfo.offsetY + oy + offsetY - 8) * s,
-            0, s, s,
+            y + (hatinfo.offsetY + oy + catDy - 8) * s * sx,
+            0, sx*s, sy*s,
             hatinfo.originX,
             hatinfo.originY
         )
@@ -189,7 +223,13 @@ function cosmetics.drawPlayerAvatar(x, y, scale, drawBackground, drawBobbing)
         local t = (love.timer.getTime() * 2 + 10) % (2 * math.pi)
         dy = math.sin(t)/2-1
     end
-    return cosmetics.drawAvatar(g.getSn().avatar, x, y, scale, drawBackground, dy)
+    return cosmetics.drawAvatar(
+        g.getSn().avatar, x, y,
+        drawBackground,
+        0,
+        scale, scale,
+        dy
+    )
 end
 
 

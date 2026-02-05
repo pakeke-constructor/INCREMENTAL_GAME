@@ -244,6 +244,81 @@ end
 
 
 
+local CAT_REGS = {
+    Kirigami(0.65,0.26, 0.15,0.6),
+    Kirigami(0.16,0.22, 0.28,0.7),
+    Kirigami(0.3,0.7, 0.4,0.25)
+}
+
+local NUM_CATS = 30
+local fakeCats = {}
+
+local function spawnFakeCats()
+    local cats = cosmetics.getAllAvatars()
+    local hats = cosmetics.getAllHats()
+    for _=1, NUM_CATS do
+        local cat = {
+            x = math.random(), y=math.random(),
+            targX = math.random(), targY = math.random(),
+            waitTime = 0
+        }
+        cat.avatar = {}
+        if love.math.random() > 0.4 then
+            cat.avatar.avatar = helper.randomChoice(cats)
+        else
+            cat.avatar.avatar = consts.DEFAULT_CAT_AVATAR
+        end
+        if love.math.random() > 0.4 then
+            cat.avatar.hat = helper.randomChoice(hats)
+        end
+        table.insert(fakeCats, cat)
+    end
+end
+
+
+
+
+
+local function drawFakeCats(reg)
+    if spawnFakeCats then
+        spawnFakeCats()
+        ---@diagnostic disable-next-line
+        spawnFakeCats = false
+    end
+    local dt = love.timer.getAverageDelta()
+    for _, cat in ipairs(fakeCats) do
+        local x,y = reg.x+cat.x*reg.w, reg.y+cat.y*reg.h
+        g.drawAvatar(cat.avatar, x,y, false, 0, 1,1)
+
+        if cat.waitTime > 0 then
+            cat.waitTime = cat.waitTime - dt
+        else
+            -- move towards target
+            local dx = cat.targX-cat.x
+            local dy = cat.targY-cat.y
+            local dist = math.sqrt(dx*dx + dy*dy)
+            if dist < 0.01 then
+                -- arrived!
+                if love.math.random() < 0.5 then
+                    cat.waitTime = love.math.random(1,5) -- wait a random time
+                else
+                    cat.targX = love.math.random()
+                    cat.targY = love.math.random()
+                end
+            else
+                cat.x = cat.x+dx*0.1*dt/dist
+                cat.y = cat.y+dy*0.1*dt/dist
+            end
+        end
+        --cat.x = cat.x + love.math.random()
+        --cat.y = cat.y + love.math.random()
+    end
+end
+
+
+
+
+
 local GROUND_COLOR = objects.Color("#" .. "FF1DAE65")
 local DARK_COLOR = objects.Color("#" .. "FF20A362")
 local LIGHT_COLOR = objects.Color("#" .. "FF35BA64")
@@ -284,6 +359,11 @@ local function drawTown(self,reg)
         local x = math.floor(reg.x + (reg.w*b.x))
         local y = math.floor(reg.y + (reg.h*b.y))
         g.drawImage(b.image, x,y)
+    end
+    drawFakeCats(reg)
+    for _,r in ipairs(CAT_REGS) do
+        local x,y,w,h = r:get()
+        lg.rectangle("line", reg.x+x*reg.w, reg.y+y*reg.h, w*reg.w,h*reg.h)
     end
     lg.setStencilMode()
 end
