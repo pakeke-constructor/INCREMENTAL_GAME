@@ -257,10 +257,14 @@ local function spawnFakeCats()
     local cats = cosmetics.getAllAvatars()
     local hats = cosmetics.getAllHats()
     for _=1, NUM_CATS do
+        local regionIndex = love.math.random(1, #CAT_REGS)
+        local reg = CAT_REGS[regionIndex]
+
         local cat = {
-            x = math.random(), y=math.random(),
-            targX = math.random(), targY = math.random(),
-            waitTime = 0
+            x = love.math.random(), y=love.math.random(),
+            targX = love.math.random(), targY = love.math.random(),
+            waitTime = love.math.random() * 3,
+            reg = reg
         }
         cat.avatar = {}
         if love.math.random() > 0.4 then
@@ -276,10 +280,7 @@ local function spawnFakeCats()
 end
 
 
-
-
 local WADDLE_ANIM_SPEED = 6
-
 local function drawFakeCats(reg)
     if spawnFakeCats then
         spawnFakeCats()
@@ -288,7 +289,9 @@ local function drawFakeCats(reg)
     end
     local dt = love.timer.getAverageDelta()
     for _, cat in ipairs(fakeCats) do
-        local x,y = reg.x+cat.x*reg.w, reg.y+cat.y*reg.h
+        local r2 = cat.reg
+        local x = reg.x+cat.x*reg.w*r2.w + r2.x*reg.w
+        local y = reg.y+cat.y*reg.h*r2.h + r2.y*reg.h
         
         -- Calculate movement direction
         local dx = cat.targX - cat.x
@@ -318,7 +321,8 @@ local function drawFakeCats(reg)
 
         lg.setColor(0,0,0, 0.4)
         g.drawImage("shadow_medium", x, y+3)
-        
+
+        lg.setColor(1,1,1)
         g.drawAvatar(cat.avatar, x, y, false, rot, sx, 1, catDy)
 
         if cat.waitTime > 0 then
@@ -334,8 +338,8 @@ local function drawFakeCats(reg)
                     cat.targY = love.math.random()
                 end
             else
-                cat.x = cat.x+dx*0.1*dt/dist
-                cat.y = cat.y+dy*0.1*dt/dist
+                cat.x = cat.x+dx*0.3*dt/dist
+                cat.y = cat.y+dy*0.3*dt/dist
             end
         end
     end
