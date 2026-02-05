@@ -1,4 +1,5 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
+local asynchttp = require("src.modules.asynchttp.asynchttp")
 local cosmetics = require("src.cosmetics.cosmetics")
 local User = require("src.user")
 local sceneManager = require("src.scenes.sceneManager")
@@ -41,10 +42,13 @@ function chestScene:init()
     ---@type ChestScene.ChestOpening?
     self.chestOpening = nil
     self.showPopup = nil -- either "left" or "right"
+    self.inputCodeState = nil
     ---@type string[]
     self.inputCode = {} -- table of character to ease insertion and removal
+    self.inputCodeSubmitting = false -- true if it's submitting invite codes.
+    self.showInputCodeSuccess = false
     ---@type string?
-    self.openChestError = nil
+    self.inputCodeError = nil
     self.cosmeticsRefreshTime = 0
 end
 
@@ -179,7 +183,7 @@ end
 local function showInputCodePopup(self)
     local r = drawCommonPopupBase()
 
-    local titleR, descriptionR, inputCodeTextR, inputCodeR, enterCodeButtonR, closeButtonR = r:splitVertical(48, r.h - 2*48 - 2*32 - 64, 32, 32, 64, 48)
+    local titleR, descriptionR, inputCodeTextR, inputCodeR, enterCodeButtonR, errorMessageR, closeButtonR = r:splitVertical(48, r.h - 2*48 - 2*32 - 64 - 16, 32, 32, 64, 16, 48)
     helper.printTextOutline("Input Code", g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
     lg.printf("Input your friend code in here to earn chest for both of you.", g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
     helper.printTextOutline("Input Code:", g.getSmallFont(32), 1, inputCodeTextR.x, inputCodeTextR.y, inputCodeTextR.w, "center")
@@ -220,12 +224,48 @@ local function showInputCodePopup(self)
 
     -- Draw enter code
     if ui.Button("{o}Enter{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, enterCodeButtonR:padUnit(16, 8)) then
-        print("TODO enter code")
+        if #text > 0 then
+            User.submitFriendCode(text, function(success, reason)
+                cosmetics.tryRefresh()
+
+                if success then
+                    self.showInputCodeSuccess = true
+                    self.showPopup = nil
+                else
+                    self.inputCodeError = ERROR_CODES[reason] or reason or "Unknown error"
+                end
+
+                self.inputCodeSubmitting = false
+            end)
+            self.inputCodeSubmitting = true
+        else
+            self.inputCodeError = "Please enter a code."
+        end
+    end
+
+    if self.inputCodeError then
+        lg.setColor(1, 0.3, 0.3)
+        helper.printTextOutline(self.inputCodeError, g.getSmallFont(16), 1, errorMessageR.x, errorMessageR.y, errorMessageR.w, "center")
     end
 
     if ui.Button("{o}Close{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, closeButtonR:padUnit(16, 8)) then
         love.keyboard.setTextInput(false)
         self.showPopup = nil
+        self.inputCodeError = nil
+        return
+    end
+
+    if self.inputCodeSubmitting then
+        local fullR = ui.getFullScreenRegion()
+        iml.panel(fullR:get())
+        lg.setColor(0, 0, 0, 0.3)
+        lg.rectangle("fill", fullR:get())
+        lg.setColor(1, 1, 1)
+
+        local cx, cy = fullR:getCenter()
+        local f = g.getSmallFont(32)
+        richtext.printRich("{w}{o}Submitting...{/o}{/w}", f, cx, cy, fullR.w, "center", 0, 1, 1, cx, f:getHeight() / 2)
+        love.keyboard.setTextInput(false)
     else
         -- FIXME: This cannot be called all the time in iOS/Android.
         -- When porting to mobile, make sure to use different strategy.
@@ -244,7 +284,7 @@ local function showOpenChestPopup(self)
             if success and self.chestOpening and cosmetic then
                 self.chestOpening.cosmetic = cosmetic
             else
-                self.openChestError = "Error opening chest"
+                self.inputCodeError = "Error opening chest"
                 self.showPopup = nil
                 self.chestOpening = nil
             end
@@ -322,6 +362,62 @@ local function showOpenChestPopup(self)
     end
 end
 
+---@param self ChestScene
+local function showChestOnGodrays(self)
+    local r = ui.getFullScreenRegion()
+    lg.setColor(0, 0, 0, 0.3)
+    lg.rectangle("fill", r:get())
+    lg.setColor(1, 1, 1)
+
+    local rx, ry = r:getCenter()
+    -- Draw cosmetic in godray
+    local t2 = love.timer.getTime()/2
+    godrays.drawRays(rx,ry, t2/2.5, {
+        rayCount = 3,
+        divisions=100,
+        color = RAY_COLOR,
+        startWidth=8,
+        length=600,
+        fadeTo=0,
+        growRate=0.6,
+    })
+    godrays.drawRays(rx,ry, -t2/1.5, {
+        rayCount = 5,
+        divisions=100,
+        color = RAY_COLOR,
+        startWidth=9,
+        length=150,
+        fadeTo=0,
+        growRate=1.6,
+    })
+    godrays.drawRays(rx,ry, t2, {
+        rayCount = 6,
+        divisions=100,
+        color = RAY_COLOR,
+        startWidth=10,
+        length=200,
+        fadeTo=0,
+        growRate=2.6,
+    })
+    godrays.drawRays(rx,ry, t2*-1, {
+        rayCount = 5,
+        divisions=100,
+        color = RAY_COLOR,
+        startWidth=10,
+        length=300,
+        fadeTo=0,
+        growRate=2.6,
+    })
+
+    lg.setColor(1, 1, 1)
+    g.drawImage("chest_big", rx, ry, 0, 10, 10)
+    helper.printTextOutline("You got 1 free chest!", g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
+    helper.printTextOutline("Click anywhere to close", g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
+
+    if iml.wasJustPressed(r:get()) then
+        self.showInputCodeSuccess = nil
+    end
+end
 
 local POPUPS = {
     left = showGetChestPopup,
@@ -357,6 +453,10 @@ function chestScene:draw()
     if POPUPS[self.showPopup] then
         POPUPS[self.showPopup](self)
     end
+
+    if self.showInputCodeSuccess then
+        showChestOnGodrays(self)
+    end
     ui.endUI()
 end
 
@@ -366,7 +466,7 @@ end
 
 
 function chestScene:keyreleased(k)
-    if k == "escape" then
+    if k == "escape" and self.showPopup == nil and not self.showInputCodeSuccess then
         sceneManager.gotoLastScene()
     end
 end
