@@ -314,7 +314,7 @@ end
 ---@param y number?
 local function drawPOIText(poi, x, y)
     local r, g, b = poi.tcolor:getRGBA()
-    local text = string.format("{o thickness=2 r=%.2f g=%.2f b=%.2f}%s{/o}", r, g, b, poi.name)
+    local text = string.format("{wavy}{o thickness=2}{c  r=%.2f g=%.2f b=%.2f}%s{/c}{/o}{/wavy}", r, g, b, poi.name)
 
     richtext.printRich(text, _G.g.getBigFont(32), x or poi.tx, y or poi.ty, 1000, "center", 0, 1, 1, 500, 16)
 end
