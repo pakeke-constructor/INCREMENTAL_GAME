@@ -62,6 +62,40 @@ end
 
 
 
+local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
+local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
+local BUTTON_GREEN_BASE_COL = objects.Color("#" .. "FF73ED75")
+local BUTTON_GREEN_MAIN_COL = objects.Color("#" .. "FF2DAA1F")
+
+---@param r kirigami.Region
+function chestScene:_drawButtons(r)
+    local baseButtonR = Kirigami(0, 0, 96, 32)
+        :attachToRightOf(r)
+        :attachToTopOf(r)
+        :moveRatio(-1, 1)
+        :moveUnit(-8, 8)
+
+    local backR = baseButtonR
+    if ui.Button("{o}Back{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, backR) then
+        sceneManager.gotoLastScene()
+    end
+
+    local refreshR = backR:moveRatio(0, 1):moveUnit(0, 8)
+    if ui.Button("{o}Refresh{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, refreshR) then
+        cosmetics.tryRefresh()
+    end
+
+    local inventoryR = refreshR:moveRatio(0, 1):moveUnit(0, 8)
+    if ui.Button("{o}Open Inventory{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, inventoryR) then
+        local luasteam = Steam.getSteam()
+        if luasteam then
+            local steamid = tostring(luasteam.user.getSteamID())
+            local appid = luasteam.utils.getAppID()
+            love.system.openURL("steam://openurl/https://steamcommunity.com/profiles/"..steamid.."/inventory/#"..appid)
+        end
+    end
+end
+
 
 
 local CHEST_BUTTON_COL = {
@@ -125,10 +159,6 @@ end
 
 
 local POPUP_COLOR = objects.Color("#".."FF735401")
-local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
-local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
-local BUTTON_GREEN_BASE_COL = objects.Color("#" .. "FF73ED75")
-local BUTTON_GREEN_MAIN_COL = objects.Color("#" .. "FF2DAA1F")
 
 local function drawCommonPopupBase()
     -- Prevent propagation
@@ -459,6 +489,9 @@ function chestScene:draw()
     ui.startUI()
     local r = ui.getScreenRegion()
     local _,bot = r:splitVertical(3,2)
+
+    self:_drawButtons(r)
+
     self:_drawChestUI(bot)
 
     if POPUPS[self.showPopup] then
