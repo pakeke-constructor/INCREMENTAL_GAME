@@ -73,14 +73,9 @@ function chestScene:_drawButtons(r)
         :attachToRightOf(r)
         :attachToTopOf(r)
         :moveRatio(-1, 1)
-        :moveUnit(-8, 8)
+        :moveUnit(-8, 64)
 
-    local backR = baseButtonR
-    if ui.Button("{o}Back{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, backR) then
-        sceneManager.gotoLastScene()
-    end
-
-    local refreshR = backR:moveRatio(0, 1):moveUnit(0, 8)
+    local refreshR = baseButtonR:moveRatio(0, 1):moveUnit(0, 8)
     if ui.Button("{o}Refresh{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, refreshR) then
         cosmetics.tryRefresh()
     end
@@ -490,6 +485,7 @@ function chestScene:draw()
     local r = ui.getScreenRegion()
     local _,bot = r:splitVertical(3,2)
 
+    self:renderMapButton()
     self:_drawButtons(r)
 
     self:_drawChestUI(bot)

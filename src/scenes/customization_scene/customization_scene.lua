@@ -289,7 +289,6 @@ local function drawTown(self,reg)
 end
 
 
-local MORE_COSMETICS = loc("Get More Cosmetics", nil, {context = "Label for a button"})
 
 ---@param bot kirigami.Region
 function custom:_drawCosmeticUI(bot)
@@ -312,10 +311,6 @@ function custom:_drawCosmeticUI(bot)
     self.hatSelect:draw(hat:padRatio(0.2))
     self.catSelect:draw(cat:padRatio(0.2))
     self.bgSelect:draw(bg:padRatio(0.2))
-
-    if ui.Button("{o}"..MORE_COSMETICS.."{/o}", GROUND_COLOR, LIGHT_COLOR, c:padUnit(16)) then
-        g.gotoScene("chest_scene")
-    end
 end
 
 
@@ -354,6 +349,7 @@ function custom:draw()
     local top,bot = r:splitVertical(3,2)
     drawTown(self, top)
     self:_drawCosmeticUI(bot)
+    self:renderMapButton()
     self:renderPause()
     ui.endUI()
 end
