@@ -19,8 +19,8 @@ local function drawClaw(tok, oy)
     g.drawImageOffset("giantcrab_claw", tok.x - 32, tok.y + 19 + oy, rotleft, -1, 1, 0.6, 0.2)
 end
 
-g.defineBoss("giantcrab_boss", 1, {
-    maxHealth = 1000000,
+g.defineBoss("giantcrab_boss", 1, "giantcrab_crabberry", {
+    maxHealth = 2000000,
     image = "giantcrab_body",
     resources = {},
     drawOrder = 90,
@@ -66,7 +66,7 @@ g.defineToken("giantcrab_crabberry", "giantcrab_health_internal", {
         if boss and boss.type == "giantcrab_boss" then
             local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.BLUE, 0.5)
             ent.drawOrder = 100
-            g.damageToken(boss, 18000)
+            g.damageToken(boss, 4050)
         end
     end
 })

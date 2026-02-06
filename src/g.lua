@@ -741,7 +741,7 @@ local g_UpgradeDefinition = {}
 ---@field resources g.Bundle
 ---@field nameContext string?
 ---@field image string?
----@field bossfight {prestige:integer}? boss for prestige-0 will upgrade -> prestige-1
+---@field bossfight {prestige:integer,healthToken:string?}? boss for prestige-0 will upgrade -> prestige-1
 ---@field maxLevel integer?
 ---@field growths {stalk:string,growth:string}?
 ---@field flight {vx:number,vy:number}?
@@ -2255,9 +2255,10 @@ end
 
 ---@param id string
 ---@param prestige integer
+---@param healthToken string|nil
 ---@param def g.TokenDefinition
-function g.defineBoss(id, prestige, def)
-    def.bossfight = {prestige=prestige}
+function g.defineBoss(id, prestige, healthToken, def)
+    def.bossfight = {prestige=prestige, healthToken=healthToken}
     def.tokenDestroyed = killBoss
     g.defineToken(id, "boss " .. prestige, def)
     PRESTIGE_TO_BOSS[prestige] = g.getTokenInfo(id)
