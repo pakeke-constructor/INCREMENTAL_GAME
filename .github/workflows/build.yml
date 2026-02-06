@@ -271,5 +271,5 @@ jobs:
 
         rootPath: build
         depot1Path: win64
-        depot2Path: linux64  ## UNCOMMENT THIS WHEN LINUX BUILDS ARE READY.
+        # depot2Path: linux64  ## UNCOMMENT THIS WHEN LINUX BUILDS ARE READY.
         releaseBranch: ${{ inputs.steam_release_branch }}
