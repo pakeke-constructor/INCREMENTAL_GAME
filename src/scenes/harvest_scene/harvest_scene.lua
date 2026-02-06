@@ -1139,11 +1139,15 @@ function harvest:update(dt)
 
     local boss = g.getBossToken()
     local bossHealthToken = boss and boss.bossfight and boss.bossfight.healthToken
-    if boss and bossHealthToken then
-        for _, tok in ipairs(sn.mainWorld.tokens) do
-            ---@cast tok g.Token
-            if tok.type ~= bossHealthToken and tok.type ~= boss.type then
-                g.deleteToken(tok)
+    if boss then
+        sn.xp = 0
+
+        if bossHealthToken then
+            for _, tok in ipairs(sn.mainWorld.tokens) do
+                ---@cast tok g.Token
+                if tok.type ~= bossHealthToken and tok.type ~= boss.type then
+                    g.deleteToken(tok)
+                end
             end
         end
     end
