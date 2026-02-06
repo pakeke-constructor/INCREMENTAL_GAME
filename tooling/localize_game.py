@@ -13,7 +13,7 @@ import openai
 
 from util import find_game_root
 
-assert dotenv.load_dotenv(override=True)
+dotenv.load_dotenv(override=True)
 
 
 async_client = openai.AsyncClient(base_url="https://openrouter.ai/api/v1", api_key=os.environ["OPENROUTER_API_KEY"])
@@ -36,7 +36,6 @@ CONCURRENT_REQUEST = 16
 LANGUAGE_NAMES: dict[str, tuple[str, str]] = {
     # 1st tuple is English name (for LLM input)
     # 2nd tuple is native language name (for user display and LLM input)
-    "en": ("English", "English"),
     "fr": ("French", "Français"),
     "it": ("Italian", "Italiano"),
     "de": ("German", "Deutsch"),
@@ -189,7 +188,7 @@ async def begin_translate(target_lang: str, keys: collections.abc.Iterable[str])
 
 async def update(target_lang: str):
     with open(
-        os.path.join(os.environ["APPDATA"], "LOVE/INCREMENTAL_GAME/localization.json"), "r", encoding="utf-8"
+        os.path.join(os.environ["APPDATA"], "LOVE/catx11/localization.json"), "r", encoding="utf-8"
     ) as f:
         input_translation: dict[str, str] = json.load(f)["strings"]
 
