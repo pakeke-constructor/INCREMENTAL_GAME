@@ -1254,12 +1254,9 @@ end
 ---@param pool g.TokenPool
 function harvest:populateTokenPool(pool)
     local boss = g.getBossToken()
-    if boss then
-        if boss.type == "pumpkin_boss" then
-            pool:add("pumpkin_health", 5)
-        elseif boss.type == "giantcrab_boss" then
-            pool:add("giantcrab_crabberry", 6)
-        end
+    local bossHealthToken = boss and boss.bossfight and boss.bossfight.healthToken
+    if bossHealthToken then
+        pool:add(bossHealthToken, 25)
     end
 end
 

@@ -20,7 +20,7 @@ local function drawClaw(tok, oy)
 end
 
 g.defineBoss("giantcrab_boss", 1, "giantcrab_crabberry", {
-    maxHealth = 1000000,
+    maxHealth = 2000000,
     image = "giantcrab_body",
     resources = {},
     drawOrder = 90,
@@ -66,7 +66,7 @@ g.defineToken("giantcrab_crabberry", "giantcrab_health_internal", {
         if boss and boss.type == "giantcrab_boss" then
             local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.BLUE, 0.5)
             ent.drawOrder = 100
-            g.damageToken(boss, 18000)
+            g.damageToken(boss, 4050)
         end
     end
 })

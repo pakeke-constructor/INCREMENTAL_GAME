@@ -100,7 +100,7 @@ g.defineToken("pumpkin_health", "pumpkin_health_internal", {
         if boss and boss.type == "pumpkin_boss" then
             local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.RED, 0.5)
             ent.drawOrder = 100
-            g.damageToken(boss, 2e4)
+            g.damageToken(boss, 3080)
         end
     end
 })
