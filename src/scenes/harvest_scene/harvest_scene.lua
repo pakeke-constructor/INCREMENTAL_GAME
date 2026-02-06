@@ -1137,9 +1137,20 @@ function harvest:update(dt)
     self.camera:setViewport(0, 0, w, h, (sx + sw / 2) / w, (sy + sh / 2) / h)
     self.camera:setPos(worldW / 2, worldH / 2)
 
+    local boss = g.getBossToken()
+    local bossHealthToken = boss and boss.bossfight and boss.bossfight.healthToken
+    if boss and bossHealthToken then
+        for _, tok in ipairs(sn.mainWorld.tokens) do
+            ---@cast tok g.Token
+            if tok.type ~= bossHealthToken and tok.type ~= boss.type then
+                g.deleteToken(tok)
+            end
+        end
+    end
+
     -- Pull stack token
     local stkTok,onSpawn = g.peekStackedToken()
-    if stkTok and (not isAnyPopupOpen(self)) then
+    if stkTok and (not isAnyPopupOpen(self)) and (not bossHealthToken) then
         -- dont pull tokens when popups are open.
         if self.stackedTokenLerpTime == -1 then
             -- If there's no token, prepare new one.
@@ -1250,8 +1261,16 @@ end
 
 ---@param toktype string
 function harvest:getPerTokenRespawnTimeMultiplier(toktype)
-    if toktype == "pumpkin_health" or toktype == "giantcrab_crabberry" then
-        return 0 -- Respawn pumpkin_health instantly
+    local boss = g.getBossToken()
+    local healthToken = boss and boss.bossfight and boss.bossfight.healthToken
+
+    if healthToken then
+        if toktype == healthToken then
+            return 0 -- Respawn boss health token instantly
+        end
+
+        -- If there's boss token, make it drastically slower for normal token to spawn.
+        return 10
     end
 
     return 1
