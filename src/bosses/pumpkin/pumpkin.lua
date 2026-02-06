@@ -45,7 +45,7 @@ local PARTICLE_VY_MIN = -60
 local PARTICLE_VY_MAX = -100
 local PARTICLE_VX_RANGE = 40
 
-g.defineBoss("pumpkin_boss", 0, {
+g.defineBoss("pumpkin_boss", 0, "pumpkin_health", {
     maxHealth = 1000000,
     resources = {},
     drawOrder = 90,
