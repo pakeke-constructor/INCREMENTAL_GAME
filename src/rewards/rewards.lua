@@ -544,7 +544,6 @@ local PERM_UPGRADES = {
     "percentage_10_more_area",
     "flat_2_more_area",
     "flat_3_more_damage",
-    "flat_5_more_damage",
     "flat_1_more_speed",
     "flat_2_more_area",
     "percentage_5_more_speed",
