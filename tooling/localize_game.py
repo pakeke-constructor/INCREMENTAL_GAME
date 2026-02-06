@@ -32,13 +32,42 @@ TEMPERATURE = 0.0
 RETRY_ATTEMPT = 10
 CONCURRENT_REQUEST = 16
 
+
 LANGUAGE_NAMES: dict[str, tuple[str, str]] = {
     # 1st tuple is English name (for LLM input)
     # 2nd tuple is native language name (for user display and LLM input)
-    "zh": ("Simplified Chinese", "简体中文"),
+    "en": ("English", "English"),
+    "fr": ("French", "Français"),
+    "it": ("Italian", "Italiano"),
+    "de": ("German", "Deutsch"),
+    "es": ("Spanish", "Español"),
+    "bg": ("Bulgarian", "Български"),
+    "cs": ("Czech", "Čeština"),
+    "da": ("Danish", "Dansk"),
+    "nl": ("Dutch", "Nederlands"),
+    "fi": ("Finnish", "Suomi"),
+    "el": ("Greek", "Ελληνικά"),
+    "hu": ("Hungarian", "Magyar"),
+    "id": ("Indonesian", "Bahasa Indonesia"),
+    "ja": ("Japanese", "日本語"),
+    "ko": ("Korean", "한국어"),
+    "no": ("Norwegian", "Norsk"),
+    "pl": ("Polish", "Polski"),
+    "pt-BR": ("Portuguese (Brazil)", "Português (Brasil)"),
+    "pt": ("Portuguese", "Português"),
+    "ro": ("Romanian", "Română"),
     "ru": ("Russian", "Русский"),
-    "id": ("Indonesia", "Bahasa Indonesia"),
+    "zh": ("Simplified Chinese", "简体中文"),  # Extracted from 'schinese'
+    "es-419": ("Spanish (Latin America)", "Español (Latinoamérica)"),  # Extracted from 'latam'
+    "sv": ("Swedish", "Svenska"),
+    "th": ("Thai", "ไทย"),
+    "zh-Hant": ("Traditional Chinese", "繁體中文"),  # Extracted from 'tchinese'
+    "tr": ("Turkish", "Türkçe"),
+    "uk": ("Ukrainian", "Українська"),
+    "vi": ("Vietnamese", "Tiếng Việt"),
 }
+
+
 
 # Works same as "keywords.json" in LOOTPLOT
 LANGUAGE_KEYWORD_OVERRIDES: dict[str, dict[str, str]] = {}
@@ -183,7 +212,6 @@ async def update(target_lang: str):
 if __name__ == "__main__":
 
     async def main():
-        # translate_all("zh")
-        await update("id")
+        for k in LANGUAGE_NAMES.keys(): await update(k)
 
     asyncio.run(main())
