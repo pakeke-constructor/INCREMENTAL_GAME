@@ -61,23 +61,23 @@ function procGen.generateTreeShape(numNodes)
 
     local grid = objects.Grid(GRID_SIZE, GRID_SIZE) -- true = node exists
     local connections = {} -- {x1=int,y1=int, x2=int,y2=int}[]
-    local count = 0
+    local cells = {} -- flat list: {gx1,gy1, gx2,gy2, ...}
 
-    grid:set(OFFSET, OFFSET, true) -- root at origin
-    count = count + 1
+    grid:set(OFFSET, OFFSET, true)
+    cells[1], cells[2] = OFFSET, OFFSET
 
-    -- Grow tree: random walk from random occupied cells
-    while count < numNodes do
-        local gx, gy = love.math.random(0, GRID_SIZE-1), love.math.random(0, GRID_SIZE-1)
-        if grid:get(gx, gy) then
-            local d = DIRS[love.math.random(#DIRS)]
-            local nx, ny = gx + d[1], gy + d[2]
-            if grid:contains(nx, ny) and not grid:get(nx, ny) then
-                grid:set(nx, ny, true)
-                count = count + 1
-                if d[1] ~= 0 and d[2] ~= 0 then
-                    table.insert(connections, {x1=gx-OFFSET, y1=gy-OFFSET, x2=nx-OFFSET, y2=ny-OFFSET})
-                end
+    -- Grow tree from random existing cells
+    while #cells < numNodes * 2 do
+        local i = love.math.random(#cells / 2) * 2 - 1
+        local gx, gy = cells[i], cells[i+1]
+        local d = DIRS[love.math.random(#DIRS)]
+        local nx, ny = gx + d[1], gy + d[2]
+        if grid:contains(nx, ny) and not grid:get(nx, ny) then
+            grid:set(nx, ny, true)
+            cells[#cells+1] = nx
+            cells[#cells+1] = ny
+            if d[1] ~= 0 and d[2] ~= 0 then
+                table.insert(connections, {x1=gx-OFFSET, y1=gy-OFFSET, x2=nx-OFFSET, y2=ny-OFFSET})
             end
         end
     end
