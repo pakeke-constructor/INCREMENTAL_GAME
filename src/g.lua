@@ -1400,9 +1400,6 @@ function g.defineUpgrade(id, name, def)
         assert(def.procGen.weight > 0, "weight must be positive")
         assert(#def.procGen.distance == 2, "distance must be integer length of 2")
         assert(def.procGen.distance[1] <= def.procGen.distance[2], "invalid distance")
-        if def.procGen.needs then
-            assert(upgradeInfos[def.procGen.needs], "dependent upgrade not registered")
-        end
     end
 
     def.image = def.image or id

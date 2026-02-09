@@ -246,6 +246,14 @@ function love.load(arg)
         sceneManager.gotoScene("title_scene")
     end
 
+    if consts.TEST then
+        for _, uid in ipairs(g.UPGRADE_LIST) do
+            local uinfo = assert(g.getUpgradeInfo(uid))
+            local needs = uinfo.procGen and uinfo.procGen.needs
+            if needs then assert(g.isValidUpgrade(needs), "procGen.needs dependency invalid: "..tostring(uid) .. " " .. tostring(needs)) end
+        end
+    end
+
     _isloadtime = false
 
     love.window.setFullscreen(settings.isFullscreen())

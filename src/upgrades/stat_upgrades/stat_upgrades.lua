@@ -12,6 +12,8 @@ local function defUpgrade(id,name,tabl)
 end
 
 
+local DEFAULT_WEIGHT = 2
+
 ---@class _.upgrades
 local upgrades = {
     {
@@ -40,6 +42,7 @@ local upgrades = {
     },
     {
         id = "better_lightning",
+        needs = "mushroom_blue",
         title = "Better Lightning",
         desc = "%{1} Lightning damage",
         stat = "LightningDamage",
@@ -48,6 +51,7 @@ local upgrades = {
     },
     {
         id = "sharper_knives",
+        needs = "knife_bush",
         title = "Sharper Knives",
         desc = "%{1} Knife damage",
         stat = "KnifeDamage",
@@ -56,6 +60,7 @@ local upgrades = {
     },
     {
         id = "more_xp",
+        weight = DEFAULT_WEIGHT / 2,
         title = "More XP",
         desc = "%{1} xp gain",
         stat = "XpMultiplier",
@@ -93,7 +98,13 @@ for _, u in ipairs(upgrades) do
 
             ["get" .. u.stat .. "Multiplier"] = function(self, level)
                 return 1 + (self:getValues(level) / 100)
-            end
+            end,
+
+            procGen = {
+                weight = u.weight or DEFAULT_WEIGHT,
+                needs = u.needs,
+                distance = {10,20}
+            },
         })
     end
 
@@ -111,7 +122,13 @@ for _, u in ipairs(upgrades) do
 
             ["get" .. u.stat .. "Modifier"] = function(self, level)
                 return self:getValues(level)
-            end
+            end,
+
+            procGen = {
+                weight = u.weight or DEFAULT_WEIGHT,
+                needs = u.needs,
+                distance = {2,10}
+            },
         })
     end
 end
@@ -120,9 +137,9 @@ end
 
 ---@class _.p1harv.CATEGORIES
 local CATEGORIES = {
-    {category = "grass", image="grass_3", name="Grass Crops"},
-    {category = "berry", image="red_berry", name="Berry Crops"},
-    {category = "fish", image="fish", name="Fish"},
+    {category = "grass", image="grass_3", name="Grass Crops", needs="grass_1"},
+    {category = "berry", image="red_berry", name="Berry Crops", needs="blue_berry_1"},
+    --{category = "fish", image="fish", name="Fish"},
 }
 
 
@@ -142,6 +159,12 @@ for _, c in ipairs(CATEGORIES) do
             local a = self:getValues(level)
             return 1 + (a / 100)
         end,
+
+        procGen = {
+            weight = 1,
+            distance = {10,20},
+            needs = c.needs
+        },
 
         drawUI = function (uinfo, level, x, y, w, h)
             local t1 = love.timer.getTime()*2
@@ -165,6 +188,11 @@ defUpgrade("lucky_hit", "Lucky Hit", {
         return level*3
     end,
     description = "When a crop is hit, +%{1}% chance to hit another crop",
+
+    procGen = {
+        weight = 2,
+        distance = {5,8}
+    },
 
     tokenHit = function(self,level)
         local r = love.math.random()
