@@ -66,8 +66,9 @@ function procGen.generateTreeShape(numNodes)
     grid:set(OFFSET, OFFSET, true)
     cells[1], cells[2] = OFFSET, OFFSET
 
-    -- Grow tree from random existing cells
-    while #cells < numNodes * 2 do
+    -- Grow tree from random existing cells (generate extra to account for holes)
+    local totalNodes = numNodes + math.floor(numNodes * 0.3)
+    while #cells < totalNodes * 2 do
         local i = love.math.random(#cells / 2) * 2 - 1
         local gx, gy = cells[i], cells[i+1]
         local d = DIRS[love.math.random(#DIRS)]
@@ -79,6 +80,15 @@ function procGen.generateTreeShape(numNodes)
             if d[1] ~= 0 and d[2] ~= 0 then
                 table.insert(connections, {x1=gx-OFFSET, y1=gy-OFFSET, x2=nx-OFFSET, y2=ny-OFFSET})
             end
+        end
+    end
+
+    -- Punch random holes to break up clumps
+    local HOLE_CHANCE = 0.3
+    for i = 1, #cells do
+        local gx, gy = cells[i], cells[i+1]
+        if not (gx == OFFSET and gy == OFFSET) and love.math.random() < HOLE_CHANCE then
+            grid:set(gx, gy, false)
         end
     end
 
