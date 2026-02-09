@@ -715,6 +715,16 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 --- (eg. double the money-limit. Harvest stuff automatically.)
 ---| "MISC"
 
+
+
+---@class g.UpgradeDefinition.ProcGen
+---@field weight number The rarity-weight of upgrade
+---@field distance [integer,integer] [min,max] distance from root node when generating. A root node has level > 0. E.g. if distance = {1,3}, that means it MUST be between 1 and 3 jumps to a root node.
+---@field needs string? a dependency to another upgrade. Eg: "better_slime" upgrade requires "slime" upgrade as a pre-requisite.
+--- this class tells the system: "Hey, this upgrade will be procedurally generated!"
+local g_UpgradeDefinition_ProcGen
+
+
 ---@class g.UpgradeDefinition
 ---@field kind g.UpgradeKind
 ---@field nameContext string?
@@ -725,7 +735,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field description string?
 ---@field descriptionContext string?
 ---@field rawDescription string?
----@field procGen {weight:number,distance:[integer,integer],needs:string?}?
+---@field procGen g.UpgradeDefinition.ProcGen?
 ---@field getPriceOverride (fun(uinfo:g.UpgradeInfo, level:integer): g.Bundle)?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number,number?,number?,number?)?

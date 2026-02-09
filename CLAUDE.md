@@ -51,14 +51,13 @@ defUpgrade("crit_knives", "Critical Knives", {
     getValues = function(uinfo, level) return level*2 end,
     valueFormatter = {"%d"},  -- formats getValues output for description
     description = "When a crop is {CRIT}Critically hit{/CRIT}, spawn %{1} knives!",
-    -- %{1} is replaced with formatted getValues()[1]
+    -- %{1} replaced with formatted getValues()[1]
+    -- (When crop is crit, Spawn {level*2} knives!)
 
     -- Event handler. Args: (uinfo, level, <event args...>)
     tokenCrit = function(uinfo, level, tok)
-        local val = uinfo:getValues(level) -- reuse getValues
-        for _=1, val do
-            worldutil.spawnKnife(tok.x, tok.y, nil, 26)
-        end
+        local numKnives = uinfo:getValues(level)
+        -- spawn knives ...
     end
 })
 ```
