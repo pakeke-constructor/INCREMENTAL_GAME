@@ -3,6 +3,7 @@ local UpgradeDescription = require("src.ui.upgrades.upgrade_description_ui")
 local Tree = require("src.upgrades.Tree")
 
 local newDevTree = require("src.upgrades.dev_tree")
+local procGen = require("src.upgrades.proc_gen")
 
 
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
@@ -929,6 +930,10 @@ function upgscene:keypressed(k)
             for _, upg in ipairs(session.tree:getAllUpgrades()) do
                 upg.level = upgradeLevels[upg.id] or 0
             end
+        end
+
+        if love.keyboard.isDown("lshift") and k == "2" then
+            g.getSn().tree = procGen.generateTestTree()
         end
     end
 end

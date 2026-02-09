@@ -2,6 +2,8 @@
 
 local procGen = {}
 
+local Tree = require("src.upgrades.Tree")
+
 --[[
 
 ## proc gen tree core ideas:
@@ -99,6 +101,34 @@ end
 
 
 function procGen.placeUpgrades()
+end
+
+
+function procGen.generateTestTree()
+    local grid, connections = procGen.generateTreeShape()
+    local tree = Tree()
+    local uinfo = g.getUpgradeInfo("flat_2_more_damage")
+
+    -- Place upgrades on every occupied cell
+    grid:foreach(function(val, gx, gy)
+        if not val then return end
+        local x, y = gx - OFFSET, gy - OFFSET
+        local isRoot = (x == 0 and y == 0)
+        local upg = tree:put(x, y, uinfo, isRoot)
+        upg.basePrice = {money = 10}
+    end)
+
+    -- Add connections
+    for _, c in ipairs(connections) do
+        local u1 = tree:get(c.x1, c.y1)
+        local u2 = tree:get(c.x2, c.y2)
+        if u1 and u2 then
+            tree:addConnection(u1, u2)
+        end
+    end
+
+    tree:finalize()
+    return tree
 end
 
 
