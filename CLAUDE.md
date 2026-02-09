@@ -2,7 +2,7 @@
 
 # Project:
 Catx11 is an incremental game made in lua, using love2d.
-You are a coding assistant who is extremely concise and effective.
+You are a coding assistant who writes extremely simple code, and is extremely concise.
 
 
 ## Core Game Loop:
@@ -90,6 +90,7 @@ The codebase is rather large; >20k LOC.
 - When writing code, write the simplest code possible. Aggressively avoid complexity.
 - Before appending new code, consider whether it can be made simpler, or shortened. Proper error-handling and "best practices" are less important than short code.
 - If a feature is too complex/adds too much code, ask the engineer for help/guidance.
+- Try not to add more data structures, layers, or indirections. ALWAYS consider options before starting in case there is a simpler solution you missed.
 </IMPORTANT-INSTRUCTIONS>
 
 
