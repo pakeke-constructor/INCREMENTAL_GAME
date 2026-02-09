@@ -153,6 +153,10 @@ local function defineCatUpgrade(id, name, def)
         return g.spawnEntity(id, x, y)
     end
     def.kind = "MISC"
+    def.procGen =  {
+        weight = 30,
+        distance = {3, 8}
+    }
 
     g.defineUpgrade(id, name, def)
 end
@@ -199,7 +203,7 @@ for i, def in ipairs(PLANTER_CATS) do
             g.drawImage(img, x+w/3, y+h/2)
             g.drawImage(tok_id, x+w*0.8, y+h/2 + 3*math.sin(t))
         end,
-        description = "Plants " .. tokName .. "!"
+        description = "Plants " .. tokName .. "!",
     })
 end
 

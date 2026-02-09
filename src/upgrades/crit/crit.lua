@@ -12,15 +12,6 @@ crit upgrades:
 
 ]]
 
----@param id string
----@param name string
----@param tabl g.UpgradeDefinition|{kind:nil}
-local function defUpgrade(id,name,tabl)
-    tabl.kind = "HARVESTING"
-    g.defineUpgrade(id,name,tabl)
-end
-
-
 
 local function drawUI(uinfo, level, x, y, w, h)
     local t1 = love.timer.getTime()*3
@@ -38,8 +29,8 @@ local function drawUI(uinfo, level, x, y, w, h)
 end
 
 
-
-defUpgrade("crit_strike_chance", "Critical Strikes", {
+g.defineUpgrade("crit_strike_chance", "Critical Strikes", {
+    kind = "HARVESTING",
     description = "When hitting a crop, %{1} chance to {CRIT}Critical-Hit{/CRIT}, dealing 10x damage!",
     getValues = function(uinfo, level)
         return level
@@ -49,9 +40,26 @@ defUpgrade("crit_strike_chance", "Critical Strikes", {
     getCritChanceModifier = function(uinfo, level)
         return uinfo:getValues(level) / 100
     end,
-    drawUI=drawUI
+    drawUI=drawUI,
+    procGen = {
+        weight = 35,
+        distance = {2, 6}
+    }
 })
 
+
+---@param id string
+---@param name string
+---@param tabl g.UpgradeDefinition|{kind:nil}
+local function defUpgrade(id,name,tabl)
+    tabl.kind = "HARVESTING"
+    tabl.procGen = {
+        weight = 35,
+        distance = {2, 6},
+        needs = "crit_strike_chance",
+    }
+    g.defineUpgrade(id,name,tabl)
+end
 
 
 defUpgrade("crit_knives", "Critical Knives", {
