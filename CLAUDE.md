@@ -5,9 +5,15 @@ Catx11 is an incremental game made in lua, using love2d.
 You are a coding assistant who is extremely concise and effective.
 
 
-## Game loop:
+## Core Game Loop:
 Harvest resources in the world / harvest_scene.
 Buy upgrades on the upgrade-tree. (upgrade_scene)
+
+## Minor parts of game loop:
+Occasionally, the player levels up, and can select a reward.
+
+Late-game, the player may choose to summon the boss. If it kills (harvests) the boss-crop, the player will `prestige`.
+Prestige will reset ALL upgrades, reset ALL resources (currency), and create a new upgrade tree. (Starting upgrade tree is defined as `prestige_0.json`.)
 
 
 
@@ -23,6 +29,7 @@ Buy upgrades on the upgrade-tree. (upgrade_scene)
 - Upgrades: Upgrades have an effect on harvesting. The same upgrade can be placed multiple times on the same tree, with different pricing, and different max-level.
     - `g.defineUpgrade`
 - g.Tree: the upgrade tree
+    - loads from `prestige_0.json`
 - g.Tree.Upgrade: An entry on the upgrade-tree; (upgradeId, position, price: g.Bundle, maxLevel)
 
 The `world` is an object that exists inside the harvest_scene, and is where all entities/tokens live.
@@ -51,6 +58,7 @@ Questions need to return a value; which is combined with all other questions (us
 src/g.lua: All core functions stored here, >2000loc
 src/scenes/*: All scenes defined here, in folders.
 src/upgrades/**: All upgrades defined here. Multiple upgrades per file.
+src/upgrades/tokens/**: All crops (tokens) defined here.
 src/modules/*: Extra modules (analytics, lighting, richtext, typechecking)
 src/world/*: Stuff to do with the world (used by harvest_scene)
 src/entities/*: Entities defined here
