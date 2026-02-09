@@ -36,22 +36,34 @@ The `world` is an object that exists inside the harvest_scene, and is where all 
 
 
 ## Event-buses, Question-buses:
-How control flow is propagated to tokens and especially upgrades.
-eg:
-```lua
-g.call("tokenDestroyed", tok) -- event
+How upgrades (and tokens) interact with the game. Defined in `src/ev_q_definitions.lua`.
 
--- and an upgrade:
-g.defineUprade("test", {
-    tokenDestroyed = function()
-        g.addMoney(1)
-    end,
-    description = "When a crop is harvested, earn $1!"
+**Events** = broadcast, no return value. `g.call("tokenDestroyed", tok)`
+**Questions** = ask all upgrades, combine answers with a reducer. `g.ask("getTokenDamageMultiplier", tok)`
+
+Reducers: `ADD` (sum all answers), `MULTIPLY` (multiply all answers), `PRIORITY`, `OR`, `AND`.
+
+### Upgrade handlers get implicit args: `(uinfo, level, ...)`
+Every event/question handler defined in an upgrade receives `uinfo` and `level` automatically, followed by the event's own args:
+```lua
+defUpgrade("crit_knives", "Critical Knives", {
+    -- getValues: maps level -> values. Used for description AND game logic.
+    getValues = function(uinfo, level) return level*2 end,
+    valueFormatter = {"%d"},  -- formats getValues output for description
+    description = "When a crop is {CRIT}Critically hit{/CRIT}, spawn %{1} knives!",
+    -- %{1} is replaced with formatted getValues()[1]
+
+    -- Event handler. Args: (uinfo, level, <event args...>)
+    tokenCrit = function(uinfo, level, tok)
+        local val = uinfo:getValues(level) -- reuse getValues
+        for _=1, val do
+            worldutil.spawnKnife(tok.x, tok.y, nil, 26)
+        end
+    end
 })
 ```
-Questions need to return a value; which is combined with all other questions (usually multiplication or addition).
 
-`src/ev_q_definitions.lua`: Where all questions/events are defined
+`uinfo:getValues(level)` calls the upgrade's `getValues` function. Centralizes level-scaling so description and logic stay in sync.
 
 
 ## Architecture:
@@ -74,8 +86,8 @@ The codebase is rather large; >20k LOC.
 
 # IMPORTANT AGENT INSTRUCTIONS:
 <IMPORTANT-INSTRUCTIONS>
+- IN ALL INTERACTIONS, BE EXTREMELY CONCISE, EVEN IF IT MEANS GRAMMATICAL INCORRECTNESS.
 - You are working with a talented engineer who understands the codebase, if you need guidance or clarifications, ask.
-- In all interactions, be extremely concise, even if it means grammatical incorrectness.
 - When writing code, write the simplest code possible. Aggressively avoid complexity.
 - Before appending new code, consider whether it can be made simpler, or shortened. Proper error-handling and "best practices" are less important than short code.
 - If a feature is too complex/adds too much code, ask the engineer for help/guidance.
