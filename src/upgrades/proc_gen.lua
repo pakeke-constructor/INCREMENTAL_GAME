@@ -30,7 +30,7 @@ so if we had to choose between player being slightly OP, or slightly underpowere
 ## IMPORTANT AGENT INSTRUCTIONS:
 Read and understand `src/upgrades/Tree.lua`.
 You must understand upgrade-definitions; g.defineUpgrade
-You must also understand `g.UpgradeInfo._procGen` table, and how it relates to upgrade-definitions
+You must also understand `g.UpgradeInfo.procGen` table, and how it relates to upgrade-definitions
 Read src/modules/objects/Grid.lua
 
 ]]
@@ -46,17 +46,54 @@ local g_UpgradeDefinition_ProcGen
 
 
 
-function procGen.generateTreeShape()
-    local g = objects.Grid(100,100)
-    for x=-50, 50 do
-        for y=-50, 50 do
-            g:set(x,y, false)
+local GRID_SIZE = 100
+local OFFSET = 50 -- grid coords offset; world (0,0) = grid (50,50)
+
+local DIRS = {
+    {1,0}, {-1,0}, {0,1}, {0,-1},
+    {1,1}, {1,-1}, {-1,1}, {-1,-1}
+}
+
+function procGen.generateTreeShape(numNodes)
+    numNodes = numNodes or 80
+
+    local grid = objects.Grid(GRID_SIZE, GRID_SIZE) -- true = node exists
+    local connections = {} -- {x1=int,y1=int, x2=int,y2=int}[]
+    local count = 0
+
+    grid:set(OFFSET, OFFSET, true) -- root at origin
+    count = count + 1
+
+    -- Grow tree: random walk from random occupied cells
+    while count < numNodes do
+        local gx, gy = love.math.random(0, GRID_SIZE-1), love.math.random(0, GRID_SIZE-1)
+        if grid:get(gx, gy) then
+            local d = DIRS[love.math.random(#DIRS)]
+            local nx, ny = gx + d[1], gy + d[2]
+            if grid:contains(nx, ny) and not grid:get(nx, ny) then
+                grid:set(nx, ny, true)
+                count = count + 1
+                if d[1] ~= 0 and d[2] ~= 0 then
+                    table.insert(connections, {x1=gx-OFFSET, y1=gy-OFFSET, x2=nx-OFFSET, y2=ny-OFFSET})
+                end
+            end
         end
     end
 
-    local connections = {} -- {x1=int,y1=int, x2=int,y2=int}
+    -- Sprinkle extra diagonal connections for reachability
+    grid:foreach(function(val, gx, gy)
+        if not val then return end
+        for _, d in ipairs(DIRS) do
+            if d[1] ~= 0 and d[2] ~= 0 then -- diagonal only
+                local nx, ny = gx + d[1], gy + d[2]
+                if grid:contains(nx, ny) and grid:get(nx, ny) and love.math.random() < 0.15 then
+                    table.insert(connections, {x1=gx-OFFSET, y1=gy-OFFSET, x2=nx-OFFSET, y2=ny-OFFSET})
+                end
+            end
+        end
+    end)
 
-    return g, connections
+    return grid, connections
 end
 
 
