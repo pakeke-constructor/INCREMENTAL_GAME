@@ -725,6 +725,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@field description string?
 ---@field descriptionContext string?
 ---@field rawDescription string?
+---@field procGen {weight:number,distance:[integer,integer],needs:string?}?
 ---@field getPriceOverride (fun(uinfo:g.UpgradeInfo, level:integer): g.Bundle)?
 ---@field isHidden (fun(uinfo: g.UpgradeInfo): boolean)?
 ---@field getValues (fun(uinfo: g.UpgradeInfo, level: integer):number,number?,number?,number?)?
@@ -755,6 +756,7 @@ local g_UpgradeDefinition = {}
 ---@field particles string?
 ---@field category g.Category?
 ---@field shadow ("shadow_medium"|"shadow_small"|"shadow_big")?
+---@field procGen {weight:number,distance:[integer,integer],needs:string?}?
 ---@field init (fun(tok:g.Token))?
 ---@field update (fun(tok: g.Token, dt:number))?
 ---@field drawBelow (fun(tok: g.Token))?
@@ -1384,6 +1386,15 @@ function g.defineUpgrade(id, name, def)
         def.description = localization.newInterpolator(d, {context = def.descriptionContext})
     end
 
+    if def.procGen then
+        assert(def.procGen.weight > 0, "weight must be positive")
+        assert(#def.procGen.distance == 2, "distance must be integer length of 2")
+        assert(def.procGen.distance[1] <= def.procGen.distance[2], "invalid distance")
+        if def.procGen.needs then
+            assert(upgradeInfos[def.procGen.needs], "dependent upgrade not registered")
+        end
+    end
+
     def.image = def.image or id
     def.valueFormatter = def.valueFormatter or {}
     def.maxLevel = def.maxLevel or consts.DEFAULT_UPGRADE_MAX_LEVEL
@@ -1594,8 +1605,7 @@ function g.defineToken(tokType, name, tabl)
     g.TOKEN_LIST[#g.TOKEN_LIST+1] = tokType
 
     ---@type g.UpgradeDefinition
-    local upgradeDef
-    upgradeDef = {
+    local upgradeDef = {
         nameContext = tabl.upgradeNameContext or tabl.nameContext,
         image = tabl.image,
         populateTokenPool = function(self, level, tokens) ---@diagnostic disable-line
@@ -1605,7 +1615,8 @@ function g.defineToken(tokType, name, tabl)
         description = oldDescription,
         descriptionContext = tabl.upgradeDescriptionContext or tabl.descriptionContext,
         kind = "TOKEN",
-        tokenType = tokType
+        tokenType = tokType,
+        procGen = tabl.procGen,
     }
     for k,v in pairs(tabl.upgradeDefinition or {}) do
         upgradeDef[k]=v

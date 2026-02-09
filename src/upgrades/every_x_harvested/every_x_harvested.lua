@@ -83,7 +83,11 @@ for _,action in ipairs(ACTIONS) do
 
                 g.drawImage(action.image, x1,y1)
                 g.drawImage(category.image, x2,y2)
-            end
+            end,
+            procGen = {
+                weight = 25,
+                distance = {4, 7}
+            }
         })
     end
 end

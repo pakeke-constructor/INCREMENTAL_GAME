@@ -1,5 +1,8 @@
 
 
+---@param id string
+---@param name string
+---@param def g.TokenDefinition
 local function defGrass(id,name,def)
     def.particles="grass"
     def.category="grass"
@@ -21,27 +24,43 @@ end
 defGrass("grass_1", "Grass (I)", {
     shadow = "shadow_small",
     resources = {money = 1},
-    maxHealth = 80
+    maxHealth = 80,
+    procGen = {
+        weight = 100,
+        distance = {0, 4}
+    }
 })
 
 
 defGrass("grass_2", "Grass (II)", {
     resources = {money = 3},
-    maxHealth = 100
+    maxHealth = 100,
+    procGen = {
+        weight = 80,
+        distance = {0, 4}
+    }
 })
 
 
 defGrass("grass_3", "Grass (III)", {
     resources = {money = 10},
     shadow = "shadow_big",
-    maxHealth = 120
+    maxHealth = 120,
+    procGen = {
+        weight = 70,
+        distance = {0, 4}
+    }
 })
 
 
 defGrass("grass_4", "Grass (IV)", {
     resources = {money = 50},
     shadow = "shadow_big",
-    maxHealth = 140
+    maxHealth = 140,
+    procGen = {
+        weight = 50,
+        distance = {0, 4}
+    }
 })
 
 

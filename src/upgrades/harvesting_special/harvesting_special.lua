@@ -7,6 +7,10 @@
 ---@param tabl g.UpgradeDefinition|{kind:nil}
 local function defUpgrade(id,name,tabl)
     tabl.kind = "HARVESTING"
+    tabl.procGen = {
+        weight = 30,
+        distance = {2, 8}
+    }
     g.defineUpgrade(id,name,tabl)
 end
 

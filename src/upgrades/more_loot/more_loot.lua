@@ -34,7 +34,12 @@ defUpgrade("more_loot", "More Loot", {
         return 1 + resMult
     end,
 
-    drawUI = drawUI
+    drawUI = drawUI,
+
+    procGen = {
+        weight = 40,
+        distance = {2, 8}
+    }
 })
 
 

@@ -63,6 +63,10 @@ g.defineUpgrade("capitalist", "Capitalist", {
         return math.max(1 - reduction, 0)
     end,
     maxLevel = 4,
+    procGen = {
+        weight = 10,
+        distance = {3, 6}
+    },
 })
 
 
@@ -93,7 +97,11 @@ g.defineUpgrade("lightning_upgrade", "Lightning Storm", {
             local y = love.math.random(worldH) - 1
             worldutil.spawnLightning(x, y)
         end
-    end
+    end,
+    procGen = {
+        weight = 20,
+        distance = {3, 6}
+    },
 })
 
 
@@ -134,5 +142,10 @@ g.defineUpgrade("knife_thrower", "Knife Thrower", {
             local rot = math.pi / 4 + t + i / 3 * 2 * math.pi
             g.drawImageOffset("knife", cx, cy, rot, 1, 1, 0.2, 0.8)
         end
-    end
+    end,
+
+    procGen = {
+        weight = 20,
+        distance = {2, 6}
+    },
 })
