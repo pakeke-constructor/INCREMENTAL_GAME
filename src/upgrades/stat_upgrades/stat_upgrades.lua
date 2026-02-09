@@ -81,8 +81,6 @@ for _, u in ipairs(upgrades) do
     local percentage = u.percentage or {}
     for _, pct in ipairs(percentage) do
         local id = "percentage_" .. tostring(pct) .. "_" .. tostring(u.id)
-        print("\n\nIDDDD: ", id,"\n\n")
-
         defUpgrade(id, u.title, {
             image = u.id,
             description = u.desc,
