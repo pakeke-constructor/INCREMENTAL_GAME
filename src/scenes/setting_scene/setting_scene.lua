@@ -244,7 +244,6 @@ function settingscene:draw()
     local bgmVolume = settings.getBGMVolume()
     bgmVolume = drawVolume(bgmVolume, TEXT.MUSIC_VOLUME, musicVolumeLabelR, musicVolumeSliderBaseR)
     settings.setBGMVolume(bgmVolume)
-    -- TODO: set BGM volume in BGM service once we have it
 
     -- Draw CRT
     love.graphics.setColor(1, 1, 1)
