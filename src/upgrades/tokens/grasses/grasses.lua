@@ -73,7 +73,8 @@ defUpgrade("grassy_poison", "Grass Poison", {
     ---@param tok g.Token
     getTokenMaxHealthMultiplier = function(_, _, tok)
         return tok.category == "grass" and 0.8 or 1
-    end
+    end,
+    procGen = {weight = 2, distance = {2, 6}, needs = "grass_1"}
 })
 
 
@@ -91,7 +92,8 @@ defUpgrade("grassy_shovel", "Grassy Shovel", {
     ---@param tok g.Token
     getTokenDamageModifier = function(uinfo, level, tok)
         return tok.category == "grass" and uinfo:getValues(level) or 0
-    end
+    end,
+    procGen = {weight = 2, distance = {2, 6}, needs = "grass_1"}
 })
 
 
@@ -114,7 +116,8 @@ defUpgrade("horticulture_book", "Horticulture Book", {
             }
         end
         return nil
-    end
+    end,
+    procGen = {weight = 2, distance = {3, 8}, needs = "grass_1"}
 })
 
 

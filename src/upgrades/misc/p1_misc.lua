@@ -28,6 +28,7 @@ local function defineResLimitUpgrade(id, name, resId, expIncrease)
         [stat.multQuestion] = function(uinfo, level)
             return uinfo:getValues(level)
         end,
+        procGen = {weight = 2, distance = {2, 8}, resource = resId},
     })
 end
 

@@ -8,6 +8,7 @@ g.defineToken("residue", "Residue", {
     shadow = "shadow_small",
     category = "grass",
     resources = {money = 1},
+    procGen = {weight = 2, distance = {2, 8}}
 })
 
 
@@ -31,7 +32,8 @@ g.defineUpgrade("fertilizer", "Fertilizer", {
         if love.math.random() <= chance then
             worldutil.spawnTokenNearPosition("residue", tok.x, tok.y, 16)
         end
-    end
+    end,
+    procGen = {weight = 2, distance = {2, 6}}
 })
 
 
@@ -54,7 +56,8 @@ g.defineUpgrade("fertilizer_spawner_by_cropcount", "Fertilizer+", {
         if g.getMetric("totalTokensHarvested") % count == 0 then
             worldutil.spawnTokenNearPosition("residue", tok.x, tok.y, 16)
         end
-    end
+    end,
+    procGen = {weight = 2, distance = {3, 8}, needs = "fertilizer"}
 })
 
 
@@ -75,5 +78,6 @@ g.defineUpgrade("tax_deduction", "Tax Deduction", {
 
     tokenSpawned = function(uinfo, level)
         g.addResource("money", level*3)
-    end
+    end,
+    procGen = {weight = 1, distance = {3, 8}}
 })

@@ -92,6 +92,9 @@ local DEPOPULATE_TOKEN = {
     nil,nil,nil, 1,2
 }
 
+local PROCGEN_WEIGHTS = {5, 4, 3, 2, 2}
+local PROCGEN_DISTS = {{0,3}, {1,5}, {2,6}, {3,8}, {4,10}}
+
 
 local function makeId(berry, i)
     return berry.id .. "_" .. tostring(i)
@@ -146,6 +149,11 @@ for _, berry in ipairs(BERRIES) do
             upgradeDefinition = {
                 ---@diagnostic disable-next-line
                 depopulateTokenPool = depopulateTokenPool
+            },
+            procGen = {
+                weight = PROCGEN_WEIGHTS[i],
+                distance = PROCGEN_DISTS[i],
+                needs = i > 1 and makeId(berry, 1) or nil
             }
         })
     end
@@ -166,7 +174,12 @@ for _, berry in ipairs(BERRIES) do
                 return {money = val}
             end
         end,
-        getValues = helper.valueGetter(3,3)
+        getValues = helper.valueGetter(3,3),
+        procGen = {
+            weight = 2,
+            distance = {3, 8},
+            needs = berry.id .. "_1"
+        }
     })
 end
 

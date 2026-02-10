@@ -28,7 +28,8 @@ defUpgrade("moldy_block", "Moldy Block", {
             }
         end
         return nil
-    end
+    end,
+    procGen = {weight = 2, distance = {3, 8}}
 })
 
 
@@ -43,7 +44,8 @@ g.defineToken("mushroom_blue", "Blue Mushroom", {
     description = "Spawns lightning when destroyed!",
     tokenDestroyed = function(tok)
         worldutil.spawnLightning(tok.x, tok.y)
-    end
+    end,
+    procGen = {weight = 3, distance = {1, 6}}
 })
 
 
@@ -56,7 +58,8 @@ g.defineToken("mushroom_red", "Red Mushroom", {
     resources = {},
     tokenDestroyed = function(tok)
         worldutil.explosion(tok.x, tok.y)
-    end
+    end,
+    procGen = {weight = 3, distance = {1, 6}}
 })
 
 
@@ -91,7 +94,8 @@ g.defineToken("mushroom_green", "Green Mushroom", {
                 g.spawnToken(t, x,y)
             end
         end
-    end
+    end,
+    procGen = {weight = 3, distance = {1, 6}}
 })
 
 
@@ -105,7 +109,8 @@ g.defineToken("mushroom_basic", "Basic Mushroom", {
     description = "Earns bonus xp when harvested!",
     tokenDestroyed = function(tok)
         g.addXP(14) -- yolo IDK what a good number is
-    end
+    end,
+    procGen = {weight = 4, distance = {0, 5}}
 })
 
 
@@ -115,6 +120,7 @@ g.defineToken("mushroom_brown", "Brown Mushroom", {
     shadow = "shadow_medium",
     maxHealth = 120,
     resources = {money=6},
+    procGen = {weight = 3, distance = {1, 6}}
 })
 
 

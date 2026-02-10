@@ -278,7 +278,8 @@ g.defineUpgrade("cat_in_boots", "Cats in Boots", {
     getAutoCatMoveSpeedMultiplier = function(uinfo, level)
         local a=uinfo:getValues(level)
         return 1+(a/100)
-    end
+    end,
+    procGen = {weight = 1, distance = {4, 10}}
 })
 
 
@@ -292,6 +293,7 @@ g.defineUpgrade("slab_of_salmon", "Slab of Salmon", {
     getAutoCatRadiusMultiplierMultiplier = function(uinfo, level)
         local a=uinfo:getValues(level)
         return 1+(a/100)
-    end
+    end,
+    procGen = {weight = 1, distance = {3, 8}}
 })
 

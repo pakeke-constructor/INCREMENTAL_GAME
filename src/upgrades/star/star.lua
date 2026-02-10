@@ -24,4 +24,5 @@ g.defineUpgrade("star_upgrade", "Starred Crops", {
             return 3
         end
     end,
+    procGen = {weight = 1, distance = {5, 12}}
 })

@@ -28,7 +28,8 @@ local function defRespawnSpeedUpgrade(id, name, descname, image, tokcat)
         drawUI = function (uinfo, level, x, y, w, h)
             local dy = math.sin(love.timer.getTime()*3 + 2.1)*2
             g.drawImage("clock_icon", x+w/4,y+h/4+dy)
-        end
+        end,
+        procGen = {weight = 2, distance = {8, 14}}
     })
 end
 
@@ -52,5 +53,6 @@ g.defineUpgrade("fast_respawn", "Faster Crop Spawn", {
     drawUI = function (uinfo, level, x, y, w, h)
         local dy = math.sin(love.timer.getTime()*3 + 2.1)*2
         g.drawImage("clock_icon", x+w/4,y+h/4+dy)
-    end
+    end,
+    procGen = {weight = 2, distance = {2, 6}}
 })

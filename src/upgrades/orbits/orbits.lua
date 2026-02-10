@@ -43,6 +43,7 @@ g.defineEntity("orbital_knife", {
 defOrbitalUpgrade("orbital_knife", "Orbital Knife", {
     description = "Spawn %{1} orbiting knives that deal damage!",
     maxLevel = 8,
+    procGen = {weight = 3, distance = {3, 8}}
 })
 
 
@@ -68,6 +69,7 @@ g.defineEntity("orbital_scythe", {
 defOrbitalUpgrade("orbital_scythe", "Orbital Scythe", {
     description = "Spawn %{1} orbiting scythes that deal 2 damage!",
     maxLevel = 8,
+    procGen = {weight = 2, distance = {4, 10}, needs = "orbital_knife"}
 })
 
 
@@ -94,6 +96,7 @@ defOrbitalUpgrade("slime_bucket", "Slime Bucket", {
     description = "Spawn %{1} orbiting slime buckets, 20% chance to slime crops!",
     maxLevel = 5,
     kind="HARVESTING",
+    procGen = {weight = 1, distance = {5, 12}, needs = "slime_token"}
 })
 
 
@@ -110,7 +113,8 @@ g.defineUpgrade("better_orbits", "Better Orbits", {
     getOrbitSpeedMultiplier = function(self,level)
         local a=self:getValues(level)
         return 1+(a/100)
-    end
+    end,
+    procGen = {weight = 1, distance = {5, 10}, needs = "orbital_knife"}
 })
 
 
@@ -136,6 +140,7 @@ defOrbitalUpgrade("orbital_star", "Orbital Star", {
     kind = "HARVESTING",
     maxLevel = 5,
     image = "null_image",
+    procGen = {weight = 1, distance = {5, 12}, needs = "orbital_knife"},
 
     drawUI = function(uinfo, level, x, y, w, h)
         local t1 = love.timer.getTime()/2

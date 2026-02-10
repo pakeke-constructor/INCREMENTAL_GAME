@@ -26,7 +26,8 @@ g.defineToken("plant_pot", "Plant Pot", {
                 g.damageToken(t, 80)
             end
         end)
-    end
+    end,
+    procGen = {weight = 3, distance = {1, 6}, needs = "grass_1"}
 })
 
 
@@ -40,7 +41,8 @@ g.defineToken("bomb", "Bomb", {
     end,
     perSecondUpdate = function(tok)
         g.damageToken(tok, 40)
-    end
+    end,
+    procGen = {weight = 2, distance = {2, 8}}
 })
 
 
@@ -67,5 +69,6 @@ g.defineToken("knife_bush", "Knife Bush", {
         for i = 1, 5 do
             g.spawnEntity("knife", tok.x, tok.y, i * 2 * math.pi / 5 + roff)
         end
-    end
+    end,
+    procGen = {weight = 5, distance = {2, 8}}
 })
