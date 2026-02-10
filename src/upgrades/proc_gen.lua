@@ -143,35 +143,78 @@ end
 
 
 
-function procGen.placeUpgrades()
+local function weightedPick(list)
+    local total = 0
+    for _, e in ipairs(list) do total = total + e.weight end
+    local r = love.math.random() * total
+    for _, e in ipairs(list) do
+        r = r - e.weight
+        if r <= 0 then return e end
+    end
+    return list[#list]
+end
+
+local function getProcGenUpgrades()
+    local out = {}
+    for _, id in ipairs(g.UPGRADE_LIST) do
+        local uinfo = g.getUpgradeInfo(id)
+        if uinfo.procGen then
+            local pg = uinfo.procGen
+            out[#out+1] = {id = id, weight = pg.weight, dist = pg.distance, needs = pg.needs}
+        end
+    end
+    return out
+end
+
+function procGen.placeUpgrades(grid, connections)
+    local tree = Tree()
+    local placeholder = g.getUpgradeInfo("grass_1")
+
+    -- initialize tree wth placeholder nodes
+    grid:foreach(function(val, gx, gy)
+        if not val then return end
+        local x, y = gx - OFFSET, gy - OFFSET
+        local isRoot = (x == 0 and y == 0)
+        local upg = tree:put(x, y, placeholder, isRoot)
+        upg.basePrice = {money = 10}
+    end)
+    for _, c in ipairs(connections) do
+        local u1 = tree:get(c.x1, c.y1)
+        local u2 = tree:get(c.x2, c.y2)
+        if u1 and u2 then tree:addConnection(u1, u2) end
+    end
+    tree:finalize()
+
+    -- assign real upgrades based on tree distance
+    local allPG = getProcGenUpgrades()
+    local placedIds = {}
+    local upgrades = tree:getUpgradesOnTree()
+    table.sort(upgrades, function(a, b)
+        return tree:distanceFromRoot(a) < tree:distanceFromRoot(b)
+    end)
+
+    for _, upg in ipairs(upgrades) do
+        local d = tree:distanceFromRoot(upg)
+        local eligible = {}
+        for _, pg in ipairs(allPG) do
+            if d >= pg.dist[1] and d <= pg.dist[2]
+               and (not pg.needs or placedIds[pg.needs]) then
+                eligible[#eligible+1] = pg
+            end
+        end
+        local pick = #eligible > 0 and weightedPick(eligible) or allPG[1]
+        upg.id = pick.id
+        placedIds[pick.id] = true
+    end
+
+    tree:finalize()
+    return tree
 end
 
 
 function procGen.generateTestTree()
     local grid, connections = procGen.generateTreeShape(150)
-    local tree = Tree()
-    local uinfo = g.getUpgradeInfo("flat_2_more_damage")
-
-    -- Place upgrades on every occupied cell
-    grid:foreach(function(val, gx, gy)
-        if not val then return end
-        local x, y = gx - OFFSET, gy - OFFSET
-        local isRoot = (x == 0 and y == 0)
-        local upg = tree:put(x, y, uinfo, isRoot)
-        upg.basePrice = {money = 10}
-    end)
-
-    -- Add connections
-    for _, c in ipairs(connections) do
-        local u1 = tree:get(c.x1, c.y1)
-        local u2 = tree:get(c.x2, c.y2)
-        if u1 and u2 then
-            tree:addConnection(u1, u2)
-        end
-    end
-
-    tree:finalize()
-    return tree
+    return procGen.placeUpgrades(grid, connections)
 end
 
 
