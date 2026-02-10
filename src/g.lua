@@ -720,6 +720,7 @@ local UPGRADE_KINDS = {TOKEN=true,HARVESTING=true,TOKEN_MODIFIER=true,MISC=true}
 ---@class g.UpgradeDefinition.ProcGen
 ---@field weight number The rarity-weight of upgrade
 ---@field distance [integer,integer] [min,max] distance from root node when generating. A root node has level > 0. E.g. if distance = {1,3}, that means it MUST be between 1 and 3 jumps to a root node.
+---@field resource g.ResourceType? The resource (if any) that this upgrade relates to.
 ---@field needs string? a dependency to another upgrade. Eg: "better_slime" upgrade requires "slime" upgrade as a pre-requisite.
 --- this class tells the system: "Hey, this upgrade will be procedurally generated!"
 local g_UpgradeDefinition_ProcGen
