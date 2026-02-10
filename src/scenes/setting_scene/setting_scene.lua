@@ -56,13 +56,25 @@ local function makeInCenterInplace(baseR, ...)
 end
 
 
+---@param lang string
+---@return string
+---@return string|nil
+local function extractLangRegCode(lang)
+    local langcode, regcode = lang:match("(%l%l)_(%u%u)")
+    if not langcode then
+        return lang, nil
+    end
+
+    return langcode, regcode
+end
+
+
 
 ---@class SettingScene: FreeCameraScene
 local settingscene = FreeCameraScene()
 
 function settingscene:init()
     sfx.setVolume(settings.getSFXVolume())
-    -- TODO: bgm.setVolume here
 
     -- key = language code, value = language name
     self.languages = getLanguageList()
@@ -74,6 +86,21 @@ function settingscene:init()
     end
     table.sort(self.languageListInterleaved, function (a, b) return a[1] < b[1] end)
     self.showLanguagePopup = false
+
+    -- Ensure closest language match is selected
+    do
+        local lang = settings.getLanguage()
+        local langcode, regcode = extractLangRegCode(lang)
+        if not self.languages[lang] then
+            for k in pairs(self.languages) do
+                local lc, rc = extractLangRegCode(k)
+                if lc == langcode and (rc == regcode or (rc or "") == "") then
+                    settings.setLanguage(k)
+                    break
+                end
+            end
+        end
+    end
 end
 
 function settingscene:leave()
