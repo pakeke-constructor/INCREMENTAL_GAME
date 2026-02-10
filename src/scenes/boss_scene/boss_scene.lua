@@ -110,6 +110,12 @@ local function drawBoss(r, tokInfo)
         local rotright = math.cos(t * 2 * math.pi) * 0.4
         g.drawImageOffset("giantcrab_claw", px + 64, py + 38, rotright, 2, 2, 0.6, 0.2)
         g.drawImageOffset("giantcrab_claw", px - 64, py + 38, rotleft, -2, 2, 0.6, 0.2)
+    elseif tokInfo.type == "crystalcrab_boss" then
+        local t = love.timer.getTime() / 3
+        local rotleft = math.sin(t * 2 * math.pi) * 0.4
+        local rotright = math.cos(t * 2 * math.pi) * 0.4
+        g.drawImageOffset("crystalcrab_claw", px + 64, py + 38, rotright, 2, 2, 0.6, 0.2)
+        g.drawImageOffset("crystalcrab_claw", px - 64, py + 38, rotleft, -2, 2, 0.6, 0.2)
     end
 end
 
