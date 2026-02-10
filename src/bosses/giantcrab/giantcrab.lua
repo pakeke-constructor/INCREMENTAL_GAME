@@ -50,7 +50,7 @@ g.defineBoss("giantcrab_boss", 1, "giantcrab_crabberry", {
     end
 })
 
-g.defineToken("giantcrab_crabberry", "giantcrab_health_internal", {
+g.defineToken("giantcrab_crabberry", "\0giantcrab_health_internal", {
     maxHealth = 50,
     resources = {},
 

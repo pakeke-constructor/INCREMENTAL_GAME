@@ -84,7 +84,7 @@ g.defineBoss("pumpkin_boss", 0, "pumpkin_health", {
     end
 })
 
-g.defineToken("pumpkin_health", "pumpkin_health_internal", {
+g.defineToken("pumpkin_health", "\0pumpkin_health_internal", {
     maxHealth = 50,
     resources = {},
 
