@@ -363,7 +363,7 @@ local function calculateDistancesFromRoot(self)
             table.insert(pqueue, {x=upg.x, y=upg.y, dist=0})
             distances[pos] = 0
         else
-            distances[pos] = math.huge
+            distances[pos] = 0xffffffffff -- dont use math.huge, coz that causes json error!
         end
     end
 
