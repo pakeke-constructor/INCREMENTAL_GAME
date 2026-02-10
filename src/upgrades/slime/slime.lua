@@ -14,6 +14,14 @@ Slime grenade: Crops that are slimed have a 10% chance to explode when destroyed
 ]]
 
 
+local function slimeProcGen(weight, min,max)
+    return {
+        weight = weight,
+        distances = {min or 5,max or 20},
+        needs = "slime_token"
+    }
+end
+
 
 g.defineToken("slime_token", "Slime", {
     particles = "slime",
@@ -22,6 +30,10 @@ g.defineToken("slime_token", "Slime", {
     resources = {money = 0},
     maxHealth = 100,
     maxLevel=3,
+    procGen = {
+        weight = 4,
+        distance = {3,12}
+    },
     tokenDestroyed = function(tok)
         local MAX_TOKENS_TO_SLIME = 5
         local i = 0
@@ -44,6 +56,8 @@ end
 
 g.defineUpgrade("corrosive_slime", "Corrosive Slime", {
     drawUI=drawSlime,
+    procGen = slimeProcGen(2),
+
     kind="HARVESTING",
 
     maxLevel = 6,
@@ -66,6 +80,8 @@ g.defineUpgrade("corrosive_slime", "Corrosive Slime", {
 
 g.defineUpgrade("better_slime", "Better Slime", {
     drawUI=drawSlime,
+    procGen = slimeProcGen(2),
+
     kind="TOKEN_MODIFIER",
 
     maxLevel = 6,
@@ -87,6 +103,8 @@ g.defineUpgrade("better_slime", "Better Slime", {
 
 g.defineUpgrade("acidic_slime", "Acidic Slime", {
     drawUI=drawSlime,
+    procGen = slimeProcGen(1),
+
     kind="TOKEN_MODIFIER",
 
     maxLevel = 6,
@@ -113,6 +131,8 @@ g.defineUpgrade("acidic_slime", "Acidic Slime", {
 
 g.defineUpgrade("slime_apocalypse", "Slime Apocalypse", {
     drawUI=drawSlime,
+    procGen = slimeProcGen(2),
+
     kind="TOKEN_MODIFIER",
 
     maxLevel = 4,
@@ -141,6 +161,8 @@ g.defineUpgrade("slime_apocalypse", "Slime Apocalypse", {
 
 g.defineUpgrade("slime_pandemic", "Slime Pandemic", {
     drawUI=drawSlime,
+    procGen = slimeProcGen(2, 16,20),
+
     kind="TOKEN_MODIFIER",
 
     maxLevel = 4,
@@ -171,6 +193,8 @@ g.defineUpgrade("slime_pandemic", "Slime Pandemic", {
 
 g.defineUpgrade("slime_fertilizer", "Slime Fertilizer", {
     drawUI=drawSlime,
+    procGen = slimeProcGen(2),
+
     kind="TOKEN_MODIFIER",
 
     maxLevel = 4,
@@ -198,6 +222,8 @@ g.defineUpgrade("slime_fertilizer", "Slime Fertilizer", {
 
 
 g.defineUpgrade("slime_grenade", "Slime Grenade", {
+    procGen = slimeProcGen(0.5, 16,20),
+
     drawUI=drawSlime,
     kind="HARVESTING",
 
