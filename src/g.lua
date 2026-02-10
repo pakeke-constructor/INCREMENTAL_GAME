@@ -2302,7 +2302,7 @@ end
 ---@return string?
 function g.getBossIdForPrestige(prestige)
     for _, mul in ipairs(MAX_PRESTIGE_INDICES) do
-        if prestige % mul == 0 then
+        if (prestige + 1) % (mul + 1) == 0 then
             local tInfo = assert(PRESTIGE_TO_BOSS[mul])
             return tInfo.type
         end
