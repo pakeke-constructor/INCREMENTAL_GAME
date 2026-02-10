@@ -91,29 +91,28 @@ end
 
 ---@param text string
 ---@param metadata localization.Metadata?
----@param raw boolean?
-function Interpolator:init(text, metadata, raw)
-    local key, context = getTranslationKey(text, metadata)
-
-    if translatedKeys[key] then
-        self.text = translatedKeys[key]
+function Interpolator:init(text, metadata)
+    if text:sub(1, 1) == "\0" then
+        self.text = text:sub(2)
     else
-        if not missingKeys[key] then
-            if #context > 0 then
-                log.warn(string.format("Missing translation key of %q (%q)", text, context))
-            else
-                log.warn(string.format("Missing translation key of %q", text))
-            end
-            missingKeys[key] = true
-        end
-        self.text = text
-    end
+        local key, context = getTranslationKey(text, metadata)
 
-    --[[
-    dummy for now.
-    In future, add proper translation
-    ]]
-    stringsToLocalize[key] = text
+        if translatedKeys[key] then
+            self.text = translatedKeys[key]
+        else
+            if not missingKeys[key] then
+                if #context > 0 then
+                    log.warn(string.format("Missing translation key of %q (%q)", text, context))
+                else
+                    log.warn(string.format("Missing translation key of %q", text))
+                end
+                missingKeys[key] = true
+            end
+            self.text = text
+        end
+
+        stringsToLocalize[key] = text
+    end
 end
 
 ---Availability: Client and Server
@@ -141,11 +140,12 @@ local strTc = typecheck.assert("string")
 function localization.newInterpolator(text, metadata)
     strTc(text)
     assert(isLoadTime(), "this can only be called at load-time")
-    local interpolator = interpolators[getTranslationKey(text, metadata)]
+    local key = getTranslationKey(text, metadata)
+    local interpolator = interpolators[key]
 
     if not interpolator then
         interpolator = Interpolator(text, metadata)
-        interpolators[text] = interpolator
+        interpolators[key] = interpolator
     end
 
     return interpolator
