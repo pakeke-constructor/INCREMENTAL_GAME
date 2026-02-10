@@ -752,7 +752,7 @@ local g_UpgradeDefinition = {}
 ---@field resources g.Bundle
 ---@field nameContext string?
 ---@field image string?
----@field bossfight {prestige:integer,healthToken:string?}? boss for prestige-0 will upgrade -> prestige-1
+---@field bossfight {healthToken:string?}?
 ---@field maxLevel integer?
 ---@field growths {stalk:string,growth:string}?
 ---@field flight {vx:number,vy:number}?
@@ -2258,11 +2258,19 @@ local VALID_BOSSES = {}
 
 ---@type table<integer, g.TokenInfo>
 local PRESTIGE_TO_BOSS = {}
+---@type integer[]
+local MAX_PRESTIGE_INDICES = {}
 
 
 ---@param tok g.Token
 local function killBoss(tok)
-    local bossPrestige = PRESTIGE_TO_BOSS[g.getPrestige()]
+    local bossId = g.getBossIdForPrestige(g.getPrestige())
+    if not bossId then
+        log.error("another wat??")
+        return
+    end
+
+    local bossPrestige = g.getTokenInfo(bossId)
     if bossPrestige and bossPrestige.type == tok.type then
         achievements.unlockAchievement("SLAYER")
         g.call("bossSlain")
@@ -2276,11 +2284,13 @@ end
 ---@param healthToken string|nil
 ---@param def g.TokenDefinition
 function g.defineBoss(id, prestige, healthToken, def)
-    def.bossfight = {prestige=prestige, healthToken=healthToken}
+    def.bossfight = {healthToken=healthToken}
     def.tokenDestroyed = killBoss
-    g.defineToken(id, "boss " .. prestige, def)
+    g.defineToken(id, "\0boss " .. prestige, def)
     PRESTIGE_TO_BOSS[prestige] = g.getTokenInfo(id)
     VALID_BOSSES[id] = true
+    MAX_PRESTIGE_INDICES[#MAX_PRESTIGE_INDICES+1] = prestige
+    table.sort(MAX_PRESTIGE_INDICES, function(a, b) return a > b end)
 end
 
 function g.summonBoss(bossId)
@@ -2291,8 +2301,14 @@ end
 ---@param prestige integer
 ---@return string?
 function g.getBossIdForPrestige(prestige)
-    local tInfo = PRESTIGE_TO_BOSS[prestige]
-    return tInfo and tInfo.type
+    for _, mul in ipairs(MAX_PRESTIGE_INDICES) do
+        if prestige % mul == 0 then
+            local tInfo = assert(PRESTIGE_TO_BOSS[mul])
+            return tInfo.type
+        end
+    end
+
+    return nil
 end
 
 --- returns the boss token, if there's a bossfight happening
