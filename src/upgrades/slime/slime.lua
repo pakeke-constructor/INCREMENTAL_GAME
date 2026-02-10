@@ -17,7 +17,7 @@ Slime grenade: Crops that are slimed have a 10% chance to explode when destroyed
 local function slimeProcGen(weight, min,max)
     return {
         weight = weight,
-        distances = {min or 5,max or 20},
+        distance = {min or 5,max or 20},
         needs = "slime_token"
     }
 end
