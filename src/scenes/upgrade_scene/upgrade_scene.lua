@@ -15,11 +15,17 @@ local upgscene = FreeCameraScene()
 
 local UNLOCKED_UPGRADE_ANIMATION_DURATION = 0.7
 
-local CONTROL_TEXT = table.concat({
+local _controlTextList = {
     loc("Click-Hold Background to Pan", nil, {context = "mouse controls on list of upgrades"}),
     loc("Hover on Upgrades to See More", nil, {context = "mouse controls about an upgrade"}),
     loc("Click on Upgrades to Buy", nil, {context = "mouse controls about an upgrade"}),
-}, "\n")
+}
+if not consts.IS_MOBILE then
+    _controlTextList[#_controlTextList+1] = loc("Press Tab to move to Harvesting Area", nil, {
+        context = "A hotkey (Tab) to move quickly between scenes"
+    })
+end
+local CONTROL_TEXT = table.concat(_controlTextList, "\n")
 
 local TUTORIAL_UPGRADES = "{w}{o thickness=2}"..loc("These are permanent {c r=0 g=1 b=0}upgrades{/c}.\nClick to buy!").."{/o}{/w}"
 local TUTORIAL_UPGRADES_MOBILE = "{w}{o thickness=2}"..loc("These are permanent {c r=0 g=1 b=0}upgrades{/c}.\nTap once to view about the upgrade.\nTap again to buy!").."{/o}{/w}"
@@ -118,32 +124,6 @@ local function getCheapestUpgrade(tree)
     end
 
     return bestUpgrade
-end
-
-
-
-local function getBestUpgradeAffordThreshold()
-    ---@type g.Bundle
-    local result = {}
-
-    local tree = g.getUpgTree()
-    for _, upg in ipairs(tree:getUpgradesOnTree()) do
-        local level = upg.level
-
-        if level > 0 and not tree:isUpgradeHidden(upg) then
-            local price = tree:getUpgradePrice(upg, level)
-
-            for k, v in pairs(price) do
-                result[k] = math.max(result[k] or 0, v)
-            end
-        end
-    end
-
-    -- Apply 5% threshold
-    for k, v in pairs(result) do
-        result[k] = math.floor(v * 0.05 + 0.5)
-    end
-    return result
 end
 
 
