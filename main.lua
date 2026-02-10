@@ -383,7 +383,7 @@ end
 local olderr = love.errorhandler or love.errhand
 
 function love.errorhandler(msg)
-    log.fatal(msg)
+    log.fatal(debug.traceback(msg))
     return olderr(msg)
 end
 
@@ -439,15 +439,6 @@ function love.keyreleased(key, scancode)
     local sc = sceneManager.getCurrentScene()
     if sc and sc.keyreleased then
         sc:keyreleased(key, scancode)
-    end
-
-    -- TODO: Remove this once we have proper "open chest" scene.
-    if consts.DEV_MODE and key == "0" and love.keyboard.isDown("lshift") then
-        if cosmetics.getChestCount() > 0 then
-            cosmetics.openChest(function(success, cosmetic)
-                print("openChest", success, cosmetic)
-            end)
-        end
     end
 end
 

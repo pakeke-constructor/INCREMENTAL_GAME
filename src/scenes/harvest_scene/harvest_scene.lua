@@ -32,7 +32,6 @@ local GOTO_UPGRADES = "{o}{rainbow}"..loc("GO TO UPGRADES!",{}, {
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
 }).."{/rainbow}{/o}"
 
---local NEW_UPGRADES_AVAILABLE = loc("{wavy freq=0.5}{rainbow}{outline}New Upgrades Available!{/outline}{/rainbow}{/wavy}",{}, {
 local NEW_UPGRADES_AVAILABLE = "{o}"..loc("New Upgrades Available!",{}, {
     context = "Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades."
 }).."{/o}"
@@ -47,6 +46,10 @@ local STORAGE_FULL_TEXT = loc("Your storage is full!", {}, {
 
 local STORAGE_GOTO_UPGRADES = loc("Go to upgrades ->", {}, {
     context = "Button that is prompting the player to go to the upgrade-tree"
+})
+
+local QUICK_MOVE_UPGRADE_SCENE = loc("Press Tab to move to Upgrades screen", nil, {
+    context = "A hotkey (Tab) to move quickly between scenes (in this case, Upgrade)"
 })
 
 
@@ -1085,6 +1088,18 @@ function harvest:draw()
             g.gotoSceneViaMap("upgrade_scene")
         end
     end
+    end
+
+    -- Quick move tooltip text
+    if not (consts.IS_MOBILE or g.isBeingSimulated() or sess.showTutorials.harvest) then
+        local font = g.getSmallFont(16)
+        local safeAreaR = g.getHUD():getSafeArea()
+        local controlTextR = safeAreaR:set(nil, nil, nil, font:getHeight())
+            :attachToBottomOf(safeAreaR)
+            :moveRatio(0, -1)
+            :moveUnit(2, -2)
+        love.graphics.setColor(1, 1, 1, 0.5)
+        love.graphics.printf(QUICK_MOVE_UPGRADE_SCENE, font, controlTextR.x, controlTextR.y, controlTextR.w, "left")
     end
 
     self:renderPause()
