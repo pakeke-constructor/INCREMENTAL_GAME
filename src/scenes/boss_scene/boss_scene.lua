@@ -116,6 +116,14 @@ local function drawBoss(r, tokInfo)
         local rotright = math.cos(t * 2 * math.pi) * 0.4
         g.drawImageOffset("crystalcrab_claw", px + 64, py + 38, rotright, 2, 2, 0.6, 0.2)
         g.drawImageOffset("crystalcrab_claw", px - 64, py + 38, rotleft, -2, 2, 0.6, 0.2)
+    elseif tokInfo.type == "vacuum_boss" then
+        local t = love.timer.getTime() / 2
+        local sin1 = math.sin(t * math.pi * 2)
+        local sin2 = math.sin(t * math.pi)
+        local sin3 = sin1 * sin2
+        local eyedir = sin3 > 0 and math.floor(sin3 + 0.5) or math.ceil(sin3 - 0.5)
+        g.drawImage("vacuum_eye", px - 18 + eyedir * 10, py - 8, 0, 2, 2)
+        g.drawImage("vacuum_eye", px + 18 + eyedir * 10, py - 8, 0, -2, 2)
     end
 end
 

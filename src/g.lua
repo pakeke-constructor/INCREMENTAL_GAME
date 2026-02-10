@@ -2296,7 +2296,7 @@ end
 
 function g.summonBoss(bossId)
     assert(VALID_BOSSES[bossId])
-    local tok = g.spawnToken(bossId, 0,0)
+    return g.spawnToken(bossId, 0,0)
 end
 
 ---@param prestige integer
