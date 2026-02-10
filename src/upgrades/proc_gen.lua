@@ -176,13 +176,27 @@ local function weightedPick(list)
     return list[#list]
 end
 
+local function upgradeMatchesResources(id, resourceSet)
+    local uinfo = g.getUpgradeInfo(id)
+    if uinfo.procGen.resource and not resourceSet[uinfo.procGen.resource] then
+        return false
+    end
+    if uinfo.kind == "TOKEN" then
+        local tinfo = g.getTokenInfo(uinfo.tokenType)
+        for resId, val in pairs(tinfo.resources) do
+            if val > 0 and not resourceSet[resId] then return false end
+        end
+    end
+    return true
+end
+
 local function getProcGenUpgrades()
     local out = {}
     for _, id in ipairs(g.UPGRADE_LIST) do
         local uinfo = g.getUpgradeInfo(id)
         if uinfo.procGen then
             local pg = uinfo.procGen
-            out[#out+1] = {id = id, weight = pg.weight, dist = pg.distance, needs = pg.needs}
+            out[#out+1] = {id = id, weight = pg.weight, dist = pg.distance, needs = pg.needs, resource = pg.resource}
         end
     end
     return out
@@ -201,6 +215,8 @@ function procGen.placeUpgrades(grid, connections)
         for _, v in ipairs(resources) do if v == r then found = true; break end end
         if not found then resources[#resources+1] = r end
     end
+    local resourceSet = {}
+    for _, r in ipairs(resources) do resourceSet[r] = true end
 
     -- initialize tree wth placeholder nodes
     grid:foreach(function(val, gx, gy)
@@ -229,8 +245,11 @@ function procGen.placeUpgrades(grid, connections)
         local eligible = {}
         for _, pg in ipairs(allPG) do
             if d >= pg.dist[1] and d <= pg.dist[2]
-               and (not pg.needs or placedIds[pg.needs]) then
-                eligible[#eligible+1] = pg
+               and (not pg.needs or placedIds[pg.needs])
+               and upgradeMatchesResources(pg.id, resourceSet) then
+                local w = pg.weight
+                if g.getUpgradeInfo(pg.id).kind == "TOKEN" and d <= 2 then w = w * 3 end
+                eligible[#eligible+1] = {id=pg.id, weight=w, dist=pg.dist, needs=pg.needs, resource=pg.resource}
             end
         end
         local pick = #eligible > 0 and weightedPick(eligible) or allPG[1]
