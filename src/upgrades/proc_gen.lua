@@ -56,19 +56,27 @@ local DIRS = {
     {1,1}, {1,-1}, {-1,1}, {-1,-1}
 }
 
-local function gcd(a, b)
-    a, b = math.abs(a), math.abs(b)
-    while b > 0 do a, b = b, a % b end
-    return a
-end
+local BLOCK_RADIUS_SQ = 0.4 * 0.4
 
 local function hasBlockingNode(grid, gx1, gy1, gx2, gy2)
     local dx, dy = gx2 - gx1, gy2 - gy1
-    local g = gcd(dx, dy)
-    if g <= 1 then return false end -- no intermediate integer points
-    local sx, sy = dx / g, dy / g
-    for i = 1, g - 1 do
-        if grid:get(gx1 + sx * i, gy1 + sy * i) then return true end
+    local len2 = dx*dx + dy*dy
+    local minx, maxx = math.min(gx1, gx2) - 1, math.max(gx1, gx2) + 1
+    local miny, maxy = math.min(gy1, gy2) - 1, math.max(gy1, gy2) + 1
+    for x = minx, maxx do
+        for y = miny, maxy do
+            if not (x == gx1 and y == gy1) and not (x == gx2 and y == gy2)
+               and grid:contains(x, y) and grid:get(x, y) then
+                local px, py = x - gx1, y - gy1
+                local t = (px*dx + py*dy) / len2
+                if t > 0 and t < 1 then
+                    local ex, ey = gx1 + t*dx - x, gy1 + t*dy - y
+                    if ex*ex + ey*ey < BLOCK_RADIUS_SQ then
+                        return true
+                    end
+                end
+            end
+        end
     end
     return false
 end
