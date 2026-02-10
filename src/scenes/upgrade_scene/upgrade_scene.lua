@@ -939,7 +939,16 @@ function upgscene:filedropped(file)
     end
 end
 
-upgscene.keyreleased = upgscene.defaultKeyreleased
+function upgscene:keyreleased(k)
+    if consts.DEV_MODE and k == "f12" then
+        local tree = g.getSn().tree
+
+        for _, upg in ipairs(tree:getUpgradesOnTree()) do
+            upg.level = tree:getUpgradeMaxLevel(upg)
+        end
+    end
+end
+
 upgscene.wheelmoved = upgscene.defaultWheelmoved
 upgscene.mousemoved = upgscene.defaultMousemoved
 
