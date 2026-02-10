@@ -48,6 +48,28 @@ local g_UpgradeDefinition_ProcGen
 
 
 
+---@param upg g.Tree.Upgrade
+---@param dist number
+---@param resources g.ResourceType[]
+---@return table
+local function getPrice(upg, dist, resources)
+    local rand = love.math.random
+    local uinfo = g.getUpgradeInfo(upg.id)
+    local mult = 0.9+(rand()/5)
+    local isToken = uinfo.kind == "TOKEN"
+    if isToken then
+        mult = mult / 2 -- token upgrades are half the cost!
+    end
+    local moneyVal = math.floor(mult * 10 * (4.5 ^ (dist + rand()/10)))
+    local price = {money = moneyVal}
+    if isToken and rand() < 0.3 and #resources > 0 then
+        local res = resources[rand(#resources)]
+        price[res] = math.floor(moneyVal * 0.1)
+    end
+    return price
+end
+
+
 local GRID_SIZE = 100
 local OFFSET = 50 -- grid coords offset; world (0,0) = grid (50,50)
 
@@ -170,13 +192,22 @@ function procGen.placeUpgrades(grid, connections)
     local tree = Tree()
     local placeholder = g.getUpgradeInfo("grass_1")
 
+    -- Pick 2-3 resources (money + 1-2 random)
+    local resources = {"money"}
+    local num = love.math.random(2, 3)
+    while #resources < num do
+        local r = g.RESOURCE_LIST[love.math.random(#g.RESOURCE_LIST)]
+        local found = false
+        for _, v in ipairs(resources) do if v == r then found = true; break end end
+        if not found then resources[#resources+1] = r end
+    end
+
     -- initialize tree wth placeholder nodes
     grid:foreach(function(val, gx, gy)
         if not val then return end
         local x, y = gx - OFFSET, gy - OFFSET
         local isRoot = (x == 0 and y == 0)
-        local upg = tree:put(x, y, placeholder, isRoot)
-        upg.basePrice = {money = 10}
+        tree:put(x, y, placeholder, isRoot)
     end)
     for _, c in ipairs(connections) do
         local u1 = tree:get(c.x1, c.y1)
@@ -204,6 +235,8 @@ function procGen.placeUpgrades(grid, connections)
         end
         local pick = #eligible > 0 and weightedPick(eligible) or allPG[1]
         upg.id = pick.id
+        upg.basePrice = getPrice(upg, d, resources)
+        upg.maxLevelOverride = love.math.random(2, 5)
         placedIds[pick.id] = true
     end
 
