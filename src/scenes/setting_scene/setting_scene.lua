@@ -56,13 +56,25 @@ local function makeInCenterInplace(baseR, ...)
 end
 
 
+---@param lang string
+---@return string
+---@return string|nil
+local function extractLangRegCode(lang)
+    local langcode, regcode = lang:match("(%l%l)_(%u%u)")
+    if not langcode then
+        return lang, nil
+    end
+
+    return langcode, regcode
+end
+
+
 
 ---@class SettingScene: FreeCameraScene
 local settingscene = FreeCameraScene()
 
 function settingscene:init()
     sfx.setVolume(settings.getSFXVolume())
-    -- TODO: bgm.setVolume here
 
     -- key = language code, value = language name
     self.languages = getLanguageList()
@@ -72,8 +84,24 @@ function settingscene:init()
     for k, v in pairs(self.languages) do
         self.languageListInterleaved[#self.languageListInterleaved+1] = {k, v}
     end
+    self.languageListSlider = 1
     table.sort(self.languageListInterleaved, function (a, b) return a[1] < b[1] end)
     self.showLanguagePopup = false
+
+    -- Ensure closest language match is selected
+    do
+        local lang = settings.getLanguage()
+        local langcode, regcode = extractLangRegCode(lang)
+        if not self.languages[lang] then
+            for k in pairs(self.languages) do
+                local lc, rc = extractLangRegCode(k)
+                if lc == langcode and (rc == regcode or (rc or "") == "") then
+                    settings.setLanguage(k)
+                    break
+                end
+            end
+        end
+    end
 end
 
 function settingscene:leave()
@@ -216,7 +244,6 @@ function settingscene:draw()
     local bgmVolume = settings.getBGMVolume()
     bgmVolume = drawVolume(bgmVolume, TEXT.MUSIC_VOLUME, musicVolumeLabelR, musicVolumeSliderBaseR)
     settings.setBGMVolume(bgmVolume)
-    -- TODO: set BGM volume in BGM service once we have it
 
     -- Draw CRT
     love.graphics.setColor(1, 1, 1)
@@ -302,11 +329,30 @@ function settingscene:_drawLanguageSelector()
     love.graphics.rectangle("fill", panelR:get())
     iml.panel(r:get()) -- Prevent input propagation to bottom
 
-    local grid = panelR:grid(1, math.floor(panelR.h / SELECTION_BUTTON_SIZE))
+    local gridBaseR, sliderR = panelR:splitHorizontal(panelR.w - 32, 32)
+    local maxItems = math.floor(panelR.h / SELECTION_BUTTON_SIZE)
+    local grid = gridBaseR:grid(1, maxItems)
 
-    -- TODO: Slider
+    love.graphics.setColor(SLIDER_BACKGROUND)
+    love.graphics.rectangle("fill", sliderR:get())
+    self.languageListSlider = ui.Slider(
+        "languageListSlider",
+        "vertical",
+        SLIDER_COLOR,
+        self.languageListSlider,
+        math.max(#self.languageListInterleaved - maxItems, 1),
+        nil,
+        sliderR:padUnit(2)
+    )
+    love.graphics.setColor(1, 1, 1)
+
     local font = g.getSmallFont(32)
-    for i, lang in ipairs(self.languageListInterleaved) do
+    for i = 1, maxItems do
+        local lang = self.languageListInterleaved[i + self.languageListSlider - 1]
+        if not lang then
+            break
+        end
+
         local buttonR = grid[i]:padUnit(4)
         local textR = buttonR
             :set(nil, nil, nil, font:getHeight())
@@ -338,6 +384,14 @@ end
 function settingscene:keyreleased(_k, scancode)
     if scancode == "escape" then
         sceneManager.gotoLastScene()
+    end
+end
+
+
+function settingscene:wheelmoved(_, dy)
+    if self.showLanguagePopup then
+        local dir = helper.sign(dy)
+        self.languageListSlider = math.max(self.languageListSlider - dir, 1)
     end
 end
 

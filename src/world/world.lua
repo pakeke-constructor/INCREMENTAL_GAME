@@ -837,8 +837,7 @@ local function tryUpdateDecorations(self)
 
     local w,h = g.getWorldDimensions()
 
-    local i = helper.clamp(pres+1, 1,3)
-    local ts = WORLD_TILESETS[i]
+    local ts = WORLD_TILESETS[pres % 3 + 1]
     local darkcol = ts.dark
     local lightcol = ts.light
 

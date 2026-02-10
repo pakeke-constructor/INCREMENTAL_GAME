@@ -85,7 +85,7 @@ return {
     dump = function()
         local dumped = localization.dump()
         local f = love.filesystem.openFile("localization.json", "w")
-        f:write(json.encode({name = "", strings = dumped}))
+        f:write(json.encode({name = "English", strings = dumped}))
         f:close()
     end,
     getLanguages = function()

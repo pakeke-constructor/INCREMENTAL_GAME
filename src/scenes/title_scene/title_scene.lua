@@ -199,11 +199,10 @@ function title:draw()
     end
 
     -- Draw other buttons
-    -- TODO: Remove this once we release our game
-    if ui.Button(text.wishlist, objects.Color.GREEN, objects.Color.BLACK, wishlistButtonR) then
-        print("TODO Steam link")
-    end
-    if ui.Button(text.discord, DISCORD_BASE_COL, DISCORD_MAIN_COL, discordButtonR) then
+    -- if ui.Button(text.wishlist, objects.Color.GREEN, objects.Color.BLACK, wishlistButtonR) then
+    --     print("TODO Steam link")
+    -- end
+    if ui.Button(text.discord, DISCORD_BASE_COL, DISCORD_MAIN_COL, wishlistButtonR) then
         print("TODO Discord link")
     end
 
