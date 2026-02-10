@@ -56,6 +56,33 @@ local DIRS = {
     {1,1}, {1,-1}, {-1,1}, {-1,-1}
 }
 
+local function gcd(a, b)
+    a, b = math.abs(a), math.abs(b)
+    while b > 0 do a, b = b, a % b end
+    return a
+end
+
+local function hasBlockingNode(grid, gx1, gy1, gx2, gy2)
+    local dx, dy = gx2 - gx1, gy2 - gy1
+    local g = gcd(dx, dy)
+    if g <= 1 then return false end -- no intermediate integer points
+    local sx, sy = dx / g, dy / g
+    for i = 1, g - 1 do
+        if grid:get(gx1 + sx * i, gy1 + sy * i) then return true end
+    end
+    return false
+end
+
+-- {dx, dy, probability} — "forward" offsets only (dx>0, or dx==0 and dy>0) to avoid dupes
+local CONNECT_OFFSETS = {
+    {1,1, 0.9}, {1,-1, 0.9},                       -- diagonal adjacent
+    {2,0, 0.5}, {0,2, 0.5},                         -- dist 2 cardinal
+    {2,1, 0.4}, {2,-1, 0.4}, {1,2, 0.4}, {1,-2, 0.4}, -- dist ~2.2
+    {2,2, 0.25}, {2,-2, 0.25},                      -- dist ~2.8
+    {3,0, 0.2}, {0,3, 0.2},                         -- dist 3
+    {3,1, 0.15}, {3,-1, 0.15}, {1,3, 0.15}, {1,-3, 0.15}, -- dist ~3.2
+}
+
 function procGen.generateTreeShape(numNodes)
     numNodes = numNodes or 80
 
@@ -77,30 +104,28 @@ function procGen.generateTreeShape(numNodes)
             grid:set(nx, ny, true)
             cells[#cells+1] = nx
             cells[#cells+1] = ny
-            if d[1] ~= 0 and d[2] ~= 0 then
-                table.insert(connections, {x1=gx-OFFSET, y1=gy-OFFSET, x2=nx-OFFSET, y2=ny-OFFSET})
-            end
+            -- cardinal connections added implicitly by getNeighbors
         end
     end
 
     -- Punch random holes to break up clumps
     local HOLE_CHANCE = 0.3
-    for i = 1, #cells do
+    for i = 1, #cells-1 do
         local gx, gy = cells[i], cells[i+1]
         if not (gx == OFFSET and gy == OFFSET) and love.math.random() < HOLE_CHANCE then
             grid:set(gx, gy, false)
         end
     end
 
-    -- Sprinkle extra diagonal connections for reachability
+    -- Add line-of-sight connections
     grid:foreach(function(val, gx, gy)
         if not val then return end
-        for _, d in ipairs(DIRS) do
-            if d[1] ~= 0 and d[2] ~= 0 then -- diagonal only
-                local nx, ny = gx + d[1], gy + d[2]
-                if grid:contains(nx, ny) and grid:get(nx, ny) and love.math.random() < 0.15 then
-                    table.insert(connections, {x1=gx-OFFSET, y1=gy-OFFSET, x2=nx-OFFSET, y2=ny-OFFSET})
-                end
+        for _, off in ipairs(CONNECT_OFFSETS) do
+            local nx, ny = gx + off[1], gy + off[2]
+            if grid:contains(nx, ny) and grid:get(nx, ny)
+               and not hasBlockingNode(grid, gx, gy, nx, ny)
+               and love.math.random() < off[3] then
+                table.insert(connections, {x1=gx-OFFSET, y1=gy-OFFSET, x2=nx-OFFSET, y2=ny-OFFSET})
             end
         end
     end)
@@ -115,7 +140,7 @@ end
 
 
 function procGen.generateTestTree()
-    local grid, connections = procGen.generateTreeShape()
+    local grid, connections = procGen.generateTreeShape(150)
     local tree = Tree()
     local uinfo = g.getUpgradeInfo("flat_2_more_damage")
 
