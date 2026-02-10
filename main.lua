@@ -383,7 +383,7 @@ end
 local olderr = love.errorhandler or love.errhand
 
 function love.errorhandler(msg)
-    log.fatal(msg)
+    log.fatal(debug.traceback(msg))
     return olderr(msg)
 end
 
