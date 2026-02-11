@@ -48,6 +48,8 @@ local g_UpgradeDefinition_ProcGen
 
 
 
+local MAX_PRICE = 500000
+
 ---@param upg g.Tree.Upgrade
 ---@param dist number
 ---@param resources g.ResourceType[]
@@ -60,7 +62,7 @@ local function getPrice(upg, dist, resources)
     if isToken then
         mult = mult / 2 -- token upgrades are half the cost!
     end
-    local moneyVal = math.floor(mult * 10 * (4.5 ^ (dist + rand()/10)))
+    local moneyVal = math.min(MAX_PRICE, math.floor(mult * 10 * (4.5 ^ (dist + rand()/10))))
     local price = {money = moneyVal}
     if isToken and rand() < 0.3 and #resources > 0 then
         local res = resources[rand(#resources)]
