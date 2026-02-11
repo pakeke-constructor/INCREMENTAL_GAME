@@ -338,7 +338,7 @@ local function drawUpgradeBoxes(self)
         if isVisible(upg) then
             local uinfo = g.getUpgradeInfo(upg.id)
             local cx, cy = getUpgradeGridCoords(upg.x, upg.y)
-            lg.setColor(upg.level > 0 and objects.Color.WHITE or objects.Color.BLACK)
+            lg.setColor((upg.level > 0 or self.dev_editMode) and objects.Color.WHITE or objects.Color.BLACK)
 
             if uinfo.kind == "TOKEN" then
                 local tinfo = g.getTokenInfo(uinfo.tokenType)
