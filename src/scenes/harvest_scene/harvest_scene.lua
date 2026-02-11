@@ -613,9 +613,11 @@ do
 local BOSS_SLAIN = "{wavy}{o}"..loc("Boss has been slain!").."{/o}{/wavy}"
 local PRESTIGE_COMPLETE_N = interp("Prestige %{n} completed.")
 local PROGRESS_RESET = "{o}"..loc("By progressing, ALL upgrades are reset.").."{/o}"
+local GAME_FINISH = "{w}{o}{rainbow}"..loc("Congratulations for beating the game.").."{/rainbow}{/o}{/w}"
 local OK_TEXT = "{o}"..loc("Prestige!",nil,{
     context="As in, a button that progresses to the next level/prestige."
 }).."{/o}"
+local FINISH_TEXT = "{o}"..loc("Credits", nil, {context = "Button to show game credits"}).."{/o}"
 
 local BOSS_POPUP_FADE_IN_TIME = 0.7
 
@@ -653,9 +655,10 @@ function drawBossPopup(self)
     love.graphics.setColor(1, 1, 1)
     local prestige = g.getPrestige()
     local f = g.getSmallFont(16)
+    local finish = prestige >= 2
     richtext.printRichContained(BOSS_SLAIN, f, bossSlainTxt:get())
     richtext.printRichContained("{o}{c r=0.2 g=0.9 b=0.6}"..PRESTIGE_COMPLETE_N({n=prestige}).."{/c}{/o}", f, prestigeCompleteTxt:get())
-    richtext.printRichContained(PROGRESS_RESET, f, progressResetTxt:get())
+    richtext.printRichContained(finish and GAME_FINISH or PROGRESS_RESET, f, progressResetTxt:get())
 
     if iml.wasJustHovered(buttonArea:get()) then
         g.playUISound("ui_tick", 1.6, 0.65, 0, 0)
@@ -671,11 +674,18 @@ function drawBossPopup(self)
     ui.drawPanel(buttonArea:get())
 
     love.graphics.setColor(1, 1, 1)
-    richtext.printRichContained(OK_TEXT, f, buttonArea:get())
+    richtext.printRichContained(finish and FINISH_TEXT or OK_TEXT, f, buttonArea:get())
 
     if iml.wasJustClicked(buttonArea:get()) then
         g.playUISound("ui_click_basic", 1.4, 0.8)
-        g.incrementPrestige()
+        if finish then
+            g.delSession(true)
+            -- TODO: Steam Achievement here?
+            g.gotoScene("credits_scene")
+        else
+            g.incrementPrestige()
+        end
+
         self.bossPopup = false
     end
 
@@ -1066,7 +1076,7 @@ function harvest:draw()
     end
 
     --- Storage is Full text:
-    do
+    if g.hasSession() then
     local fullResource = nil
     for _,resId in ipairs(g.RESOURCE_LIST) do
         local res = g.getResource(resId)
@@ -1255,8 +1265,11 @@ end
 
 function harvest:leave(k)
     closeUpgradePopup(self)
-    local w = g.getMainWorld()
-    w:_disableMouseHarvester()
+
+    if g.hasSession() then
+        local w = g.getMainWorld()
+        w:_disableMouseHarvester()
+    end
 end
 
 

@@ -121,9 +121,14 @@ end
 
 g.isBeingSimulated = simulation.isSimulating
 
-function g.delSession()
+---@param delfile boolean? Delete the save file?
+function g.delSession(delfile)
     ---@diagnostic disable-next-line: cast-local-type
     currentSession = nil
+
+    if delfile then
+        love.filesystem.remove("saves/save1.json")
+    end
 end
 
 function g.saveSession()
