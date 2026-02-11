@@ -65,6 +65,46 @@ defGrass("grass_4", "Grass (IV)", {
 
 
 
+defGrass("blue_grass_1", "Blue Grass (I)", {
+    shadow = "shadow_small",
+    resources = {money = 1},
+    maxHealth = 80,
+    procGen = {
+        weight = 4,
+        distance = {0, 2}
+    }
+})
+
+defGrass("blue_grass_2", "Blue Grass (II)", {
+    resources = {money = 3},
+    maxHealth = 100,
+    procGen = {
+        weight = 3,
+        distance = {0, 4}
+    }
+})
+
+defGrass("blue_grass_3", "Blue Grass (III)", {
+    resources = {money = 10},
+    shadow = "shadow_big",
+    maxHealth = 120,
+    procGen = {
+        weight = 2,
+        distance = {1, 4}
+    }
+})
+
+defGrass("blue_grass_4", "Blue Grass (IV)", {
+    resources = {money = 50},
+    shadow = "shadow_big",
+    maxHealth = 140,
+    procGen = {
+        weight = 1,
+        distance = {2, 8}
+    }
+})
+
+
 defGrass("void_grass", "Void Grass", {
     resources = {
         money = 0, bread = 0, fabric = 0, fish = 0, juice = 0
