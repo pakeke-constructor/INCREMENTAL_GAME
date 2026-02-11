@@ -578,7 +578,10 @@ end
 local function canAffordAnyUpgrades()
     local tree = g.getUpgTree()
     for _, upg in ipairs(tree:getUpgradesOnTree()) do
-        if tree:canAffordUpgrade(upg) then
+        if not tree:isUpgradeHidden(upg)
+            and upg.level < tree:getUpgradeMaxLevel(upg)
+            and tree:canAffordUpgrade(upg)
+        then
             return true
         end
     end
