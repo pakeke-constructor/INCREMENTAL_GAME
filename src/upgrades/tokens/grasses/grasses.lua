@@ -65,6 +65,31 @@ defGrass("grass_4", "Grass (IV)", {
 
 
 
+defGrass("void_grass", "Void Grass", {
+    resources = {
+        money = 0, bread = 0, fabric = 0, fish = 0, juice = 0
+    },
+    getTokenResourceModifier = function(tok)
+        local minRes, minVal = "money", math.huge
+        for _, resId in ipairs(g.RESOURCE_LIST) do
+            local v = g.getResource(resId)
+            if v < minVal then
+                minRes, minVal = resId, v
+            end
+        end
+        return {[minRes] = 10}
+    end,
+    description = "Earn +10 of whatever resource you have the LEAST of.",
+    shadow = "shadow_big",
+    maxHealth = 140,
+    procGen = {
+        weight = 1,
+        distance = {2, 8}
+    }
+})
+
+
+
 
 defUpgrade("grassy_poison", "Grass Poison", {
     description = "All grass spawns with 20% less health",
