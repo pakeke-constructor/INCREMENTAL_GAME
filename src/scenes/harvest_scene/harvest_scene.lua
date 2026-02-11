@@ -1226,8 +1226,8 @@ function harvest:keyreleased(k)
             g.grantEffect("explosion_swarm", 20)
         elseif k=="1" then
             --openBossPopup(self)
-            g.summonBoss("vacuum_boss")
-            --g.incrementPrestige()
+            --g.summonBoss("vacuum_boss")
+            g.incrementPrestige()
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)
             for _ = 1, love.math.random(1, 15) do
