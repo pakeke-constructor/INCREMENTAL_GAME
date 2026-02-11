@@ -896,7 +896,7 @@ function harvest:tokenDestroyed(tok)
         -- Damage vacuum boss
         local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.WHITE, 0.5)
         ent.drawOrder = 100
-        g.damageToken(boss, 10000)
+        g.damageToken(boss, 5000)
     end
 end
 
