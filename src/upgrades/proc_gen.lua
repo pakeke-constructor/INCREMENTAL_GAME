@@ -267,7 +267,7 @@ end
 
 
 function procGen.generateTestTree()
-    local grid, connections = procGen.generateTreeShape(150)
+    local grid, connections = procGen.generateTreeShape(110)
     return procGen.placeUpgrades(grid, connections)
 end
 

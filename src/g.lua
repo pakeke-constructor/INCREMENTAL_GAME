@@ -633,7 +633,7 @@ function g.defineStat(id, startingValue, name)
     g.VALID_STATS[id]={
         addQuestion = addQ, multQuestion = multQ,
         startingValue = startingValue,
-        name = name and loc(name, nil, {context = "A stats"}) or id,
+        name = name and loc(name, nil, {context = "This is a statistic, e.g. 'Damage' or 'Health'. Represents a value that can be improved/upgraded."}) or id,
     }
     return 0
 end

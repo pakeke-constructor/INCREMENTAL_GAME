@@ -42,8 +42,8 @@ g.defineUpgrade("crit_strike_chance", "Critical Strikes", {
     end,
     drawUI=drawUI,
     procGen = {
-        weight = 35,
-        distance = {2, 6}
+        weight = 10,
+        distance = {0, 6}
     }
 })
 
@@ -54,7 +54,7 @@ g.defineUpgrade("crit_strike_chance", "Critical Strikes", {
 local function defUpgrade(id,name,tabl)
     tabl.kind = "HARVESTING"
     tabl.procGen = {
-        weight = 35,
+        weight = 2,
         distance = {2, 6},
         needs = "crit_strike_chance",
     }
