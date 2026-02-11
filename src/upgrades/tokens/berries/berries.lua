@@ -69,7 +69,17 @@ local BERRIES = {
         id = "purple_berry",
         name = "Purpleberry",
         -- TODO: Maybe in future, purpleBerry should yield fabric?
-        resources = {money = 40}
+        resources = {money = 20}
+    },
+    {
+        id = "dark_berry",
+        name = "Darkberry",
+        resources = {money = 30}
+    },
+    {
+        id = "melon_berry",
+        name = "Melonberry",
+        resources = {juice = 2}
     },
 }
 
