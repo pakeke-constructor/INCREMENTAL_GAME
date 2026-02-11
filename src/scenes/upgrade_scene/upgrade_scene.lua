@@ -434,8 +434,7 @@ local function drawUpgradeBoxes(self)
                     local upg = tree:get(gridX,gridY)
                     if upg then
                         lg.setColor(1,1,1)
-                        local desc = UpgradeDescription(tree, upg)
-                        desc:draw(xx,yy)
+                        hoveredUpgrade = upg
                     end
                 end
             end
@@ -1013,6 +1012,10 @@ function upgscene:keyreleased(k)
             upg.level = tree:getUpgradeMaxLevel(upg)
         end
     end
+end
+
+function upgscene:textinput()
+    self.upgradeDescription = nil
 end
 
 upgscene.wheelmoved = upgscene.defaultWheelmoved
