@@ -1,0 +1,20 @@
+{
+    "name": "Bahasa Indonesia",
+    "strings": {
+        "+%{1}% Experience gain!": "+%{1}% perolehan Exp!",
+        "Back to Map\u0000A button that leads back to the game-map": "Kembali ke Map",
+        "Berry Experience": "Exp. Beri",
+        "By progressing, ALL upgrades are reset.": "Dengan melanjutkan, SEMUA peningkatan akan direset.",
+        "CRIT!\u0000As in, an abbreviation for a critical hit": "CRIT!",
+        "Cats in Boots": "Kucing Bersepatu Boots",
+        "Click-Hold Background to Pan\u0000mouse controls on list of upgrades": "Klik-Tahan Latar untuk Menggeser",
+        "Damage (2)": "Damage (2)",
+        "GO TO UPGRADES!\u0000Going to the 'upgrades' screen to buy new upgrades. Meant to be exciting, concise, and clear. Pressing this button will cause the player to move to new upgrades.": "KE PENINGKATAN!",
+        "Grass (II) Infestation": "Wabah Rumput (II)",
+        "Hit Damage\u0000A stats": "Dmg Serang",
+        "PAUSED": "DIJEDA",
+        "Prestige!\u0000As in, a button that progresses to the next level/prestige.": "Prestige!",
+        "Put your finger over {c r=1 g=0 b=0}crops{/c} to harvest them!": "Arahkan jarimu ke {c r=1 g=0 b=0}tanaman{/c} untuk memanennya!",
+        "Stats\u0000area to hover to show game statistics": "Stats."
+    }
+}
