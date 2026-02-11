@@ -508,6 +508,38 @@ end
 
 
 
+---@param upg g.Tree.Upgrade
+---@param nx integer
+---@param ny integer
+---@return boolean success
+function Tree:move(upg, nx, ny)
+    local oldX, oldY = upg.x, upg.y
+    local oldHash = pair(oldX, oldY)
+    local newHash = pair(nx, ny)
+
+    if self.upgrades[newHash] then
+        return false
+    end
+
+    self.upgrades[oldHash] = nil
+    upg.x, upg.y = nx, ny
+    self.upgrades[newHash] = upg
+
+    for i = 1, #self.connections do
+        local conn = self.connections[i]
+        if conn[1] == oldHash then
+            conn[1] = newHash
+        end
+        if conn[2] == oldHash then
+            conn[2] = newHash
+        end
+    end
+
+    self:finalize()
+    return true
+end
+
+
 
 ---@param uinfo g.UpgradeInfo
 function Tree:addOrUpgradeUnboundUpgrade(uinfo)

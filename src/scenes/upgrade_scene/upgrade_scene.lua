@@ -876,6 +876,7 @@ function upgscene:update(dt)
 end
 
 
+---@param k love.KeyConstant
 function upgscene:keypressed(k)
     local tree = g.getUpgTree()
     if k == "tab" then
@@ -935,6 +936,33 @@ function upgscene:keypressed(k)
             local oldFilename = g.getSn().tree._filename
             g.getSn().tree = g.getSn().tree:transpose(true,true)
             g.getSn().tree._filename = oldFilename
+        end
+
+        if self.dev_editModeSelection then
+            local sel = assert(self.dev_editModeSelection)
+            local dx, dy = 0, 0
+            if k == "left" then
+                dx = -1
+            elseif k == "right" then
+                dx = 1
+            elseif k == "up" then
+                dy = -1
+            elseif k == "down" then
+                dy = 1
+            end
+
+            if dx ~= 0 or dy ~= 0 then
+                local upg = tree:get(sel.x, sel.y)
+                local nx, ny = sel.x + dx, sel.y + dy
+                if upg then
+                    if tree:move(upg, nx, ny) then
+                        self.dev_editModeSelection = {x = nx, y = ny, isAddingConnector = sel.isAddingConnector}
+                    end
+                else
+                    -- If no upgrade, just move the selection cursor
+                    self.dev_editModeSelection = {x = nx, y = ny, isAddingConnector = sel.isAddingConnector}
+                end
+            end
         end
     end
 end
