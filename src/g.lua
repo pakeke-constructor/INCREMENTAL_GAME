@@ -362,24 +362,42 @@ end
 
 -- fonts:   getBigFont, getSmallFont
 do
+---@type table<integer, love.Font>
 local bigCache = {}
+---@type table<integer, love.Font>
 local smolCache = {}
+---@type table<integer, love.Font>
+local fbCache = {}
+
+---@param size integer
+local function getFallbackFonts(size)
+    if not fbCache[size] then
+        local f = love.graphics.newFont("assets/fonts/unifont-17.0.03.otf", size, "mono", size / 16)
+        fbCache[size] = f
+    end
+
+    return fbCache[size]
+end
 
 ---@param size number
----@return love.Font
 function g.getBigFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
-    if bigCache[size] then return bigCache[size] end
-    bigCache[size] = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size,"mono",1)
+    if not bigCache[size] then
+        local f = love.graphics.newFont("assets/fonts/Smart 9h.ttf", size,"mono",1)
+        f:setFallbacks(getFallbackFonts(size))
+        bigCache[size] = f
+    end
     return bigCache[size]
 end
 
 ---@param size number
----@return love.Font
 function g.getSmallFont(size)
     assert(size % 16 == 0, "Size must by divisible by 16")
-    if smolCache[size] then return smolCache[size] end
-    smolCache[size] = love.graphics.newFont("assets/fonts/Match 7h.ttf", size,"mono",1)
+    if not smolCache[size] then
+        local f = love.graphics.newFont("assets/fonts/Match 7h.ttf", size,"mono",1)
+        f:setFallbacks(getFallbackFonts(size))
+        smolCache[size] = f
+    end
     return smolCache[size]
 end
 
