@@ -858,8 +858,9 @@ function harvest:tokenDestroyed(tok)
         -- (or else its way too OP; trust me)
         return
     end
+    local boss = g.getBossToken()
 
-    if not isAnyPopupOpen(self) then
+    if not (boss or isAnyPopupOpen(self)) then
         local xp = tok.maxHealth
         local mult = getXpMultiplier(self)
         g.addXP(mult*xp)
@@ -886,6 +887,13 @@ function harvest:tokenDestroyed(tok)
         --local text = string.format("{c r=%.14g g=%.14g b=%.14g}{o}%s{/o}{/c}", r, g, b, COMBO_POPUP_TEXT({mul = mul}))
         local text = string.format("{c r=0.5 g=0.2 b=0.9}{o}%s{/o}{/c}", COMBO_POPUP_TEXT({mul = mul}))
         worldutil.spawnText(text, x, y, 1.4, 10)
+    end
+
+    if boss and boss.type == "vacuum_boss" then
+        -- Damage vacuum boss
+        local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.WHITE, 0.5)
+        ent.drawOrder = 100
+        g.damageToken(boss, 10000)
     end
 end
 
@@ -1215,7 +1223,7 @@ function harvest:keyreleased(k)
             g.grantEffect("explosion_swarm", 20)
         elseif k=="1" then
             --openBossPopup(self)
-            g.summonBoss("giantcrab_boss")
+            g.summonBoss("vacuum_boss")
             --g.incrementPrestige()
         elseif k=="2" then
             local tok = helper.randomChoice(g.TOKEN_LIST)

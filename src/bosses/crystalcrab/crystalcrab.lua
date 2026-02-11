@@ -15,18 +15,18 @@ local function drawClaw(tok, oy)
     local rotleft = math.sin(t * 2 * math.pi) * 0.4
     local rotright = math.cos(t * 2 * math.pi) * 0.4
 
-    g.drawImageOffset("giantcrab_claw", tok.x + 32, tok.y + 19 + oy, rotright, 1, 1, 0.6, 0.2)
-    g.drawImageOffset("giantcrab_claw", tok.x - 32, tok.y + 19 + oy, rotleft, -1, 1, 0.6, 0.2)
+    g.drawImageOffset("crystalcrab_claw", tok.x + 32, tok.y + 19 + oy, rotright, 1, 1, 0.6, 0.2)
+    g.drawImageOffset("crystalcrab_claw", tok.x - 32, tok.y + 19 + oy, rotleft, -1, 1, 0.6, 0.2)
 end
 
-g.defineBoss("giantcrab_boss", 1, "giantcrab_crabberry", {
-    maxHealth = 2000000,
-    image = "giantcrab_body",
+g.defineBoss("crystalcrab_boss", 3, "giantcrab_crabberry", { -- giantcrab_crabberry is defined in giantcrab.lua
+    maxHealth = 2200000,
+    image = "crystalcrab_body",
     resources = {},
     drawOrder = 90,
 
     flightCustomWings = {
-        image = "big_wing_visual",
+        image = "big_purplewing_visual",
         distance = 42
     },
 
@@ -47,26 +47,5 @@ g.defineBoss("giantcrab_boss", 1, "giantcrab_crabberry", {
 
     drawToken = function(tok, x, y, rot, sx, sy, kx, ky)
         drawClaw(tok, 0)
-    end
-})
-
-g.defineToken("giantcrab_crabberry", "\0giantcrab_health_internal", {
-    maxHealth = 50,
-    resources = {},
-
-    update = function(tok)
-        local boss = g.getBossToken()
-        if not boss then
-            g.deleteToken(tok)
-        end
-    end,
-
-    tokenDestroyed = function(tok)
-        local boss = g.getBossToken()
-        if boss then
-            local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.BLUE, 0.5)
-            ent.drawOrder = 100
-            g.damageToken(boss, 4150)
-        end
     end
 })
