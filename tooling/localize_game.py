@@ -52,7 +52,7 @@ LANGUAGE_NAMES: dict[str, tuple[str, str]] = {
     "ko": ("Korean", "한국어"),
     "no": ("Norwegian", "Norsk"),
     "pl": ("Polish", "Polski"),
-    "pt-BR": ("Portuguese (Brazil)", "Português (Brasil)"),
+    "pt_BR": ("Portuguese (Brazil)", "Português (Brasil)"),
     "pt": ("Portuguese", "Português"),
     "ro": ("Romanian", "Română"),
     "ru": ("Russian", "Русский"),
@@ -60,12 +60,11 @@ LANGUAGE_NAMES: dict[str, tuple[str, str]] = {
     "es-419": ("Spanish (Latin America)", "Español (Latinoamérica)"),  # Extracted from 'latam'
     "sv": ("Swedish", "Svenska"),
     "th": ("Thai", "ไทย"),
-    "zh-Hant": ("Traditional Chinese", "繁體中文"),  # Extracted from 'tchinese'
+    "zh_TW": ("Traditional Chinese", "繁體中文"),  # Extracted from 'tchinese'
     "tr": ("Turkish", "Türkçe"),
     "uk": ("Ukrainian", "Українська"),
     "vi": ("Vietnamese", "Tiếng Việt"),
 }
-
 
 
 # Works same as "keywords.json" in LOOTPLOT
@@ -183,13 +182,11 @@ async def begin_translate(target_lang: str, keys: collections.abc.Iterable[str])
         print("Cost total (USD):", cost_total)
 
     print()
-    return output_translation
+    return output_translation, cost_total
 
 
 async def update(target_lang: str):
-    with open(
-        os.path.join(os.environ["APPDATA"], "LOVE/catx11/localization.json"), "r", encoding="utf-8"
-    ) as f:
+    with open(os.path.join(os.environ["APPDATA"], "LOVE/catx11/localization.json"), "r", encoding="utf-8") as f:
         input_translation: dict[str, str] = json.load(f)["strings"]
 
     locfile = os.path.join(find_game_root(), "assets/localization", f"{target_lang}.json")
@@ -199,18 +196,27 @@ async def update(target_lang: str):
             translation_info = json.load(f)
             output_translation = translation_info["strings"]
 
-    new_translation = await begin_translate(target_lang, set(input_translation.keys()) - set(output_translation.keys()))
+    new_translation, cost_total = await begin_translate(
+        target_lang, set(input_translation.keys()) - set(output_translation.keys())
+    )
     for k in set(output_translation.keys()) - set(input_translation.keys()):
         del output_translation[k]
     output_translation.update(new_translation)
 
     with open(locfile, "w", encoding="utf-8", newline="") as f:
-        json.dump({"name": LANGUAGE_NAMES[target_lang][1], "strings": output_translation}, f)
+        sorted_translation_by_key = sorted(output_translation.items(), key=lambda i: i[0])
+        json.dump({"name": LANGUAGE_NAMES[target_lang][1], "strings": dict(sorted_translation_by_key)}, f, indent=4)
+
+    return cost_total
 
 
 if __name__ == "__main__":
 
     async def main():
-        for k in LANGUAGE_NAMES.keys(): await update(k)
+        cost_total = 0
+        for k in LANGUAGE_NAMES.keys():
+            cost_total += await update(k)
+
+        print("Total Cost for All Translations:", cost_total, "USD")
 
     asyncio.run(main())

@@ -15,7 +15,8 @@ local TEXT = {
     LANGUAGE = loc("Language", nil, {context = "Button to select language for a videogame"}),
     REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"}),
     FULLSCREEN = "{o}"..loc("Fullscreen", nil, {context = "Switching game from windowed to fullscreen,"}).."{/o}",
-    CRT_EFFECT = "{o}"..loc("CRT Effect", nil, {context = "Option to emulate old-school CRT TV effects"}).."{/o}"
+    CRT_EFFECT = "{o}"..loc("CRT Effect", nil, {context = "Option to emulate old-school CRT TV effects"}).."{/o}",
+    DONE = loc("Done", nil, {context = "Button to apply changes as in a configuration or settings"})
 }
 
 
@@ -302,7 +303,7 @@ function settingscene:draw()
 
     love.graphics.setColor(1, 1, 1)
     if ui.Button(
-        helper.wrapRichtextColor(objects.Color.BLACK, "Done"),
+        helper.wrapRichtextColor(objects.Color.BLACK, TEXT.DONE),
         objects.Color.WHITE,
         objects.Color.GRAY,
         doneButtonR
