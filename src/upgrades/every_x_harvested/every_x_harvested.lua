@@ -37,6 +37,7 @@ local CATEGORIES = {
     {id = "mushroom", name="Mushroom",plural="mushrooms", count=20, image="mushroom_red"},
     {id = "grass", name="Grassy",plural="grass", count=50, image="grass_3"},
     {id = "berry", name="Berry",plural="berries", count=50, image="blue_berry"},
+    {id = "wheat", name="Wheat",plural="wheat", count=30, image="wheat_big"},
 }
 
 
