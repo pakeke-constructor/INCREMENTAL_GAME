@@ -73,7 +73,6 @@ function credits:init()
                 return error("invalid font type credits")
             end
 
-            print(v[1], self.creditsHeight)
             local y = self.creditsHeight
             local w, lines = richtext.getWrap(parsed, font, CREDITS_MAX_WIDTH)
             local fh = font:getHeight()
