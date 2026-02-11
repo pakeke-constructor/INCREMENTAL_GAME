@@ -45,7 +45,7 @@ local PARTICLE_VY_MIN = -60
 local PARTICLE_VY_MAX = -100
 local PARTICLE_VX_RANGE = 40
 
-g.defineBoss("neonpumpkin_boss", 2, "pumpkin_health", { -- pumpkin_health is defined in pumpkin boss
+g.defineBoss("neonpumpkin_boss", 3, "pumpkin_health", { -- pumpkin_health is defined in pumpkin boss
     maxHealth = 1100000,
     resources = {},
     drawOrder = 90,
