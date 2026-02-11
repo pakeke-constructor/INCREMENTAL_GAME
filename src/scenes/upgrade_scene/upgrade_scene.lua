@@ -338,7 +338,7 @@ local function drawUpgradeBoxes(self)
         if isVisible(upg) then
             local uinfo = g.getUpgradeInfo(upg.id)
             local cx, cy = getUpgradeGridCoords(upg.x, upg.y)
-            lg.setColor(upg.level > 0 and objects.Color.WHITE or objects.Color.BLACK)
+            lg.setColor((upg.level > 0 or self.dev_editMode) and objects.Color.WHITE or objects.Color.BLACK)
 
             if uinfo.kind == "TOKEN" then
                 local tinfo = g.getTokenInfo(uinfo.tokenType)
@@ -414,7 +414,11 @@ local function drawUpgradeBoxes(self)
                         local upg1 = tree:get(gridX,gridY)
                         local upg2 = tree:get(sel.x,sel.y)
                         if upg1 and upg2 then
-                            tree:addConnection(upg1, upg2)
+                            if tree:areConnected(upg1, upg2) then
+                                tree:removeConnection(upg1, upg2)
+                            else
+                                tree:addConnection(upg1, upg2)
+                            end
                         end
                         self.dev_editModeSelection = nil
                     else
@@ -876,6 +880,7 @@ function upgscene:update(dt)
 end
 
 
+---@param k love.KeyConstant
 function upgscene:keypressed(k)
     local tree = g.getUpgTree()
     if k == "tab" then
@@ -935,6 +940,33 @@ function upgscene:keypressed(k)
             local oldFilename = g.getSn().tree._filename
             g.getSn().tree = g.getSn().tree:transpose(true,true)
             g.getSn().tree._filename = oldFilename
+        end
+
+        if self.dev_editModeSelection then
+            local sel = assert(self.dev_editModeSelection)
+            local dx, dy = 0, 0
+            if k == "left" then
+                dx = -1
+            elseif k == "right" then
+                dx = 1
+            elseif k == "up" then
+                dy = -1
+            elseif k == "down" then
+                dy = 1
+            end
+
+            if dx ~= 0 or dy ~= 0 then
+                local upg = tree:get(sel.x, sel.y)
+                local nx, ny = sel.x + dx, sel.y + dy
+                if upg then
+                    if tree:move(upg, nx, ny) then
+                        self.dev_editModeSelection = {x = nx, y = ny, isAddingConnector = sel.isAddingConnector}
+                    end
+                else
+                    -- If no upgrade, just move the selection cursor
+                    self.dev_editModeSelection = {x = nx, y = ny, isAddingConnector = sel.isAddingConnector}
+                end
+            end
         end
     end
 end

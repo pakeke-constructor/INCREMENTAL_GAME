@@ -36,10 +36,10 @@ local SECONDARY_BUTTONS = {
         function() g.gotoScene("setting_scene") end
     },
     {
-        loc("Stats", nil, {context = "Button to show game statistics"}),
+        loc("Credits", nil, {context = "Button to show game credits"}),
         BUTTON_BASE_COL,
         BUTTON_MAIN_COL,
-        function() end
+        function() g.gotoScene("credits_scene") end
     },
 }
 -- iOS App Store does not allow adding "Quit" button to UI.

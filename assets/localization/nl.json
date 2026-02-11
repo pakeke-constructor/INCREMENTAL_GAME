@@ -320,7 +320,7 @@
         "Small Chest": "Kleine kist",
         "Spawn %{1} orbiting knives that deal damage!": "Roep %{1} ronddraaiende messen op die schade aanrichten!",
         "Spawn %{1} orbiting scythes that deal 2 damage!": "Roep %{1} draaiende zeisen op die 2 schade aanrichten!",
-        "Spawn %{1} orbiting slime buckets, 20% chance to slime crops!": "Cre\u00eber %{1} ronddraaiende slijmemmers, 20% kans om gewassen te beslijmen!",
+        "Spawn %{1} orbiting slime buckets, 20% chance to slime crops!": "Creëer %{1} ronddraaiende slijmemmers, 20% kans om gewassen te beslijmen!",
         "Spawn %{1} stars orbiting the mouse, 20% chance to star crops!": "Er verschijnen %{1} sterren rond de muis, 20% kans om gewassen te versterren!",
         "Spawn +%{count} more %{token}\u0000Example result: \"Spawn +15 more Blueberry\"": "Produceer +%{count} extra %{token}",
         "Spawn a swarm of scythes!": "Roep een zwerm zeisen op!",

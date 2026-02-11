@@ -20,6 +20,7 @@ local function defStatPotion(i, id, stat, name, amount)
     local effectDescription = interp("+%{amount} " .. name)
 
     g.defineEffect(newId, realName, {
+        nameContext = "A potion",
         image = image,
         isDebuff = false,
         rawDescription = effectDescription({amount = amount}),

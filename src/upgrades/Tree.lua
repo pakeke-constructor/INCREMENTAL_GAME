@@ -205,6 +205,35 @@ function Tree:addConnection(upg1, upg2)
 end
 
 
+---@param upg1 g.Tree.Upgrade
+---@param upg2 g.Tree.Upgrade
+---@return boolean
+function Tree:areConnected(upg1, upg2)
+    local i1 = pair(upg1.x, upg1.y)
+    local i2 = pair(upg2.x, upg2.y)
+    return (self._connectionMap[i1] and self._connectionMap[i1][i2]) ~= nil
+end
+
+
+---@param upg1 g.Tree.Upgrade
+---@param upg2 g.Tree.Upgrade
+function Tree:removeConnection(upg1, upg2)
+    local i1 = pair(upg1.x, upg1.y)
+    local i2 = pair(upg2.x, upg2.y)
+    local found = false
+    for i = #self.connections, 1, -1 do
+        local conn = self.connections[i]
+        if (conn[1] == i1 and conn[2] == i2) or (conn[1] == i2 and conn[2] == i1) then
+            table.remove(self.connections, i)
+            found = true
+        end
+    end
+    if found then
+        self:finalize()
+    end
+end
+
+
 
 
 
@@ -357,7 +386,7 @@ function Tree:getConnectors(upg)
     for i in pairs(arr) do
         local u = self.upgrades[i] -- HACK: using self.upgrades directly
         if u then
-            table.insert(arr, u)
+            table.insert(connectors, u)
         end
     end
 
@@ -506,6 +535,38 @@ function Tree:clear(x,y)
     return upg
 end
 
+
+
+---@param upg g.Tree.Upgrade
+---@param nx integer
+---@param ny integer
+---@return boolean success
+function Tree:move(upg, nx, ny)
+    local oldX, oldY = upg.x, upg.y
+    local oldHash = pair(oldX, oldY)
+    local newHash = pair(nx, ny)
+
+    if self.upgrades[newHash] then
+        return false
+    end
+
+    self.upgrades[oldHash] = nil
+    upg.x, upg.y = nx, ny
+    self.upgrades[newHash] = upg
+
+    for i = 1, #self.connections do
+        local conn = self.connections[i]
+        if conn[1] == oldHash then
+            conn[1] = newHash
+        end
+        if conn[2] == oldHash then
+            conn[2] = newHash
+        end
+    end
+
+    self:finalize()
+    return true
+end
 
 
 

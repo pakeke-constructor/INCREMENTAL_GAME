@@ -37,7 +37,7 @@ local pworld = particles.newParticlesWorld({
 local SUCKING_POWER = 16 -- pixels per second
 local SUCKING_RADIUS = 32 -- pixels on center of vacuum to delete the token.
 
-g.defineBoss("vacuum_boss", 4, nil, {
+g.defineBoss("vacuum_boss", 2, nil, {
     maxHealth = 5000000,
     image = "vacuum_body",
     resources = {},
