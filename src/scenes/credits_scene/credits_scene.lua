@@ -13,7 +13,6 @@ local creditsctx = {context = "Text shown during in-game credits roll"}
 local CREDITS_STRING = {
     {image="src/scenes/credits_scene/catx11.png"},
     {"CAT CAT CAT CAT CAT CAT CAT CAT CAT CAT CAT", size=48},
-    {"Catx11", size=48},
     {},
     {},
     {loc("Developed By", nil, creditsctx), size=48, underline=true},
@@ -86,7 +85,15 @@ function credits:init()
                 richtext.printRich(parsed, font, ox, y + oy, CREDITS_MAX_WIDTH, "center")
 
                 if v.underline then
+                    local lw = love.graphics.getLineWidth()
+                    local r, g, b, a = love.graphics.getColor()
+                    love.graphics.setColor(0, 0, 0, a)
+                    love.graphics.setLineWidth(8)
                     love.graphics.line(ox + lx, y + oy + h, ox + lx + w, y + oy + h)
+                    love.graphics.setColor(r, g, b, a)
+                    love.graphics.setLineWidth(4)
+                    love.graphics.line(ox + lx, y + oy + h, ox + lx + w, y + oy + h)
+                    love.graphics.setLineWidth(lw)
                 end
             end
             self.drawFuncs[#self.drawFuncs+1] = drawText
