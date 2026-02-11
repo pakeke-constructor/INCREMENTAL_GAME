@@ -205,7 +205,12 @@ async def update(target_lang: str):
 
     with open(locfile, "w", encoding="utf-8", newline="") as f:
         sorted_translation_by_key = sorted(output_translation.items(), key=lambda i: i[0])
-        json.dump({"name": LANGUAGE_NAMES[target_lang][1], "strings": dict(sorted_translation_by_key)}, f, indent=4)
+        json.dump(
+            {"name": LANGUAGE_NAMES[target_lang][1], "strings": dict(sorted_translation_by_key)},
+            f,
+            ensure_ascii=False,
+            indent=4,
+        )
 
     return cost_total
 
