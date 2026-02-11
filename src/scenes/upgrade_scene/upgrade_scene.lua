@@ -414,7 +414,11 @@ local function drawUpgradeBoxes(self)
                         local upg1 = tree:get(gridX,gridY)
                         local upg2 = tree:get(sel.x,sel.y)
                         if upg1 and upg2 then
-                            tree:addConnection(upg1, upg2)
+                            if tree:areConnected(upg1, upg2) then
+                                tree:removeConnection(upg1, upg2)
+                            else
+                                tree:addConnection(upg1, upg2)
+                            end
                         end
                         self.dev_editModeSelection = nil
                     else
