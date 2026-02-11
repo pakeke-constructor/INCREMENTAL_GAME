@@ -434,8 +434,7 @@ local function drawUpgradeBoxes(self)
                     local upg = tree:get(gridX,gridY)
                     if upg then
                         lg.setColor(1,1,1)
-                        local desc = UpgradeDescription(tree, upg)
-                        desc:draw(xx,yy)
+                        hoveredUpgrade = upg
                     end
                 end
             end
@@ -510,7 +509,6 @@ local function drawDevEditModeUI(self, treeUpgrades)
     local leftbar, _, sidebar = region:splitHorizontal(1,4,1)
     local _, bigSidebar = region:splitHorizontal(3,2)
     lg.setColor(1,1,1)
-    lg.rectangle("line",sidebar:get())
 
     local regs = sidebar:grid(1,9)
 
@@ -594,8 +592,10 @@ local function drawDevEditModeUI(self, treeUpgrades)
         lg.setColor(0,0,0,0.5)
         lg.rectangle("fill", selectArea:get())
         lg.setColor(1,1,1)
+        iml.panel(selectArea:get())
 
         local ww, hh = calculateGrid(#g.UPGRADE_LIST, selectArea.w, selectArea.h)
+        local hovered = nil
         for i, utype in ipairs(g.UPGRADE_LIST) do
             if shouldShow(utype) then
                 local col = (i - 1) % ww
@@ -624,7 +624,19 @@ local function drawDevEditModeUI(self, treeUpgrades)
                         tree:put(sel.x, sel.y, uinfo)
                     end
                 end
+
+                if iml.isHovered(x,y,w,h) then
+                    hovered = uinfo
+                end
             end
+        end
+
+        if hovered then
+            local mx, my = iml.getTransformedPointer()
+            local f = g.getSmallFont(16)
+            local labelR = Kirigami(mx + 6, my + 6, richtext.getWidth(hovered.name, f), f:getHeight())
+                :clampInside(ui.getScreenRegion())
+            helper.printTextOutline(hovered.name, f, 1, labelR.x, labelR.y, labelR.w, "left")
         end
 
         local bot1, bot2 = bot:splitVertical(1,1)
@@ -1000,6 +1012,10 @@ function upgscene:keyreleased(k)
             upg.level = tree:getUpgradeMaxLevel(upg)
         end
     end
+end
+
+function upgscene:textinput()
+    self.upgradeDescription = nil
 end
 
 upgscene.wheelmoved = upgscene.defaultWheelmoved
