@@ -211,7 +211,7 @@ jobs:
         name: windows-build
 
     - name: Butler Push Windows
-      uses: yeslayla/butler-publish-itchio-action@master
+      uses: XanatosX/butler-publish-itchio-action@fb0a6f13954b75e8fbcfb703dbdb8626452efaba
       if: 'steps.check.outputs.ok == 1'
       env:
         BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY }}
