@@ -26,8 +26,8 @@ defGrass("grass_1", "Grass (I)", {
     resources = {money = 1},
     maxHealth = 80,
     procGen = {
-        weight = 100,
-        distance = {0, 4}
+        weight = 4,
+        distance = {0, 2}
     }
 })
 
@@ -36,7 +36,7 @@ defGrass("grass_2", "Grass (II)", {
     resources = {money = 3},
     maxHealth = 100,
     procGen = {
-        weight = 80,
+        weight = 3,
         distance = {0, 4}
     }
 })
@@ -47,8 +47,8 @@ defGrass("grass_3", "Grass (III)", {
     shadow = "shadow_big",
     maxHealth = 120,
     procGen = {
-        weight = 70,
-        distance = {0, 4}
+        weight = 2,
+        distance = {1, 4}
     }
 })
 
@@ -58,8 +58,8 @@ defGrass("grass_4", "Grass (IV)", {
     shadow = "shadow_big",
     maxHealth = 140,
     procGen = {
-        weight = 50,
-        distance = {0, 4}
+        weight = 1,
+        distance = {2, 8}
     }
 })
 
