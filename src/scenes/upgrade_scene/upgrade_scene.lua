@@ -930,6 +930,12 @@ function upgscene:keypressed(k)
             g.getSn().tree = procGen.generateTestTree()
             g.getSn().tree._filename = oldFilename
         end
+
+        if love.keyboard.isDown("lshift") and k == "t" then
+            local oldFilename = g.getSn().tree._filename
+            g.getSn().tree = g.getSn().tree:transpose(true,true)
+            g.getSn().tree._filename = oldFilename
+        end
     end
 end
 
