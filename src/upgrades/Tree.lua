@@ -113,6 +113,26 @@ end
 ]]
 
 
+function Tree:transpose(flipX, flipY)
+    local data = self:serialize()
+    local keyMap = {}
+    local newUpgrades = {}
+    for k, upg in pairs(data.upgrades) do
+        local nx = flipX and -upg.x or upg.x
+        local ny = flipY and -upg.y or upg.y
+        upg.x, upg.y = nx, ny
+        local newKey = pair(nx, ny)
+        keyMap[tonumber(k)] = newKey
+        newUpgrades[newKey] = upg
+    end
+    data.upgrades = newUpgrades
+    for _, conn in ipairs(data.connections) do
+        conn[1] = keyMap[conn[1]] or conn[1]
+        conn[2] = keyMap[conn[2]] or conn[2]
+    end
+    return Tree.deserialize(data)
+end
+
 
 ---@param x integer
 ---@param y integer
