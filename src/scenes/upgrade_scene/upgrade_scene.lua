@@ -42,7 +42,10 @@ function upgscene:init()
     self.dev_showTokensInSelect = true
     self.dev_showPrices = false
     self.dev_maxLevelInput = ui.newTextBox()
-    self.dev_priceInput = ui.newTextBox()
+    self.dev_priceInputs = {}
+    for _, resId in ipairs(g.RESOURCE_LIST) do
+        self.dev_priceInputs[resId] = ui.newTextBox()
+    end
 
     ---@type ui.UpgradeDescription|nil
     self.upgradeDescription = nil
@@ -418,7 +421,9 @@ local function drawUpgradeBoxes(self)
                         -- select new:
                         self.dev_editModeSelection = {x=gridX,y=gridY}
                         self.dev_maxLevelInput:reset()
-                        self.dev_priceInput:reset()
+                        for _, resId in ipairs(g.RESOURCE_LIST) do
+                            self.dev_priceInputs[resId]:reset()
+                        end
                     end
                 end
                 if iml.isHovered(xx,yy,ww,hh) then
@@ -656,21 +661,29 @@ local function drawDevEditModeUI(self, treeUpgrades)
         if upg then
             local font=g.getSmallFont(16)
             local topleft,leftbar1 = leftbar:splitVertical(2,5)
-            local leftregs = leftbar1:grid(1,10)
+            local leftregs = leftbar1:grid(1,14)
             lg.setColor(0,0,0,0.4)
             lg.rectangle("fill", leftbar:get())
             lg.setColor(1,1,1)
             richtext.printRichContainedNoWrap("maxLevel", font, leftregs[1]:get())
             self.dev_maxLevelInput:draw(leftregs[2])
 
-            richtext.printRichContainedNoWrap("price", font, leftregs[4]:get())
-            self.dev_priceInput:draw(leftregs[5])
-            local price = dev_fromFormattedNumber(self.dev_priceInput.txt)
-            if price then
-                -- TODO: handle other currencies here.
-                tree:setUpgradeBasePrice(upg, {
-                    money = price
-                })
+            local bundle = {}
+            local hasPrice = false
+            local idx = 4
+            for _, resId in ipairs(g.RESOURCE_LIST) do
+                richtext.printRichContainedNoWrap(resId, font, leftregs[idx]:get())
+                idx = idx + 1
+                self.dev_priceInputs[resId]:draw(leftregs[idx])
+                idx = idx + 1
+                local val = dev_fromFormattedNumber(self.dev_priceInputs[resId].txt)
+                if val then
+                    bundle[resId] = val
+                    hasPrice = true
+                end
+            end
+            if hasPrice then
+                tree:setUpgradeBasePrice(upg, bundle)
             end
 
             local maxLevel = dev_fromFormattedNumber(self.dev_maxLevelInput.txt)

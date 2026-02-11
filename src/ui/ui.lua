@@ -335,8 +335,12 @@ end
 ---@param reg kirigami.Region
 function TextBox:draw(reg)
 	if self.isFocused then
-		local txt = (iml.consumeText() or "")
-		self.txt = self.txt .. txt
+		if love.keyboard.isDown("return") then
+			self.isFocused = false
+		else
+			local txt = (iml.consumeText() or "")
+			self.txt = self.txt .. txt
+		end
 	end
 	if iml.wasJustClicked(reg:get()) then
 		self.isFocused = not self.isFocused
