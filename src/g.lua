@@ -80,12 +80,12 @@ function g.incrementPrestige()
 
     local prestige = math.min(g.getFinalPrestige(), curr.prestige + 1)
     new.tree = (g.loadPrestigeTree(prestige))
+    new.level = 0
 
     -- copy over the important stuff:
     new.prestige = prestige
     new.totalLevel = curr.totalLevel -- keep total-level tracking.
     new.avatar = curr.avatar
-    new.totalLevel = curr.totalLevel -- keep total-level tracking.
     new.showTutorials = {harvest=false, upgrades=false}
     new.unlockedPOI = objects.Set(curr.unlockedPOI)
     new.fisherCatCount = curr.fisherCatCount
