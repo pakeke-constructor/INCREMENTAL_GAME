@@ -582,9 +582,7 @@ local PERM_UPGRADES = {
     "knife_bush",
     "mushroom_basic",
     "planter_cat_grass_1",
-    "planter_cat_grass_2",
     "planter_cat_blue_grass_1",
-    "planter_cat_blue_grass_2",
     "orbital_knife",
     "orbital_scythe",
 }
