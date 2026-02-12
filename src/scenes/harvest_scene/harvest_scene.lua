@@ -765,6 +765,9 @@ local PERM_REWARD = {
     )
 }
 
+local LV_UP = loc("{rainbow}{wavy}{o}LEVEL UP!{/o}{/wavy}{/rainbow}")
+local CHOOSE_REWARD = loc("{wavy}{o}Choose 1 Reward!{/o}{/wavy}")
+
 
 ---@param self HarvestScene
 function drawXpPopup(self)
@@ -777,14 +780,23 @@ function drawXpPopup(self)
     -- number from 0 -> 1
     local progress = math.min(1, self.timeSinceXpPopupOpened / XP_POPUP_FADE_IN_TIME)
 
+    local font = g.getSmallFont(16)
     local _, mid, _ = r:padUnit(0, 0, hud.statsWidth, 0):splitVertical(1,8,1)
     local _,popup = mid:splitHorizontal(1,8,1)
     popup = popup:padRatio(0.1 + (1-progress))
+    local title
+    title, popup = popup:splitVertical(5,14)
 
     drawFancyBackgroundShit(progress, mid:getCenter())
 
     do
     love.graphics.setColor(1,1,1)
+
+    local t1 = title:padRatio(0.1)
+    local top, bot = t1:splitVertical(3,2)
+    richtext.printRichContained(LV_UP, font, top:get())
+    richtext.printRichContained(CHOOSE_REWARD, font, bot:get())
+
     local regions
     if #self.xpRewards == 1 then
         local _,rr1,_ = popup:splitVertical(1,1,1)
