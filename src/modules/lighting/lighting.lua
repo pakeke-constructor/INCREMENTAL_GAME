@@ -55,10 +55,12 @@ end
 function LightWorld:render(ambientColor)
     ambientColor = ambientColor or DEFAULT_AMBIENT
     local mode, alphamode = love.graphics.getBlendMode()
-    
+
+    love.graphics.push()
+    local canv = love.graphics.getCanvas()
     love.graphics.setCanvas(self.canvas)
     love.graphics.clear(ambientColor[1], ambientColor[2], ambientColor[3])
-    
+
     for _, light in pairs(self.lights) do
         local scale = light.size / self.imageWidth
         local c = light.color
@@ -67,13 +69,13 @@ function LightWorld:render(ambientColor)
                           self.imageWidth/2, self.imageHeight/2)
     end
 
-    love.graphics.setCanvas()
+    love.graphics.setCanvas(canv)
     love.graphics.origin()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.setBlendMode("multiply", "premultiplied")
     love.graphics.draw(self.canvas)
-
     love.graphics.setBlendMode(mode, alphamode)
+    love.graphics.pop()
 end
 
 

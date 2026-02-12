@@ -100,7 +100,7 @@ function Interpolator:init(text, metadata)
         if translatedKeys[key] then
             self.text = translatedKeys[key]
         else
-            if not missingKeys[key] then
+            if not missingKeys[key] and settings.getLanguage() ~= "en" then
                 if #context > 0 then
                     log.warn(string.format("Missing translation key of %q (%q)", text, context))
                 else

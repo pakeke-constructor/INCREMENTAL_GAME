@@ -52,6 +52,14 @@ local QUICK_MOVE_UPGRADE_SCENE = loc("Press Tab to move to Upgrades screen", nil
     context = "A hotkey (Tab) to move quickly between scenes (in this case, Upgrade)"
 })
 
+local BOSS_TOOLTIP = {
+    -- Key is the boss token health type
+    pumpkin_health = loc("Destroy the {c r=1 g=0 b=0}mini pumpkins{/c} to damage the boss!", nil, {
+        context = "Tutorial text on how to beat a \"pumpkin\" boss"}),
+    giantcrab_crabberry = loc("Destroy the {c r=1 g=0 b=0}blue berries{/c} to damage the boss!", nil, {
+        context = "Tutorial text on how to beat a \"giant crab\" boss"}),
+}
+
 
 
 
@@ -82,6 +90,9 @@ function harvest:init()
     self.worldScale = 1
 
     self.lightWorld = newLightWorld()
+
+    self.bossTutorialTimeout = 5
+    self.bossTutorialHasHit = false
 end
 
 
@@ -901,6 +912,11 @@ function harvest:tokenDestroyed(tok)
         end
 
         g.getSn().showTutorials.harvest = false
+
+        local bossHT = boss and boss.bossfight and boss.bossfight.healthToken
+        if bossHT and tok.type == bossHT then
+            self.bossTutorialHasHit = true
+        end
     end
 
     local world = g.getMainWorld()
@@ -992,6 +1008,30 @@ local function doBossLighting(self)
 end
 
 
+
+---@param color objects.Color
+---@param filter string?
+local function highlightToken(color, filter)
+    local lw = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(3)
+    love.graphics.setColor(color)
+
+    if filter then
+        for _, tok in ipairs(g.getMainWorld().tokens) do
+            if tok.type == filter then
+                helper.circleHighlight(tok.x, tok.y, 10)
+            end
+        end
+    else
+        for _, tok in ipairs(g.getMainWorld().tokens) do
+            helper.circleHighlight(tok.x, tok.y, 10)
+        end
+    end
+
+    love.graphics.setLineWidth(lw)
+end
+
+
 function harvest:draw()
     love.graphics.clear(0.3,0.7,0.25)
     love.graphics.setColor(1,1,1)
@@ -1025,6 +1065,7 @@ function harvest:draw()
     world:_draw()
 
     local bossTok = g.getBossToken()
+    local bossHT = bossTok and bossTok.bossfight and bossTok.bossfight.healthToken
     if bossTok then
         doBossLighting(self)
     end
@@ -1033,15 +1074,11 @@ function harvest:draw()
 
     if not g.isBeingSimulated() then
         if sess.showTutorials.harvest then
-            local lw = love.graphics.getLineWidth()
-            love.graphics.setLineWidth(3)
-            love.graphics.setColor(objects.Color.RED)
+            highlightToken(objects.Color.RED)
+        end
 
-            for _, tok in ipairs(g.getMainWorld().tokens) do
-                helper.circleHighlight(tok.x, tok.y, 10)
-            end
-
-            love.graphics.setLineWidth(lw)
+        if bossHT and (self.bossTutorialTimeout > 0 or not self.bossTutorialHasHit) then
+            highlightToken(objects.Color.RED, bossHT)
         end
     end
 
@@ -1067,11 +1104,19 @@ function harvest:draw()
         xpbar=true
     })
 
-    if not g.isBeingSimulated() and sess.showTutorials.harvest then
+    if not g.isBeingSimulated() then
         local safeArea = g.getHUD():getSafeArea()
         local tutTextR = safeArea:padRatio(0.1)
-        local txt = consts.IS_MOBILE and TUTORIAL_HARVEST_MOBILE or TUTORIAL_HARVEST
-        richtext.printRich(txt, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+
+        if sess.showTutorials.harvest then
+            local txt = consts.IS_MOBILE and TUTORIAL_HARVEST_MOBILE or TUTORIAL_HARVEST
+            richtext.printRich(txt, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+        end
+
+        if bossHT and (self.bossTutorialTimeout > 0 or not self.bossTutorialHasHit) then
+            local txt = "{w}{o thickness=2}"..(BOSS_TOOLTIP[bossHT] or "").."{/o}{/w}"
+            richtext.printRich(txt, g.getBigFont(32), tutTextR.x, tutTextR.y, tutTextR.w, "center")
+        end
     end
 
     self:_drawActiveEffects()
@@ -1191,6 +1236,7 @@ function harvest:update(dt)
         sn.xp = 0
 
         if bossHealthToken then
+            self.bossTutorialTimeout = math.max(self.bossTutorialTimeout - dt, 0)
             for _, tok in ipairs(sn.mainWorld.tokens) do
                 ---@cast tok g.Token
                 if tok.type ~= bossHealthToken and tok.type ~= boss.type then
@@ -1274,6 +1320,13 @@ function harvest:keyreleased(k)
 end
 
 
+
+function harvest:enter()
+    if not g.getBossToken() then
+        self.bossTutorialTimeout = 5
+        self.bossTutorialHasHit = false
+    end
+end
 
 function harvest:leave(k)
     closeUpgradePopup(self)

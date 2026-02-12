@@ -129,7 +129,6 @@ end
 
 function boss:draw()
     local w, h = love.graphics.getDimensions()
-    local r = ui.getScreenRegion()
 
     vignette.draw()
 
@@ -158,8 +157,6 @@ function boss:draw()
     ui.startUI()
     local bob = math.floor(math.sin(love.timer.getTime() * 2) * 2)
     drawBossButtonStuff(self, bob)
-    self:renderPause()
-    self:renderMapButton()
 
     do
     local f = g.getSmallFont(16)
@@ -168,10 +165,14 @@ function boss:draw()
         :moveUnit(0,bob)
     local pumpkin,a,b,_ = r2:splitVertical(3,1,1,2)
     local bossId = assert(g.getBossIdForPrestige(g.getPrestige()))
+    love.graphics.setColor(1, 1, 1)
     drawBoss(pumpkin, g.getTokenInfo(bossId))
     richtext.printRichContained(SUMMON_BOSS, f, a:get())
     richtext.printRichContained(BOSS_INFO, f, b:get())
     end
+
+    self:renderMapButton()
+    self:renderPause()
 
     ui.endUI()
 end
@@ -182,6 +183,10 @@ end
 
 
 function boss:keyreleased(k)
+    if k == "escape" and g.hasSession() then
+        local s = g.getSn()
+        s.paused = not s.paused
+    end
 end
 
 return boss
