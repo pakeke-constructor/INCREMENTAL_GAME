@@ -161,7 +161,18 @@ function HUD:draw(show)
             local uinfo = g.getUpgradeInfo(v.id)
             local cx, cy = gridR:getCenter()
             love.graphics.setColor(1, 1, 1)
-            g.drawImage(uinfo.image, cx, cy)
+
+            if uinfo.kind == "TOKEN" then
+                local tinfo = g.getTokenInfo(uinfo.tokenType)
+                g.drawTokenImage(tinfo, cx, cy)
+            elseif uinfo.image then
+                g.drawImage(uinfo.image, cx, cy)
+            end
+
+            if uinfo.drawUI then
+                uinfo:drawUI(v.level, gridR:get())
+            end
+
             richtext.printRich("{o}"..v.level.."{/o}", levelFont, gridR.x, cy, gridR.w, "center")
 
             if iml.isHovered(gridR:get()) then
