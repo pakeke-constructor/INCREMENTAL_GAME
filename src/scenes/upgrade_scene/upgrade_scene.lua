@@ -299,12 +299,17 @@ local function drawUpgradeBoxes(self)
     local time = love.timer.getTime()
     prof_push("drawGodrays")
     for _, upg in ipairs(upgrades) do
-        if isVisible(upg) and canAffords[upg] and upg.level == 0 then
+        if isVisible(upg) and canAffords[upg] then
             local x, y = getUpgradeGridCoords(upg.x, upg.y)
             local t = time % (2 * math.pi)
             local t2 = (time * 0.8 + 1) % (2 * math.pi)
-            godrays.drawRays(x, y, t, {color = RAY_COLOR, rayCount = 6, startWidth = 2, length = 32, fadeTo=0.15})
-            godrays.drawRays(x, y, -t2, {color = RAY_COLOR, rayCount = 4, startWidth = 2, length = 32, fadeTo=0.15})
+            if upg.level == 0 then
+                godrays.drawRays(x, y, t, {color = RAY_COLOR, rayCount = 6, startWidth = 2, length = 32, fadeTo=0.15})
+                godrays.drawRays(x, y, -t2, {color = RAY_COLOR, rayCount = 4, startWidth = 2, length = 32, fadeTo=0.15})
+            else
+                godrays.drawRays(x, y, t, {color = RAY_COLOR, rayCount = 3, startWidth = 2, length = 25, fadeTo=0})
+                godrays.drawRays(x, y, -t2, {color = RAY_COLOR, rayCount = 4, startWidth = 2, length = 25, fadeTo=0})
+            end
             lg.setColor(1, 1, 1)
         end
     end
