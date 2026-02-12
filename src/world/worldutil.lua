@@ -20,7 +20,6 @@ function worldutil.drawHarvestCircle(x, y, rad, circleColor, circleBorderColor, 
         local combodur = world:_getComboDuration()
         local ratio = world.comboTimeout / combodur
         local joltScale = math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.4, 1), 1)
-        local timer = helper.remap(ratio, 0., 1.0, 0, 1)
 
         local lineWidth = math.floor(rad/15) + 2
         local SEG=60
@@ -33,7 +32,7 @@ function worldutil.drawHarvestCircle(x, y, rad, circleColor, circleBorderColor, 
         else
             lg.setColor(0.2, 0.8, 0.2)
         end
-        helper.drawPartialCircle(x,y, rad, timer, lineWidth*joltScale, SEG)
+        helper.drawPartialCircle(x,y, rad, ratio, lineWidth*joltScale, SEG)
     end
 
 
