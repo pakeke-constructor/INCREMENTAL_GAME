@@ -616,6 +616,22 @@ local function makeEffectReward(effectId, duration)
 end
 
 
+
+---@param list table
+---@param n number
+---@param rng love.RandomGenerator
+---@return table
+local function selectNRandom(list, n, rng)
+    local available = {unpack(list)}
+    local result = {}
+    for i = 1, n do
+        local idx = rng:random(#available)
+        result[i] = table.remove(available, idx)
+    end
+    return result
+end
+
+
 ---@return g.Reward[]
 function rewards.generateRandomRewards()
     local sn = g.getSn()
@@ -674,10 +690,9 @@ function rewards.generateRandomRewards()
     -- (todo could tweak this?)
     if sn.level % 3 == 0 then
         rewardList = {}
-        for i=1, 3 do
-            local randomUpgradeId = helper.randomChoice(PERM_UPGRADES, function(max) return rng:random(max) end)
-            local permanentReward = makePermanentReward(randomUpgradeId)
-            rewardList[i] = permanentReward
+        local picks = selectNRandom(PERM_UPGRADES, 3, rng)
+        for i = 1, 3 do
+            rewardList[i] = makePermanentReward(picks[i])
         end
     else
         -- Else, generate normal reward list
