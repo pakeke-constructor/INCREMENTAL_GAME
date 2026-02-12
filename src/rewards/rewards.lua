@@ -258,6 +258,24 @@ local INSTANT_REWARDS = {
             g.grantEffect("grass_2_infestation", 15)
         end
     },
+    blue_grass_1_infestation = {
+        type = "instant",
+        icon = "blue_grass_1",
+        name = loc "Blue Grass (I)",
+        description = loc "+30 {blue_grass_1} crops for 15 seconds!",
+        func = function()
+            g.grantEffect("blue_grass_1_infestation", 15)
+        end
+    },
+    blue_grass_2_infestation = {
+        type = "instant",
+        icon = "blue_grass_2",
+        name = loc "Blue Grass (II)",
+        description = loc "+20 {blue_grass_2} crops for 15 seconds!",
+        func = function()
+            g.grantEffect("blue_grass_2_infestation", 15)
+        end
+    },
     knife_swarm = {
         type = "instant",
         icon = "knife",
@@ -556,6 +574,8 @@ local PERM_UPGRADES = {
     "mushroom_basic",
     "planter_cat_grass_1",
     "planter_cat_grass_2",
+    "planter_cat_blue_grass_1",
+    "planter_cat_blue_grass_2",
     "orbital_knife",
     "orbital_scythe",
 }
