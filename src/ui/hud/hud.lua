@@ -98,6 +98,16 @@ end
 local function drawRewardsUI(upg, x, y)
     local uinfo = g.getUpgradeInfo(upg.id)
     local desc = g.getUpgradeDescription(uinfo, upg.level, false)
+
+    if #desc == 0 and uinfo.kind == "TOKEN" then
+        local tinfo = g.getTokenInfo(uinfo.tokenType)
+        desc = tinfo.description or ""
+    end
+
+    if #desc == 0 then
+        desc = uinfo.name
+    end
+
     return helper.tooltip(desc, x, y)
 end
 
@@ -161,7 +171,18 @@ function HUD:draw(show)
             local uinfo = g.getUpgradeInfo(v.id)
             local cx, cy = gridR:getCenter()
             love.graphics.setColor(1, 1, 1)
-            g.drawImage(uinfo.image, cx, cy)
+
+            if uinfo.kind == "TOKEN" then
+                local tinfo = g.getTokenInfo(uinfo.tokenType)
+                g.drawTokenImage(tinfo, cx, cy)
+            elseif uinfo.image then
+                g.drawImage(uinfo.image, cx, cy)
+            end
+
+            if uinfo.drawUI then
+                uinfo:drawUI(v.level, gridR:get())
+            end
+
             richtext.printRich("{o}"..v.level.."{/o}", levelFont, gridR.x, cy, gridR.w, "center")
 
             if iml.isHovered(gridR:get()) then

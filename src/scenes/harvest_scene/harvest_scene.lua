@@ -1302,8 +1302,8 @@ function harvest:keyreleased(k)
                 g.stackToken(tok, 100, 100)
             end
         elseif k=="3" then
-            local eff = helper.randomChoice(g.EFFECT_LIST)
-            g.grantEffect(eff, 10)
+            --local eff = helper.randomChoice(g.EFFECT_LIST)
+            g.grantEffect("black_cube", 10)
         elseif k=="4" then
             local sn=g.getSn()
             sn.xp = sn.xp + sn.xpRequirement

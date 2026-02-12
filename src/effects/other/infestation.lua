@@ -18,3 +18,5 @@ end
 
 defInfest("grass_1", "Grass (I) Infestation", 30)
 defInfest("grass_2", "Grass (II) Infestation", 20)
+defInfest("blue_grass_1", "Blue Grass (I) Infestation", 30)
+defInfest("blue_grass_2", "Blue Grass (II) Infestation", 20)
