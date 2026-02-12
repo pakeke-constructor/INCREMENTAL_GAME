@@ -235,8 +235,8 @@ end
 
 
 local STATS_TO_SHOW = {"HitSpeed", "HitDamage", "HarvestArea"}
-local STATS_TITLE_TEXT = loc("Stats", nil, {context = "Place to show statistics of current game"})
-local CROPS_TITLE_TEXT = loc "Crop List"
+local STATS_TITLE_TEXT = "{o thickness=2}"..loc("Stats", nil, {context = "Place to show statistics of current game"}).."{/o}"
+local CROPS_TITLE_TEXT = "{o thickness=2}"..loc("Crop List").."{/o}"
 local TOKEN_IMAGE_SCALE = 1
 
 local STATS_BACKGROUND = helper.newGradientMesh(
@@ -274,7 +274,7 @@ function HUD:drawStatsAndTokenPool()
             :set(nil, nil, nil, (statFont:getHeight() + 2) * #STATS_TO_SHOW)
         local statGrid = statBaseGridR:grid(1, #STATS_TO_SHOW)
 
-        helper.printTextOutline(STATS_TITLE_TEXT, titleFont, 2, titleR.x, titleR.y, titleR.w, "center")
+        richtext.printRichContainedNoWrap(STATS_TITLE_TEXT, titleFont, titleR:get())
 
         love.graphics.setColor(0, 0, 0, 0.3)
         helper.quickRoundedRectangle("fill", 4, statBaseGridR:padUnit(-4))
@@ -322,7 +322,7 @@ function HUD:drawStatsAndTokenPool()
         helper.quickRoundedRectangle("fill", 4, tokenPoolGridR:padUnit(-4))
         love.graphics.setColor(1, 1, 1)
 
-        helper.printTextOutline(CROPS_TITLE_TEXT, titleFont, 2, titleR.x, titleR.y, titleR.w, "center")
+        richtext.printRichContainedNoWrap(CROPS_TITLE_TEXT, titleFont, titleR:get())
         for i, tpi in ipairs(tokenPoolInfo) do
             local gridR = tokenPoolGrid[i]
             local x, y = gridR:getCenter()
