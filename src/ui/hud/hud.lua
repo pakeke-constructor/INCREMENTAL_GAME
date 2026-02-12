@@ -98,6 +98,16 @@ end
 local function drawRewardsUI(upg, x, y)
     local uinfo = g.getUpgradeInfo(upg.id)
     local desc = g.getUpgradeDescription(uinfo, upg.level, false)
+
+    if #desc == 0 and uinfo.kind == "TOKEN" then
+        local tinfo = g.getTokenInfo(uinfo.tokenType)
+        desc = tinfo.description or ""
+    end
+
+    if #desc == 0 then
+        desc = uinfo.name
+    end
+
     return helper.tooltip(desc, x, y)
 end
 
