@@ -56,8 +56,6 @@ local function loadLanguage(lang, suffix)
         else
             log.error("Unable to load "..langfile..": "..langdata)
         end
-    else
-        log.warn("Unable to load "..langfile..": "..err)
     end
 end
 
