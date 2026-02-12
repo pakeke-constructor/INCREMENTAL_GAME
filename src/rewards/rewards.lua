@@ -636,11 +636,13 @@ function rewards.generateRandomRewards()
 
     local rng = love.math.newRandomGenerator(sn.level * 2654435761 + 12345)
 
+    if sn.level == 0 then
+        return {assert(generateScytheReward())}
+    end
+
     -- Handle prestige 0 early levels
     if g.getPrestige() == 0 then
-        if sn.level == 0 then
-            return {assert(generateScytheReward())}
-        elseif sn.level == 1 then
+        if sn.level == 1 then
             return {
                 makeEffectReward("harvest_area_2", 20),
                 INSTANT_REWARDS.grass_1_infestation,
