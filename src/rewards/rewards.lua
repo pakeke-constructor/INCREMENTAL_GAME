@@ -357,7 +357,16 @@ local INSTANT_REWARDS = {
                 e.lifetime = 15
             end
         end
-    }
+    },
+    black_cube = {
+        type = "instant",
+        icon = "blackhole_effect",
+        name = loc "Black Cube",
+        description = loc "Pull crops towards mouse position for 15 seconds!",
+        func = function()
+            g.grantEffect("black_cube", 15)
+        end
+    },
 }
 
 
