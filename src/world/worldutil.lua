@@ -615,4 +615,29 @@ end
 end
 
 
+
+---@param x number
+---@param y number
+---@param rad number radius (visual only)
+---@param t number world time (positive = outward, negative = inward)
+---@param nwave integer? (default 5)
+function worldutil.drawWaveAnimation(x, y, rad, t, nwave)
+    if g.isBeingSimulated() then return end
+
+    nwave = nwave or 5
+    local basePosition = t % 1
+    local r, g, b, a = love.graphics.getColor()
+    local lw = love.graphics.getLineWidth()
+    love.graphics.setLineWidth(rad / nwave / 2)
+    for i = 1, nwave do
+        local pos = (basePosition + i / nwave) % 1
+        local alpha = helper.clamp(math.sin(pos * math.pi), 0, 1)
+        love.graphics.setColor(r, g, b, a * alpha)
+        love.graphics.circle("line", x, y, pos * rad)
+    end
+    love.graphics.setLineWidth(lw)
+    love.graphics.setColor(r, g, b, a)
+end
+
+
 return worldutil
