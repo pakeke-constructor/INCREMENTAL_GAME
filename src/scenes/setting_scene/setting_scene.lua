@@ -272,6 +272,7 @@ function settingscene:draw()
 
     -- Draw language stuff
     local all = maxRegion(languageButtonR, languageIconR, languageLabelR)
+    lg.setColor(0.88,0.9,1.0)
     ui.drawSingleColorPanel(all:get())
     love.graphics.setColor(1, 1, 1)
     richtext.printRich(
@@ -373,7 +374,7 @@ function settingscene:_drawLanguageSelector()
         if iml.wasJustClicked(buttonR:get()) then
             settings.setLanguage(lang[1])
             self.showLanguagePopup = false
-            break
+            love.event.quit("restart")
         elseif iml.isHovered(buttonR:get()) then
             love.graphics.setColor(0, 0, 0, 0.2)
             love.graphics.rectangle("fill", buttonR:get())
