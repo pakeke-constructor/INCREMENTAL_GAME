@@ -2,7 +2,7 @@
 ---@return string
 ---@return string|nil
 local function extractLangRegCode(lang)
-    local langcode, regcode = lang:match("(%l%l)_(%u%u)")
+    local langcode, regcode = lang:lower():match("(%l%l)[_%-](.+)")
     if not langcode then
         return lang, nil
     end
@@ -16,9 +16,9 @@ end
 local languageList = {}
 
 for _, file in ipairs(love.filesystem.getDirectoryItems("assets/localization")) do
-    local lang, suffix, extension = file:match("(%w+)%.(%w+)%.(%w+)") --[[@as string?]]
+    local lang, suffix, extension = file:match("([%w_%-]+)%.(%w+)%.(%w+)") --[[@as string?]]
     if not lang then
-        lang, extension = file:match("(%w+)%.(%w+)") --[[@as string?]]
+        lang, extension = file:match("([%w_%-]+)%.(%w+)") --[[@as string?]]
     end
 
     if lang and extension == "json" then
