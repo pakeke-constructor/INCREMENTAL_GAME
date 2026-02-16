@@ -214,7 +214,7 @@ function settingscene:draw()
     local fsLabelR, fsBoxR = fsPlacementR:splitHorizontal(fsTextWidth, fontHeight)
     fsBoxR = fsBoxR:padUnit(6)
 
-    -- Language. Let's just make it a button that shows fullscreen panel later.
+    -- Language:
     local languageLabelR = Kirigami(0, 0, 240, font:getHeight() * 1.5)
         :centerX(titleTextR)
         :attachToBottomOf(fsPlacementR)
@@ -270,7 +270,9 @@ function settingscene:draw()
     local fsState = ui.Checkbox(objects.Color.WHITE, fsBoxR, settings.isFullscreen())
     settings.setFullscreen(fsState)
 
-    -- Draw language button
+    -- Draw language stuff
+    local all = maxRegion(languageButtonR, languageIconR, languageLabelR)
+    ui.drawSingleColorPanel(all:get())
     love.graphics.setColor(1, 1, 1)
     richtext.printRich(
         "{o}"..TEXT.LANGUAGE.."{/o}",
