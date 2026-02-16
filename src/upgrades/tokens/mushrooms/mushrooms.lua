@@ -125,5 +125,55 @@ g.defineToken("mushroom_brown", "Brown Mushroom", {
 
 
 
+g.defineToken("mushroom_purple", "Purple Mushroom", {
+    category = "mushroom",
+    shadow = "shadow_medium",
+    maxHealth = 150,
+    resources = {},
+    description = "Pull crops when harvested!",
+    procGen = {weight = 3, distance = {1, 6}},
 
+    tokenDestroyed = function(tok)
+        worldutil.spawnShockwave(tok.x, tok.y, 0.2, 50, objects.Color.PURPLE)
+        g.spawnEntity("token_sucker", tok.x, tok.y, 1)
+    end
+})
 
+local SUCKING_POWER = 24
+local SUCKING_RADIUS = 64
+g.defineEntity("token_sucker", {
+    init = function(ent, duration)
+        duration = duration or 1
+        ent.lifetime = duration
+        ent.duration = duration
+    end,
+    update = function(ent, dt)
+        local mul1 = math.sqrt(helper.clamp(math.sin(ent.lifetime / ent.duration * math.pi), 0, 1))
+        local ww, wh = g.getWorldDimensions()
+        local mx = ent.x
+        local my = ent.y
+
+        for _, gtok in ipairs(g.getMainWorld().tokens) do
+            ---@cast gtok g.Token
+            if not gtok.bossfight then
+                local dist = helper.magnitude(gtok.y - my, gtok.x - mx)
+                local mul2 = math.min(SUCKING_RADIUS / dist, 1)
+                local power = mul1 * mul2 * SUCKING_POWER * dt
+                local rot = math.atan2(gtok.y - my, gtok.x - mx)
+                gtok.x = helper.clamp(gtok.x - math.cos(rot) * power, 0, ww)
+                gtok.y = helper.clamp(gtok.y - math.sin(rot) * power, 0, wh)
+            end
+        end
+    end,
+    draw = function(ent)
+        if g.isBeingSimulated() then
+            return
+        end
+
+        local r, gc, b, a = love.graphics.getColor()
+        local a2 = helper.clamp(math.sin(ent.lifetime / ent.duration * math.pi), 0, 1)
+        love.graphics.setColor(0, 0, 0, a * a2 * 0.7)
+        worldutil.drawWaveAnimation(ent.x, ent.y, 32, -g.getWorldTime())
+        love.graphics.setColor(r, gc, b, a)
+    end
+})

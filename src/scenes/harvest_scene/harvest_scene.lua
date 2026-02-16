@@ -1064,6 +1064,19 @@ function harvest:draw()
 
     world:_draw()
 
+    -- FIXME: Generalize this.
+    -- This is only for quick and dirty way to have "sucking" animation
+    -- on Black Cube. If more than 1 effect needs this, generalize this out!
+    if (world.effectDurations.black_cube or 0) > 0 then
+        local ww, wh = g.getWorldDimensions()
+        local mx = world.mouseX or (ww / 2)
+        local my = world.mouseY or (wh / 2)
+        local r, gc, b, a = love.graphics.getColor()
+        love.graphics.setColor(0, 0, 0, a * 0.6)
+        worldutil.drawWaveAnimation(mx, my, 48, -g.getWorldTime()*2)
+        love.graphics.setColor(r, gc, b, a)
+    end
+
     local bossTok = g.getBossToken()
     local bossHT = bossTok and bossTok.bossfight and bossTok.bossfight.healthToken
     if bossTok then
