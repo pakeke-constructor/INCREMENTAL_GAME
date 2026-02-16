@@ -61,7 +61,7 @@ end
 ---@return string
 ---@return string|nil
 local function extractLangRegCode(lang)
-    local langcode, regcode = lang:match("(%l%l)_(%u%u)")
+    local langcode, regcode = lang:lower():match("(%l%l)[_%-](.+)")
     if not langcode then
         return lang, nil
     end
@@ -92,14 +92,22 @@ function settingscene:init()
     -- Ensure closest language match is selected
     do
         local lang = settings.getLanguage()
-        local langcode, regcode = extractLangRegCode(lang)
         if not self.languages[lang] then
+            local langcode, regcode = extractLangRegCode(lang)
+            local choice = nil
             for k in pairs(self.languages) do
                 local lc, rc = extractLangRegCode(k)
-                if lc == langcode and (rc == regcode or (rc or "") == "") then
-                    settings.setLanguage(k)
-                    break
+                if lc == langcode then
+                    if rc == regcode then
+                        choice = k
+                        break -- exact match, done
+                    elseif not choice then
+                        choice = k -- bare language fallback
+                    end
                 end
+            end
+            if choice then
+                settings.setLanguage(choice)
             end
         end
     end
