@@ -21,7 +21,16 @@ local TRANSITION_SCALE = 4
 ---@class (exact) _MapBuilding
 ---@field public x integer
 ---@field public y integer
----@field public image string
+---@field public image string?
+---@field public getImage (fun():string)?
+---@field public bobbing {amplitude:number, period:number}?
+
+---@param b _MapBuilding
+---@return string
+local function getBuildingImage(b)
+    if b.getImage then return b.getImage() end
+    return b.image --[[@as string]]
+end
 
 ---@type table<string, _MapBuilding>
 local buildings = {
@@ -42,6 +51,11 @@ local buildings = {
         x = 237, y = 211,
     },
     harvestarea_platform = {
+        getImage = function()
+            local p = g.getPrestige()
+            local img = "harvestarea_platform_" .. tostring(p)
+            return img
+        end,
         image = "harvestarea_platform",
         x = 294, y = 177,
         bobbing = {amplitude = 3, period = 4},
@@ -508,7 +522,7 @@ function map:draw()
         if b.bobbing then
             oy = b.bobbing.amplitude * math.sin((love.timer.getTime()*(math.pi*2)) / b.bobbing.period)
         end
-        g.drawImageOffset(b.image, b.x, b.y + oy, 0, 1, 1, 1, 0)
+        g.drawImageOffset(getBuildingImage(b), b.x, b.y + oy, 0, 1, 1, 1, 0)
     end
 
     -- Draw clouds
