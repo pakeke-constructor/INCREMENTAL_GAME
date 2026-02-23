@@ -3,8 +3,8 @@ local Resources = require(".ResourcesHUD")
 local Profile = require(".ProfileHUD")
 
 
-local SIDEBAR_COLOR = objects.Color("#".."FF14A0CD")
-local SIDEBAR_COLOR2 = objects.Color("#".."FF2358C9")
+local SIDEBAR_COLOR = objects.Color("#".."FF1F60BB")
+local SIDEBAR_COLOR2 = objects.Color("#".."FF1444AA")
 
 local SIDEBAR_STRIP = objects.Color("#".."FFFF8CC8")
 -- TODO: Make this auto-computable?
@@ -59,8 +59,8 @@ end
 
 
 local XP_BAR_GRADIENT = {
-    objects.Color("#".."FF41D7D7"),
-    objects.Color("#".."FFFF8CC8"),
+    objects.Color("#".."FF4161D7"),
+    objects.Color("#".."FFD773F6"),
 }
 
 ---@param xpBarBaseR kirigami.Region
