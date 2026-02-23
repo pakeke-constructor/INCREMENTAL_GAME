@@ -100,6 +100,16 @@ end
 
 
 
+---@return string[]
+function cosmetics.getAll()
+    ensureLoaded()
+    local t = {}
+    for k in pairs(COSMETIC_INFO) do
+        t[#t+1] = k
+    end
+    return t
+end
+
 ---@param id string cosmetic-info
 ---@return g.CosmeticInfo
 function cosmetics.getInfo(id)
