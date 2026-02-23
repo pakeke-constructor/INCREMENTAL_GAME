@@ -2,8 +2,8 @@ local cosmetics = require("src.cosmetics.cosmetics")
 
 local lg = love.graphics
 
-local REEL_SIZE = 40
-local REEL_DURATION = 6.0
+local REEL_SIZE = 50
+local REEL_DURATION = 8.0
 local TIMEOUT = 5.0
 local RAY_COLOR = objects.Color("#".."FFEFC52C")
 
@@ -31,7 +31,7 @@ local function drawGodrays(rx, ry)
     godrays.drawRays(rx, ry, t2*-1, {rayCount=5, divisions=100, color=RAY_COLOR, startWidth=10, length=300, fadeTo=0, growRate=2.6})
 end
 
----@class ChestOpen: objects.Class
+---@class ChestScene.ChestOpen: objects.Class
 ---@field phase "waiting"|"spinning"
 ---@field startTime number
 ---@field spinStart number?
@@ -70,7 +70,7 @@ function ChestOpen:isError()
 end
 
 
-local function drawSpinning()
+local function drawEntry()
 
 end
 
@@ -95,12 +95,36 @@ function ChestOpen:draw()
         local AMP = 15
         local tt = self.startTime - t
         local dx = tt * math.sin(tt*K) * AMP
-        g.drawImage("chest_big", rx+dx, ry, 0, 8, 8)
+        local dr = tt * math.sin(tt*K) * 0.2
+        g.drawImage("chest_big", rx+dx, ry, dr, 8, 8)
 
     elseif self.phase == "spinning" then
         local elapsed = t - self.spinStart
         local reelIndex = getReelIndex(elapsed, #self.reel)
         local settled = reelIndex >= #self.reel
+
+        -- draw background square that converges onto item:
+        do
+        if reelIndex < #self.reel then
+            local ratio = (#self.reel - reelIndex) / #self.reel
+            local sze = (r.w / 4) + ratio*r.w
+            lg.setColor(1, 1, 1, ratio)
+            local lw = lg.getLineWidth()
+            lg.setLineWidth(r.h / 20)
+            lg.rectangle("line", rx - sze/2, ry - sze/2, sze, sze)
+            lg.setLineWidth(lw)
+        end
+        end
+
+        -- draw shockwave:
+        do
+        local lw = lg.getLineWidth()
+        lg.setColor(0.8,0.9,1)
+        lg.setLineWidth(r.h / 10)
+        local dt = love.timer.getTime() - self.spinStart
+        lg.circle("line", rx,ry, 20 + dt * 550)
+        lg.setLineWidth(lw)
+        end
 
         if settled then
             if iml.wasJustPressed(r:get()) then
@@ -109,15 +133,23 @@ function ChestOpen:draw()
             end
             drawGodrays(rx, ry)
             local info = cosmetics.getInfo(self.cosmetic)
+            local sc = 10
+            if info.type == "BACKGROUND" then
+                sc = 6
+            end
             lg.setColor(1, 1, 1)
-            g.drawImage(info.image, rx, ry, 0, 10, 10)
+            g.drawImage(info.image, rx, ry, 0, sc,sc)
             helper.printTextOutline(info.name, g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
             helper.printTextOutline("Click anywhere to close", g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
         else
             local currentId = self.reel[reelIndex]
             local info = cosmetics.getInfo(currentId)
             lg.setColor(1, 1, 1)
-            g.drawImage(info.image, rx, ry, 0, 10, 10)
+            local sc = 10
+            if info.type == "BACKGROUND" then
+                sc = 6
+            end
+            g.drawImage(info.image, rx, ry, 0, sc,sc)
             helper.printTextOutline(info.name, g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
         end
     end

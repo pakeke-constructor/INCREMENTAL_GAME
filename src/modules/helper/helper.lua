@@ -596,6 +596,32 @@ end
 
 
 
+--- Returns the grid dimensions (w, h) that fit all numItems cells
+--- while best matching the given aspect ratio (widthRatio:heightRatio).
+---@param numItems integer
+---@param widthRatio number
+---@param heightRatio number
+---@return integer
+---@return integer
+function helper.getBestFitDimensions(numItems, widthRatio, heightRatio)
+    local bestW, bestH = numItems, 1
+    local bestScore = math.huge
+
+    for w = 1, numItems do
+        local h = math.ceil(numItems / w)
+        -- Score: how far is w/h from widthRatio/heightRatio
+        local ratio = (w / h) / (widthRatio / heightRatio)
+        local score = math.abs(math.log(ratio)) -- 0 = perfect fit
+
+        if score < bestScore then
+            bestScore = score
+            bestW, bestH = w, h
+        end
+    end
+
+    return bestW, bestH
+end
+
 
 
 

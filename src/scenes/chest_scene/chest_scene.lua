@@ -7,7 +7,7 @@ local sceneManager = require("src.scenes.sceneManager")
 local steamTicket = require("src.steam.ticket")
 
 ---@class ChestScene: FreeCameraScene
----@field chestOpening ChestOpen?
+---@field chestOpening ChestScene.ChestOpen?
 local chestScene = FreeCameraScene()
 
 local lg = love.graphics
@@ -44,7 +44,7 @@ function chestScene:init()
         objects.Color("#".."FF090372"),
         objects.Color("#".."FF2B6CB6")
     )
-    ---@type ChestScene.ChestOpening?
+    ---@type ChestScene.ChestOpen?
     self.chestOpening = nil
     self.showPopup = nil -- either "left", "right", "center"
     self.inputCodeState = nil
