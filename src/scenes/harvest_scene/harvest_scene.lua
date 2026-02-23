@@ -85,7 +85,8 @@ function harvest:init()
     self.stackedTokenLerpTime = -1
 
     -- This background is not part of the texture atlas so it needs to be loaded manually
-    self.background = love.graphics.newImage("src/scenes/harvest_scene/background_harvest.png")
+    -- self.background = love.graphics.newImage("src/scenes/harvest_scene/background_harvest.png")
+    self.background = love.graphics.newImage("src/scenes/harvest_scene/background_harvest_dark.png")
 
     self.worldScale = 1
 
