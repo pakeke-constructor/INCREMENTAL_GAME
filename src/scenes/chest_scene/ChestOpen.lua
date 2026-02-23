@@ -139,10 +139,10 @@ function ChestOpen:draw()
         if reelIndex < #self.reel then
             local ratio = (#self.reel - reelIndex) / #self.reel
             local sze = (r.w / 4) + ratio*r.w
-            lg.setColor(1, 1, 1, ratio)
+            lg.setColor(1, 0.84, 0.2, ratio * 0.5)
             local lw = lg.getLineWidth()
             lg.setLineWidth(r.h / 20)
-            lg.circle("line", rx, ry, sze/2)
+            lg.circle("line", rx, ry, sze/1.5)
             lg.setLineWidth(lw)
         end
         end
@@ -150,7 +150,7 @@ function ChestOpen:draw()
         -- draw shockwave:
         do
         local lw = lg.getLineWidth()
-        lg.setColor(0.8,0.9,1)
+        lg.setColor(1, 0.84, 0.2)
         lg.setLineWidth(r.h / 10)
         local dt = love.timer.getTime() - self.spinStart
         lg.circle("line", rx,ry, 20 + dt * 550)
@@ -158,7 +158,7 @@ function ChestOpen:draw()
         end
 
         local progress = elapsed / REEL_DURATION
-        drawGodrays(rx, ry, progress + 0.3)
+        drawGodrays(rx, ry, math.min(progress + 0.3, 1.3))
 
         lg.setColor(1, 1, 1)
         self.particles:draw()
