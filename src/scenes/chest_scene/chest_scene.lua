@@ -421,6 +421,10 @@ function chestScene:update(dt)
         self.cosmeticsRefreshTime = self.cosmeticsRefreshTime % COSMETIC_REFRESH_INTERVAL
     end
 
+    if self.chestOpening then
+        self.chestOpening:update(dt)
+    end
+
     -- MOCK: tick delayed callbacks
     local t = love.timer.getTime()
     for i = #mockTimers, 1, -1 do

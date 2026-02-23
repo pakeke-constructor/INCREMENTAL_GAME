@@ -1,4 +1,7 @@
+
 local cosmetics = require("src.cosmetics.cosmetics")
+local particles = require("src.modules.particles.particles")
+
 
 local lg = love.graphics
 
@@ -31,6 +34,29 @@ local function drawGodrays(rx, ry)
     godrays.drawRays(rx, ry, t2*-1, {rayCount=5, divisions=100, color=RAY_COLOR, startWidth=10, length=300, fadeTo=0, growRate=2.6})
 end
 
+
+
+local function newChestParticles()
+    return particles.newParticlesWorld({
+        gravity = 80,
+        drawParticle = function(p)
+            local id = p.id
+            local t = love.timer.getTime()
+            local sx,sy = math.sin(t*10 + id*1.77)*2, 2
+            local img = id%2 == 0 and "money_particle_1" or "money_particle_2"
+            g.drawImage(img, p.x, p.y, 0, sx, sy)
+        end,
+        getParticleDuration = function(p)
+            return 1.5 + (p.id % 4) * 0.3
+        end
+    })
+end
+
+
+
+
+
+
 ---@class ChestScene.ChestOpen: objects.Class
 ---@field phase "waiting"|"spinning"
 ---@field startTime number
@@ -46,6 +72,7 @@ function ChestOpen:init()
     self.startTime = love.timer.getTime()
     self.done = false
     self.error = false
+    self.particles = newChestParticles()
 end
 
 function ChestOpen:setResult(cosmeticId)
@@ -69,10 +96,13 @@ function ChestOpen:isError()
     return self.error
 end
 
-
-local function drawEntry()
-
+function ChestOpen:update(dt)
+    self.particles:update(dt)
 end
+
+
+
+local NUM_PARTICLES = 50
 
 
 function ChestOpen:draw()
@@ -111,7 +141,7 @@ function ChestOpen:draw()
             lg.setColor(1, 1, 1, ratio)
             local lw = lg.getLineWidth()
             lg.setLineWidth(r.h / 20)
-            lg.rectangle("line", rx - sze/2, ry - sze/2, sze, sze)
+            lg.circle("line", rx, ry, sze/2)
             lg.setLineWidth(lw)
         end
         end
@@ -124,6 +154,15 @@ function ChestOpen:draw()
         local dt = love.timer.getTime() - self.spinStart
         lg.circle("line", rx,ry, 20 + dt * 550)
         lg.setLineWidth(lw)
+        end
+
+        lg.setColor(1, 1, 1)
+        self.particles:draw()
+        -- spawn particles from center
+        if self.particles:getParticleCount() < NUM_PARTICLES then
+            local a = love.math.random() * math.pi * 2
+            local mag = 150 + love.math.random() * 80
+            self.particles:spawnParticle(rx, ry, math.cos(a)*mag, math.sin(a)*mag)
         end
 
         if settled then
