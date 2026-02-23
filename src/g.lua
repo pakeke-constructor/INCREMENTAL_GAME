@@ -512,7 +512,7 @@ function g.drawImageContained(imageName, x,y, w,h, rot)
     local scaledH = qh * scale
     local centerX = x + (w - scaledW) / 2
     local centerY = y + (h - scaledH) / 2
-    atlas:draw(quad, centerX, centerY, rot or 0, scale, scale, 0, 0)
+    atlas:draw(quad, centerX + scaledW/2, centerY + scaledH/2, rot or 0, scale, scale, qw/2, qh/2)
 end
 
 

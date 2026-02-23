@@ -1,34 +1,26 @@
 local FreeCameraScene = require("src.scenes.FreeCameraScene")
 local asynchttp = require("src.modules.asynchttp.asynchttp")
 local cosmetics = require("src.cosmetics.cosmetics")
+local ChestOpen = require("src.scenes.chest_scene.ChestOpen")
 local User = require("src.user")
 local sceneManager = require("src.scenes.sceneManager")
 local steamTicket = require("src.steam.ticket")
 
 ---@class ChestScene: FreeCameraScene
----@field chestOpening ChestScene.ChestOpening?
+---@field chestOpening ChestOpen?
 local chestScene = FreeCameraScene()
 
 local lg = love.graphics
 
-
----@class ChestScene.ChestOpening
----@field timeOpened number
----@field cosmetic string?
--- put other data here. Like request-handle maybe? idk.
-
 local COSMETIC_REFRESH_INTERVAL = 30
 
 -- MOCK: fake chest opening for testing. Remove when done!
+local MOCK_DELAY = 2 -- seconds
+local mockTimers = {}
 do
     cosmetics.getChestCount = function() return 99 end
     cosmetics.openChest = function(callback)
-        callback(true, "gold")
-    end
-
-    cosmetics.openChest = function(callback)
-        -- this openChest call, we dont call callback; coz we want to just watch the spin animation.
-        callback(true, "gold")
+        mockTimers[#mockTimers+1] = {time = love.timer.getTime(), cb = callback}
     end
 end
 
@@ -147,7 +139,12 @@ function chestScene:_drawChestUI(bot)
     end
 
     local chestContainerR = b:shrinkToAspectRatio(1, 1)
-    g.drawImageContained("chest_big", chestContainerR:get())
+    do
+    local dy = math.sin(love.timer.getTime() * 1.75) * chestContainerR.h / 40 - 20
+    local drot = math.sin(love.timer.getTime() * 1.9) * 0.05
+    local x,y,w,h = chestContainerR:padRatio(0.5):get()
+    g.drawImageContained("chest_big", x,y+dy,w,h, drot)
+    end
 
     local chestCount = cosmetics.getChestCount()
     local chestCounterText = CHEST_COUNT_TEXT({chestCount = chestCount})
@@ -322,92 +319,28 @@ local function showInputCodePopup(self)
     end
 end
 
-local RAY_COLOR = objects.Color("#".."FFEFC52C")
 ---@param self ChestScene
 local function showOpenChestPopup(self)
     if not self.chestOpening then
-        self.chestOpening = {timeOpened = love.timer.getTime()}
-
-        -- Do request
+        self.chestOpening = ChestOpen()
         cosmetics.openChest(function(success, cosmetic)
             if success and self.chestOpening and cosmetic then
-                self.chestOpening.cosmetic = cosmetic
-            else
-                self.inputCodeError = "Error opening chest"
-                self.showPopup = nil
-                self.chestOpening = nil
+                self.chestOpening:setResult(cosmetic)
+            elseif self.chestOpening then
+                self.chestOpening:setError()
             end
         end)
-        -- Callback may fire immediately
-        if not self.chestOpening then
-            return
-        end
     end
 
-    local t = love.timer.getTime()
-    local timeOpened = t - self.chestOpening.timeOpened
-    local showCosmetic = timeOpened >= 1 and self.chestOpening.cosmetic
+    if not self.chestOpening then return end
+    self.chestOpening:draw()
 
-    local r = ui.getFullScreenRegion()
-    if iml.wasJustPressed(r:get()) and showCosmetic then
+    if self.chestOpening:isDone() then
+        if self.chestOpening:isError() then
+            self.inputCodeError = "Error opening chest"
+        end
         self.chestOpening = nil
         self.showPopup = nil
-        return
-    end
-
-    lg.setColor(0, 0, 0, 0.3)
-    lg.rectangle("fill", r:get())
-
-    -- Yea this is quick and dirty to demo out how to open chest
-    local rx, ry = r:getCenter()
-    lg.setColor(1, 1, 1)
-    g.drawImage("chest_big", rx, ry, math.sin(t % (2 * math.pi)) * 0.5, 8, 8)
-
-    if showCosmetic then
-        -- Draw cosmetic in godray
-        local t2 = t/2
-        godrays.drawRays(rx,ry, t2/2.5, {
-            rayCount = 3,
-            divisions=100,
-            color = RAY_COLOR,
-            startWidth=8,
-            length=600,
-            fadeTo=0,
-            growRate=0.6,
-        })
-        godrays.drawRays(rx,ry, -t2/1.5, {
-            rayCount = 5,
-            divisions=100,
-            color = RAY_COLOR,
-            startWidth=9,
-            length=150,
-            fadeTo=0,
-            growRate=1.6,
-        })
-        godrays.drawRays(rx,ry, t2, {
-            rayCount = 6,
-            divisions=100,
-            color = RAY_COLOR,
-            startWidth=10,
-            length=200,
-            fadeTo=0,
-            growRate=2.6,
-        })
-        godrays.drawRays(rx,ry, t2*-1, {
-            rayCount = 5,
-            divisions=100,
-            color = RAY_COLOR,
-            startWidth=10,
-            length=300,
-            fadeTo=0,
-            growRate=2.6,
-        })
-
-        local cosmeticInfo = g.getCosmeticInfo(self.chestOpening.cosmetic)
-        lg.setColor(1, 1, 1)
-        g.drawImage(cosmeticInfo.image, rx, ry, 0, 10, 10)
-        helper.printTextOutline(cosmeticInfo.name, g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
-        helper.printTextOutline("Click anywhere to close", g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
     end
 end
 
@@ -459,7 +392,11 @@ local function showChestOnGodrays(self)
     })
 
     lg.setColor(1, 1, 1)
-    g.drawImage("chest_big", rx, ry, 0, 10, 10)
+
+    local dy = math.sin(love.timer.getTime() * 1.75) * 3
+    local drot = math.sin(love.timer.getTime() * 1.9) * 0.2
+    g.drawImage("chest_big", rx, ry+dy, drot, 7, 7, 0,0)
+
     helper.printTextOutline("You got 1 free chest!", g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
     helper.printTextOutline("Click anywhere to close", g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
 
@@ -482,6 +419,15 @@ function chestScene:update(dt)
     if self.cosmeticsRefreshTime >= COSMETIC_REFRESH_INTERVAL then
         cosmetics.tryRefresh()
         self.cosmeticsRefreshTime = self.cosmeticsRefreshTime % COSMETIC_REFRESH_INTERVAL
+    end
+
+    -- MOCK: tick delayed callbacks
+    local t = love.timer.getTime()
+    for i = #mockTimers, 1, -1 do
+        if t - mockTimers[i].time >= MOCK_DELAY then
+            mockTimers[i].cb(true, "gold")
+            table.remove(mockTimers, i)
+        end
     end
 end
 
