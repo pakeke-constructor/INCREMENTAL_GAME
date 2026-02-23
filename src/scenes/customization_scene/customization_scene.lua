@@ -352,9 +352,9 @@ local GROUND_COLOR = objects.Color("#" .. "FF1DAE65")
 local DARK_COLOR = objects.Color("#" .. "FF20A362")
 local LIGHT_COLOR = objects.Color("#" .. "FF35BA64")
 
-local GROUND_COLOR = objects.Color("#" .. "FFC84DE0")
-local DARK_COLOR   = objects.Color("#" .. "FFB92ED8")
-local LIGHT_COLOR  = objects.Color("#" .. "FFDC66E9")
+local GROUND_COLOR = objects.Color("#" .. "FF6137D3")
+local DARK_COLOR   = objects.Color("#" .. "FF5E14B8")
+local LIGHT_COLOR  = objects.Color("#" .. "FF6633DC")
 
 ---@param self CustomizationScene
 ---@param reg kirigami.Region
