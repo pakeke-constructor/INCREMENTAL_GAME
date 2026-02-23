@@ -173,9 +173,9 @@ function chestScene:_drawChestUI(bot)
 
     local chestContainerR = b:shrinkToAspectRatio(1, 1)
     do
-    local dy = math.sin(love.timer.getTime() * 1.75) * chestContainerR.h / 40 - 20
+    local dy = math.sin(love.timer.getTime() * 1.75) * chestContainerR.h / 40 - 10
     local drot = math.sin(love.timer.getTime() * 1.9) * 0.05
-    local x,y,w,h = chestContainerR:padRatio(0.5):get()
+    local x,y,w,h = chestContainerR:padRatio(0.6):get()
     g.drawImageContained("chest_big", x,y+dy,w,h, drot)
     end
 
@@ -216,13 +216,20 @@ local function drawCommonPopupBase()
     return r:padUnit(8)
 end
 
+
+
+local EXPLAIN_CODE = loc("Everytime your code is used, get a free chest! No limits; if your code is used 50 times, (shared via discord, reddit, telegram) you will get 50 chests.", {
+    context = "Explaining the mechanics of an affiliate scheme, simple and clear. Whenever anyone uses their code, they get a free chest; without limits."
+})
+
+
 ---@param self ChestScene
 local function showGetChestPopup(self)
     local r = drawCommonPopupBase()
 
     local titleR, descriptionR, codeTitleR, codeR, buttonR = r:splitVertical(48, r.h - 48 - 32 - 32 - 48, 32, 32, 48)
     helper.printTextOutline("Get Chest (Free)", g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
-    lg.printf("Everytime a friend uses your code, you also get a free chest! Give the code to your friends in Discord or your social media.", g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
+    lg.printf(EXPLAIN_CODE, g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
     helper.printTextOutline("Your Code:", g.getSmallFont(32), 1, codeTitleR.x, codeTitleR.y, codeTitleR.w, "center")
     local codeArea = codeR:set(nil, nil, 16 * 8):padUnit(-2):center(codeR)
     lg.setColor(1, 1, 1, 0.3)
