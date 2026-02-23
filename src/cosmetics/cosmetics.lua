@@ -25,6 +25,7 @@ local cosmetics = {}
 ---@field public offsetY number? offset: how its positioned in pixels (e.g. hat is up)
 ---@field public originX number? origin; affects scaling of image [0,1]
 ---@field public originY number? origin; affects scaling of image [0,1]
+---@field public rarity integer? 0=Common, 1=Rare, 2=Legendary
 
 ---@alias g.CosmeticInfo.Type "HAT"|"BACKGROUND"|"AVATAR"
 
@@ -39,6 +40,7 @@ local cosmetics = {}
 ---@field public offsetY number offset: how its positioned in pixels (e.g. hat is up)
 ---@field public originX number origin; affects scaling of image [0,1]
 ---@field public originY number origin; affects scaling of image [0,1]
+---@field public rarity integer 0=Common, 1=Rare, 2=Legendary
 
 
 
@@ -72,6 +74,7 @@ local function defineCosmetic(type, id, name, def)
     def.originX = def.originX or 0.5
     def.originY = def.originY or (type == "HAT") and 1 or 0.5
     -- originY=0.5 if normal, originY=1 if HAT.
+    def.rarity  = def.rarity  or 0
 
     COSMETIC_INFO[id] = def
 end

@@ -118,6 +118,33 @@ local function drawChestButton(text, region)
     end, CHEST_BUTTON_COL[1], CHEST_BUTTON_COL[2], region)
 end
 
+---@param top kirigami.Region
+function chestScene:_drawCosmeticsGrid(top)
+    local allIds = cosmetics.getAll()
+    if #allIds == 0 then return end
+    table.sort(allIds, function(a, b)
+        return cosmetics.getInfo(a).rarity > cosmetics.getInfo(b).rarity
+    end)
+
+    local r = top:padUnit(4)
+    local cols, rows = helper.getBestFitDimensions(#allIds, r.w, r.h)
+    local cellW, cellH = r.w / cols, r.h / rows
+
+    for i, id in ipairs(allIds) do
+        local col = (i - 1) % cols
+        local row = math.floor((i - 1) / cols)
+        local cx = r.x + col * cellW
+        local cy = r.y + row * cellH
+        local cellR = Kirigami(cx, cy, cellW, cellH):padUnit(2)
+
+        ui.drawPanel(cellR:get())
+        local info = cosmetics.getInfo(id)
+        lg.setColor(1, 1, 1)
+        local inner = cellR:padUnit(4)
+        g.drawImageContained(info.image, inner:get())
+    end
+end
+
 ---@param bot kirigami.Region
 function chestScene:_drawChestUI(bot)
     local a, b, c = bot:splitHorizontal(4, 5, 4)
@@ -446,11 +473,12 @@ function chestScene:draw()
 
     ui.startUI()
     local r = ui.getScreenRegion()
-    local _,bot = r:splitVertical(3,2)
+    local top, bot = r:splitVertical(1, 1)
 
     self:renderMapButton()
     self:_drawButtons(r)
 
+    self:_drawCosmeticsGrid(top)
     self:_drawChestUI(bot)
 
     if POPUPS[self.showPopup] then

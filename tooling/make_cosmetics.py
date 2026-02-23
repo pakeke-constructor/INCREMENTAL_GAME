@@ -372,6 +372,8 @@ def main(root: pathlib.Path):
                 tabledef.append(f"offsetX = {c.offset_x!r}")
             if c.offset_y:
                 tabledef.append(f"offsetY = {c.offset_y!r}")
+            if c.rarity:
+                tabledef.append(f"rarity = {c.rarity!r}")
 
             f.write(f"    defineCosmetic({c.type!r}, {c.id!r}, {c.name!r}, {{{', '.join(tabledef)}}})\n")
             f.write(f"    map[{c.id!r}] = {itemdefid!r} map[{itemdefid!r}] = {c.id!r}\n")
