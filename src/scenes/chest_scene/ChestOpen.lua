@@ -26,12 +26,13 @@ local function buildReel(resultCosmetic)
     return reel
 end
 
-local function drawGodrays(rx, ry)
+local function drawGodrays(rx, ry, scale)
+    scale = scale or 1
     local t2 = love.timer.getTime() / 2
-    godrays.drawRays(rx, ry, t2/2.5, {rayCount=3, divisions=100, color=RAY_COLOR, startWidth=8, length=600, fadeTo=0, growRate=0.6})
-    godrays.drawRays(rx, ry, -t2/1.5, {rayCount=5, divisions=100, color=RAY_COLOR, startWidth=9, length=150, fadeTo=0, growRate=1.6})
-    godrays.drawRays(rx, ry, t2, {rayCount=6, divisions=100, color=RAY_COLOR, startWidth=10, length=200, fadeTo=0, growRate=2.6})
-    godrays.drawRays(rx, ry, t2*-1, {rayCount=5, divisions=100, color=RAY_COLOR, startWidth=10, length=300, fadeTo=0, growRate=2.6})
+    godrays.drawRays(rx, ry, t2/2.5, {rayCount=3, divisions=100, color=RAY_COLOR, startWidth=8*scale, length=600*scale, fadeTo=0, growRate=0.6})
+    godrays.drawRays(rx, ry, -t2/1.5, {rayCount=5, divisions=100, color=RAY_COLOR, startWidth=9*scale, length=150*scale, fadeTo=0, growRate=1.6})
+    godrays.drawRays(rx, ry, t2, {rayCount=6, divisions=100, color=RAY_COLOR, startWidth=10*scale, length=200*scale, fadeTo=0, growRate=2.6})
+    godrays.drawRays(rx, ry, t2*-1, {rayCount=5, divisions=100, color=RAY_COLOR, startWidth=10*scale, length=300*scale, fadeTo=0, growRate=2.6})
 end
 
 
@@ -102,7 +103,7 @@ end
 
 
 
-local NUM_PARTICLES = 50
+local NUM_PARTICLES = 30
 
 
 function ChestOpen:draw()
@@ -156,6 +157,9 @@ function ChestOpen:draw()
         lg.setLineWidth(lw)
         end
 
+        local progress = elapsed / REEL_DURATION
+        drawGodrays(rx, ry, progress + 0.3)
+
         lg.setColor(1, 1, 1)
         self.particles:draw()
         -- spawn particles from center
@@ -170,7 +174,6 @@ function ChestOpen:draw()
                 self.done = true
                 return
             end
-            drawGodrays(rx, ry)
             local info = cosmetics.getInfo(self.cosmetic)
             local sc = 10
             if info.type == "BACKGROUND" then
