@@ -221,6 +221,12 @@ end
 local EXPLAIN_CODE = loc("Everytime your code is used, get a free chest! No limits; if your code is used 50 times, (shared via discord, reddit, telegram) you will get 50 chests.", {
     context = "Explaining the mechanics of an affiliate scheme, simple and clear. Whenever anyone uses their code, they get a free chest; without limits."
 })
+local GET_CHEST_TITLE = loc("Get Chest (Free)", {context = "Title of popup showing the user's referral code"})
+local YOUR_CODE = loc("Your Code:", {context = "Label above the user's referral code"})
+
+local INPUT_CODE_TITLE = loc("Input Code", {context = "Title of popup for entering a friend's referral code"})
+local INPUT_CODE_DESC = loc("Input friend's code to earn a chest for both of you.", {context = "Description explaining the friend code input"})
+local INPUT_CODE_LABEL = loc("Input Code:", {context = "Label above the code input field"})
 
 
 ---@param self ChestScene
@@ -228,9 +234,9 @@ local function showGetChestPopup(self)
     local r = drawCommonPopupBase()
 
     local titleR, descriptionR, codeTitleR, codeR, buttonR = r:splitVertical(48, r.h - 48 - 32 - 32 - 48, 32, 32, 48)
-    helper.printTextOutline("Get Chest (Free)", g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
+    helper.printTextOutline(GET_CHEST_TITLE, g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
     lg.printf(EXPLAIN_CODE, g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
-    helper.printTextOutline("Your Code:", g.getSmallFont(32), 1, codeTitleR.x, codeTitleR.y, codeTitleR.w, "center")
+    helper.printTextOutline(YOUR_CODE, g.getSmallFont(32), 1, codeTitleR.x, codeTitleR.y, codeTitleR.w, "center")
     local codeArea = codeR:set(nil, nil, 16 * 8):padUnit(-2):center(codeR)
     lg.setColor(1, 1, 1, 0.3)
     helper.quickRoundedRectangle("fill", 4, codeArea)
@@ -271,9 +277,9 @@ local function showInputCodePopup(self)
     local r = drawCommonPopupBase()
 
     local titleR, descriptionR, inputCodeTextR, inputCodeR, enterCodeButtonR, errorMessageR, closeButtonR = r:splitVertical(48, r.h - 2*48 - 2*32 - 64 - 16, 32, 32, 64, 16, 48)
-    helper.printTextOutline("Input Code", g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
-    lg.printf("Input your friend code in here to earn chest for both of you.", g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
-    helper.printTextOutline("Input Code:", g.getSmallFont(32), 1, inputCodeTextR.x, inputCodeTextR.y, inputCodeTextR.w, "center")
+    helper.printTextOutline(INPUT_CODE_TITLE, g.getSmallFont(48), 2, titleR.x, titleR.y, titleR.w, "center")
+    lg.printf(INPUT_CODE_DESC, g.getSmallFont(32), descriptionR.x, descriptionR.y, descriptionR.w, "center")
+    helper.printTextOutline(INPUT_CODE_LABEL, g.getSmallFont(32), 1, inputCodeTextR.x, inputCodeTextR.y, inputCodeTextR.w, "center")
 
     local textAreaR, pasteButtonR = inputCodeR:padUnit(16, 0):splitHorizontal(3, 2)
 
