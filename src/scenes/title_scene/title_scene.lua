@@ -22,7 +22,7 @@ local function init()
     end
 end
 
-local BUTTON_BASE_COL = objects.Color("#" .. "FF9F14F6")
+local BUTTON_BASE_COL = objects.Color("#" .. "FF7B0BC0")
 local BUTTON_MAIN_COL = objects.Color("#" .. "FF3B12A4")
 local PLAYB_BASE_COL = objects.Color("#" .. "FFE0AC35")
 local PLAYB_MAIN_COL = objects.Color("#" .. "FFD78F0A")

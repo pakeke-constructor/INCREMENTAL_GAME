@@ -272,7 +272,7 @@ function settingscene:draw()
 
     -- Draw language stuff
     local all = maxRegion(languageButtonR, languageIconR, languageLabelR)
-    lg.setColor(0.88,0.9,1.0)
+    lg.setColor(0.4,0.5,0.75)
     ui.drawSingleColorPanel(all:get())
     love.graphics.setColor(1, 1, 1)
     richtext.printRich(
