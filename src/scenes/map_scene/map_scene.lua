@@ -222,7 +222,7 @@ definePOI("boss", "Challenges", {
 local MAP_BACKGROUND = objects.Color("#".."FF0F379B")
 
 local mapAnim = {
-    lg.newImage("src/scenes/map_scene/maps/map.png"),
+    lg.newImage("src/scenes/map_scene/maps/map_dark.png"),
     -- lg.newImage("src/scenes/map_scene/maps/new_map2.png"),
     -- lg.newImage("src/scenes/map_scene/maps/map1.png"),
     -- lg.newImage("src/scenes/map_scene/maps/map2.png")

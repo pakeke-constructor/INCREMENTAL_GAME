@@ -19,6 +19,19 @@ local lg = love.graphics
 
 local COSMETIC_REFRESH_INTERVAL = 30
 
+-- MOCK: fake chest opening for testing. Remove when done!
+do
+    cosmetics.getChestCount = function() return 99 end
+    cosmetics.openChest = function(callback)
+        callback(true, "gold")
+    end
+
+    cosmetics.openChest = function(callback)
+        -- this openChest call, we dont call callback; coz we want to just watch the spin animation.
+        callback(true, "gold")
+    end
+end
+
 local ERROR_CODES = {
     ERROR_ALREADY_ENTERED = loc("You've entered a code.", nil, {
         context = "Error message when user already entered a friend code. Each user can only enter one code for their account."
@@ -41,7 +54,7 @@ function chestScene:init()
     )
     ---@type ChestScene.ChestOpening?
     self.chestOpening = nil
-    self.showPopup = nil -- either "left" or "right"
+    self.showPopup = nil -- either "left", "right", "center"
     self.inputCodeState = nil
     ---@type string[]
     self.inputCode = {} -- table of character to ease insertion and removal
@@ -81,7 +94,7 @@ function chestScene:_drawButtons(r)
     end
 
     local inventoryR = refreshR:moveRatio(0, 1):moveUnit(0, 8)
-    if ui.Button("{o}Open Inventory{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, inventoryR) then
+    if ui.Button("{o}Inventory{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, inventoryR) then
         local luasteam = Steam.getSteam()
         if luasteam then
             local steamid = tostring(luasteam.user.getSteamID())
