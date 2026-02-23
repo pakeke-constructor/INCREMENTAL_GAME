@@ -2610,7 +2610,13 @@ g.COLORS = {
 
     MONEY = objects.Color("#".."FFF7D127"),
     RECOMMENDED = objects.Color("#".."FF9DEC4E"),
-    UPGRADE_CONNECTOR = objects.Color("#".."FF000000")
+    UPGRADE_CONNECTOR = objects.Color("#".."FF000000"),
+
+    RARITIES = {
+        [0] = objects.Color("#".."FF8A8A8A"), -- Common (grey)
+        [1] = objects.Color("#".."FF4A9EFF"), -- Rare (blue)
+        [2] = objects.Color("#".."FFFFD700"), -- Legendary (gold)
+    },
 }
 
 do

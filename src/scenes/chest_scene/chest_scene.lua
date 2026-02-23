@@ -73,6 +73,7 @@ local BUTTON_GREEN_BASE_COL = objects.Color("#" .. "FF73ED75")
 local BUTTON_GREEN_MAIN_COL = objects.Color("#" .. "FF2DAA1F")
 
 ---@param r kirigami.Region
+---@return number
 function chestScene:_drawButtons(r)
     local baseButtonR = Kirigami(0, 0, 96, 32)
         :attachToRightOf(r)
@@ -94,6 +95,8 @@ function chestScene:_drawButtons(r)
             love.system.openURL("steam://openurl/https://steamcommunity.com/profiles/"..steamid.."/inventory/#"..appid)
         end
     end
+
+    return math.max(inventoryR.w, refreshR.w)
 end
 
 
@@ -137,8 +140,11 @@ function chestScene:_drawCosmeticsGrid(top)
         local cy = r.y + row * cellH
         local cellR = Kirigami(cx, cy, cellW, cellH):padUnit(2)
 
-        ui.drawPanel(cellR:get())
         local info = cosmetics.getInfo(id)
+        local rarCol = g.COLORS.RARITIES[info.rarity or 0]
+        lg.setColor(rarCol.r, rarCol.g, rarCol.b, 1)
+        lg.rectangle("fill", cellR:padUnit(4):get())
+        ui.drawPanel(cellR:get())
         lg.setColor(1, 1, 1)
         local inner = cellR:padUnit(4)
         g.drawImageContained(info.image, inner:get())
@@ -179,6 +185,7 @@ function chestScene:_drawChestUI(bot)
     local chestCounterTextR = Kirigami(0, 0, sfont32:getWidth(chestCounterText), sfont32:getHeight())
         :centerX(chestContainerR)
         :attachToTopOf(chestContainerR)
+        :moveRatio(0,1)
     helper.printTextOutline(chestCounterText, sfont32, 2, chestCounterTextR.x, chestCounterTextR.y, chestCounterTextR.w, "left")
 
     local _, d = b:splitVertical(5, 2)
@@ -473,12 +480,13 @@ function chestScene:draw()
 
     ui.startUI()
     local r = ui.getScreenRegion()
-    local top, bot = r:splitVertical(1, 1)
+    local top, bot = r:splitVertical(3, 2)
 
     self:renderMapButton()
-    self:_drawButtons(r)
 
-    self:_drawCosmeticsGrid(top)
+    local w = self:_drawButtons(r)
+    local grid = top:padUnit(0,0,w + 10, 0)
+    self:_drawCosmeticsGrid(grid)
     self:_drawChestUI(bot)
 
     if POPUPS[self.showPopup] then
