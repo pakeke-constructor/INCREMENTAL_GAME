@@ -26,13 +26,14 @@ local function buildReel(resultCosmetic)
     return reel
 end
 
-local function drawGodrays(rx, ry, scale)
+local function drawGodrays(rx, ry, scale, color)
     scale = scale or 1
+    color = color or RAY_COLOR
     local t2 = love.timer.getTime() / 2
-    godrays.drawRays(rx, ry, t2/2.5, {rayCount=3, divisions=100, color=RAY_COLOR, startWidth=8*scale, length=600*scale, fadeTo=0, growRate=0.6})
-    godrays.drawRays(rx, ry, -t2/1.5, {rayCount=5, divisions=100, color=RAY_COLOR, startWidth=9*scale, length=150*scale, fadeTo=0, growRate=1.6})
-    godrays.drawRays(rx, ry, t2, {rayCount=6, divisions=100, color=RAY_COLOR, startWidth=10*scale, length=200*scale, fadeTo=0, growRate=2.6})
-    godrays.drawRays(rx, ry, t2*-1, {rayCount=5, divisions=100, color=RAY_COLOR, startWidth=10*scale, length=300*scale, fadeTo=0, growRate=2.6})
+    godrays.drawRays(rx, ry, t2/2.5, {rayCount=3, divisions=100, color=color, startWidth=8*scale, length=600*scale, fadeTo=0, growRate=0.6})
+    godrays.drawRays(rx, ry, -t2/1.5, {rayCount=5, divisions=100, color=color, startWidth=9*scale, length=150*scale, fadeTo=0, growRate=1.6})
+    godrays.drawRays(rx, ry, t2, {rayCount=6, divisions=100, color=color, startWidth=10*scale, length=200*scale, fadeTo=0, growRate=2.6})
+    godrays.drawRays(rx, ry, t2*-1, {rayCount=5, divisions=100, color=color, startWidth=10*scale, length=300*scale, fadeTo=0, growRate=2.6})
 end
 
 
@@ -178,8 +179,12 @@ function ChestOpen:draw()
         lg.setLineWidth(lw)
         end
 
+        local currentId = self.reel[reelIndex]
+        local currentInfo = cosmetics.getInfo(currentId)
+        local rarCol = settled and RAY_COLOR or g.COLORS.RARITIES[currentInfo.rarity or 0]
+
         local progress = elapsed / REEL_DURATION
-        drawGodrays(rx, ry, math.min(progress + 0.3, 1.3))
+        drawGodrays(rx, ry, math.min(progress + 0.3, 1.3), rarCol)
 
         lg.setColor(1, 1, 1)
         self.particles:draw()
@@ -204,7 +209,7 @@ function ChestOpen:draw()
                 return
             end
             local info = cosmetics.getInfo(self.cosmetic)
-            local sc = 10
+            local sc = 8
             if info.type == "BACKGROUND" then
                 sc = 6
             end
@@ -215,12 +220,11 @@ function ChestOpen:draw()
             lg.setColor(1, 1, 1)
             richtext.printRichContained(CLICK_TO_CLOSE, g.getSmallFont(32), rx - r.w/2, ry + 110, r.w, 40)
         else
-            local currentId = self.reel[reelIndex]
-            local info = cosmetics.getInfo(currentId)
+            local info = currentInfo
             lg.setColor(1, 1, 1)
-            local sc = 10
+            local sc = 6
             if info.type == "BACKGROUND" then
-                sc = 6
+                sc = 4
             end
             g.drawImage(info.image, rx, ry, 0, sc,sc)
             helper.printTextOutline(info.name, g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
