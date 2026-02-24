@@ -84,6 +84,10 @@ function Session:init()
 
     self.tree = Tree()
 
+    if consts.DEV_MODE and consts.TRAILER_AVATAR_OVERRIDE then
+        for k,v in pairs(consts.TRAILER_AVATAR_OVERRIDE) do self.avatar[k] = v end
+    end
+
     self.unlockedPOI = objects.Set()
 
     -- reset stats:
@@ -215,6 +219,10 @@ function Session.deserialize(data)
         sess.avatar.avatar = cosmetics.isValidCosmetic(av.avatar) and av.avatar or consts.DEFAULT_CAT_AVATAR
         sess.avatar.background = cosmetics.isValidCosmetic(av.background) and av.background or consts.DEFAULT_BACKGROUND_AVATAR
         sess.avatar.hat = cosmetics.isValidCosmetic(av.hat) and av.hat or nil
+    end
+
+    if consts.DEV_MODE and consts.TRAILER_AVATAR_OVERRIDE then
+        for k,v in pairs(consts.TRAILER_AVATAR_OVERRIDE) do sess.avatar[k] = v end
     end
 
     -- Metrics

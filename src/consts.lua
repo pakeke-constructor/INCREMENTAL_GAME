@@ -71,6 +71,12 @@ local consts = {
     -- how much % the combo timer increases when you harvest a crop.
     -- (e.g. 0.2 means you gotta harvest 5 crops to fill the timer)
     COMBO_HARVEST_INCREMENT_RATIO = 0.07,
+
+    TRAILER_AVATAR_OVERRIDE = {
+        avatar = "tuffcat",
+        background = "black",
+        hat = "bluecap",
+    },
 }
 
 local os = love.system.getOS()
