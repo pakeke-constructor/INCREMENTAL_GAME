@@ -15,6 +15,35 @@ local lg = love.graphics
 local COSMETIC_REFRESH_INTERVAL = 30
 
 
+local EXPLAIN_CODE = loc("Everytime your code is used, get a free chest! No limits; if your code is used 50 times, you will get 50 chests!\nShare it to friends via telegram, discord, reddit, etc.", {
+    context = "Explaining the mechanics of an affiliate scheme, simple and clear. Whenever anyone uses their code, they get a free chest; without limits."
+})
+local GET_CHEST_TITLE = loc("Get Chest (Free)", {context = "Title of popup showing the user's referral code"})
+local YOUR_CODE = loc("Your Code:", {context = "Label above the user's referral code"})
+
+local INPUT_CODE_TITLE = loc("Input Code", {context = "Title of popup for entering a friend's referral code"})
+local INPUT_CODE_DESC = loc("Enter a friend's code: you'll both get a free chest!", {context = "Description explaining the friend code input affiliate mechanism"})
+local INPUT_CODE_LABEL = loc("Input Code:", {context = "Label above the code input field"})
+local INPUT_CODE_PLACEHOLDER = loc("Input Code", {context = "Placeholder text in the code input field"})
+
+local BTN_REFRESH = "{o}" .. loc("Refresh", {context = "Button to refresh cosmetics"}) .. "{/o}"
+local BTN_INVENTORY = "{o}" .. loc("Inventory", {context = "Button to open Steam inventory"}) .. "{/o}"
+local BTN_OPEN_CHEST = "{o}" .. loc("Open Chest", {context = "Button to open a cosmetic chest"}) .. "{/o}"
+local BTN_COPY = "{o}" .. loc("Copy", {context = "Button to copy referral code to clipboard"}) .. "{/o}"
+local BTN_OK = "{o}" .. loc("Ok", {context = "Button to dismiss popup"}) .. "{/o}"
+local BTN_PASTE = "{o}" .. loc("Paste", {context = "Button to paste from clipboard"}) .. "{/o}"
+local BTN_ENTER = "{o}" .. loc("Enter", {context = "Button to submit a friend code"}) .. "{/o}"
+local BTN_CLOSE = "{o}" .. loc("Close", {context = "Button to close popup"}) .. "{/o}"
+local BTN_GET_CHEST_FREE = loc("Get Chest (Free)", {context = "Button to view referral code for free chest"})
+local BTN_PUT_CODE = loc("Put Code (Free Chest)", {context = "Button to enter a friend's referral code"})
+local MSG_SUBMITTING = "{o}" .. loc("Submitting...", {context = "Loading text while submitting a friend code"}) .. "{/o}"
+local MSG_PLEASE_ENTER = loc("Please enter a code.", {context = "Error when trying to submit empty code"})
+local MSG_ERROR_OPENING = loc("Error opening chest", {context = "Error message when chest opening fails"})
+local MSG_GOT_FREE_CHEST = loc("You got 1 free chest!", {context = "Message after receiving a free chest from referral"})
+local MSG_CLICK_TO_CLOSE = loc("Click anywhere to close", {context = "Prompt to dismiss the free chest popup"})
+
+
+
 local DO_MOCK = true
 local MOCKING = consts.DEV_MODE and DO_MOCK
 -- MOCK: fake chest opening for testing. Remove when done!
@@ -84,12 +113,12 @@ function chestScene:_drawButtons(r)
     self:renderMapButton(mapReg)
 
     local refreshR = Kirigami(mapReg.x, mapReg.y + mapReg.h + 8, 96, 32)
-    if ui.Button("{o}Refresh{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, refreshR) then
+    if ui.Button(BTN_REFRESH, BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, refreshR) then
         cosmetics.tryRefresh()
     end
 
     local inventoryR = refreshR:moveRatio(0, 1):moveUnit(0, 8)
-    if ui.Button("{o}Inventory{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, inventoryR) then
+    if ui.Button(BTN_INVENTORY, BUTTON_BASE_COL, BUTTON_MAIN_COL, inventoryR) then
         local luasteam = Steam.getSteam()
         if luasteam then
             local steamid = tostring(luasteam.user.getSteamID())
@@ -172,7 +201,7 @@ function chestScene:_drawChestUI(bot)
     -- Get Chest (Free)
     local leftButton = a:padRatio(0.2)
     if User.getFriendCode() then
-        if drawChestButton("Get Chest (Free)", leftButton) then
+        if drawChestButton(BTN_GET_CHEST_FREE, leftButton) then
             self.showPopup = "left"
         end
     end
@@ -180,7 +209,7 @@ function chestScene:_drawChestUI(bot)
     -- Input Code (Free Chest)
     if User.canSubmitFriendCode() then
         local rightButton = c:padRatio(0.2)
-        if drawChestButton("Put Code (Free Chest)", rightButton) then
+        if drawChestButton(BTN_PUT_CODE, rightButton) then
             self.showPopup = "right"
         end
     end
@@ -204,7 +233,7 @@ function chestScene:_drawChestUI(bot)
 
     local _, d = b:splitVertical(5, 2)
     if cosmetics.getChestCount() > 0 then
-        if ui.Button("{o}Open Chest{/o}", CHEST_BUTTON_COL[1], CHEST_BUTTON_COL[2], d:padUnit(4)) then
+        if ui.Button(BTN_OPEN_CHEST, CHEST_BUTTON_COL[1], CHEST_BUTTON_COL[2], d:padUnit(4)) then
             self.showPopup = "center"
         end
     end
@@ -233,17 +262,6 @@ end
 
 
 
-local EXPLAIN_CODE = loc("Everytime your code is used, get a free chest! No limits; if your code is used 50 times, you will get 50 chests!\nShare it to friends via telegram, discord, reddit, etc.", {
-    context = "Explaining the mechanics of an affiliate scheme, simple and clear. Whenever anyone uses their code, they get a free chest; without limits."
-})
-local GET_CHEST_TITLE = loc("Get Chest (Free)", {context = "Title of popup showing the user's referral code"})
-local YOUR_CODE = loc("Your Code:", {context = "Label above the user's referral code"})
-
-local INPUT_CODE_TITLE = loc("Input Code", {context = "Title of popup for entering a friend's referral code"})
-local INPUT_CODE_DESC = loc("Enter a friend's code: you'll both get a free chest!", {context = "Description explaining the friend code input affiliate mechanism"})
-local INPUT_CODE_LABEL = loc("Input Code:", {context = "Label above the code input field"})
-
-
 ---@param self ChestScene
 local function showGetChestPopup(self)
     local r = drawCommonPopupBase()
@@ -260,11 +278,11 @@ local function showGetChestPopup(self)
     helper.printTextOutline(friendCode, g.getSmallFont(32), 1, codeR.x, codeR.y, codeR.w, "center")
 
     local copyButtonR, okButtonR = buttonR:splitHorizontal(1, 1)
-    if ui.Button("{o}Copy{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, copyButtonR:padUnit(16, 8)) then
+    if ui.Button(BTN_COPY, BUTTON_BASE_COL, BUTTON_MAIN_COL, copyButtonR:padUnit(16, 8)) then
         love.system.setClipboardText(friendCode)
     end
 
-    if ui.Button("{o}Ok{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, okButtonR:padUnit(16, 8)) then
+    if ui.Button(BTN_OK, BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, okButtonR:padUnit(16, 8)) then
         self.showPopup = nil
     end
 end
@@ -315,7 +333,7 @@ local function showInputCodePopup(self)
         helper.printTextOutline(text, g.getSmallFont(32), 1, inputR.x, inputR.y, inputR.w, "center")
     else
         lg.setColor(1, 1, 1, 0.5)
-        lg.printf("Input Code", g.getSmallFont(32), inputR.x, inputR.y, inputR.w, "center", 1, 1, 0, 0, 0.5)
+        lg.printf(INPUT_CODE_PLACEHOLDER, g.getSmallFont(32), inputR.x, inputR.y, inputR.w, "center", 1, 1, 0, 0, 0.5)
     end
     lg.setColor(1, 1, 1)
     -- Blinker
@@ -326,12 +344,12 @@ local function showInputCodePopup(self)
     end
 
     -- Draw paste button
-    if ui.Button("{o}Paste{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, pasteButtonR:padUnit(8, 0, 0, 0)) then
+    if ui.Button(BTN_PASTE, BUTTON_BASE_COL, BUTTON_MAIN_COL, pasteButtonR:padUnit(8, 0, 0, 0)) then
         pasteToInput(self)
     end
 
     -- Draw enter code
-    if ui.Button("{o}Enter{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, enterCodeButtonR:padUnit(16, 8)) then
+    if ui.Button(BTN_ENTER, BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, enterCodeButtonR:padUnit(16, 8)) then
         if #text > 0 then
             User.submitFriendCode(text, function(success, reason)
                 cosmetics.tryRefresh()
@@ -347,7 +365,7 @@ local function showInputCodePopup(self)
             end)
             self.inputCodeSubmitting = true
         else
-            self.inputCodeError = "Please enter a code."
+            self.inputCodeError = MSG_PLEASE_ENTER
         end
     end
 
@@ -356,7 +374,7 @@ local function showInputCodePopup(self)
         helper.printTextOutline(self.inputCodeError, g.getSmallFont(16), 1, errorMessageR.x, errorMessageR.y, errorMessageR.w, "center")
     end
 
-    if ui.Button("{o}Close{/o}", BUTTON_BASE_COL, BUTTON_MAIN_COL, closeButtonR:padUnit(16, 8)) then
+    if ui.Button(BTN_CLOSE, BUTTON_BASE_COL, BUTTON_MAIN_COL, closeButtonR:padUnit(16, 8)) then
         love.keyboard.setTextInput(false)
         self.showPopup = nil
         self.inputCodeError = nil
@@ -372,7 +390,7 @@ local function showInputCodePopup(self)
 
         local cx, cy = fullR:getCenter()
         local f = g.getSmallFont(32)
-        richtext.printRich("{w}{o}Submitting...{/o}{/w}", f, cx, cy, fullR.w, "center", 0, 1, 1, cx, f:getHeight() / 2)
+        richtext.printRich("{w}" .. MSG_SUBMITTING .. "{/w}", f, cx, cy, fullR.w, "center", 0, 1, 1, cx, f:getHeight() / 2)
         love.keyboard.setTextInput(false)
     else
         -- FIXME: This cannot be called all the time in iOS/Android.
@@ -399,7 +417,7 @@ local function showOpenChestPopup(self)
 
     if self.chestOpening:isDone() then
         if self.chestOpening:isError() then
-            self.inputCodeError = "Error opening chest"
+            self.inputCodeError = MSG_ERROR_OPENING
         end
         self.chestOpening = nil
         self.showPopup = nil
@@ -459,8 +477,8 @@ local function showChestOnGodrays(self)
     local drot = math.sin(love.timer.getTime() * 1.9) * 0.2
     g.drawImage("chest_big", rx, ry+dy, drot, 7, 7, 0,0)
 
-    helper.printTextOutline("You got 1 free chest!", g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
-    helper.printTextOutline("Click anywhere to close", g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
+    helper.printTextOutline(MSG_GOT_FREE_CHEST, g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
+    helper.printTextOutline(MSG_CLICK_TO_CLOSE, g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
 
     if iml.wasJustPressed(r:get()) then
         self.showInputCodeSuccess = nil
