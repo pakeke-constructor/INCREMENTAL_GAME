@@ -463,7 +463,7 @@ function custom:_drawCosmeticUI(bot)
 
     local btnReg = c:shrinkToAspectRatio(2,1):padUnit(4)
     if ui.DefaultButton(GET_SKINS_TEXT, btnReg) then
-        g.forceUnlockScene("chest_scene")
+        g.forceUnlockPOI("minigame")
         g.gotoSceneViaMap("chest_scene")
     end
 end

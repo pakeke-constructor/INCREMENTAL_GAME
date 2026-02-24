@@ -80,16 +80,10 @@ local BUTTON_GREEN_MAIN_COL = objects.Color("#" .. "FF2DAA1F")
 ---@param r kirigami.Region
 ---@return number
 function chestScene:_drawButtons(r)
-    local baseButtonR = Kirigami(0, 0, 96, 32)
-        :attachToRightOf(r)
-        :attachToTopOf(r)
-        :moveRatio(-1, 1)
-        :moveUnit(-8, 64)
-
-    local mapReg = baseButtonR
+    local mapReg = Kirigami(r.x + r.w - 96 - 8, r.y + 8, 96, 96)
     self:renderMapButton(mapReg)
 
-    local refreshR = mapReg:moveRatio(0, 1):moveUnit(0, 8)
+    local refreshR = Kirigami(mapReg.x, mapReg.y + mapReg.h + 8, 96, 32)
     if ui.Button("{o}Refresh{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, refreshR) then
         cosmetics.tryRefresh()
     end

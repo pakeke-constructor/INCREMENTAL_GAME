@@ -93,7 +93,7 @@ function g.incrementPrestige()
     currentSession = new
 end
 
-function g.forceUnlockScene(poiId)
+function g.forceUnlockPOI(poiId)
     g.getSn().unlockedPOI:add(poiId)
 end
 

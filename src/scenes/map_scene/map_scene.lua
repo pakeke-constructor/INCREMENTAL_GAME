@@ -170,13 +170,6 @@ end
 ---@param poiId string
 ---@return boolean
 local function isUnlocked(poiId)
-    local def = assert(POI[poiId])
-    if def.disabled then
-        return false
-    end
-    if not def.price then
-        return true -- no price => unlocked
-    end
     return g.getSn().unlockedPOI:has(poiId)
 end
 
@@ -676,6 +669,13 @@ end
 
 
 function map:enter()
+    -- unlock all default-POIs
+    for id, def in pairs(POI) do
+        if not def.price and not def.disabled then
+            g.forceUnlockPOI(id)
+        end
+    end
+
     g.playUISound("map_zoom_woosh3",1,0.4)
 end
 
