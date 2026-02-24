@@ -112,6 +112,12 @@ local CHEST_BUTTON_COL = {
 }
 local CHEST_COUNT_TEXT = interp("You have %{chestCount} chest(s)", {context = "Used to show how many cosmetic chest user has"})
 
+local COMMUNITY_MARKET = loc("Open Steam Community Market", {
+    context = "A link to the steam community market - a place where players can trade skins and stuff"
+})
+local COMMUNITY_MARKET_URL = "https://steamcommunity.com/market/search?appid=4173020"
+
+
 ---@param text string
 ---@param region kirigami.Region
 ---@return boolean
@@ -154,7 +160,13 @@ function chestScene:_drawCosmeticsGrid(top)
         local inner = cellR:padUnit(4)
         g.drawImageContained(info.image, inner:get())
     end
+
+    local butR = top:padRatio(0.6, 0.7, 0.6, 0.7)
+    if ui.DefaultButton(COMMUNITY_MARKET, butR) then
+        love.system.openURL(COMMUNITY_MARKET_URL)
+    end
 end
+
 
 ---@param bot kirigami.Region
 function chestScene:_drawChestUI(bot)
@@ -200,6 +212,7 @@ function chestScene:_drawChestUI(bot)
         end
     end
 end
+
 
 
 local POPUP_COLOR = objects.Color("#".."FF735401")
