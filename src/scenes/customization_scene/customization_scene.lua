@@ -356,6 +356,48 @@ local GROUND_COLOR = objects.Color("#" .. "FF6137D3")
 local DARK_COLOR   = objects.Color("#" .. "FF5E14B8")
 local LIGHT_COLOR  = objects.Color("#" .. "FF6633DC")
 
+local drawEdgeClouds
+do
+    local CLOUD_VERTICAL_MOVE_AMOUNT = 20
+    local CLOUD_MOVE_SPEED = 0.2
+    local CLOUD_OFFSET_FROM_CORNER = -5
+    local CLOUD_OFFSET_FROM_EDGE = -85
+    local CLOUD_OVERLAP_SPACING = 60
+
+    local function drawCornerCloud(cloudName, x, y, seed)
+        local t = love.timer.getTime()
+        local offsetY = math.sin(t * CLOUD_MOVE_SPEED + seed) * CLOUD_VERTICAL_MOVE_AMOUNT
+        g.drawImage(cloudName, x, y + offsetY)
+    end
+
+    function drawEdgeClouds(x, y, w, h)
+        local o = CLOUD_OFFSET_FROM_CORNER
+        local s = CLOUD_OVERLAP_SPACING
+        local eo = CLOUD_OFFSET_FROM_EDGE
+
+        drawCornerCloud("bigcloud_fishingzone", x + o, y + o, 1)
+        drawCornerCloud("bigcloud_minigamezone", x + o + s, y + o, 2)
+        drawCornerCloud("bigcloud_questzone", x + o, y + o + s, 3)
+
+        drawCornerCloud("bigcloud_bosszone", x + w - o, y + o, 4)
+        drawCornerCloud("bigcloud_emptyzone", x + w - o - s, y + o, 5)
+        drawCornerCloud("bigcloud_fishingzone", x + w - o, y + o + s, 6)
+
+        drawCornerCloud("bigcloud_minigamezone", x + o, y + h - o, 7)
+        drawCornerCloud("bigcloud_bosszone", x + o + s, y + h - o, 8)
+        drawCornerCloud("bigcloud_emptyzone", x + o, y + h - o - s, 9)
+
+        drawCornerCloud("bigcloud_questzone", x + w - o, y + h - o, 10)
+        drawCornerCloud("bigcloud_fishingzone", x + w - o - s, y + h - o, 11)
+        drawCornerCloud("bigcloud_minigamezone", x + w - o, y + h - o - s, 12)
+
+        drawCornerCloud("bigcloud_emptyzone", x + w / 2, y + eo, 13)
+        drawCornerCloud("bigcloud_bosszone", x + w / 2, y + h - eo, 14)
+        drawCornerCloud("bigcloud_fishingzone", x + eo, y + h / 2, 15)
+        drawCornerCloud("bigcloud_questzone", x + w - eo, y + h / 2, 16)
+    end
+end
+
 ---@param self CustomizationScene
 ---@param reg kirigami.Region
 local function drawTown(self,reg)
@@ -450,6 +492,7 @@ function custom:draw()
     local r = ui.getScreenRegion()
     local top,bot = r:splitVertical(5,2)
     drawTown(self, top)
+    drawEdgeClouds(r:get())
     self:_drawCosmeticUI(bot)
     self:renderMapButton()
     self:renderPause()
