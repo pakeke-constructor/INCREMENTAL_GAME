@@ -47,7 +47,7 @@ function chestScene:init()
     self.background = helper.newGradientMesh(
         "vertical",
         objects.Color("#".."FF090372"),
-        objects.Color("#".."FF2B6CB6")
+        objects.Color("#".."FF4C04B1")
     )
     ---@type ChestScene.ChestOpen?
     self.chestOpening = nil
@@ -86,7 +86,10 @@ function chestScene:_drawButtons(r)
         :moveRatio(-1, 1)
         :moveUnit(-8, 64)
 
-    local refreshR = baseButtonR:moveRatio(0, 1):moveUnit(0, 8)
+    local mapReg = baseButtonR
+    self:renderMapButton(mapReg)
+
+    local refreshR = mapReg:moveRatio(0, 1):moveUnit(0, 8)
     if ui.Button("{o}Refresh{/o}", BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, refreshR) then
         cosmetics.tryRefresh()
     end
@@ -175,7 +178,7 @@ function chestScene:_drawChestUI(bot)
     -- Get Chest (Free)
     local leftButton = a:padRatio(0.2)
     if User.getFriendCode() then
-        if drawChestButton("{o}Get Chest (Free){/o}", leftButton) then
+        if drawChestButton("Get Chest (Free)", leftButton) then
             self.showPopup = "left"
         end
     end
@@ -183,7 +186,7 @@ function chestScene:_drawChestUI(bot)
     -- Input Code (Free Chest)
     if User.canSubmitFriendCode() then
         local rightButton = c:padRatio(0.2)
-        if drawChestButton("{o}Put Code (Free Chest){/o}", rightButton) then
+        if drawChestButton("Put Code (Free Chest)", rightButton) then
             self.showPopup = "right"
         end
     end
@@ -501,7 +504,47 @@ function chestScene:update(dt)
 end
 
 
+local drawEdgeClouds
+do
+    local CLOUD_VERTICAL_MOVE_AMOUNT = 20
+    local CLOUD_MOVE_SPEED = 0.2
+    local CLOUD_OFFSET_FROM_CORNER = -5
+    local CLOUD_OFFSET_FROM_EDGE = -85
+    local CLOUD_OVERLAP_SPACING = 60
 
+    local function drawCornerCloud(cloudName, x, y, seed)
+        local t = love.timer.getTime()
+        local offsetY = math.sin(t * CLOUD_MOVE_SPEED + seed) * CLOUD_VERTICAL_MOVE_AMOUNT
+        g.drawImage(cloudName, x, y + offsetY)
+    end
+
+    function drawEdgeClouds(x, y, w, h)
+        local o = CLOUD_OFFSET_FROM_CORNER
+        local s = CLOUD_OVERLAP_SPACING
+        local eo = CLOUD_OFFSET_FROM_EDGE
+
+        drawCornerCloud("bigcloud_fishingzone", x + o, y + o, 1)
+        drawCornerCloud("bigcloud_minigamezone", x + o + s, y + o, 2)
+        drawCornerCloud("bigcloud_questzone", x + o, y + o + s, 3)
+
+        drawCornerCloud("bigcloud_bosszone", x + w - o, y + o, 4)
+        drawCornerCloud("bigcloud_emptyzone", x + w - o - s, y + o, 5)
+        drawCornerCloud("bigcloud_fishingzone", x + w - o, y + o + s, 6)
+
+        drawCornerCloud("bigcloud_minigamezone", x + o, y + h - o, 7)
+        drawCornerCloud("bigcloud_bosszone", x + o + s, y + h - o, 8)
+        drawCornerCloud("bigcloud_emptyzone", x + o, y + h - o - s, 9)
+
+        drawCornerCloud("bigcloud_questzone", x + w - o, y + h - o, 10)
+        drawCornerCloud("bigcloud_fishingzone", x + w - o - s, y + h - o, 11)
+        drawCornerCloud("bigcloud_minigamezone", x + w - o, y + h - o - s, 12)
+
+        drawCornerCloud("bigcloud_emptyzone", x + w / 2, y + eo, 13)
+        drawCornerCloud("bigcloud_bosszone", x + w / 2, y + h - eo, 14)
+        drawCornerCloud("bigcloud_fishingzone", x + eo, y + h / 2, 15)
+        drawCornerCloud("bigcloud_questzone", x + w - eo, y + h / 2, 16)
+    end
+end
 
 
 function chestScene:draw()
@@ -511,9 +554,8 @@ function chestScene:draw()
 
     ui.startUI()
     local r = ui.getScreenRegion()
+    drawEdgeClouds(r:get())
     local top, bot = r:splitVertical(3, 2)
-
-    self:renderMapButton()
 
     local w = self:_drawButtons(r)
     local grid = top:padUnit(0,0,w + 10, 0)
