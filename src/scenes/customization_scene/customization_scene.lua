@@ -438,6 +438,10 @@ end
 
 
 
+
+local GET_SKINS_TEXT = loc("Get Skins!")
+local COMMUNITY_MARKET_URL = "https://steamcommunity.com/market/search?appid=4173020"
+
 ---@param bot kirigami.Region
 function custom:_drawCosmeticUI(bot)
     local a,b,c = bot:splitHorizontal(3, 7, 2)
@@ -457,6 +461,11 @@ function custom:_drawCosmeticUI(bot)
     self.hatSelect:draw(hat:padRatio(0.2))
     self.catSelect:draw(cat:padRatio(0.2))
     self.bgSelect:draw(bg:padRatio(0.2))
+
+    local btnReg = c:shrinkToAspectRatio(2,1):padUnit(4)
+    if ui.DefaultButton(GET_SKINS_TEXT, btnReg) then
+        love.system.openURL(COMMUNITY_MARKET_URL)
+    end
 end
 
 
