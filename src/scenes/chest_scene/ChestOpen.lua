@@ -108,7 +108,7 @@ end
 
 local NUM_PARTICLES = 30
 
-local NEW_ITEM = "{rainbow}{wavy}{o}" .. loc("YOU GOT A NEW ITEM!", {
+local NEW_ITEM = "{rainbow}{wavy}{o thickness=3}" .. loc("YOU GOT A NEW ITEM!", {
     context = "A popup that tells the player they got a new item (from steam-community market)"
 })
 
@@ -134,7 +134,7 @@ function ChestOpen:draw()
             return
         end
         lg.setColor(1, 1, 1)
-        local K=40
+        local K=55
         local AMP = 10
         local tt = self.startTime - t
         local dx = tt * math.sin(tt*K) * AMP
