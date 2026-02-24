@@ -74,6 +74,8 @@ function ChestOpen:init()
     self.done = false
     self.error = false
     self.particles = newChestParticles()
+    self.lastReelIndex = 0
+    g.playUISound("chest_build_up", 1, 0.5)
 end
 
 function ChestOpen:setResult(cosmeticId)
@@ -82,6 +84,7 @@ function ChestOpen:setResult(cosmeticId)
     self.reel = buildReel(cosmeticId)
     self.phase = "spinning"
     self.spinStart = love.timer.getTime()
+    g.playUISound("chest_burst_open", 1.5, 0.5)
 end
 
 function ChestOpen:setError()
@@ -133,6 +136,14 @@ function ChestOpen:draw()
         local elapsed = t - self.spinStart
         local reelIndex = getReelIndex(elapsed, #self.reel)
         local settled = reelIndex >= #self.reel
+        if reelIndex ~= self.lastReelIndex then
+            self.lastReelIndex = reelIndex
+            if settled then
+                g.playUISound("chest_item_finalize", 1.5, 0.7)
+            else
+                g.playUISound("chest_item_tick", 0.8 + reelIndex/#self.reel * 0.4, 0.4)
+            end
+        end
 
         -- draw background square that converges onto item:
         do
