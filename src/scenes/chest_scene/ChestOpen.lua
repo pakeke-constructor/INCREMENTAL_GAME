@@ -112,6 +112,10 @@ local NEW_ITEM = "{rainbow}{wavy}{o}" .. loc("YOU GOT A NEW ITEM!", {
     context = "A popup that tells the player they got a new item (from steam-community market)"
 })
 
+local CLICK_TO_CLOSE = "{wavy}{o}{c r=0.5 g=0.7 b=1}" .. loc("Click anywhere to close", {
+    context = "Prompt to dismiss the chest opening popup"
+})
+
 
 
 function ChestOpen:draw()
@@ -209,7 +213,7 @@ function ChestOpen:draw()
             helper.printTextOutline(info.name, g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
             richtext.printRichContained(NEW_ITEM, g.getSmallFont(48), rx - r.w/2, ry - 180, r.w, 60)
             lg.setColor(1, 1, 1)
-            richtext.printRichContained("{wavy}{o}{c r=0.5 g=0.7 b=1}Click anywhere to close", g.getSmallFont(32), rx - r.w/2, ry + 110, r.w, 40)
+            richtext.printRichContained(CLICK_TO_CLOSE, g.getSmallFont(32), rx - r.w/2, ry + 110, r.w, 40)
         else
             local currentId = self.reel[reelIndex]
             local info = cosmetics.getInfo(currentId)
