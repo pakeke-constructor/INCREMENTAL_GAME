@@ -122,11 +122,11 @@ function ChestOpen:draw()
             return
         end
         lg.setColor(1, 1, 1)
-        local K=30
-        local AMP = 15
+        local K=40
+        local AMP = 10
         local tt = self.startTime - t
         local dx = tt * math.sin(tt*K) * AMP
-        local dr = tt * math.sin(tt*K) * 0.2
+        local dr = tt * math.sin(tt*K) * 0.07
         g.drawImage("chest_big", rx+dx, ry, dr, 8, 8)
 
     elseif self.phase == "spinning" then
