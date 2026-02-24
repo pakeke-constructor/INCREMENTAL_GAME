@@ -537,6 +537,12 @@ do
         drawCornerCloud("bigcloud_bosszone", x + w / 2, y + h - eo, 14)
         drawCornerCloud("bigcloud_fishingzone", x + eo, y + h / 2, 15)
         drawCornerCloud("bigcloud_questzone", x + w - eo, y + h / 2, 16)
+
+        -- center clouds (slightly transparent, bobbing)
+        lg.setColor(1, 1, 1, 0.75)
+        drawCornerCloud("bigcloud_minigamezone", x + w * 0.35, y + h * 0.35, 89)
+        drawCornerCloud("bigcloud_bosszone", x + w * 0.65, y + h * 0.65, 35)
+        lg.setColor(1, 1, 1, 1)
     end
 end
 

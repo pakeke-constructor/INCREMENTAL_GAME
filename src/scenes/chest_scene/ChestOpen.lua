@@ -108,6 +108,11 @@ end
 
 local NUM_PARTICLES = 30
 
+local NEW_ITEM = "{rainbow}{wavy}{o}" .. loc("YOU GOT A NEW ITEM!", {
+    context = "A popup that tells the player they got a new item (from steam-community market)"
+})
+
+
 
 function ChestOpen:draw()
     if self.done then return end
@@ -140,6 +145,7 @@ function ChestOpen:draw()
             self.lastReelIndex = reelIndex
             if settled then
                 g.playUISound("chest_item_finalize", 1.5, 0.7)
+                self.settledTime = t
             else
                 g.playUISound("chest_item_tick", 0.8 + reelIndex/#self.reel * 0.4, 0.4)
             end
@@ -181,6 +187,14 @@ function ChestOpen:draw()
         end
 
         if settled then
+            -- golden shockwave on finalize
+            local st = t - self.settledTime
+            local lw = lg.getLineWidth()
+            lg.setColor(1, 0.84, 0.2)
+            lg.setLineWidth(30 + st * 60)
+            lg.circle("line", rx, ry, 20 + st * 400)
+            lg.setLineWidth(lw)
+
             if iml.wasJustPressed(r:get()) then
                 self.done = true
                 return
@@ -193,7 +207,9 @@ function ChestOpen:draw()
             lg.setColor(1, 1, 1)
             g.drawImage(info.image, rx, ry, 0, sc,sc)
             helper.printTextOutline(info.name, g.getSmallFont(32), 2, rx, ry + 90, r.w, "center", 0, 1, 1, r.w / 2)
-            helper.printTextOutline("Click anywhere to close", g.getSmallFont(32), 2, rx, ry + 120, r.w, "center", 0, 1, 1, r.w / 2)
+            richtext.printRichContained(NEW_ITEM, g.getSmallFont(48), rx - r.w/2, ry - 180, r.w, 60)
+            lg.setColor(1, 1, 1)
+            richtext.printRichContained("{wavy}{o}{c r=0.5 g=0.7 b=1}Click anywhere to close", g.getSmallFont(32), rx - r.w/2, ry + 110, r.w, 40)
         else
             local currentId = self.reel[reelIndex]
             local info = cosmetics.getInfo(currentId)
