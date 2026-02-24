@@ -2,7 +2,7 @@ local TILE_SIZE = 96
 
 local time = love.math.random()
 local backgroundMesh = love.graphics.newMesh({
-    {0, 0, 0, 0, unpack(objects.Color("#".."FF0F0CA4"))},
+    {0, 0, 0, 0, unpack(objects.Color("#".."FF050390"))},
     {1, 0, 1, 0, unpack(objects.Color("#".."FF7115B7"))},
     {1, 1, 1, 1, unpack(objects.Color("#".."FF1862D8"))},
     {0, 1, 0, 1, unpack(objects.Color("#".."FF142DCD"))},

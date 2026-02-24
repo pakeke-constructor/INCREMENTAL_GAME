@@ -465,7 +465,7 @@ function drawBackground()
         0,0,love.graphics.getDimensions()
     )
     local GAP = 150
-    local rot = math.sin(3*love.timer.getTime() / 3.5) / 12
+    local rot = math.sin(3*love.timer.getTime() / 1.2) / 8
     lg.push()
     love.graphics.scale(ui.getUIScaling())
     local delta = 0--(love.timer.getTime() * 8) % GAP

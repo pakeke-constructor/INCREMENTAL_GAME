@@ -14,14 +14,19 @@ local lg = love.graphics
 
 local COSMETIC_REFRESH_INTERVAL = 30
 
+
+local DO_MOCK = true
+local MOCKING = consts.DEV_MODE and DO_MOCK
 -- MOCK: fake chest opening for testing. Remove when done!
 local MOCK_DELAY = 2 -- seconds
 local mockTimers = {}
-do
+if MOCKING then
     cosmetics.getChestCount = function() return 99 end
     cosmetics.openChest = function(callback)
         mockTimers[#mockTimers+1] = {time = love.timer.getTime(), cb = callback}
     end
+    User.getFriendCode = function() return "MEOW1234" end
+    User.canSubmitFriendCode = function() return true end
 end
 
 local ERROR_CODES = {
@@ -156,7 +161,7 @@ function chestScene:_drawChestUI(bot)
     local a, b, c = bot:splitHorizontal(4, 5, 4)
 
     -- Get Chest (Free)
-    local leftButton = a:padUnit(4)
+    local leftButton = a:padRatio(0.2)
     if User.getFriendCode() then
         if drawChestButton("{o}Get Chest (Free){/o}", leftButton) then
             self.showPopup = "left"
@@ -165,7 +170,7 @@ function chestScene:_drawChestUI(bot)
 
     -- Input Code (Free Chest)
     if User.canSubmitFriendCode() then
-        local rightButton = c:padUnit(4)
+        local rightButton = c:padRatio(0.2)
         if drawChestButton("{o}Put Code (Free Chest){/o}", rightButton) then
             self.showPopup = "right"
         end
@@ -218,14 +223,14 @@ end
 
 
 
-local EXPLAIN_CODE = loc("Everytime your code is used, get a free chest! No limits; if your code is used 50 times, (shared via discord, reddit, telegram) you will get 50 chests.", {
+local EXPLAIN_CODE = loc("Everytime your code is used, get a free chest! No limits; if your code is used 50 times, you will get 50 chests!\nShare it to friends via telegram, discord, reddit, etc.", {
     context = "Explaining the mechanics of an affiliate scheme, simple and clear. Whenever anyone uses their code, they get a free chest; without limits."
 })
 local GET_CHEST_TITLE = loc("Get Chest (Free)", {context = "Title of popup showing the user's referral code"})
 local YOUR_CODE = loc("Your Code:", {context = "Label above the user's referral code"})
 
 local INPUT_CODE_TITLE = loc("Input Code", {context = "Title of popup for entering a friend's referral code"})
-local INPUT_CODE_DESC = loc("Input friend's code to earn a chest for both of you.", {context = "Description explaining the friend code input"})
+local INPUT_CODE_DESC = loc("Enter a friend's code: you'll both get a free chest!", {context = "Description explaining the friend code input affiliate mechanism"})
 local INPUT_CODE_LABEL = loc("Input Code:", {context = "Label above the code input field"})
 
 
