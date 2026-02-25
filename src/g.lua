@@ -2443,9 +2443,8 @@ g.walkDirectory("assets/sfx", loadSound)
 g.BGMID = {
     TITLE = 999, -- Title and settings
     MAP = 1, -- Map scene
-    HARVEST = 2, -- Harvest scene
-    UPGRADE = 3, -- Upgrade scene
-    CUSTOMIZATION = 4, -- Customization scene
+    AMBIENT = 2, -- Harvest scene / Upgrade scene
+    CUSTOMIZATION = 3, -- Customization scene
     BOSS = 100, -- Boss theme
 }
 
@@ -2484,10 +2483,9 @@ end
 -- the BGM in one go using `bgm.register`.
 registerBGMFromDirectories("assets/bgm/boss", g.BGMID.BOSS, false)
 registerBGMFromDirectories("assets/bgm/customization", g.BGMID.CUSTOMIZATION, true)
-registerBGMFromDirectories("assets/bgm/harvest", g.BGMID.HARVEST, true)
+registerBGMFromDirectories("assets/bgm/ambient", g.BGMID.AMBIENT, true)
 registerBGMFromDirectories("assets/bgm/map", g.BGMID.MAP, true)
-registerBGMFromDirectories("assets/bgm/title", g.BGMID.TITLE, true)
-registerBGMFromDirectories("assets/bgm/upgrades", g.BGMID.UPGRADE, true)
+registerBGMFromDirectories("assets/bgm/ambient", g.BGMID.TITLE, true)
 
 
 ---Request playing specific BGM ID

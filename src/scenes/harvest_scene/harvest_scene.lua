@@ -1204,7 +1204,7 @@ end
 function harvest:update(dt)
     self:updateCamera(dt)
     g.getHUD():update(dt)
-    g.requestBGM(g.BGMID.HARVEST)
+    g.requestBGM(g.BGMID.AMBIENT)
 
     if self.bossPopup then
         self.timeSinceBossPopupOpened = self.timeSinceBossPopupOpened + dt

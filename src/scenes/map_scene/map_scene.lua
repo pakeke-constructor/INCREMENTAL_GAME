@@ -638,7 +638,9 @@ end
 function map:update(dt)
     self:updateCamera(dt)
 
-    g.requestBGM(g.BGMID.MAP)
+    if not self.transitionTarget then
+        g.requestBGM(g.BGMID.MAP)
+    end
 
     -- Update transition data
     if self.transitionTarget then
