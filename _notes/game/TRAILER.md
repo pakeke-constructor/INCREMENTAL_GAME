@@ -14,18 +14,19 @@
 
 ## RECORDING:
 
-- GREEN-BG: record chopping 3 crops, levelling up.
-- GREEN-BG: record reward
-- record goto-upgrades, buying stuff
+- [x] GREEN-BG: record chopping 3 crops, levelling up.
+- [x] GREEN-BG: record reward
+- [x] record goto-upgrades, buying stuff
 
-- record map-scene, hovering stuff
+- [x] record map-scene, hovering stuff
 
-- record customization-scene, hovering stuff
-- record chest-scene, opening chest
+- [x] record customization-scene, hovering stuff
+- [x] record chest-scene, opening chest
 
-- AQUA-BG: lv-15, tonnes of blue-crops, tonnes of orbitals
+- [X] AQUA-BG: lv-15, tonnes of blue-crops, tonnes of orbitals
+- [X] YEL-BG: lv-20, tonnes of wheat
 
-- GREEN-BG: record level-24, TONNES of upgrades, crops, etc,
+- [X] GREEN-BG: record level-24, TONNES of upgrades, crops, etc,
 
 
 ## Changing Avatars:
