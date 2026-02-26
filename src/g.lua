@@ -879,24 +879,28 @@ g.defineResource("juice", {
     image="juice",
     limitStat="JuiceLimit",
     limitStatName="Juice Limit",
+    startingLimit=1000,
     color=objects.Color("#".."FF8A2E59")
 })
 g.defineResource("fabric", {
     image="fabric",
     limitStat="FabricLimit",
     limitStatName="Fabric Limit",
+    startingLimit=1000,
     color=objects.Color("#".."FFF353FB")
 })
 g.defineResource("bread", {
     image="bread",
     limitStat="BreadLimit",
     limitStatName="Bread Limit",
+    startingLimit=1000,
     color=objects.Color("#".."FFB78652")
 })
 g.defineResource("fish", {
     image="fish",
     limitStat="FishLimit",
     limitStatName="Fish Limit",
+    startingLimit=1000,
     color=objects.Color("#".."FF305FCD")
 })
 

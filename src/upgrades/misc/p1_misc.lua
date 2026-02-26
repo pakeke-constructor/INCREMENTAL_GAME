@@ -34,10 +34,10 @@ end
 
 -- TODO: Balancing
 defineResLimitUpgrade("money_limit", "Money Limit", "money", 10)
-defineResLimitUpgrade("fabric_limit", "Fabric Limit", "fabric", 5)
-defineResLimitUpgrade("bread_limit", "Bread Limit", "bread", 5)
-defineResLimitUpgrade("juice_limit", "Juice Limit", "juice", 5)
-defineResLimitUpgrade("fish_limit", "Fish Limit", "fish", 5)
+defineResLimitUpgrade("fabric_limit", "Fabric Limit", "fabric", 10)
+defineResLimitUpgrade("bread_limit", "Bread Limit", "bread", 10)
+defineResLimitUpgrade("juice_limit", "Juice Limit", "juice", 10)
+defineResLimitUpgrade("fish_limit", "Fish Limit", "fish", 10)
 
 
 
