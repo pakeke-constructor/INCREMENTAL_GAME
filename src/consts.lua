@@ -72,6 +72,8 @@ local consts = {
     -- (e.g. 0.2 means you gotta harvest 5 crops to fill the timer)
     COMBO_HARVEST_INCREMENT_RATIO = 0.07,
 
+    DISCORD_URL = "https://discord.gg/Pd4nwmy2HJ",
+
     -- TRAILER_AVATAR_OVERRIDE = {
     --     avatar = "blankcat",
     --     background = "woodframe_red",

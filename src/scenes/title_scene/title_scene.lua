@@ -203,7 +203,7 @@ function title:draw()
     --     print("TODO Steam link")
     -- end
     if ui.Button(text.discord, DISCORD_BASE_COL, DISCORD_MAIN_COL, wishlistButtonR) then
-        print("TODO Discord link")
+        love.system.openURL(consts.DISCORD_URL)
     end
 
     ui.endUI()
