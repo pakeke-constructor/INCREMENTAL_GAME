@@ -511,6 +511,7 @@ end
 
 local xpParticles = particles.newParticlesWorld({
     gravity = 0,
+    extraFields = {"rot"},
     updateParticle = function (p, dt)
         local ACCELLERATION = 300
         local TARG_VEL = 300
@@ -548,7 +549,9 @@ local xpParticles = particles.newParticlesWorld({
             img = "XPgem_large"
         end
         img = "XPgem_small"
-        local rot = 0--love.timer.getTime()*10 + id*1.77
+        img = "XPgem_large"
+        local rSpeed = 5 + ((id*6.5) % 17)/3
+        local rot = love.timer.getTime()*rSpeed + id*1.77
         local x,y = p.x,p.y
         g.drawImage(img, x,y, rot, sx,sy)
     end,

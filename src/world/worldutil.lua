@@ -19,7 +19,7 @@ function worldutil.drawHarvestCircle(x, y, rad, circleColor, circleBorderColor, 
         local world = g.getMainWorld()
         local combodur = world:_getComboDuration()
         local ratio = world.comboTimeout / combodur
-        local joltScale = math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.4, 1), 1)
+        local joltScale = 1--math.max(helper.remap(world.comboTimeout, combodur, combodur - 0.2, 1.4, 1), 1)
 
         local lineWidth = math.floor(rad/15) + 2
         local SEG=60
