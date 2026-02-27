@@ -1,6 +1,7 @@
 
 import json
 import os
+import re
 from openai import OpenAI
 
 # Initialize OpenRouter client
@@ -10,7 +11,7 @@ client = OpenAI(
 )
 
 # Model to use
-MODEL = "anthropic/claude-sonnet-4.5"
+MODEL = "anthropic/claude-sonnet-4.6"
 
 STEAM_APP_NAME = "Catx11"
 
@@ -31,9 +32,6 @@ Keep the translation natural and engaging for gamers."""
 
 def translate_text(text, target_language):
     """Translate a single text string to the target language."""
-
-    print("TRANSLATING: ", target_language, text)
-    return
 
     if not text or text.strip() == "":
         return ""
@@ -66,9 +64,29 @@ def translate_language_section(english_data, target_language):
     
     return translated
 
+
+def test_tags_valid(data):
+    """Check that all img tags from English about section exist in every other language."""
+    key = "app[content][about]"
+    english = data["languages"]["english"][key]
+    eng_imgs = re.findall(r'\[img[^\]]*\]\[/img\]', english)
+    ok = True
+    for lang, content in data["languages"].items():
+        if lang == "english":
+            continue
+        about = content.get(key, "")
+        for img in eng_imgs:
+            if img not in about:
+                print(f"  FAIL [{lang}]: missing {img}")
+                ok = False
+    if ok:
+        print("All image tags valid!")
+    return ok
+
+
 def main():
     # Load the JSON file
-    input_file = "steam_data.json"  # Change this to your file name
+    input_file = "storepage_all.json"  # Change this to your file name
     output_file = "steam_data_translated.json"
     
     print(f"Loading {input_file}...")
@@ -84,11 +102,11 @@ def main():
             continue  # Skip English (source language)
         
         # Check if language section is empty or needs translation
-        if not content or all(v == "" for v in content.values()):
-            data["languages"][language] = translate_language_section(
-                english_data, 
-                language
-            )
+        # if not content or all(v == "" for v in content.values()):
+        data["languages"][language] = translate_language_section(
+            english_data, 
+            language
+        )
     
     # Save the translated data
     print(f"\nSaving to {output_file}...")
@@ -96,6 +114,7 @@ def main():
         json.dump(data, f, indent=4, ensure_ascii=False)
     
     print("Translation complete!")
+    test_tags_valid(data)
 
 if __name__ == "__main__":
     main()
