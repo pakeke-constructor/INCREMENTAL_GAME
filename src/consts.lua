@@ -14,7 +14,7 @@ local consts = {
     ANALYTICS_URL = "https://incrementalgame.npdep.com", -- URL, without trailing slash.
     -- How long it should take before sending "update" event to analytics server (in seconds)?
     ANALYTICS_UPDATE_INTERVAL = 60,
-    GAME_VERSION = 0,
+    GAME_VERSION = 1,
     ANALYTICS_IDENTITY = "incremental_game",
 
     FILE_LOG_LEVEL = "warn",
