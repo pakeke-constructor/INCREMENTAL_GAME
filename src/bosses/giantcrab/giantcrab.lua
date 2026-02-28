@@ -20,7 +20,7 @@ local function drawClaw(tok, oy)
 end
 
 g.defineBoss("giantcrab_boss", 1, "giantcrab_crabberry", {
-    maxHealth = 2000000,
+    maxHealth = 100000,
     image = "giantcrab_body",
     resources = {},
     drawOrder = 90,

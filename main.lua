@@ -293,6 +293,12 @@ function love.update(dt)
 
     prof_push("love.update")
 
+    local pending = g.shouldEndSession()
+    if pending then
+        g.delSession(pending.delfile)
+        g.gotoScene(pending.gotoScene)
+    end
+
     asynchttp.update()
     local luasteam = Steam.getSteam()
     if luasteam then

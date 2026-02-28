@@ -694,9 +694,8 @@ function drawBossPopup(self)
     if iml.wasJustClicked(buttonArea:get()) then
         g.playUISound("ui_click_basic", 1.4, 0.8)
         if finish then
-            g.delSession(true)
             -- TODO: Steam Achievement here?
-            g.gotoScene("credits_scene")
+            g.endSession(true, "credits_scene")
         else
             g.incrementPrestige()
         end

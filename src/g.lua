@@ -133,6 +133,21 @@ function g.delSession(delfile)
     end
 end
 
+local pendingEndSession = nil
+
+--- Deferred delSession + scene change (safe to call mid-frame)
+---@param delfile boolean?
+---@param gotoScene string?
+function g.endSession(delfile, gotoScene)
+    pendingEndSession = {delfile = delfile, gotoScene = gotoScene or "title_scene"}
+end
+
+function g.shouldEndSession()
+    local p = pendingEndSession
+    pendingEndSession = nil
+    return p
+end
+
 function g.saveSession()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
     if shouldSave then

@@ -119,8 +119,10 @@ local function getCheapestUpgrade(tree)
 
         if (not tree:isUpgradeHidden(upg)) and (lv < tree:getUpgradeMaxLevel(upg)) then
             local price = tree:getUpgradePrice(upg)
-            if price.money < bestPrice then
-                bestPrice = price.money
+            local total = 0
+            if price then for _, v in pairs(price) do total = total + v end end
+            if total > 0 and total < bestPrice then
+                bestPrice = total
                 bestUpgrade = upg
             end
         end
