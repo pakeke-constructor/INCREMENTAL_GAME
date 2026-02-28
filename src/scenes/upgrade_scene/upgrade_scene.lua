@@ -1025,6 +1025,10 @@ function upgscene:textinput()
     self.upgradeDescription = nil
 end
 
+function upgscene:enter()
+    g.saveSession()
+end
+
 upgscene.wheelmoved = upgscene.defaultWheelmoved
 upgscene.mousemoved = upgscene.defaultMousemoved
 
