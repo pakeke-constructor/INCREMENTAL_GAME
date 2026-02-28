@@ -334,7 +334,10 @@ local function showInputCodePopup(self)
         helper.printTextOutline(text, g.getSmallFont(32), 1, inputR.x, inputR.y, inputR.w, "center")
     else
         lg.setColor(1, 1, 1, 0.5)
-        lg.printf(INPUT_CODE_PLACEHOLDER, g.getSmallFont(32), inputR.x, inputR.y, inputR.w, "center", 1, 1, 0, 0, 0.5)
+        lg.printf(
+            INPUT_CODE_PLACEHOLDER, g.getSmallFont(32),
+            inputR.x, inputR.y, inputR.w, "center", 1, 1, 0, 0, 0.5
+        )
     end
     lg.setColor(1, 1, 1)
     -- Blinker
