@@ -113,7 +113,7 @@ defGrass("void_grass", "Void Grass", {
         local minRes, minVal = "money", math.huge
         for _, resId in ipairs(g.RESOURCE_LIST) do
             local v = g.getResource(resId)
-            if v < minVal then
+            if g.isResourceUnlocked(resId) and v < minVal then
                 minRes, minVal = resId, v
             end
         end
