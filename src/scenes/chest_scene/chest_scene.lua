@@ -241,6 +241,7 @@ end
 
 
 
+local RAY_COLOR = objects.Color("#".."FFEFC52C")
 local POPUP_COLOR = objects.Color("#".."FF735401")
 
 local function drawCommonPopupBase()
