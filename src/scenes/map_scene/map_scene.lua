@@ -204,7 +204,7 @@ definePOI("minigame", "Chests and Rewards!", {
     highlight = {"carnivalarea_attractions"},
     tx = 188, ty = 277, tcolor = objects.Color("#".."FFE65AE6"),
     -- TODO: Price
-    price = {money = 1000},
+    price = {money = 10000},
 })
 definePOI("quest", "Town", {
     scene = "customization_scene",
@@ -212,7 +212,7 @@ definePOI("quest", "Town", {
     highlight = {"questarea_buildings"},
     tx = 327, ty = 291, tcolor = objects.Color("#".."FFB4236E"),
     -- TODO: Price
-    price = {money = 7000},
+    price = {money = 2000},
 })
 definePOI("boss", "Challenges", {
     nameContext = "Place to do in-game challenge (such as summoning boss)",
