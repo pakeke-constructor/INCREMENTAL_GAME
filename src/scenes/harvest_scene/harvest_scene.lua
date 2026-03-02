@@ -634,7 +634,7 @@ local OK_TEXT = "{o}"..loc("Prestige!",nil,{
 }).."{/o}"
 local FINISH_TEXT = "{o}"..loc("Credits", nil, {context = "Button to show game credits"}).."{/o}"
 
-local BOSS_POPUP_FADE_IN_TIME = 0.7
+local BOSS_POPUP_FADE_IN_TIME = 0.3
 
 
 ---@param self HarvestScene
@@ -670,7 +670,7 @@ function drawBossPopup(self)
     love.graphics.setColor(1, 1, 1)
     local prestige = g.getPrestige()
     local f = g.getSmallFont(16)
-    local finish = prestige >= 2
+    local finish = prestige >= g.getFinalPrestige()
     richtext.printRichContained(BOSS_SLAIN, f, bossSlainTxt:get())
     richtext.printRichContained("{o}{c r=0.2 g=0.9 b=0.6}"..PRESTIGE_COMPLETE_N({n=prestige}).."{/c}{/o}", f, prestigeCompleteTxt:get())
     richtext.printRichContained(finish and GAME_FINISH or PROGRESS_RESET, f, progressResetTxt:get())
