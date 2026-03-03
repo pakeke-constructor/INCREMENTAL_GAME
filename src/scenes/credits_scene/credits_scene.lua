@@ -12,27 +12,19 @@ local creditsctx = {context = "Text shown during in-game credits roll"}
 ---@type {[1]:string?,size:integer?,image:string?,underline:boolean?,font?:"small"|"big"}[]
 local CREDITS_STRING = {
     {image="src/scenes/credits_scene/catx11.png"},
-    {"CAT CAT CAT CAT CAT CAT CAT CAT CAT CAT CAT", size=48},
-    {},
     {},
     {loc("Developed By", nil, creditsctx), size=48, underline=true},
     {"CodeTheory Ltd."},
-    {},
     {},
     {loc("Lead Programmer", nil, creditsctx), size=48, underline=true},
     {"Oli"},
     {"Miku AuahDark"},
     {},
-    {},
     {loc("Image Artist", nil, creditsctx), size=48, underline=true},
     {"Leo"},
     {},
-    {},
     {loc("Music Artist", nil, creditsctx), size=48, underline=true},
     {"Miguel Angel"},
-    {},
-    {},
-    {},
     {},
     {},
     {},
@@ -40,7 +32,7 @@ local CREDITS_STRING = {
 }
 local BACK_MAIN_MENU = "{o}"..loc("Click/tap anywhere to back to main menu", nil, creditsctx).."{/o}"
 local CREDITS_MAX_WIDTH = 500
-local SCROLL_SPEED = 70 -- pixels per second
+local SCROLL_SPEED = 50 -- pixels per second
 
 function credits:init()
     -- Build credits drawing code.
