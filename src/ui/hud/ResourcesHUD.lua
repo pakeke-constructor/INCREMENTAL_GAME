@@ -31,19 +31,19 @@ local PARTICLE_SPAWN_CATEGORY = {
     },
     fabric = {
         format = "fabric_particle_%d",
-        counts = {1, 2, 4},
+        counts = {1, 4, 10},
     },
     juice = {
         format = "juice_particle_%d",
-        counts = {1, 2, 4},
+        counts = {1, 4, 10},
     },
     bread = {
         format = "bread_particle_%d",
-        counts = {1, 2, 4},
+        counts = {1, 4, 10},
     },
     fish = {
         format = "fish_particle_%d",
-        counts = {1, 2, 4},
+        counts = {1, 4, 10},
     },
 }
 
@@ -389,6 +389,8 @@ function Resources:_getInterpolationTime(kind)
 end
 
 
+local MAX_PARTICLES_PER_CALL = 3
+
 ---@param kind g.ResourceType
 ---@param x number Position of the token (same coordinate space as HUD)
 ---@param y number Position of the token (same coordinate space as HUD)
@@ -398,19 +400,14 @@ function Resources:spawnParticles(kind, x, y, amount)
     amount = math.floor(amount)
 
     local category = PARTICLE_SPAWN_CATEGORY[kind]
-    ---@type number[]
-    local tiersToSpawn = {}
+    local startCount = #self.particles
 
     for i = #category.counts, 1, -1 do
-        local spawnCount = math.min(3, math.floor(amount / category.counts[i]))
+        local spawnCount = math.min(2, math.floor(amount / category.counts[i]))
         amount = amount - spawnCount * category.counts[i]
-        table.insert(tiersToSpawn, 1, spawnCount)
-    end
-
-    for tier, spawnCount in ipairs(tiersToSpawn) do
-        local spawnAmount = category.counts[tier]
         for _ = 1, spawnCount do
-            _spawnParticleImpl(self, kind, tier, x, y, spawnAmount)
+            if #self.particles - startCount >= MAX_PARTICLES_PER_CALL then return end
+            _spawnParticleImpl(self, kind, i, x, y, category.counts[i])
         end
     end
 end
