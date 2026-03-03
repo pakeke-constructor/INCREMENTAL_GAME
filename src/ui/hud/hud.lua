@@ -262,8 +262,8 @@ local TOKEN_IMAGE_SCALE = 1
 
 local STATS_BACKGROUND = helper.newGradientMesh(
     "vertical",
-    objects.Color("#".."ff02acc9"),
-    objects.Color("#".."ffac02c9")
+    objects.Color("#".."FF0E2BBC"),
+    objects.Color("#".."FF3F0487")
 )
 
 function HUD:drawStatsAndTokenPool()
