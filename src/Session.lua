@@ -101,6 +101,8 @@ function Session:init()
         harvest = true,
         upgrades = true
     }
+
+    self.bossesKilled = {} -- {[bossId] = true}
 end
 
 if false then
@@ -247,6 +249,13 @@ function Session.deserialize(data)
         end
     end
 
+    -- Bosses killed
+    if data.bossesKilled then
+        for id in pairs(data.bossesKilled) do
+            sess.bossesKilled[id] = true
+        end
+    end
+
     -- Tutorial messages
     if data.showTutorials then
         sess.showTutorials.harvest = nilIsTrue(data.showTutorials.harvest)
@@ -280,6 +289,7 @@ function Session:serialize()
             hat = self.avatar.hat
         },
         tree = self.tree:serialize(),
+        bossesKilled = self.bossesKilled,
         unlockedPOI = self.unlockedPOI:totable(),
         showTutorials = helper.shallowCopy(self.showTutorials)
     }

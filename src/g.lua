@@ -151,7 +151,7 @@ end
 function g.saveSession()
     local shouldSave = not (consts.DEV_MODE and love.keyboard.isDown("lshift", "rshift"))
     if shouldSave then
-        log.trace(debug.traceback("Saving session."))
+        log.trace("Saving session.")
         local data = g.getSn():serialize()
         local contents = json.encode(data)
         assert(love.filesystem.write("saves/save1.json", contents))
@@ -2317,6 +2317,7 @@ local function killBoss(tok)
 
     local bossPrestige = g.getTokenInfo(bossId)
     if bossPrestige and bossPrestige.type == tok.type then
+        g.getSn().bossesKilled[tok.type] = true
         achievements.unlockAchievement("SLAYER")
         g.call("bossSlain")
     else

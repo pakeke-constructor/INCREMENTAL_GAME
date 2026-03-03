@@ -633,6 +633,7 @@ local OK_TEXT = "{o}"..loc("Prestige!",nil,{
     context="As in, a button that progresses to the next level/prestige."
 }).."{/o}"
 local FINISH_TEXT = "{o}"..loc("Credits", nil, {context = "Button to show game credits"}).."{/o}"
+local CONTINUE_TEXT = "{o}"..loc("Continue Playing").."{/o}"
 
 local BOSS_POPUP_FADE_IN_TIME = 0.3
 
@@ -675,32 +676,25 @@ function drawBossPopup(self)
     richtext.printRichContained("{o}{c r=0.2 g=0.9 b=0.6}"..PRESTIGE_COMPLETE_N({n=prestige}).."{/c}{/o}", f, prestigeCompleteTxt:get())
     richtext.printRichContained(finish and GAME_FINISH or PROGRESS_RESET, f, progressResetTxt:get())
 
-    if iml.wasJustHovered(buttonArea:get()) then
-        g.playUISound("ui_tick", 1.6, 0.65, 0, 0)
-    end
-
     local buttonCol1 = objects.Color("#FF9F14F6")
     local buttonCol2 = objects.Color("#FF3B12A4")
-    if iml.isHovered(buttonArea:get()) then
-        buttonCol2 = buttonCol1
-    end
 
-    helper.gradientRect("horizontal", buttonCol1, buttonCol2, buttonArea:padUnit(4):get())
-    ui.drawPanel(buttonArea:get())
-
-    love.graphics.setColor(1, 1, 1)
-    richtext.printRichContained(finish and FINISH_TEXT or OK_TEXT, f, buttonArea:get())
-
-    if iml.wasJustClicked(buttonArea:get()) then
-        g.playUISound("ui_click_basic", 1.4, 0.8)
-        if finish then
-            -- TODO: Steam Achievement here?
-            g.endSession(true, "credits_scene")
-        else
-            g.incrementPrestige()
+    if finish then
+        local resetBtn, continueBtn = buttonArea:splitHorizontal(1, 1)
+        resetBtn = resetBtn:padUnit(2)
+        continueBtn = continueBtn:padUnit(2)
+        if ui.Button(FINISH_TEXT, buttonCol1, buttonCol2, resetBtn) then
+            g.gotoScene("credits_scene")
+            self.bossPopup = false
         end
-
-        self.bossPopup = false
+        if ui.Button(CONTINUE_TEXT, buttonCol1, buttonCol2, continueBtn) then
+            self.bossPopup = false
+        end
+    else
+        if ui.Button(OK_TEXT, buttonCol1, buttonCol2, buttonArea) then
+            g.incrementPrestige()
+            self.bossPopup = false
+        end
     end
 
     prof_pop()
