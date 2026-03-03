@@ -145,7 +145,7 @@ local function calculateXPRequirement()
         return math.ceil(hpPerTok * X)
     end
 
-    return math.ceil(totalTokenHP * math.sqrt(level))
+    return math.ceil(totalTokenHP * level / 3)
 end
 
 local function nilIsTrue(value)
