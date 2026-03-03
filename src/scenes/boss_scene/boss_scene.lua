@@ -66,13 +66,16 @@ local function drawBossButtonStuff(self, bob)
     local bw,bh = self.button:getDimensions()
     local r = Kirigami(uiw/2-bw/2, bob + uih*0.8-bh/2, bw,bh)
 
+    local KEY = "boss_scene:BOSS_BUTTON_KEY"
+
     lg.setColor(0,0,0)
     lg.draw(self.button, r.x-2, r.y-2)
     lg.draw(self.button, r.x+2, r.y+2)
     lg.draw(self.button, r.x-2, r.y+2)
     lg.draw(self.button, r.x+2, r.y-2)
 
-    if iml.isHovered(r:get()) then
+    local x,y,w,h = r:get()
+    if iml.isHovered(x,y,w,h, KEY) then
         lg.setColor(0.6,0.6,0.7)
     else
         lg.setColor(1,1,1)
@@ -91,7 +94,7 @@ local function drawBossButtonStuff(self, bob)
 
     local prestige = g.getPrestige()
     local bossId = g.getBossIdForPrestige(prestige)
-    if bossId and iml.wasJustClicked(r:get()) and g.canAfford({money = BOSS_COST_MONEY}) then
+    if bossId and iml.wasJustClicked(x,y,w,h, 1, KEY) and g.canAfford({money = BOSS_COST_MONEY}) then
         g.subtractResources({money = BOSS_COST_MONEY})
         g.gotoSceneViaMap("harvest_scene")
         g.summonBoss(bossId)
