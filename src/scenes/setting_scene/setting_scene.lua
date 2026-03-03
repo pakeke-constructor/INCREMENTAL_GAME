@@ -16,7 +16,9 @@ local TEXT = {
     REQUIRES_RESTART = loc("(requires restart)", nil, {context = "Shown on setting label that requires restart to take effect"}),
     FULLSCREEN = "{o}"..loc("Fullscreen", nil, {context = "Switching game from windowed to fullscreen,"}).."{/o}",
     CRT_EFFECT = "{o}"..loc("CRT Effect", nil, {context = "Option to emulate old-school CRT TV effects"}).."{/o}",
-    DONE = loc("Done", nil, {context = "Button to apply changes as in a configuration or settings"})
+    DONE = loc("Done", nil, {context = "Button to apply changes as in a configuration or settings"}),
+    RESET_SAVE = loc("Reset Save", nil, {context = "Button to completely reset/delete the player's save data"}),
+    ARE_YOU_SURE = loc("Are you sure?", nil, {context = "Confirmation prompt before deleting save data"})
 }
 
 
@@ -88,6 +90,7 @@ function settingscene:init()
     self.languageListSlider = 1
     table.sort(self.languageListInterleaved, function (a, b) return a[1] < b[1] end)
     self.showLanguagePopup = false
+    self.resetConfirm = false
 
     -- Ensure closest language match is selected
     do
@@ -228,8 +231,11 @@ function settingscene:draw()
         :attachToBottomOf(languageLabelR)
         :centerX(languageLabelR)
 
+    -- Reset Save button (layout only; drawn conditionally later)
+    local showResetSave = g.hasSession() and g.getPrestige() == g.getFinalPrestige()
+
     -- Centerize layout in place
-    makeInCenterInplace(contentR,
+    local centerRegions = {
         effectVolumeLabelR,
         effectVolumeSliderBaseR,
         musicVolumeLabelR,
@@ -240,8 +246,9 @@ function settingscene:draw()
         fsBoxR,
         languageLabelR,
         languageIconR,
-        languageButtonR
-    )
+        languageButtonR,
+    }
+    makeInCenterInplace(contentR, unpack(centerRegions))
 
     -- Draw effect volume
     local sfxVolume = settings.getSFXVolume()
@@ -306,6 +313,31 @@ function settingscene:draw()
     local langButtonText = self.languages[lang] or lang
     if ui.DefaultButton("{o}"..langButtonText.."{/o}", languageButtonR) and #self.languageListInterleaved > 0 then
         self.showLanguagePopup = true
+    end
+
+    -- Draw "Reset Save" button (only on final prestige)
+    local resetR
+    do
+    local a,b = r:splitHorizontal(5,1)
+    local _
+    _, resetR = b:splitVertical(5,1)
+    resetR = resetR:padRatio(0.2)
+    end
+    if showResetSave then
+        local resetText = self.resetConfirm and TEXT.ARE_YOU_SURE or TEXT.RESET_SAVE
+        local resetBg = self.resetConfirm and {0.8, 0.2, 0.2} or {0.5, 0.15, 0.15}
+        if ui.Button(
+            helper.wrapRichtextColor(objects.Color.WHITE, "{o}"..resetText.."{/o}"),
+            objects.Color.RED,
+            resetBg,
+            resetR
+        ) then
+            if self.resetConfirm then
+                g.endSession(true, "title_scene")
+            else
+                self.resetConfirm = true
+            end
+        end
     end
 
     -- Draw "Done" Button
