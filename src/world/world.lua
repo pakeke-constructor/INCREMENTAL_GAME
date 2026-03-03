@@ -843,7 +843,8 @@ local function tryUpdateDecorations(self)
 
     local w,h = g.getWorldDimensions()
 
-    local ts = WORLD_TILESETS[pres % 3 + 1]
+    local NUM_PRESTGE = g.getFinalPrestige()+1
+    local ts = WORLD_TILESETS[pres % NUM_PRESTGE + 1]
     local darkcol = ts.dark
     local lightcol = ts.light
 

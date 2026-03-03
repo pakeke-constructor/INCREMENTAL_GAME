@@ -19,7 +19,7 @@ local function drawClaw(tok, oy)
     g.drawImageOffset("crystalcrab_claw", tok.x - 32, tok.y + 19 + oy, rotleft, -1, 1, 0.6, 0.2)
 end
 
-g.defineBoss("crystalcrab_boss", 4, "giantcrab_crabberry", { -- giantcrab_crabberry is defined in giantcrab.lua
+g.defineBoss("crystalcrab_boss", 3, "giantcrab_crabberry", { -- giantcrab_crabberry is defined in giantcrab.lua
     maxHealth = 2200000,
     image = "crystalcrab_body",
     resources = {},
