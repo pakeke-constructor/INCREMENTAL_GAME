@@ -84,7 +84,6 @@ function g.incrementPrestige()
 
     -- copy over the important stuff:
     new.prestige = prestige
-    new.totalLevel = curr.totalLevel -- keep total-level tracking.
     new.avatar = curr.avatar
     new.showTutorials = {harvest=false, upgrades=false}
     new.unlockedPOI = objects.Set(curr.unlockedPOI)

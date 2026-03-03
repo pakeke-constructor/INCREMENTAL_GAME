@@ -47,7 +47,6 @@ function Session:init()
     -- (only increments when player is INSIDE harvest-scene)
 
     self.level = 0 -- when xp > xpRequirement, level up!
-    self.totalLevel = 0 -- (keeps track across levels from previous prestiges too.)
 
     self.resources = {}
     self.resourceUnlocks = {}
@@ -191,7 +190,6 @@ end
 
 function Session:levelUp()
     self.level = self.level + 1
-    self.totalLevel = self.totalLevel + 1
     self.xp = 0
 end
 
@@ -203,7 +201,6 @@ function Session.deserialize(data)
     -- Load current prestige/level
     sess.prestige = assert(data.prestige) + 0
     sess.level = assert(data.level) + 0
-    sess.totalLevel = assert(data.totalLevel) + 0
     sess.playtime = (data.playtime or 0) + 0
     sess.idletime = (data.idletime or 0) + 0
 
@@ -276,7 +273,6 @@ function Session:serialize()
         scythe = self.scythe,
         prestige = self.prestige,
         level = self.level,
-        totalLevel = self.totalLevel,
         playtime = self.playtime,
         idletime = self.idletime,
         resources = self.resources,
