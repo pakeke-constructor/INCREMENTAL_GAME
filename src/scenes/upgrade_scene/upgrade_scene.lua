@@ -956,6 +956,7 @@ function upgscene:keypressed(k)
         end
 
         if love.keyboard.isDown("lshift") then
+            -- flip upgrade-tree (for gen-stuff)
             local flip
             if k == "t" then flip = {true, true}
             elseif k == "x" then flip = {true, false}

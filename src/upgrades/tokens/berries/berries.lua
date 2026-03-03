@@ -81,6 +81,22 @@ local BERRIES = {
         name = "Melonberry",
         resources = {juice = 2}
     },
+
+    {
+        id = "cod_fish",
+        name = "Cod",
+        resources = {fish = 2}
+    },
+    {
+        id = "snapper_fish",
+        name = "Snapper",
+        resources = {fish = 4}
+    },
+    {
+        id = "tuna_fish",
+        name = "Tuna",
+        resources = {fish = 30}
+    },
 }
 
 
