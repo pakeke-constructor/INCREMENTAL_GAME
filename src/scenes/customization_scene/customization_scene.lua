@@ -439,7 +439,18 @@ end
 
 
 
-local GET_SKINS_TEXT = loc("Get Skins!")
+local OPEN_CHESTS = loc("Open Chests!", {}, {
+    context = "As in, a button that takes you to a scene where you open chests to find new cosmetics."
+})
+
+local OPEN_INV = loc("Inventory", {}, {
+    context = "A button that opens steam-inventory"
+})
+
+local C1,C2 = objects.Color("#" .. "FFEDB10D"), objects.Color("#" .. "FFC44610")
+
+local C11,C22 = objects.Color("#" .. "FF01AD9F"), objects.Color("#" .. "FF02409C")
+
 
 ---@param bot kirigami.Region
 function custom:_drawCosmeticUI(bot)
@@ -461,10 +472,20 @@ function custom:_drawCosmeticUI(bot)
     self.catSelect:draw(cat:padRatio(0.2))
     self.bgSelect:draw(bg:padRatio(0.2))
 
-    local btnReg = c:shrinkToAspectRatio(2,1):padUnit(4)
-    if ui.DefaultButton(GET_SKINS_TEXT, btnReg) then
+    local gotoChest, openInv = c:padUnit(4):splitVertical(1,1)
+
+    if ui.Button(OPEN_CHESTS, C11,C22, gotoChest:padUnit(5)) then
         g.forceUnlockPOI("minigame")
         g.gotoSceneViaMap("chest_scene")
+    end
+
+    if ui.Button(OPEN_INV, C1,C2, openInv:padUnit(5)) then
+        local luasteam = Steam.getSteam()
+        if luasteam then
+            local steamid = tostring(luasteam.user.getSteamID())
+            local appid = luasteam.utils.getAppID()
+            love.system.openURL("steam://openurl/https://steamcommunity.com/profiles/"..steamid.."/inventory/#"..appid)
+        end
     end
 end
 
