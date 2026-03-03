@@ -819,6 +819,12 @@ local WORLD_TILESETS = {
         dark = objects.Color("#" .. "FF31CEBE"),
         light = objects.Color("#" .. "FF36DAC9"),
     },
+
+    {
+        tileset = "harvestarea_tilemap_3",
+        dark = objects.Color("#" .. "FF345DB6"),
+        light = objects.Color("#" .. "FF4B75CF"),
+    },
 }
 
 
