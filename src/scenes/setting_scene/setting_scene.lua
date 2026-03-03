@@ -18,7 +18,10 @@ local TEXT = {
     CRT_EFFECT = "{o}"..loc("CRT Effect", nil, {context = "Option to emulate old-school CRT TV effects"}).."{/o}",
     DONE = loc("Done", nil, {context = "Button to apply changes as in a configuration or settings"}),
     RESET_SAVE = loc("Reset Save", nil, {context = "Button to completely reset/delete the player's save data"}),
-    ARE_YOU_SURE = loc("Are you sure?", nil, {context = "Confirmation prompt before deleting save data"})
+    CONFIRM_RESET_1 = loc("Confirm reset save?", nil, {context = "Warning text on popup before deleting save"}),
+    CONFIRM_RESET_2 = loc("(Cannot be undone)", nil, {context = "Warning text on popup before deleting save file"}),
+    DELETE_SAVE = loc("Delete Save", nil, {context = "Button to confirm deleting save data"}),
+    CANCEL = loc("Cancel", nil, {context = "Button to cancel an action"})
 }
 
 
@@ -324,19 +327,13 @@ function settingscene:draw()
     resetR = resetR:padRatio(0.2)
     end
     if showResetSave then
-        local resetText = self.resetConfirm and TEXT.ARE_YOU_SURE or TEXT.RESET_SAVE
-        local resetBg = self.resetConfirm and {0.8, 0.2, 0.2} or {0.5, 0.15, 0.15}
         if ui.Button(
-            helper.wrapRichtextColor(objects.Color.WHITE, "{o}"..resetText.."{/o}"),
+            helper.wrapRichtextColor(objects.Color.WHITE, "{o}"..TEXT.RESET_SAVE.."{/o}"),
             objects.Color.RED,
-            resetBg,
+            {0.5, 0.15, 0.15},
             resetR
         ) then
-            if self.resetConfirm then
-                g.endSession(true, "title_scene")
-            else
-                self.resetConfirm = true
-            end
+            self.resetConfirm = true
         end
     end
 
@@ -356,6 +353,10 @@ function settingscene:draw()
 
     if self.showLanguagePopup then
         self:_drawLanguageSelector()
+    end
+
+    if self.resetConfirm then
+        self:_drawDeleteSavePopup()
     end
 
     ui.endUI()
@@ -425,10 +426,68 @@ function settingscene:_drawLanguageSelector()
 end
 
 
+function settingscene:_drawDeleteSavePopup()
+    local r = ui.getScreenRegion()
+    iml.panel(r:get()) -- block input below
+
+    -- Darken background
+    love.graphics.setColor(0, 0, 0, 0.6)
+    love.graphics.rectangle("fill", r:get())
+
+    -- Panel
+    local panelR = Kirigami(0, 0, 300, 160):center(r)
+    love.graphics.setColor(0.15, 0.15, 0.15)
+    love.graphics.rectangle("fill", panelR:get())
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle("line", panelR:get())
+
+    -- Warning text
+    local font = g.getSmallFont(16)
+    local textR = Kirigami(0, 0, panelR.w - 20, font:getHeight() * 2)
+        :centerX(panelR)
+        :attachToTopOf(panelR)
+        :moveUnit(0, 20)
+    love.graphics.setColor(1, 1, 1)
+
+    local t1, t2 = panelR:padRatio(0.3):splitVertical(1,1)
+    richtext.printRichContained("{o}"..TEXT.CONFIRM_RESET_1.."{/o}", font, t1:padRatio(0.2):get())
+    richtext.printRichContained("{o}"..TEXT.CONFIRM_RESET_2.."{/o}", font, t2:padRatio(0.2):get())
+
+    -- Buttons row
+    local cancelR = Kirigami(0, 0, 140, 40)
+        :centerX(panelR)
+        :moveUnit(-40, 0)
+        :attachToBottomOf(panelR)
+        :moveUnit(0, -20)
+    local deleteR = Kirigami(0, 0, 100, 36)
+        :attachToRightOf(cancelR)
+        :centerY(cancelR)
+        :moveUnit(10, 0)
+
+    if ui.Button(
+        helper.wrapRichtextColor(objects.Color.WHITE, "{o}"..TEXT.CANCEL.."{/o}"),
+        objects.Color.WHITE, objects.Color.GRAY, cancelR
+    ) then
+        self.resetConfirm = false
+    end
+
+    if ui.Button(
+        helper.wrapRichtextColor(objects.Color.WHITE, "{o}"..TEXT.DELETE_SAVE.."{/o}"),
+        objects.Color.RED, {0.6, 0.1, 0.1}, deleteR
+    ) then
+        g.endSession(true, "title_scene")
+    end
+end
+
 function settingscene:keyreleased(_k, scancode)
     if scancode == "escape" then
         sceneManager.gotoLastScene()
     end
+end
+
+
+function settingscene:enter()
+    self.resetConfirm = false
 end
 
 
