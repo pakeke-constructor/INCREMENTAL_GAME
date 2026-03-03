@@ -481,8 +481,9 @@ function g.drawTokenImage(tinfo, x,y, r,sx,sy,kx,ky)
     end
 
     if stalkInfo then
+        local gox, goy = stalkInfo.growthOx or 0, stalkInfo.growthOy or 0
         for _, pos in ipairs(stalkInfo.growthpos) do
-            g.drawImage(tinfo.growths.growth, x + pos.x, y + pos.y, r, sx, sy, kx, ky)
+            g.drawImage(tinfo.growths.growth, x + pos.x + gox, y + pos.y + goy, r, sx, sy, kx, ky)
         end
     end
 end
@@ -1552,6 +1553,8 @@ local STALKS = {}
 ---@field public image string?
 ---@field public dontFlip boolean?
 ---@field public growthpos {x: number, y: number}[] Position coordinate is in pixels, relative to stalk center
+---@field public growthOx number? Extra x offset applied to all growth sprites
+---@field public growthOy number? Extra y offset applied to all growth sprites
 
 ---@param id string
 ---@param def g.StalkDefinition
@@ -1700,8 +1703,9 @@ function g.drawTokenIcon(tokType, x,y, rot,sx,sy, kx,ky)
 
     if tinfo.growths then
         local stalkInfo = g.getStalkInfo(tinfo.growths.stalk)
+        local gox, goy = stalkInfo.growthOx or 0, stalkInfo.growthOy or 0
         for _, pos in ipairs(stalkInfo.growthpos) do
-            g.drawImage(tinfo.growths.growth, x + pos.x, y + pos.y, rot, sx, sy, kx, ky)
+            g.drawImage(tinfo.growths.growth, x + pos.x + gox, y + pos.y + goy, rot, sx, sy, kx, ky)
         end
     end
 end
@@ -2059,8 +2063,9 @@ function g.destroyToken(tok)
     end
     if tok.growths then
         local stalkInfo = g.getStalkInfo(tok.growths.stalk)
+        local gox, goy = stalkInfo.growthOx or 0, stalkInfo.growthOy or 0
         for _, pos in ipairs(stalkInfo.growthpos) do
-            g.spawnEntity("growth_falling", tok.x + pos.x, tok.y + pos.y, tok.growths.growth, tok.y + 8)
+            g.spawnEntity("growth_falling", tok.x + pos.x + gox, tok.y + pos.y + goy, tok.growths.growth, tok.y + 8)
         end
     end
 

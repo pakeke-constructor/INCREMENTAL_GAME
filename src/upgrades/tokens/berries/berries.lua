@@ -47,6 +47,15 @@ g.defineStalk("stalk_5", {
     }
 })
 
+for i=1, 5 do
+    local base = g.getStalkInfo("stalk_"..i)
+    g.defineStalk("fish_stalk_"..i, {
+        image = base.image,
+        dontFlip = base.dontFlip,
+        growthpos = base.growthpos,
+        growthOy = -2,
+    })
+end
 
 
 local BERRIES = {
@@ -85,17 +94,8 @@ local BERRIES = {
     {
         id = "cod_fish",
         name = "Cod",
-        resources = {fish = 2}
-    },
-    {
-        id = "snapper_fish",
-        name = "Snapper",
-        resources = {fish = 4}
-    },
-    {
-        id = "tuna_fish",
-        name = "Tuna",
-        resources = {fish = 30}
+        resources = {fish = 2},
+        stalk = "fish_stalk",
     },
 }
 
@@ -113,10 +113,6 @@ local MAX_LEVELS = {
     15,10, 8, 5,3
 }
 
-local DEPOPULATE_TOKEN = {
-    -- should this upgrade depopulate any of the earlier upgrades?
-    nil,nil,nil, 1,2
-}
 
 local PROCGEN_WEIGHTS = {5, 4, 3, 2, 2}
 local PROCGEN_DISTS = {{0,3}, {1,5}, {2,6}, {3,8}, {4,10}}
@@ -148,22 +144,9 @@ for _, berry in ipairs(BERRIES) do
 
         local mult = RESOURCE_MULTIPLIERS[i]
 
-        ---@param tp g.TokenPool
-        local depopulateTokenPool = DEPOPULATE_TOKEN[i] and function (uinfo, level, tp)
-            local depopId = DEPOPULATE_TOKEN[i]
-            local strId = makeId(berry, depopId)
-            tp:subtract(strId)
-        end
-
         local desc = nil
-        if DEPOPULATE_TOKEN[i] then
-            desc = ("{c r=1 g=0.2 b=0.2}{o}Removes %s {%s} crops!"):format(
-                makeName(berry, DEPOPULATE_TOKEN[i]),
-                berry.id
-            )
-        end
 
-        local stalk_id = "stalk_"..tostring(i)
+        local stalk_id = (berry.stalk or "stalk") .. "_" .. tostring(i)
         g.defineToken(token_id, name, {
             growths = {stalk = stalk_id, growth = berry.id},
             resources = g.multBundles(berry.resources, mult),
@@ -172,10 +155,6 @@ for _, berry in ipairs(BERRIES) do
 
             description = desc,
 
-            upgradeDefinition = {
-                ---@diagnostic disable-next-line
-                depopulateTokenPool = depopulateTokenPool
-            },
             procGen = {
                 weight = PROCGEN_WEIGHTS[i],
                 distance = PROCGEN_DISTS[i],
