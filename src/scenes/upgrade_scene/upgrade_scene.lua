@@ -955,10 +955,17 @@ function upgscene:keypressed(k)
             g.getSn().tree._filename = oldFilename
         end
 
-        if love.keyboard.isDown("lshift") and k == "t" then
-            local oldFilename = g.getSn().tree._filename
-            g.getSn().tree = g.getSn().tree:transpose(true,true)
-            g.getSn().tree._filename = oldFilename
+        if love.keyboard.isDown("lshift") then
+            local flip
+            if k == "t" then flip = {true, true}
+            elseif k == "x" then flip = {true, false}
+            elseif k == "y" then flip = {false, true}
+            end
+            if flip then
+                local old = g.getSn().tree._filename
+                g.getSn().tree = g.getSn().tree:transpose(unpack(flip))
+                g.getSn().tree._filename = old
+            end
         end
 
         if self.dev_editModeSelection then
