@@ -40,7 +40,7 @@ local CREDITS_STRING = {
 }
 local BACK_MAIN_MENU = "{o}"..loc("Click/tap anywhere to back to main menu", nil, creditsctx).."{/o}"
 local CREDITS_MAX_WIDTH = 500
-local SCROLL_SPEED = 32 -- pixels per second
+local SCROLL_SPEED = 70 -- pixels per second
 
 function credits:init()
     -- Build credits drawing code.
