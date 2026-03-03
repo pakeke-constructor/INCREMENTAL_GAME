@@ -447,7 +447,7 @@ local OPEN_INV = loc("Inventory", {}, {
     context = "A button that opens steam-inventory"
 })
 
-local C1,C2 = objects.Color("#" .. "FFEDB10D"), objects.Color("#" .. "FFC44610")
+local C1,C2 = objects.Color("#" .. "FFB65F09"), objects.Color("#" .. "FFAB3206")
 
 local C11,C22 = objects.Color("#" .. "FF01AD9F"), objects.Color("#" .. "FF02409C")
 
