@@ -673,7 +673,7 @@ function drawBossPopup(self)
     local f = g.getSmallFont(16)
     local finish = prestige >= g.getFinalPrestige()
     richtext.printRichContained(BOSS_SLAIN, f, bossSlainTxt:get())
-    richtext.printRichContained("{o}{c r=0.2 g=0.9 b=0.6}"..PRESTIGE_COMPLETE_N({n=prestige}).."{/c}{/o}", f, prestigeCompleteTxt:get())
+    richtext.printRichContained("{o}{c r=0.2 g=0.9 b=0.6}"..PRESTIGE_COMPLETE_N({n=prestige+1}).."{/c}{/o}", f, prestigeCompleteTxt:get())
     richtext.printRichContained(finish and GAME_FINISH or PROGRESS_RESET, f, progressResetTxt:get())
 
     local buttonCol1 = objects.Color("#FF9F14F6")
@@ -930,7 +930,7 @@ function harvest:tokenDestroyed(tok)
     if boss and boss.type == "vacuum_boss" then
         -- Damage vacuum boss
         local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.WHITE, 0.5)
-        ent.drawOrder = 100
+        ent.drawOrder = -800
         g.damageToken(boss, 5000)
     end
 end

@@ -65,7 +65,7 @@ g.defineToken("giantcrab_crabberry", "\0giantcrab_health_internal", {
         local boss = g.getBossToken()
         if boss then
             local ent = worldutil.spawnFadingLine(tok.x, tok.y, boss.x, boss.y, 5, objects.Color.BLUE, 0.5)
-            ent.drawOrder = 100
+            ent.drawOrder = -800
             g.damageToken(boss, 4150)
         end
     end
