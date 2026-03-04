@@ -45,6 +45,11 @@ function achievements.emitPerSecondUpdate()
     if sn.level > 30 then
         achievements.unlockAchievement("LEVELUP")
     end
+
+    local fish = g.getResource("fish") or 0
+    if fish > 0.5 then
+        achievements.unlockAchievement("FISHERCAT")
+    end
 end
 
 
