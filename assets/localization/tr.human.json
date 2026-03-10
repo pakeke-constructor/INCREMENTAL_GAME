@@ -1,0 +1,11 @@
+{
+    "name": "Türkçe",
+    "strings": {
+        "+%{1}% Experience gain!": "+%{1}% Tecrübe artışı!",
+        "+%{amount:d}% XP Multiplier": "+%{amount:d}% XP Çarpanı",
+        "+%{amount} Hit Speed": "+%{amount}% Vuruş Hızı",
+        "Crops that are slimed take +%{1}% extra damage": "Salyanlanan ekinler +%{1}% fazladan hasar alır",
+        "Every second, +%{1}% chance to spawn a spinning axe": "Her saniye, dönen balta çıkarma şansı +%{1}%",
+        "When a crop is hit, +%{1}% chance to hit another crop": "Bir ürün toplandığında, başka bir ürünü toplama şansı +%{1}%"
+    }
+}
