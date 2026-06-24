@@ -44,7 +44,7 @@ local MSG_CLICK_TO_CLOSE = loc("Click anywhere to close", {context = "Prompt to 
 
 
 
-local DO_MOCK = true
+local DO_MOCK = false
 local MOCKING = consts.DEV_MODE and DO_MOCK
 -- MOCK: fake chest opening for testing. Remove when done!
 local MOCK_DELAY = 2 -- seconds
@@ -112,6 +112,11 @@ function chestScene:_drawButtons(r)
     local mapReg = Kirigami(r.x + r.w - 96 - 8, r.y + 8, 96, 96)
     self:renderMapButton(mapReg)
 
+    local luasteam = Steam.getSteam()
+    if not luasteam then
+        return mapReg.w
+    end
+
     local refreshR = Kirigami(mapReg.x, mapReg.y + mapReg.h + 8, 96, 32)
     if ui.Button(BTN_REFRESH, BUTTON_GREEN_BASE_COL, BUTTON_GREEN_MAIN_COL, refreshR) then
         cosmetics.tryRefresh()
@@ -119,12 +124,9 @@ function chestScene:_drawButtons(r)
 
     local inventoryR = refreshR:moveRatio(0, 1):moveUnit(0, 8)
     if ui.Button(BTN_INVENTORY, BUTTON_BASE_COL, BUTTON_MAIN_COL, inventoryR) then
-        local luasteam = Steam.getSteam()
-        if luasteam then
-            local steamid = tostring(luasteam.user.getSteamID())
-            local appid = luasteam.utils.getAppID()
-            love.system.openURL("steam://openurl/https://steamcommunity.com/profiles/"..steamid.."/inventory/#"..appid)
-        end
+        local steamid = tostring(luasteam.user.getSteamID())
+        local appid = luasteam.utils.getAppID()
+        love.system.openURL("steam://openurl/https://steamcommunity.com/profiles/"..steamid.."/inventory/#"..appid)
     end
 
     return math.max(inventoryR.w, refreshR.w)
@@ -187,9 +189,11 @@ function chestScene:_drawCosmeticsGrid(top)
         g.drawImageContained(info.image, inner:get())
     end
 
-    local butR = top:padRatio(0.6, 0.7, 0.6, 0.7)
-    if ui.DefaultButton(COMMUNITY_MARKET, butR) then
-        love.system.openURL(COMMUNITY_MARKET_URL)
+    if Steam.getSteam() then
+        local butR = top:padRatio(0.6, 0.7, 0.6, 0.7)
+        if ui.DefaultButton(COMMUNITY_MARKET, butR) then
+            love.system.openURL(COMMUNITY_MARKET_URL)
+        end
     end
 end
 
@@ -197,17 +201,18 @@ end
 ---@param bot kirigami.Region
 function chestScene:_drawChestUI(bot)
     local a, b, c = bot:splitHorizontal(4, 5, 4)
+    local luasteam = Steam.getSteam()
 
     -- Get Chest (Free)
     local leftButton = a:padRatio(0.2)
-    if User.getFriendCode() then
+    if luasteam and User.getFriendCode() then
         if drawChestButton(BTN_GET_CHEST_FREE, leftButton) then
             self.showPopup = "left"
         end
     end
 
     -- Input Code (Free Chest)
-    if User.canSubmitFriendCode() then
+    if luasteam and User.canSubmitFriendCode() then
         local rightButton = c:padRatio(0.2)
         if drawChestButton(BTN_PUT_CODE, rightButton) then
             self.showPopup = "right"
@@ -617,7 +622,6 @@ function chestScene:keypressed(k)
 end
 
 return chestScene
-
 
 
 
