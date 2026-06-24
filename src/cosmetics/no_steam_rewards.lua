@@ -17,19 +17,15 @@ end
 
 ---@param dt number
 function rewards.update(dt)
-    if not consts.NO_STEAM then
-        return
+    if consts.NO_STEAM then
+        localInventory.addPlaytimeProgress(dt)
     end
-
-    localInventory.addPlaytimeProgress(dt)
 end
 
 function rewards.quit()
-    if not consts.NO_STEAM then
-        return
+    if consts.NO_STEAM then
+        localInventory.quit()
     end
-
-    localInventory.quit()
 end
 
 return rewards
