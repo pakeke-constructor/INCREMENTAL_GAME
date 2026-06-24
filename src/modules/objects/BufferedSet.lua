@@ -14,15 +14,16 @@ Order is not consistent, and will change quite dynamically.
 
 ]]
 ---Availability: Client and Server
----@class objects.BufferedSet<T>: objects.Class
+---@class objects.BufferedSet<T>: objects.Class, {[integer]:T}
 ---@field private addBuffer table<any, true>
 ---@field private remBuffer table<any, true>
 local BufferedSet = Class("objects:BufferedSet")
 
 if false then
     ---Availability: Client and Server
-    ---@param initial any[]?
-    ---@return objects.BufferedSet
+    ---@generic T
+    ---@param initial T[]?
+    ---@return objects.BufferedSet<T>
     function BufferedSet(initial) end ---@diagnostic disable-line: cast-local-type, missing-return
 end
 
@@ -44,7 +45,9 @@ end
 
 
 ---Clears the BufferedSet completely, including all buffers.
----@return objects.BufferedSet
+---@generic T
+---@param self objects.BufferedSet<T>
+---@return objects.BufferedSet<T>
 function BufferedSet:clear()
     local obj
     local ptrs = self.pointers
@@ -65,8 +68,10 @@ end
 
 
 ---Immediately adds an object to the Set (not buffered)
----@param obj any
----@return objects.BufferedSet
+---@generic T
+---@param self objects.BufferedSet<T>
+---@param obj T
+---@return objects.BufferedSet<T>
 function BufferedSet:add(obj)
     if self:has(obj) then
         return self
@@ -83,8 +88,10 @@ end
 
 
 ---Adds an object to the add buffer
----@param obj any
----@return objects.BufferedSet
+---@generic T
+---@param self objects.BufferedSet<T>
+---@param obj T
+---@return objects.BufferedSet<T>
 function BufferedSet:addBuffered(obj)
     if obj == nil then
         return self
@@ -99,8 +106,10 @@ end
 
 
 ---Adds an object to the remove buffer
----@param obj any
----@return objects.BufferedSet
+---@generic T
+---@param self objects.BufferedSet<T>
+---@param obj T
+---@return objects.BufferedSet<T>
 function BufferedSet:removeBuffered(obj)
     if obj == nil then
         return self
@@ -117,8 +126,10 @@ end
 
 ---Immediately removes an object from the Set (not buffered)
 ---If the object isn't in the Set, returns nil.
----@param obj any
----@return objects.BufferedSet?
+---@generic T
+---@param self objects.BufferedSet<T>
+---@param obj T
+---@return objects.BufferedSet<T>?
 function BufferedSet:remove(obj, index)
     if not obj then
         return nil
@@ -150,7 +161,9 @@ end
 
 
 ---Flushes all buffered operations
----@return objects.BufferedSet
+---@generic T
+---@param self objects.BufferedSet<T>
+---@return objects.BufferedSet<T>
 function BufferedSet:flush()
     -- Process removals first
     for obj, _ in pairs(self.remBuffer) do
@@ -172,8 +185,10 @@ end
 
 
 
----@param other objects.BufferedSet
----@return objects.BufferedSet
+---@generic T
+---@param self objects.BufferedSet<T>
+---@param other objects.BufferedSet<T>
+---@return objects.BufferedSet<T>
 function BufferedSet:intersection(other)
     local newSet = BufferedSet()
     for _, v in ipairs(self) do
@@ -185,8 +200,10 @@ function BufferedSet:intersection(other)
 end
 
 
----@param other objects.BufferedSet
----@return objects.BufferedSet
+---@generic T
+---@param self objects.BufferedSet<T>
+---@param other objects.BufferedSet<T>
+---@return objects.BufferedSet<T>
 function BufferedSet:union(other)
     local newSet = BufferedSet()
     for _, v in ipairs(other) do
@@ -202,8 +219,10 @@ end
 
 local funcTc = typecheck.assert("table", "function")
 
----@param func fun(item:any):boolean
----@return objects.BufferedSet
+---@generic T
+---@param self objects.BufferedSet<T>
+---@param func fun(item:T):boolean
+---@return objects.BufferedSet<T>
 function BufferedSet:filter(func)
     funcTc(self, func)
     local newSet = BufferedSet()
@@ -229,7 +248,9 @@ BufferedSet.size = BufferedSet.length -- alias
 
 ---Returns true if the BufferedSet contains `obj` in the main set, false otherwise.
 ---Does not check buffers.
----@param obj any
+---@generic T
+---@param self objects.BufferedSet<T>
+---@param obj T
 ---@return boolean
 function BufferedSet:has(obj)
     return self.pointers[obj] and true

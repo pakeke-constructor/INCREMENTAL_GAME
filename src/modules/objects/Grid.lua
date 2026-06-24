@@ -14,7 +14,7 @@ but (i) indexes are ONE-indexed.
 
 ]]
 ---Availability: Client and Server
----@class objects.Grid: objects.Class
+---@class objects.Grid<T>: objects.Class
 local Grid = Class("objects:Grid")
 
 
@@ -54,9 +54,11 @@ end
 
 local number2Tc = typecheck.assert("number", "number")
 
+---@generic T
+---@param self objects.Grid<T>
 ---@param x integer
 ---@param y integer
----@param val any
+---@param val T
 function Grid:set(x,y, val)
     number2Tc(x,y)
     local i = self:coordsToIndex(x,y)
@@ -64,9 +66,11 @@ function Grid:set(x,y, val)
     self.grid[i]=val
 end
 
+---@generic T
+---@param self objects.Grid<T>
 ---@param x integer
 ---@param y integer
----@return any
+---@return T
 function Grid:get(x,y)
     number2Tc(x,y)
     local i = self:coordsToIndex(x,y)
@@ -113,7 +117,9 @@ end
 
 local funcTc = typecheck.assert("table", "function")
 
----@param func fun(value:any,x:integer,y:integer)
+---@generic T
+---@param self objects.Grid<T>
+---@param func fun(value:T,x:integer,y:integer)
 function Grid:foreach(func)
     funcTc(self, func)
     for x=0, self.width-1 do
@@ -133,11 +139,13 @@ local foreachInAreaTc = typecheck.assert(
 )
 
 ---x and y position are both inclusive
+---@generic T
+---@param self objects.Grid<T>
 ---@param x1 integer
 ---@param x2 integer
 ---@param y1 integer
 ---@param y2 integer
----@param func fun(value:any,x:integer,y:integer)
+---@param func fun(value:T,x:integer,y:integer)
 function Grid:foreachInArea(x1,y1, x2,y2, func)
     foreachInAreaTc(self, x1,y1, x2,y2, func)
     for x=x1, x2 do

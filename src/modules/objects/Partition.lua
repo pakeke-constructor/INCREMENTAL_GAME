@@ -1,8 +1,6 @@
 local Class = require(".Class")
 
----@class objects.Partition: objects.Class
----@field chunkSize number
----@field bins table<number, table>
+---@class objects.Partition<T>: objects.Class
 local Partition = Class("objects:Partition")
 
 
@@ -22,11 +20,20 @@ local function validateCoord(coord, name)
 end
 
 
-
+---@generic T
+---@param self objects.Partition<T>
+---@param chunkSize integer
 function Partition:init(chunkSize)
-    self.chunkSize = chunkSize
+    self.chunkSize = assert(chunkSize, "Wasn't given chunkSize")
+    ---@type table<number, T[]>
     self.bins = {}
     return self
+end
+
+if false then
+    ---@param chunkSize integer
+    ---@return objects.Partition<any>
+    function Partition(chunkSize) end ---@diagnostic disable-line: cast-local-type, missing-return
 end
 
 
@@ -36,7 +43,11 @@ local function pair(x, y)
     return ((x + COORD_OFFSET) * COORD_MULTIPLIER) + (y + COORD_OFFSET)
 end
 
-
+---@generic T
+---@param self objects.Partition<T>
+---@param obj T
+---@param x number
+---@param y number
 function Partition:add(obj, x, y)
     local binX = math.floor(x / self.chunkSize)
     local binY = math.floor(y / self.chunkSize)
@@ -56,9 +67,11 @@ end
 
 
 --- Spatial query. Return true from the callback to stop early
+---@generic T
+---@param self objects.Partition<T>
 ---@param x number
 ---@param y number
----@param callback fun(item): true?
+---@param callback fun(item:T):(boolean?)
 ---@param range number?
 function Partition:query(x, y, callback, range)
     local binX = math.floor(x / self.chunkSize)
@@ -84,6 +97,8 @@ end
 
 
 
+---@generic T
+---@param self objects.Partition<T>
 function Partition:clear()
     for key, bin in pairs(self.bins) do
         table.clear(bin)

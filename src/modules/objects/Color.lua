@@ -104,30 +104,41 @@ local function lerp(from, to, progress)
     return from + (to - from) * progress
 end
 
-local function validate_hex(hex)
-    return type(hex) == "string" and hex:find("#") == 1 and #hex > 1 and not hex:find("[^0-9A-Fa-f]", 2)
-end
-
 ---@param hex integer|string
 local function hex_to_rgba(hex)
     if type(hex) == "number" then
         hex = ("%x"):format(hex)
-    else
-        assert(validate_hex(hex), "Invalid HEX string")
-
-        hex = hex:sub(2, -1)
     end
 
-    if #hex < 8 then
-        hex = hex..("f"):rep(8 - #hex)
+    -- Test matches
+    local r, g, b, rh, gh, bh, ah
+    local a = 1
+    rh, gh, bh = hex:match("^#(%x)(%x)(%x)$")
+    if rh and gh and bh then
+        r = assert(tonumber(rh, 16)) / 15
+        g = assert(tonumber(gh, 16)) / 15
+        b = assert(tonumber(bh, 16)) / 15
+        return r, g, b, a
     end
 
-    local a = tonumber(hex:sub(1, 2), 16)/255
-    local r = tonumber(hex:sub(3, 4), 16)/255
-    local g = tonumber(hex:sub(5, 6), 16)/255
-    local b = tonumber(hex:sub(7, 8), 16)/255
+    rh, gh, bh = hex:match("^#(%x%x)(%x%x)(%x%x)$")
+    if rh and gh and bh then
+        r = assert(tonumber(rh, 16)) / 255
+        g = assert(tonumber(gh, 16)) / 255
+        b = assert(tonumber(bh, 16)) / 255
+        return r, g, b, a
+    end
 
-    return r, g, b, a
+    ah, rh, gh, bh = hex:match("^#?(%x%x)(%x%x)(%x%x)(%x%x)$")
+    if rh and gh and bh and ah then
+        r = assert(tonumber(rh, 16)) / 255
+        g = assert(tonumber(gh, 16)) / 255
+        b = assert(tonumber(bh, 16)) / 255
+        a = assert(tonumber(ah, 16)) / 255
+        return r, g, b, a
+    end
+
+    error("invalid hex color: "..tostring(hex))
 end
 
 ---@param r number?
@@ -501,6 +512,14 @@ function color:shiftHue(deg)
     return self
 end
 
+function color:lighten(x)
+    return color.lerp(self, color.WHITE, x)
+end
+
+function color:darken(x)
+    return color.lerp(self, color.BLACK, x)
+end
+
 ---------------
 -- Operators --
 ---------------
@@ -667,5 +686,9 @@ color.HEXtoRGBA = hex_to_rgba
 color.RGBAtoHEX = rgba_to_hex
 color.validateHEX = validate_hex
 color.isColor = isColor
+
+function color.getCurrent()
+    return objects.Color(love.graphics.getColor())
+end
 
 return color
