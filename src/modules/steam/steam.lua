@@ -6,7 +6,7 @@ local Steam = {
 }
 
 function Steam.init()
-    if hasluasteam then
+    if hasluasteam and not consts.NO_STEAM then
         local result = luasteam.init()
         Steam.active = result
     end
@@ -15,7 +15,7 @@ function Steam.init()
 end
 
 function Steam.shutdown()
-    if hasluasteam then
+    if hasluasteam and Steam.active then
         luasteam.shutdown()
         Steam.active = false
     end

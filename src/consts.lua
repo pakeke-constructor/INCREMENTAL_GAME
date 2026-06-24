@@ -5,6 +5,10 @@ local consts = {
 
     DEV_MODE = not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
     SHOW_DEV_STUFF = false, -- can be toggled on/off (eg for screenshots)
+    NO_STEAM = love.filesystem.getInfo("no_steam.txt", "file") and
+        -- Above check for the file existence
+        -- And below ensure the file is really added through fused, and not in save directory.
+        love.filesystem.getRealDirectory("no_steam.txt") == love.filesystem.getSource(),
 
     EMULATE_TOUCH = os.getenv("INCREMENTAL_GAME_EMULATE_TOUCH") == "1", -- Set later
     IS_MOBILE = false, -- Set later
