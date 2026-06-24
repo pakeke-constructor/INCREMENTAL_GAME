@@ -261,6 +261,7 @@ function love.load(arg)
     SteamInventory.init()
     SteamTicket.init()
     User.init()
+    noSteamRewards.initForGameEntry()
     cosmetics.init()
 
     if heartbeat then
@@ -318,6 +319,9 @@ function love.update(dt)
     elseif g.hasSession() then
         local session = g.getSn()
         session:_update(dt)
+        if not session.paused then
+            noSteamRewards.update(dt)
+        end
         if idleTime >= CONSIDERED_IDLE_TIME then
             session.idletime = session.idletime + dt
         end
