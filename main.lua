@@ -261,8 +261,8 @@ function love.load(arg)
     SteamInventory.init()
     SteamTicket.init()
     User.init()
-    noSteamRewards.initForGameEntry()
     cosmetics.init()
+    noSteamRewards.initForGameEntry()
 
     if heartbeat then
         heartbeat:StartCapture()
