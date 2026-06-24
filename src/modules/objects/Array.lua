@@ -2,7 +2,7 @@
 local Class = require(".Class")
 
 ---Availability: Client and Server
----@class objects.Array: objects.Class
+---@class objects.Array<T>: objects.Class, {[integer]: T}
 local Array = Class("objects:Array")
 
 
@@ -26,17 +26,22 @@ if false then
     ---Initializes array
     ---
     ---Availability: Client and Server
-    ---@param initial any[]?
-    ---@return objects.Array
+    ---@generic T
+    ---@param initial T[]?
+    ---@return objects.Array<T>
     function Array(initial) end ---@diagnostic disable-line: cast-local-type, missing-return
 end
 
 ---Adds item to array
----@param x any
+---@generic T
+---@param self objects.Array<T>
+---@param x T
+---@return objects.Array<T>
 function Array:add(x)
     assert(x ~= nil, "cannot add nil to array")
     self.len = self.len + 1
     self[self.len] = x
+    return self
 end
 
 ---Clears array
@@ -48,7 +53,9 @@ function Array:clear()
 end
 
 ---Reverses the array in-place
----@return objects.Array
+---@generic T
+---@param self objects.Array<T>
+---@return objects.Array<T>
 function Array:reverse()
     local n = self:size()
     local mid = math.floor(n / 2)
@@ -68,8 +75,10 @@ Array.length = Array.size -- alias
 
 ---Removes item from array at index
 ---(if index is nil, pops from the end of array.)
+---@generic T
+---@param self objects.Array<T>
 ---@param i integer?
----@return any
+---@return T
 function Array:remove(i)
     i = i or self.len
     if i and (not (1 <= i and i <= self.len)) then
@@ -96,7 +105,9 @@ end
 
 Array.quickPop = Array.quickRemove
 
----@param obj any
+---@generic T
+---@param self objects.Array<T>
+---@param obj T
 ---@return integer?
 function Array:find(obj)
     -- WARNING: Linear search O(n)
@@ -108,7 +119,9 @@ function Array:find(obj)
     return nil
 end
 
----@return objects.Array
+---@generic T
+---@param self objects.Array<T>
+---@return objects.Array<T>
 function Array:clone()
     local newArray = Array()
     for i=1, self.len do
@@ -121,8 +134,10 @@ end
 
 local funcTc = typecheck.assert("table", "function")
 
----@param func fun(item:any):boolean
----@return objects.Array
+---@generic T
+---@param self objects.Array<T>
+---@param func fun(item:T):boolean
+---@return objects.Array<T>
 function Array:filter(func)
     funcTc(self, func)
     local newArray = Array()
@@ -135,8 +150,10 @@ function Array:filter(func)
     return newArray
 end
 
----@param func fun(item:any):any
----@return objects.Array
+---@generic T, U
+---@param self objects.Array<T>
+---@param func fun(item:T):U
+---@return objects.Array<U>
 function Array:map(func)
     funcTc(self, func)
     local newArray = Array()
@@ -149,8 +166,10 @@ function Array:map(func)
     return newArray
 end
 
----@param comparator? fun(a:any,b:any):boolean
----@return objects.Array
+---@generic T
+---@param self objects.Array<T>
+---@param comparator? fun(a:T,b:T):boolean
+---@return objects.Array<T>
 function Array:sortInPlace(comparator)
     table.sort(self, comparator)
     return self

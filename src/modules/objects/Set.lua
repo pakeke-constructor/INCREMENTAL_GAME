@@ -15,12 +15,13 @@ Order is not consistent, and will change quite dynamically.
 
 ]]
 ---Availability: Client and Server
----@class objects.Set<T>: objects.Class
+---@class objects.Set<T>: objects.Class, {[integer]:T}
 local Set = Class("objects:Set")
 
 if false then
-    ---@param initial any[]?
-    ---@return objects.Set
+    ---@generic T
+    ---@param initial (T[]|objects.Set<T>)?
+    ---@return objects.Set<T>
     function Set(initial) end ---@diagnostic disable-line: cast-local-type, missing-return
 end
 
@@ -35,7 +36,9 @@ function Set:init(initial)
 end
 
 ---Clears the Set completely.
----@return objects.Set
+---@generic T
+---@param self objects.Set<T>
+---@return objects.Set<T>
 function Set:clear()
     local obj
     local ptrs = self.pointers
@@ -50,8 +53,10 @@ function Set:clear()
 end
 
 ---Adds an object to the Set
----@param obj any
----@return objects.Set
+---@generic T
+---@param self objects.Set<T>
+---@param obj T
+---@return objects.Set<T>
 function Set:add(obj)
    if self:has(obj) then
       return self
@@ -66,8 +71,10 @@ function Set:add(obj)
    return self
 end
 
----@param other objects.Set
----@return objects.Set
+---@generic T
+---@param self objects.Set<T>
+---@param other objects.Set<T>
+---@return objects.Set<T>
 function Set:intersection(other)
     local newSet = Set()
     for _, v in ipairs(self) do
@@ -78,8 +85,10 @@ function Set:intersection(other)
     return newSet
 end
 
----@param other objects.Set
----@return objects.Set
+---@generic T
+---@param self objects.Set<T>
+---@param other objects.Set<T>
+---@return objects.Set<T>
 function Set:union(other)
     local newSet = Set()
     for _, v in ipairs(other) do
@@ -96,8 +105,10 @@ end
 
 local funcTc = typecheck.assert("table", "function")
 
----@param func fun(item:any):boolean
----@return objects.Set
+---@generic T
+---@param self objects.Set<T>
+---@param func fun(item:T):boolean
+---@return objects.Set<T>
 function Set:filter(func)
     funcTc(self, func)
     local newSet = Set()
@@ -115,8 +126,11 @@ end
 
 ---Removes an object from the Set.
 ---If the object isn't in the Set, returns nil.
----@param obj any
----@return objects.Set?
+---@generic T
+---@param self objects.Set<T>
+---@param obj T
+---@param index integer?
+---@return objects.Set<T>?
 function Set:remove(obj, index)
     if not obj then
         return nil
@@ -153,7 +167,9 @@ end
 Set.size = Set.length -- alias
 
 ---Returns true if the Set contains `obj`, false otherwise.
----@param obj any
+---@generic T
+---@param self objects.Set<T>
+---@param obj T
 ---@return boolean
 function Set:has(obj)
    return self.pointers[obj] and true
@@ -161,13 +177,32 @@ end
 
 Set.contains = Set.has -- alias
 
----@return any[]
+---@generic T
+---@param self objects.Set<T>
+---@return T[]
 function Set:totable()
     local result = {}
     for _, v in ipairs(self) do
         result[#result+1] = v
     end
     return result
+end
+
+---@generic T
+---@param self objects.Set<T>
+---@param other objects.Set<T>
+function Set:equals(other)
+    if self.len ~= other.len then
+        return false
+    end
+
+    for _, v in ipairs(other) do
+        if not self:has(v) then
+            return false
+        end
+    end
+
+    return true
 end
 
 return Set

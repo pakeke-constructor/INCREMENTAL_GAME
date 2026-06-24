@@ -7,6 +7,7 @@ local cloudService = require(".cloud_service")
 local newLightWorld = require("src.modules.lighting.lighting")
 
 local rewards = require("src.rewards.rewards")
+local noSteamRewards = require("src.cosmetics.no_steam_rewards")
 
 
 
@@ -1285,6 +1286,10 @@ function harvest:update(dt)
     -- Update cloud
     if not (g.isBeingSimulated() or consts.IS_MOBILE) then
         cloudService.update(dt, self.camera)
+    end
+
+    if not sn.paused then
+        noSteamRewards.update(dt)
     end
 end
 

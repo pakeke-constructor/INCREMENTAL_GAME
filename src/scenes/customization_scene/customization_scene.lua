@@ -479,9 +479,9 @@ function custom:_drawCosmeticUI(bot)
         g.gotoSceneViaMap("chest_scene")
     end
 
-    if ui.Button(OPEN_INV, C1,C2, openInv:padUnit(5)) then
-        local luasteam = Steam.getSteam()
-        if luasteam then
+    local luasteam = Steam.getSteam()
+    if luasteam then
+        if ui.Button(OPEN_INV, C1,C2, openInv:padUnit(5)) then
             local steamid = tostring(luasteam.user.getSteamID())
             local appid = luasteam.utils.getAppID()
             love.system.openURL("steam://openurl/https://steamcommunity.com/profiles/"..steamid.."/inventory/#"..appid)

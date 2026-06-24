@@ -19,6 +19,7 @@ objects.Color = require(".Color")
 objects.Spring = require(".Color")
 objects.Grid = require(".Grid")
 objects.Partition = require(".Partition")
+objects.RingBuffer = require(".RingBuffer")
 
 
 --- Checks if a value is callable

@@ -5,6 +5,10 @@ local consts = {
 
     DEV_MODE = not not (love.filesystem.getInfo(".git", "directory") and os.getenv("DISABLE_DEV_MODE") ~= "1"),
     SHOW_DEV_STUFF = false, -- can be toggled on/off (eg for screenshots)
+    NO_STEAM = love.filesystem.getInfo("no_steam.txt", "file") and
+        -- Above check for the file existence
+        -- And below ensure the file is really added through fused, and not in save directory.
+        love.filesystem.getRealDirectory("no_steam.txt") == love.filesystem.getSource(),
 
     EMULATE_TOUCH = os.getenv("INCREMENTAL_GAME_EMULATE_TOUCH") == "1", -- Set later
     IS_MOBILE = false, -- Set later
@@ -62,6 +66,7 @@ local consts = {
     -- Make sure to sync these 2 with `tooling/make_cosmetics.py`
     STEAM_CHEST_ITEMDEFID = 1,
     STEAM_CHEST_GENERATOR_ITEMDEFID = 2, -- CHEST_GENERATOR_ITEMDEF_ID = CHEST_ITEMDEF_ID + 1
+    NO_STEAM_CHEST_PLAYTIME_SECONDS = 15 * 60,
 
     ORBIT_RING_DISTANCE = 20, -- Radius of each orbit ring.
 
