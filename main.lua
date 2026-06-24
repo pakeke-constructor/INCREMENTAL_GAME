@@ -199,6 +199,7 @@ TESTS END
 
 local sceneManager = require("src.scenes.sceneManager")
 local cosmetics = require("src.cosmetics.cosmetics")
+local noSteamRewards = require("src.cosmetics.no_steam_rewards")
 local SteamTicket = require("src.steam.ticket")
 local SteamInventory = require("src.steam.inventory")
 local User = require("src.user")
@@ -277,6 +278,7 @@ function love.quit()
     g.saveAndInvalidateSession()
     asynchttp.finish()
     Steam.shutdown()
+    noSteamRewards.quit()
     log.info("love.quit done.")
 end
 
@@ -498,4 +500,3 @@ function love.filedropped(file)
         sc:filedropped(file)
     end
 end
-
